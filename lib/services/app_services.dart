@@ -260,4 +260,38 @@ class AppServices {
       }).toList();
     });
   }
+
+  // Clear Tip Wallet
+  static Future<bool> clearTippingAmount(String agentId) async {
+    try {
+      await AppFirestore.tippingCollectionRef.doc(agentId).update({
+        'totalTip': 0.0,
+        'lastTipAmount': 0.0,
+      });
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error clearing tipping amount: $e');
+      }
+      return false;
+    }
+  }
+
+  static Future<bool> approveOrRejectAgent(
+    String agentId,
+    bool isApproved,
+  ) async {
+    try {
+      await AppFirestore.usersCollectionRef.doc(agentId).update({
+        'isVerified': isApproved,
+        'updatedAt': Timestamp.now(),
+      });
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error approving/rejecting agent: $e');
+      }
+      return false;
+    }
+  }
 }

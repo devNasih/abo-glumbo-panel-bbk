@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:flutter/material.dart';
 
@@ -15,6 +16,56 @@ class AgentTileMinimal extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onApprovalToggle;
 
+  Future<void> _showApprovalDialog(BuildContext context) async {
+    final bool approve =
+        !isVerified; // If currently not verified, we're approving
+
+    final bool? result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        final TextTheme textTheme = Theme.of(context).textTheme;
+        return AlertDialog(
+          title: Text(
+            (approve
+                    ? AppLocalizations.of(
+                        context,
+                      )?.areYouSureYouWantToApproveAgent
+                    : AppLocalizations.of(
+                        context,
+                      )?.areYouSureYouWantToDisapproveAgent) ??
+                (approve
+                    ? "Are you sure you want to approve this agent?"
+                    : "Are you sure you want to disapprove this agent?"),
+            style: textTheme.titleMedium,
+          ),
+          content: Text(
+            "Agent: ${user.name ?? 'No Name'}\nEmail: ${user.email ?? 'No Email'}",
+            style: textTheme.bodyMedium,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: Text(AppLocalizations.of(context)?.cancel ?? "Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: Text(AppLocalizations.of(context)?.yesText ?? "Yes"),
+            ),
+          ],
+        );
+      },
+    );
+
+    // If user confirmed, execute the original callback
+    if (result == true && onApprovalToggle != null) {
+      onApprovalToggle!();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListTile(
@@ -22,16 +73,14 @@ class AgentTileMinimal extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: isVerified 
-            ? Colors.green.withOpacity(0.1)
-            : Colors.orange.withOpacity(0.1),
+          color: isVerified
+              ? Colors.green.withOpacity(0.1)
+              : Colors.orange.withOpacity(0.1),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Icon(
           isVerified ? Icons.verified_user : Icons.pending,
-          color: isVerified 
-            ? Colors.green.shade800 
-            : Colors.orange.shade800,
+          color: isVerified ? Colors.green.shade800 : Colors.orange.shade800,
         ),
       ),
       title: Text(
@@ -52,17 +101,17 @@ class AgentTileMinimal extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: isVerified 
-                ? Colors.green.withOpacity(0.1)
-                : Colors.orange.withOpacity(0.1),
+              color: isVerified
+                  ? Colors.green.withOpacity(0.1)
+                  : Colors.orange.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               isVerified ? 'Verified' : 'Pending',
               style: TextStyle(
-                color: isVerified 
-                  ? Colors.green.shade800
-                  : Colors.orange.shade800,
+                color: isVerified
+                    ? Colors.green.shade800
+                    : Colors.orange.shade800,
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
               ),
@@ -72,12 +121,12 @@ class AgentTileMinimal extends StatelessWidget {
       ),
       onTap: onTap,
       trailing: IconButton(
-        onPressed: onApprovalToggle,
+        onPressed: () => _showApprovalDialog(context),
         icon: Icon(
           isVerified ? Icons.block : Icons.approval,
-          color: isVerified 
-            ? Colors.red.shade600
-            : Theme.of(context).primaryColor,
+          color: isVerified
+              ? Colors.red.shade600
+              : Theme.of(context).primaryColor,
         ),
         tooltip: isVerified ? 'Revoke Approval' : 'Approve Agent',
       ),

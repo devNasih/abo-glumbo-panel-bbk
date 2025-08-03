@@ -1,6 +1,7 @@
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/service.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/services/edit_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -60,7 +61,13 @@ class ServiceTileDevWidget extends StatelessWidget {
                         width: 40,
                         height: 40,
                         child: IconButton(
-                          onPressed: () {},
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  EditServices(service: service),
+                            ),
+                          ),
                           icon: const Icon(Icons.edit, size: 18),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(

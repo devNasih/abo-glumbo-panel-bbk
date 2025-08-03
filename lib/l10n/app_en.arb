@@ -405,5 +405,6 @@
   "directions":"Directions",
   "images":"Images",
   "video":"Video",
+  "walletClearedSuccessfully":"Wallet cleared successfully",
   "failedToSendNotification": "Failed to send notification to customer"
 }

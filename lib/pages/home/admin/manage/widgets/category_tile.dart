@@ -1,5 +1,6 @@
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/models/categories.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/categories/add_new_categories.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -58,9 +59,12 @@ class CategoryTileDevWidget extends StatelessWidget {
             ),
           ),
           TextButton(
-            onPressed: () {
-              // context.push(AppRoutes.devEditCategory, extra: widget.category);
-            },
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddNewCategories(category: category),
+              ),
+            ),
             child: const Icon(Icons.edit),
           ),
         ],

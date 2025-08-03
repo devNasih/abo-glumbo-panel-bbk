@@ -2531,6 +2531,12 @@ abstract class AppLocalizations {
   /// **'Video'**
   String get video;
 
+  /// No description provided for @walletClearedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet cleared successfully'**
+  String get walletClearedSuccessfully;
+
   /// No description provided for @failedToSendNotification.
   ///
   /// In en, this message translates to:

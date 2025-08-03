@@ -1227,5 +1227,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get video => 'Video';
 
   @override
+  String get walletClearedSuccessfully => 'Wallet cleared successfully';
+
+  @override
   String get failedToSendNotification => 'Failed to send notification to customer';
 }
