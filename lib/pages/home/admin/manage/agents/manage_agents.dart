@@ -15,14 +15,15 @@ class ManageAgents extends StatelessWidget {
     return BlocListener<ManageAppBloc, ManageAppState>(
       listener: (context, state) {
         if (state is AgentApproved) {
-          // Show a snackbar or dialog based on the approval result
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 state.isApproved
-                    ? 'Agent approved successfully.'
-                    : 'Agent disapproved successfully.',
+                    ? AppLocalizations.of(context)!.agentApproved
+                    : AppLocalizations.of(context)!.agentDisapproved,
               ),
+              duration: const Duration(seconds: 2),
+              backgroundColor: state.isApproved ? Colors.green : Colors.red,
             ),
           );
         }
@@ -36,10 +37,16 @@ class ManageAgents extends StatelessWidget {
               return Center(child: Loader(size: 50));
             }
             if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
+              return Center(
+                child: Text(
+                  '${AppLocalizations.of(context)!.error}: ${snapshot.error}',
+                ),
+              );
             }
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(child: Text('No agents found.'));
+              return Center(
+                child: Text(AppLocalizations.of(context)!.noAgentsFound),
+              );
             }
 
             final agents = snapshot.data!;

@@ -2537,6 +2537,174 @@ abstract class AppLocalizations {
   /// **'Wallet cleared successfully'**
   String get walletClearedSuccessfully;
 
+  /// No description provided for @biometricNotSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric not supported'**
+  String get biometricNotSupported;
+
+  /// No description provided for @pleaseAuthenticateToContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Please authenticate to continue'**
+  String get pleaseAuthenticateToContinue;
+
+  /// No description provided for @authenticationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication failed'**
+  String get authenticationFailed;
+
+  /// No description provided for @biometricNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric not available'**
+  String get biometricNotAvailable;
+
+  /// No description provided for @biometricTemporarilyLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric temporarily locked'**
+  String get biometricTemporarilyLocked;
+
+  /// No description provided for @unexpectedErrorOccurred.
+  ///
+  /// In en, this message translates to:
+  /// **'Unexpected error occurred'**
+  String get unexpectedErrorOccurred;
+
+  /// No description provided for @ago.
+  ///
+  /// In en, this message translates to:
+  /// **'Ago'**
+  String get ago;
+
+  /// No description provided for @personalInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Information'**
+  String get personalInformation;
+
+  /// No description provided for @country.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get country;
+
+  /// No description provided for @languageCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Language Code'**
+  String get languageCode;
+
+  /// No description provided for @accountStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Status'**
+  String get accountStatus;
+
+  /// No description provided for @adminStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Status'**
+  String get adminStatus;
+
+  /// No description provided for @verified.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get verified;
+
+  /// No description provided for @systemInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'System Information'**
+  String get systemInformation;
+
+  /// No description provided for @userId.
+  ///
+  /// In en, this message translates to:
+  /// **'User ID'**
+  String get userId;
+
+  /// No description provided for @updatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated At'**
+  String get updatedAt;
+
+  /// No description provided for @admin.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get admin;
+
+  /// No description provided for @assignedRoles.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned Roles'**
+  String get assignedRoles;
+
+  /// No description provided for @noAgentsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No agents found'**
+  String get noAgentsFound;
+
+  /// No description provided for @agentApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Agent Approved'**
+  String get agentApproved;
+
+  /// No description provided for @agentDisapproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Agent Disapproved'**
+  String get agentDisapproved;
+
+  /// No description provided for @deleteBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Banner'**
+  String get deleteBanner;
+
+  /// No description provided for @invalidImageUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid Image URL'**
+  String get invalidImageUrl;
+
+  /// No description provided for @imageLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Image load error'**
+  String get imageLoadError;
+
+  /// No description provided for @imageCropError.
+  ///
+  /// In en, this message translates to:
+  /// **'Image crop error'**
+  String get imageCropError;
+
+  /// No description provided for @errorAddingCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Error adding category'**
+  String get errorAddingCategory;
+
+  /// No description provided for @errorUpdatingCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Error updating category'**
+  String get errorUpdatingCategory;
+
+  /// No description provided for @assign.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign'**
+  String get assign;
+
   /// No description provided for @failedToSendNotification.
   ///
   /// In en, this message translates to:

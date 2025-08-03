@@ -1230,5 +1230,89 @@ class AppLocalizationsEn extends AppLocalizations {
   String get walletClearedSuccessfully => 'Wallet cleared successfully';
 
   @override
+  String get biometricNotSupported => 'Biometric not supported';
+
+  @override
+  String get pleaseAuthenticateToContinue => 'Please authenticate to continue';
+
+  @override
+  String get authenticationFailed => 'Authentication failed';
+
+  @override
+  String get biometricNotAvailable => 'Biometric not available';
+
+  @override
+  String get biometricTemporarilyLocked => 'Biometric temporarily locked';
+
+  @override
+  String get unexpectedErrorOccurred => 'Unexpected error occurred';
+
+  @override
+  String get ago => 'Ago';
+
+  @override
+  String get personalInformation => 'Personal Information';
+
+  @override
+  String get country => 'Country';
+
+  @override
+  String get languageCode => 'Language Code';
+
+  @override
+  String get accountStatus => 'Account Status';
+
+  @override
+  String get adminStatus => 'Admin Status';
+
+  @override
+  String get verified => 'Verified';
+
+  @override
+  String get systemInformation => 'System Information';
+
+  @override
+  String get userId => 'User ID';
+
+  @override
+  String get updatedAt => 'Updated At';
+
+  @override
+  String get admin => 'Admin';
+
+  @override
+  String get assignedRoles => 'Assigned Roles';
+
+  @override
+  String get noAgentsFound => 'No agents found';
+
+  @override
+  String get agentApproved => 'Agent Approved';
+
+  @override
+  String get agentDisapproved => 'Agent Disapproved';
+
+  @override
+  String get deleteBanner => 'Delete Banner';
+
+  @override
+  String get invalidImageUrl => 'Invalid Image URL';
+
+  @override
+  String get imageLoadError => 'Image load error';
+
+  @override
+  String get imageCropError => 'Image crop error';
+
+  @override
+  String get errorAddingCategory => 'Error adding category';
+
+  @override
+  String get errorUpdatingCategory => 'Error updating category';
+
+  @override
+  String get assign => 'Assign';
+
+  @override
   String get failedToSendNotification => 'Failed to send notification to customer';
 }

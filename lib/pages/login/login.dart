@@ -5,9 +5,13 @@ import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:local_auth/error_codes.dart' as local_auth_error;
+import 'package:local_auth/local_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -22,10 +26,18 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool rememberMe = false;
+  bool isCheckUserEnableTwoStepVerification = false;
+  String? customerLastUid;
+  bool isUserLogout = false;
 
   @override
   void initState() {
     super.initState();
+    customerLastUid = LocalStore.getUID();
+    isCheckUserEnableTwoStepVerification = LocalStore.getBiometricAuthEnabled(
+      customerLastUid ?? '',
+    );
+    isUserLogout = LocalStore.getLogoutStatus();
     if (LocalStore.getRememberMe()) {
       rememberMe = true;
       emailController.text = LocalStore.getRememberedEmail() ?? '';
@@ -38,9 +50,99 @@ class _LoginPageState extends State<LoginPage> {
     // if (kDebugMode) {
     // emailController.text = "adnanyousufpangat@gmail.com";
     // passwordController.text = "qwertyuiop";
-      emailController.text = "admin@abogalambo.app";
-      passwordController.text = "testPassword";
+    emailController.text = "admin@abogalambo.app";
+    passwordController.text = "testPassword";
     // }
+  }
+
+  void _byPassUsingBioAuth(BuildContext context) async {
+    final auth = LocalAuthentication();
+    try {
+      bool canCheckBiometrics = await auth.canCheckBiometrics;
+      bool isDeviceSupported = await auth.isDeviceSupported();
+
+      if (!canCheckBiometrics || !isDeviceSupported) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.biometricNotSupported ??
+                  'Biometric authentication is not supported on this device.',
+            ),
+          ),
+        );
+        return;
+      }
+
+      final bool didAuthenticate = await auth.authenticate(
+        localizedReason:
+            AppLocalizations.of(context)?.pleaseAuthenticateToContinue ??
+            'Please authenticate to continue',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+        ),
+      );
+
+      if (didAuthenticate) {
+        if (FirebaseAuth.instance.currentUser == null) {
+          await FirebaseAuth.instance.signInAnonymously();
+        }
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Home(byPassUid: customerLastUid),
+          ),
+          (route) => false,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.authenticationFailed ??
+                  '❌ Authentication failed',
+            ),
+          ),
+        );
+      }
+    } on PlatformException catch (exception) {
+      String message = '';
+      switch (exception.code) {
+        case local_auth_error.notAvailable:
+        case local_auth_error.passcodeNotSet:
+        case local_auth_error.notEnrolled:
+          message =
+              AppLocalizations.of(context)?.biometricNotAvailable ??
+              '❌ Biometric authentication is not available on this device.';
+          break;
+        case local_auth_error.lockedOut:
+        case local_auth_error.permanentlyLockedOut:
+          message =
+              AppLocalizations.of(context)?.biometricTemporarilyLocked ??
+              '🔒 Too many failed attempts. Biometric is temporarily locked.';
+          break;
+        default:
+          if (exception.message?.toLowerCase().contains('canceled') == true) {
+            return;
+          }
+          message =
+              '❌ Biometric error: ${exception.message ?? 'Unknown error'}';
+      }
+
+      if (message.isNotEmpty) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)?.unexpectedErrorOccurred ??
+                '❌ Unexpected error occurred',
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -322,15 +424,18 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ],
                 ),
-                GestureDetector(
-                  onTap: () {},
-                  child: Image.asset(
-                    'assets/images/fingerPrint.png',
-                    color: Colors.white,
-                    width: 54,
-                    height: 54,
+                if (isCheckUserEnableTwoStepVerification &&
+                    isUserLogout &&
+                    customerLastUid != null)
+                  GestureDetector(
+                    onTap: () => _byPassUsingBioAuth(context),
+                    child: Image.asset(
+                      'assets/images/fingerPrint.png',
+                      color: Colors.white,
+                      width: 54,
+                      height: 54,
+                    ),
                   ),
-                ),
                 Padding(
                   padding: const EdgeInsets.only(top: 30.0),
                   child: SizedBox(

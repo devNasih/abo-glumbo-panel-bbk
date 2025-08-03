@@ -19,7 +19,11 @@ class ManageCategories extends StatelessWidget {
             return Center(child: Loader(size: 50));
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(
+              child: Text(
+                '${AppLocalizations.of(context)!.error}: ${snapshot.error}',
+              ),
+            );
           }
           final categories = snapshot.data ?? [];
           return ListView.builder(

@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/tipping.dart';
 import 'package:flutter/material.dart';
 
@@ -6,13 +7,11 @@ class TipsTileCompact extends StatelessWidget {
     super.key,
     required this.tip,
     this.onTap,
-    this.currencySymbol = 'SAR',
     this.formatLastUpdated,
   });
 
   final TippingModel tip;
   final VoidCallback? onTap;
-  final String currencySymbol;
   final String Function(DateTime?)? formatLastUpdated;
 
   @override
@@ -31,10 +30,7 @@ class TipsTileCompact extends StatelessWidget {
             offset: const Offset(0, 2),
           ),
         ],
-        border: Border.all(
-          color: Colors.grey.withOpacity(0.1),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.grey.withOpacity(0.1), width: 1),
       ),
       child: Material(
         color: Colors.transparent,
@@ -50,26 +46,10 @@ class TipsTileCompact extends StatelessWidget {
                 _buildAvatar(hasPositiveTip),
                 const SizedBox(width: 16),
                 // Agent Info Section
-                Expanded(
-                  child: _buildAgentInfo(context),
-                ),
+                Expanded(child: _buildAgentInfo(context)),
                 const SizedBox(width: 12),
                 // Tip Amount Badge
-                _buildTipBadge(hasPositiveTip),
-                const SizedBox(width: 8),
-                // Chevron Icon
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Icon(
-                    Icons.chevron_right,
-                    color: Colors.grey.shade600,
-                    size: 18,
-                  ),
-                ),
+                _buildTipBadge(hasPositiveTip, context),
               ],
             ),
           ),
@@ -93,8 +73,9 @@ class TipsTileCompact extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: (hasPositiveTip ? Colors.green : Colors.blue)
-                .withOpacity(0.3),
+            color: (hasPositiveTip ? Colors.green : Colors.blue).withOpacity(
+              0.3,
+            ),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -129,16 +110,12 @@ class TipsTileCompact extends StatelessWidget {
         // Last Updated with Icon
         Row(
           children: [
-            Icon(
-              Icons.access_time,
-              size: 14,
-              color: Colors.grey.shade500,
-            ),
+            Icon(Icons.access_time, size: 14, color: Colors.grey.shade500),
             const SizedBox(width: 4),
             Expanded(
               child: Text(
-                formatLastUpdated?.call(tip.lastUpdated) ?? 
-                _getDefaultFormattedDate(),
+                formatLastUpdated?.call(tip.lastUpdated) ??
+                    _getDefaultFormattedDate(context),
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey.shade600,
@@ -155,11 +132,7 @@ class TipsTileCompact extends StatelessWidget {
           const SizedBox(height: 4),
           Row(
             children: [
-              Icon(
-                Icons.phone,
-                size: 14,
-                color: Colors.grey.shade500,
-              ),
+              Icon(Icons.phone, size: 14, color: Colors.grey.shade500),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
@@ -180,7 +153,7 @@ class TipsTileCompact extends StatelessWidget {
     );
   }
 
-  Widget _buildTipBadge(bool hasPositiveTip) {
+  Widget _buildTipBadge(bool hasPositiveTip, BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -197,15 +170,14 @@ class TipsTileCompact extends StatelessWidget {
               ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: hasPositiveTip 
-              ? Colors.green.shade300
-              : Colors.grey.shade300,
+          color: hasPositiveTip ? Colors.green.shade300 : Colors.grey.shade300,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: (hasPositiveTip ? Colors.green : Colors.grey)
-                .withOpacity(0.1),
+            color: (hasPositiveTip ? Colors.green : Colors.grey).withOpacity(
+              0.1,
+            ),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -215,10 +187,10 @@ class TipsTileCompact extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            "Total Tips",
+            AppLocalizations.of(context)!.totalTips,
             style: TextStyle(
               fontSize: 10,
-              color: hasPositiveTip 
+              color: hasPositiveTip
                   ? Colors.green.shade600
                   : Colors.grey.shade600,
               fontWeight: FontWeight.w500,
@@ -226,11 +198,11 @@ class TipsTileCompact extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            "$currencySymbol ${tip.totalTip?.toStringAsFixed(2) ?? '0.00'}",
+            "${AppLocalizations.of(context)!.sar} ${tip.totalTip?.toStringAsFixed(2) ?? '0.00'}",
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: hasPositiveTip 
+              color: hasPositiveTip
                   ? Colors.green.shade700
                   : Colors.grey.shade700,
             ),
@@ -240,22 +212,22 @@ class TipsTileCompact extends StatelessWidget {
     );
   }
 
-  String _getDefaultFormattedDate() {
+  String _getDefaultFormattedDate(BuildContext context) {
     if (tip.lastUpdated == null) return 'No date';
-    
+
     final now = DateTime.now();
     final difference = now.difference(tip.lastUpdated!);
-    
+
     if (difference.inDays > 7) {
       return '${tip.lastUpdated!.day}/${tip.lastUpdated!.month}/${tip.lastUpdated!.year}';
     } else if (difference.inDays > 0) {
-      return '${difference.inDays} day${difference.inDays > 1 ? 's' : ''} ago';
+      return '${difference.inDays} ${AppLocalizations.of(context)!.day}${difference.inDays > 1 ? 's' : ''} ${AppLocalizations.of(context)!.ago}';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours} hour${difference.inHours > 1 ? 's' : ''} ago';
+      return '${difference.inHours} ${AppLocalizations.of(context)!.hour}${difference.inHours > 1 ? 's' : ''} ${AppLocalizations.of(context)!.ago}';
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} min${difference.inMinutes > 1 ? 's' : ''} ago';
+      return '${difference.inMinutes} ${AppLocalizations.of(context)!.minute}${difference.inMinutes > 1 ? 's' : ''} ${AppLocalizations.of(context)!.ago}';
     } else {
-      return 'Just now';
+      return AppLocalizations.of(context)!.justNow;
     }
   }
 }

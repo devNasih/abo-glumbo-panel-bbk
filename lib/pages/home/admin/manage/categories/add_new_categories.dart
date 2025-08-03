@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:aboglumbo_bbk_panel/common_widget/crop_confirm_dialog.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/removable_image.dart';
@@ -57,9 +55,14 @@ class _AddNewCategoriesState extends State<AddNewCategories> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to pick image')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.imageLoadError ??
+                  'Error picking image',
+            ),
+          ),
+        );
       }
     }
   }
@@ -108,9 +111,14 @@ class _AddNewCategoriesState extends State<AddNewCategories> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to crop image')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.imageCropError ??
+                  'Error cropping image',
+            ),
+          ),
+        );
       }
     }
   }
@@ -188,12 +196,19 @@ class _AddNewCategoriesState extends State<AddNewCategories> {
           Navigator.of(context).pop();
         } else if (state is CategoryAddError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error adding category: ${state.error}')),
+            SnackBar(
+              content: Text(
+                '${AppLocalizations.of(context)?.errorAddingCategory ?? 'Error adding category'}: ${state.error}',
+              ),
+            ),
           );
         } else if (state is CategoryUpdateError) {
-          log('Error updating category: ${state.error}');
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error updating category: ${state.error}')),
+            SnackBar(
+              content: Text(
+                '${AppLocalizations.of(context)?.errorUpdatingCategory ?? 'Error updating category'}: ${state.error}',
+              ),
+            ),
           );
         }
       },

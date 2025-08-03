@@ -70,4 +70,18 @@ class LocalStore {
   static String getUserlanguage() {
     return MyApp.box.get('user_language', defaultValue: 'en');
   }
+
+  // Biometric
+  static Future<bool> setBiometricAuthEnabled(
+    bool isEnabled,
+    String uid,
+  ) async {
+    await MyApp.box.put('biometric_auth_enabled_$uid', isEnabled);
+    return true;
+  }
+
+  static bool getBiometricAuthEnabled(String uid) {
+    return MyApp.box.get('biometric_auth_enabled_$uid', defaultValue: false) ??
+        false;
+  }
 }

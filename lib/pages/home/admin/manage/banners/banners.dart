@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/banner.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/banners/add_banner.dart';
@@ -37,11 +38,15 @@ class ManageBanners extends StatelessWidget {
           stream: AppServices.getAllBannersStream(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
+              return Center(child: Loader(size: 50));
             }
 
             if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
+              return Center(
+                child: Text(
+                  '${AppLocalizations.of(context)?.error}: ${snapshot.error}',
+                ),
+              );
             }
 
             final banners = snapshot.data ?? [];
@@ -80,14 +85,17 @@ class ManageBanners extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Delete Banner'),
-          content: const Text(
-            'Are you sure you want to delete this banner? This action cannot be undone.',
+          title: Text(
+            AppLocalizations.of(context)?.deleteBanner ?? 'Delete Banner',
+          ),
+          content: Text(
+            AppLocalizations.of(context)?.deleteBannerConfirmation ??
+                'Are you sure you want to delete this banner? This action cannot be undone.',
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
             ),
             TextButton(
               onPressed: () {
@@ -97,7 +105,7 @@ class ManageBanners extends StatelessWidget {
                 );
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Delete'),
+              child: Text(AppLocalizations.of(context)?.delete ?? 'Delete'),
             ),
           ],
         );

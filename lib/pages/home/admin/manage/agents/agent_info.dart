@@ -1,14 +1,24 @@
+import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AgentInfo extends StatelessWidget {
   final UserModel agent;
-  const AgentInfo({super.key, required this.agent});
+  AgentInfo({super.key, required this.agent});
 
-  // Custom theme colors
   static Color primary = const Color(0xFF0A2463);
   static Color secondary = const Color(0xFF0081FA);
+
+  final Map<String, Map<String, String>> jobCategories = {
+    'plumbing': {'en': 'Plumbing', 'ar': 'السباكة'},
+    'ac': {'en': 'A/C', 'ar': 'تكييف الهواء'},
+    'cleaning': {'en': 'Cleaning', 'ar': 'التنظيف'},
+    'electrician': {'en': 'Electrician', 'ar': 'كهربائي'},
+    'flooring': {'en': 'Flooring', 'ar': 'الأرضيات'},
+    'painter': {'en': 'Painter', 'ar': 'دهان'},
+    'other': {'en': 'Other', 'ar': 'أخرى'},
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -24,41 +34,96 @@ class AgentInfo extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Profile Header
-            _buildProfileHeader(),
+            _buildProfileHeader(context),
             const SizedBox(height: 24),
-
-            // Personal Information
-            _buildSectionCard('Personal Information', Icons.person, [
-              _buildInfoRow('Name', agent.name),
-              _buildInfoRow('Email', agent.email),
-              _buildInfoRow('Phone', agent.phone),
-              _buildInfoRow('Country', agent.country),
-              _buildInfoRow('District', agent.districtName),
-              _buildInfoRow('Language Code', agent.lanCode),
-            ]),
+            _buildSectionCard(
+              AppLocalizations.of(context)!.personalInformation,
+              Icons.person,
+              [
+                _buildInfoRow(
+                  AppLocalizations.of(context)!.name,
+                  agent.name,
+                  context,
+                ),
+                _buildInfoRow(
+                  AppLocalizations.of(context)!.email,
+                  agent.email,
+                  context,
+                ),
+                _buildInfoRow(
+                  AppLocalizations.of(context)!.phone,
+                  agent.phone,
+                  context,
+                ),
+                _buildInfoRow(
+                  AppLocalizations.of(context)!.country,
+                  agent.country,
+                  context,
+                ),
+                _buildInfoRow(
+                  AppLocalizations.of(context)!.district,
+                  agent.districtName,
+                  context,
+                ),
+                _buildInfoRow(
+                  AppLocalizations.of(context)!.languageCode,
+                  agent.lanCode,
+                  context,
+                ),
+              ],
+            ),
 
             const SizedBox(height: 16),
 
-            // Account Status
-            _buildSectionCard('Account Status', Icons.verified_user, [
-              _buildStatusRow('Admin Status', agent.isAdmin ?? false),
-              _buildStatusRow('Verified', agent.isVerified ?? false),
-            ]),
+            _buildSectionCard(
+              AppLocalizations.of(context)!.accountStatus,
+              Icons.verified_user,
+              [
+                _buildStatusRow(
+                  AppLocalizations.of(context)!.adminStatus,
+                  agent.isAdmin ?? false,
+                  context,
+                ),
+                _buildStatusRow(
+                  AppLocalizations.of(context)!.verified,
+                  agent.isVerified ?? false,
+                  context,
+                ),
+              ],
+            ),
 
             const SizedBox(height: 16),
 
-            // Job Information
             if (agent.jobRoles != null && agent.jobRoles!.isNotEmpty)
-              _buildSectionCard('Job Roles', Icons.work, [_buildJobRoles()]),
+              _buildSectionCard(
+                AppLocalizations.of(context)!.jobRoles,
+                Icons.work,
+                [_buildJobRoles(context)],
+              ),
 
             const SizedBox(height: 16),
 
-            _buildSectionCard('System Information', Icons.info, [
-              _buildInfoRow('User ID', agent.uid),
-              _buildInfoRow('Created At', _formatTimestamp(agent.createdAt)),
-              _buildInfoRow('Updated At', _formatTimestamp(agent.updatedAt)),
-            ]),
+            _buildSectionCard(
+              AppLocalizations.of(context)!.systemInformation,
+              Icons.info,
+              [
+                _buildInfoRow(
+                  AppLocalizations.of(context)!.userId,
+                  agent.uid,
+                  context,
+                ),
+                _buildInfoRow(
+                  AppLocalizations.of(context)!.createdAt,
+                  _formatTimestamp(agent.createdAt),
+                  context,
+                ),
+                _buildInfoRow(
+                  AppLocalizations.of(context)!.updatedAt,
+                  _formatTimestamp(agent.updatedAt),
+                  context,
+                ),
+              ],
+            ),
             const SizedBox(height: 16),
           ],
         ),
@@ -66,7 +131,7 @@ class AgentInfo extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader() {
+  Widget _buildProfileHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -129,8 +194,8 @@ class AgentInfo extends StatelessWidget {
                           color: Colors.orange,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text(
-                          'ADMIN',
+                        child: Text(
+                          AppLocalizations.of(context)!.admin,
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -149,8 +214,8 @@ class AgentInfo extends StatelessWidget {
                           color: Colors.green,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text(
-                          'VERIFIED',
+                        child: Text(
+                          AppLocalizations.of(context)!.verified,
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -199,7 +264,7 @@ class AgentInfo extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(String label, String? value) {
+  Widget _buildInfoRow(String label, String? value, BuildContext context) {
     if (value == null || value.isEmpty) return const SizedBox.shrink();
 
     return Padding(
@@ -228,7 +293,7 @@ class AgentInfo extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusRow(String label, bool status) {
+  Widget _buildStatusRow(String label, bool status, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -263,7 +328,9 @@ class AgentInfo extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  status ? 'Yes' : 'No',
+                  status
+                      ? AppLocalizations.of(context)!.yes
+                      : AppLocalizations.of(context)!.no,
                   style: TextStyle(
                     color: status ? Colors.green.shade800 : Colors.red.shade800,
                     fontWeight: FontWeight.w600,
@@ -277,12 +344,14 @@ class AgentInfo extends StatelessWidget {
     );
   }
 
-  Widget _buildJobRoles() {
+  Widget _buildJobRoles(BuildContext context) {
+    final currentLocale = Localizations.localeOf(context).languageCode;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Assigned Roles',
+        Text(
+          AppLocalizations.of(context)!.assignedRoles,
           style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey),
         ),
         const SizedBox(height: 8),
@@ -302,7 +371,7 @@ class AgentInfo extends StatelessWidget {
                     border: Border.all(color: secondary.withOpacity(0.3)),
                   ),
                   child: Text(
-                    role,
+                    _getLocalizedJobCategory(role, currentLocale),
                     style: TextStyle(
                       color: primary,
                       fontWeight: FontWeight.w500,
@@ -321,17 +390,12 @@ class AgentInfo extends StatelessWidget {
     final date = timestamp.toDate();
     return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
-}
 
-// You'll need these model classes as well if not already defined
-class LocationModel {
-  // Add your location model properties here
-  @override
-  String toString() => 'Location Data Available';
-}
+  String _getLocalizedJobCategory(String jobKey, String locale) {
+    if (jobCategories.containsKey(jobKey.toLowerCase())) {
+      return jobCategories[jobKey.toLowerCase()]![locale] ?? jobKey;
+    }
 
-class LiveLocation {
-  // Add your live location model properties here
-  @override
-  String toString() => 'Live Location Available';
+    return jobKey;
+  }
 }

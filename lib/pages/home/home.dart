@@ -14,7 +14,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  final String? byPassUid;
+  const Home({super.key, this.byPassUid});
 
   @override
   State<Home> createState() => _HomeState();
@@ -26,7 +27,14 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     NotificationServices.initializeFCM();
+    if (widget.byPassUid != null && widget.byPassUid!.isNotEmpty) {
+      _handleBypassLogin();
+    }
     super.initState();
+  }
+
+  void _handleBypassLogin() {
+    context.read<LoginBloc>().add(LoadWorkerData(uid: widget.byPassUid!));
   }
 
   @override
@@ -34,7 +42,6 @@ class _HomeState extends State<Home> {
     final locale = AppLocalizations.of(context);
     return BlocBuilder<LoginBloc, LoginState>(
       builder: (context, state) {
-        // Handle error state with retry option to go back to splash
         if (state is LoginLoadWorkerDataFailure) {
           return Scaffold(
             body: Center(
@@ -44,7 +51,6 @@ class _HomeState extends State<Home> {
                   Text('Error: ${state.error}'),
                   ElevatedButton(
                     onPressed: () {
-                      // Go back to splash to reload
                       Navigator.pushNamedAndRemoveUntil(
                         context,
                         '/',
@@ -59,14 +65,12 @@ class _HomeState extends State<Home> {
           );
         }
 
-        // Get user data from loaded state
         UserModel userData;
         if (state is LoginSuccess) {
           userData = state.user;
         } else if (state is LoginLoadWorkerData) {
           userData = state.user;
         } else {
-          // This shouldn't happen if we're coming from splash, but just in case
           return Scaffold(
             body: Center(child: Loader(color: AppColors.black2)),
           );

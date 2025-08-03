@@ -1230,5 +1230,89 @@ class AppLocalizationsAr extends AppLocalizations {
   String get walletClearedSuccessfully => 'تم مسح المحفظة بنجاح';
 
   @override
+  String get biometricNotSupported => 'البيوميتريك غير مدعوم';
+
+  @override
+  String get pleaseAuthenticateToContinue => 'يرجى التحقق من حسابك للمتابعة';
+
+  @override
+  String get authenticationFailed => 'فشل التحقق';
+
+  @override
+  String get biometricNotAvailable => 'البيوميتريك غير متوفر';
+
+  @override
+  String get biometricTemporarilyLocked => 'البيوميتريك مقفل مؤقتا';
+
+  @override
+  String get unexpectedErrorOccurred => 'حدث خطأ غير متوقع';
+
+  @override
+  String get ago => 'منذ';
+
+  @override
+  String get personalInformation => 'معلومات شخصية';
+
+  @override
+  String get country => 'دولة';
+
+  @override
+  String get languageCode => 'كود اللغة';
+
+  @override
+  String get accountStatus => 'حالة الحساب';
+
+  @override
+  String get adminStatus => 'حالة الادمن';
+
+  @override
+  String get verified => 'موثق';
+
+  @override
+  String get systemInformation => 'معلومات النظام';
+
+  @override
+  String get userId => 'معرف المستخدم';
+
+  @override
+  String get updatedAt => 'تم التحديث في';
+
+  @override
+  String get admin => 'ادمن';
+
+  @override
+  String get assignedRoles => 'الوظائف المعينة';
+
+  @override
+  String get noAgentsFound => 'لم يتم العثور على وكلاء';
+
+  @override
+  String get agentApproved => 'وكيل موافق';
+
+  @override
+  String get agentDisapproved => 'وكيل غير موافق';
+
+  @override
+  String get deleteBanner => 'حذف البانر';
+
+  @override
+  String get invalidImageUrl => 'رابط صورة غير صحيح';
+
+  @override
+  String get imageLoadError => 'خطأ في تحميل الصورة';
+
+  @override
+  String get imageCropError => 'خطأ في تقسيم الصورة';
+
+  @override
+  String get errorAddingCategory => 'خطأ في إضافة القسم';
+
+  @override
+  String get errorUpdatingCategory => 'خطأ في تحديث القسم';
+
+  @override
+  String get assign => 'تعيين';
+
+  @override
   String get failedToSendNotification => 'فشل في إرسال الإشعار للعميل';
 }

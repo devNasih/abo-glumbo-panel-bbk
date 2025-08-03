@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:aboglumbo_bbk_panel/common_widget/danger_alerts.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
@@ -6,6 +8,7 @@ import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/edit_profile.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
+import 'package:aboglumbo_bbk_panel/services/biometric_service.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +24,7 @@ class AccountPage extends StatefulWidget {
 }
 
 class _AccountPageState extends State<AccountPage> {
-  bool _isTwoFactorEnabled = false;
+  bool _isBiometricEnabled = false;
   late UserModel? currentWorkerData;
   List<LanguageModel> languages = [
     LanguageModel(code: 'en', name: 'English'),
@@ -32,6 +35,16 @@ class _AccountPageState extends State<AccountPage> {
   void initState() {
     super.initState();
     currentWorkerData = widget.workerData;
+    _loadBiometricSettings();
+  }
+
+  Future<void> _loadBiometricSettings() async {
+    final isEnabled = await BiometricService.isBiometricEnabled();
+    if (mounted) {
+      setState(() {
+        _isBiometricEnabled = isEnabled;
+      });
+    }
   }
 
   Future _showLanguageDialog(bool isForNotification) async {
@@ -318,8 +331,8 @@ class _AccountPageState extends State<AccountPage> {
                     child: FittedBox(
                       fit: BoxFit.fill,
                       child: Switch(
-                        value: _isTwoFactorEnabled,
-                        onChanged: (value) async {},
+                        value: _isBiometricEnabled,
+                        onChanged: _handleBiometricToggle,
                       ),
                     ),
                   ),
@@ -328,7 +341,6 @@ class _AccountPageState extends State<AccountPage> {
                   onTap: () => AccountActionDialogs.showLogoutConfirmation(
                     context,
                     onConfirm: () {
-                      LocalStore.clearUID();
                       LocalStore.putlogoutStatus(true);
                       Navigator.pushAndRemoveUntil(
                         context,
@@ -367,5 +379,21 @@ class _AccountPageState extends State<AccountPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _handleBiometricToggle(bool value) async {
+    if (value) {
+      final authenticated = await BiometricService.authenticate(context);
+      if (authenticated && mounted) {
+        setState(() => _isBiometricEnabled = true);
+        BiometricService.setBiometricEnabled(true);
+        log('Biometric authentication enabled');
+      }
+    } else {
+      if (mounted) {
+        setState(() => _isBiometricEnabled = false);
+      }
+      BiometricService.setBiometricEnabled(false);
+    }
   }
 }

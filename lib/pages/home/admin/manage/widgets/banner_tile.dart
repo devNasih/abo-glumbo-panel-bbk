@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/banner.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -62,7 +63,9 @@ class BannerTile extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: onEdit,
-                      tooltip: 'Edit Banner',
+                      tooltip:
+                          AppLocalizations.of(context)?.editBanner ??
+                          'Edit Banner',
                       constraints: const BoxConstraints(
                         minWidth: 40,
                         minHeight: 40,
@@ -71,7 +74,9 @@ class BannerTile extends StatelessWidget {
                     IconButton(
                       icon: Icon(Icons.delete, color: Colors.red),
                       onPressed: onDelete,
-                      tooltip: 'Delete Banner',
+                      tooltip:
+                          AppLocalizations.of(context)?.deleteBanner ??
+                          'Delete Banner',
                       constraints: const BoxConstraints(
                         minWidth: 40,
                         minHeight: 40,
@@ -88,7 +93,7 @@ class BannerTile extends StatelessWidget {
               child: SizedBox(
                 width: double.infinity,
                 height: imageHeight,
-                child: _buildBannerImage(),
+                child: _buildBannerImage(context),
               ),
             ),
           ],
@@ -97,7 +102,7 @@ class BannerTile extends StatelessWidget {
     );
   }
 
-  Widget _buildBannerImage() {
+  Widget _buildBannerImage(BuildContext context) {
     final imageUrl = banner.image?.trim() ?? '';
 
     if (imageUrl.isEmpty || !_isValidUrl(imageUrl)) {
@@ -109,7 +114,8 @@ class BannerTile extends StatelessWidget {
             Icon(Icons.image_not_supported, size: 48, color: Colors.grey[600]),
             const SizedBox(height: 8),
             Text(
-              'No Image Available',
+              AppLocalizations.of(context)?.invalidImageUrl ??
+                  'Invalid Image URL',
               style: TextStyle(color: Colors.grey[600], fontSize: 14),
             ),
           ],
@@ -132,7 +138,8 @@ class BannerTile extends StatelessWidget {
             Icon(Icons.broken_image, size: 48, color: Colors.red[400]),
             const SizedBox(height: 8),
             Text(
-              'Failed to Load Image',
+              AppLocalizations.of(context)?.imageLoadError ??
+                  'Failed to load image',
               style: TextStyle(color: Colors.red[400], fontSize: 14),
             ),
           ],

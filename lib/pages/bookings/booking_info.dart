@@ -2,6 +2,7 @@ import 'package:aboglumbo_bbk_panel/common_widget/cached_video_player.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/address.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
+import 'package:aboglumbo_bbk_panel/pages/bookings/booking_controllers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -37,6 +38,15 @@ class BookingInfo extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            BookingControlsWidget(
+              booking: booking,
+              isTracking: false,
+              isLoading: false,
+              onCancelBooking: () {},
+              onCompleteWork: () {},
+              onStartTracking: () {},
+              onStopTracking: () {},
+            ),
             _buildServiceCard(context, locale, textTheme, colorScheme),
             const SizedBox(height: 16),
             _buildCustomerInfoCard(context, textTheme, colorScheme),
@@ -234,7 +244,7 @@ class BookingInfo extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-            color: Colors.white,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -393,7 +403,7 @@ class BookingInfo extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-           color: Colors.white,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -702,7 +712,7 @@ class BookingInfo extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-            color: Colors.white,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
