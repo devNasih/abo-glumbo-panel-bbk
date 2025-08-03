@@ -43,8 +43,6 @@ class UploadToFireStorage {
 
       if (compressedFile != null) {
         final compressedSize = await File(compressedFile.path).length();
-        final reductionPercent = ((1 - compressedSize / fileSize) * 100)
-            .toStringAsFixed(1);
         if (compressedSize > 300 * 1024) {
           final ultraCompressedPath =
               '${file.path.substring(0, file.path.lastIndexOf('.'))}_ultra_$timestamp.jpg';
@@ -57,10 +55,6 @@ class UploadToFireStorage {
             format: CompressFormat.jpeg,
             keepExif: false,
           );
-          if (ultraCompressed != null) {
-            final ultraSize = await File(ultraCompressed.path).length();
-            return ultraCompressed;
-          }
         }
         return compressedFile;
       }

@@ -1,9 +1,11 @@
+import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
 import 'package:aboglumbo_bbk_panel/models/categories.dart';
 import 'package:aboglumbo_bbk_panel/models/location.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
+import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -29,25 +31,11 @@ class _AssignWorkerState extends State<AssignWorker> {
   List<CategoryModel>? categories;
 
   Query getFilteredQuery() {
-    String? categoryName;
-    if (categories != null && widget.booking.service.category != null) {
-      try {
-        final category = categories?.firstWhere(
-          (cat) => cat.id == widget.booking.service.category,
-        );
-        categoryName = category?.name?.trim();
-      } catch (e) {
-        debugPrint(
-          '❌ Category not found for ID: ${widget.booking.service.category}',
-        );
-      }
-    }
-
-    Query baseQuery = categoryName != null
+    Query baseQuery = widget.booking.service.category != null
         ? AppFirestore.usersCollectionRef
               .where('isVerified', isEqualTo: true)
               .where('isAdmin', isNotEqualTo: true)
-              .where('jobRoles', arrayContains: categoryName)
+              .where('jobRoles', arrayContains: widget.booking.service.category)
         : AppFirestore.usersCollectionRef
               .where('isVerified', isEqualTo: true)
               .where('isAdmin', isNotEqualTo: true);
@@ -78,29 +66,9 @@ class _AssignWorkerState extends State<AssignWorker> {
     });
   }
 
-  Future<void> _loadCategories() async {
-    try {
-      final snapshot = await AppFirestore.categoriesCollectionRef.get();
-      categories = snapshot.docs
-          .map(
-            (doc) => CategoryModel.fromJson(doc.data() as Map<String, dynamic>),
-          )
-          .toList();
-    } catch (e) {
-      debugPrint('❌ Error loading categories: $e');
-    }
-  }
-
-  @override
-  void initState() {
-    _loadCategories();
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-
     String? categoryName;
     String? categoryNameAr;
     if (categories != null && widget.booking.service.category != null) {
@@ -165,63 +133,69 @@ class _AssignWorkerState extends State<AssignWorker> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    // Expanded(
-                    //   child: Container(
-                    //     decoration: BoxDecoration(
-                    //       border: Border.all(
-                    //         color: Theme.of(
-                    //           context,
-                    //         ).colorScheme.outline.withOpacity(0.5),
-                    //       ),
-                    //       borderRadius: BorderRadius.circular(8),
-                    //     ),
-                    //     child: DropdownButtonFormField<String>(
-                    //       value: widget.locations.any((location) => location.id == selectedLocationId)
-                    //           ? selectedLocationId
-                    //           : null,
-                    //       decoration: InputDecoration(
-                    //         contentPadding: const EdgeInsets.symmetric(
-                    //           horizontal: 12,
-                    //           vertical: 8,
-                    //         ),
-                    //         border: InputBorder.none,
-                    //         hintText: AppLocalizations.of(
-                    //           context,
-                    //         )!.selectLocation,
-                    //         prefixIcon: const Icon(
-                    //           Icons.location_on_outlined,
-                    //           size: 20,
-                    //         ),
-                    //       ),
-                    //       items: [
-                    //         DropdownMenuItem<String>(
-                    //           value: null,
-                    //           child: Text(
-                    //             AppLocalizations.of(context)!.allLocations,
-                    //             style: textTheme.bodyMedium?.copyWith(
-                    //               color: Theme.of(
-                    //                 context,
-                    //               ).colorScheme.onSurfaceVariant,
-                    //             ),
-                    //           ),
-                    //         ),
-                    //         ...widget.locations.map((location) {
-                    //           return DropdownMenuItem<String>(
-                    //             value: location.id,
-                    //             child: Text(
-                    //               Directionality.of(context) ==
-                    //                       TextDirection.ltr
-                    //                   ? location.name ?? ''
-                    //                   : location.name_ar ?? '',
-                    //               style: textTheme.bodyMedium,
-                    //             ),
-                    //           );
-                    //         }),
-                    //       ],
-                    //       onChanged: onLocationChanged,
-                    //     ),
-                    //   ),
-                    // ),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.outline.withOpacity(0.5),
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: DropdownButtonFormField<String?>(
+                          isExpanded: true,
+                          value: selectedLocationId,
+                          decoration: InputDecoration(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            border: InputBorder.none,
+                            hintText: AppLocalizations.of(
+                              context,
+                            )!.selectLocation,
+                            prefixIcon: const Icon(
+                              Icons.location_on_outlined,
+                              size: 20,
+                            ),
+                          ),
+                          items: [
+                            DropdownMenuItem<String?>(
+                              value: null,
+                              child: Text(
+                                AppLocalizations.of(context)!.allLocations,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ),
+                            ...widget.locations.map((location) {
+                              return DropdownMenuItem<String?>(
+                                value: location.name,
+                                child: Text(
+                                  Directionality.of(context) ==
+                                          TextDirection.ltr
+                                      ? (location.name ?? '')
+                                      : (location.name_ar ?? ''),
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              );
+                            }).toList(),
+                          ],
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              selectedLocationId = newValue;
+                            });
+                            onLocationChanged?.call(newValue);
+                          },
+                        ),
+                      ),
+                    ),
+
                     const SizedBox(width: 8),
                     Container(
                       decoration: BoxDecoration(
@@ -299,14 +273,15 @@ class _AssignWorkerState extends State<AssignWorker> {
           ),
 
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
+            child: StreamBuilder<List<UserModel>>(
               key: ValueKey(
                 'users_${selectedLocationId}_${DateTime.now().millisecondsSinceEpoch ~/ 1000}',
               ),
-              stream: getFilteredQuery().snapshots(),
+              stream: AppServices.getCatagoryWiseWorkersStream(
+                widget.booking.service.category ?? '',
+              ),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  debugPrint('❌ Error fetching users: ${snapshot.error}');
                   return Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -330,10 +305,10 @@ class _AssignWorkerState extends State<AssignWorker> {
                 }
 
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Center(child: Loader(size: 32));
                 }
 
-                final docs = snapshot.data?.docs ?? [];
+                final docs = snapshot.data ?? [];
                 if (docs.isEmpty) {
                   return Center(
                     child: Column(
@@ -366,8 +341,7 @@ class _AssignWorkerState extends State<AssignWorker> {
                 return ListView.builder(
                   itemCount: docs.length,
                   itemBuilder: (context, index) {
-                    final doc = docs[index];
-                    UserModel user = UserModel.fromDocumentSnapshot(doc);
+                    final user = docs[index];
                     return ListTile(
                       title: Text(user.name ?? ''),
                       subtitle: RichText(
@@ -391,9 +365,7 @@ class _AssignWorkerState extends State<AssignWorker> {
                           ],
                         ),
                       ),
-                      onTap: () {
-                        widget.onAssignAgent(user);
-                      },
+                      onTap: () => widget.onAssignAgent(user),
                     );
                   },
                 );

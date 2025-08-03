@@ -335,4 +335,26 @@ class AppServices {
       return false;
     }
   }
+
+  static Stream<List<UserModel>> getCatagoryWiseWorkersStream(
+    String categoryId,
+  ) async* {
+    // Find the category name and pass
+    final docSnapshot = await AppFirestore.categoriesCollectionRef
+        .doc(categoryId)
+        .get();
+    final data = docSnapshot.data() as Map<String, dynamic>?;
+    String categoryName = data?['name'] ?? '';
+
+    Query query = AppFirestore.usersCollectionRef
+        .where('isVerified', isEqualTo: true)
+        .where('isAdmin', isNotEqualTo: true)
+        .where('jobRoles', arrayContains: categoryName);
+
+    yield* query.snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => UserModel.fromJson(doc.data() as Map<String, dynamic>))
+          .toList();
+    });
+  }
 }
