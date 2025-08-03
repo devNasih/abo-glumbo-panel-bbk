@@ -1,4 +1,4 @@
-package com.example.aboglumbo_bbk_panel
+package com.aboglumbo.cPanel
 
 import io.flutter.embedding.android.FlutterActivity
 
