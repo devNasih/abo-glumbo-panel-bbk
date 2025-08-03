@@ -2,6 +2,7 @@ import 'package:aboglumbo_bbk_panel/common_widget/booking_cards.dart';
 import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
+import 'package:aboglumbo_bbk_panel/pages/account/notifications.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:flutter/material.dart';
 
@@ -23,8 +24,22 @@ class _WorkerHomeState extends State<WorkerHome> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
+      appBar: AppBar(
+        titleSpacing: 16,
+        title: Text(
+          AppLocalizations.of(context)?.manageOrders ?? "Manage Orders",
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => NotificationsPage()),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Column(
           children: [

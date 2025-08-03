@@ -1,10 +1,12 @@
+import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:flutter/material.dart';
 
 class Loader extends StatefulWidget {
   final Color color;
   final double size;
 
-  const Loader({super.key, this.color = Colors.white, this.size = 20.0});
+  Loader({super.key, Color? color, this.size = 20.0})
+    : color = color ?? AppColors.primary;
 
   @override
   State<Loader> createState() => _LoaderState();

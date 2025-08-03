@@ -38,8 +38,8 @@ class _LoginPageState extends State<LoginPage> {
     // if (kDebugMode) {
     // emailController.text = "adnanyousufpangat@gmail.com";
     // passwordController.text = "qwertyuiop";
-    //   // emailController.text = "admin@abogalambo.app";
-    //   // passwordController.text = "testPassword";
+      emailController.text = "admin@abogalambo.app";
+      passwordController.text = "testPassword";
     // }
   }
 

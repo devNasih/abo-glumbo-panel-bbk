@@ -1,11 +1,11 @@
-import 'dart:developer';
-
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
+import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -18,32 +18,51 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   bool _hasInitialized = false;
   bool _isUserLogout = false;
+
   @override
   void initState() {
+    super.initState();
     if (!_hasInitialized) {
       _hasInitialized = true;
       _isUserLogout = LocalStore.getLogoutStatus();
+      _initializeApp();
     }
-    Future.delayed(const Duration(seconds: 2), () {
-      log("User Logout Status: $_isUserLogout");
-      log("User UID: ${LocalStore.getUID()}");
-      if (mounted) {
-        if (LocalStore.getUID() != null && !_isUserLogout) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => Home()),
-            (Route<dynamic> route) => false,
-          );
-        } else {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => LoginPage()),
-            (Route<dynamic> route) => false,
-          );
+  }
+
+  void _initializeApp() async {
+    // Wait for minimum splash duration
+    await Future.delayed(const Duration(seconds: 2));
+    if (mounted) {
+      if (LocalStore.getUID() != null && !_isUserLogout) {
+        context.read<LoginBloc>().add(LoadWorkerData(uid: LocalStore.getUID()));
+        final loginBloc = context.read<LoginBloc>();
+        await for (final state in loginBloc.stream) {
+          if (state is LoginSuccess || state is LoginLoadWorkerData) {
+            // Data loaded successfully, navigate to home
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const Home()),
+              (Route<dynamic> route) => false,
+            );
+            break;
+          } else if (state is LoginLoadWorkerDataFailure) {
+            // Failed to load data, go to login
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => LoginPage()),
+              (Route<dynamic> route) => false,
+            );
+            break;
+          }
         }
+      } else {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+          (Route<dynamic> route) => false,
+        );
       }
-    });
-    super.initState();
+    }
   }
 
   @override

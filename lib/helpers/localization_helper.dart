@@ -50,4 +50,21 @@ class LocalizationHelper {
     }
     return formatted;
   }
+
+  getLocalizedBookingStatus(String status, BuildContext context) {
+    switch (status) {
+      case 'P':
+        return AppLocalizations.of(context)!.pending;
+      case 'A':
+        return AppLocalizations.of(context)!.accepted;
+      case 'R':
+        return AppLocalizations.of(context)!.rejected;
+      case 'C':
+        return AppLocalizations.of(context)!.completed;
+      case 'X':
+        return AppLocalizations.of(context)!.cancelled;
+      default:
+        return status;
+    }
+  }
 }

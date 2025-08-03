@@ -411,5 +411,10 @@
 "enterPasswordToConfirm":"أدخل كلمة المرور للتأكيد",
 "deleteAccountWarning":"هل أنت متأكد أنك تريد حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه",
 "logoutConfirmation":"هل أنت متأكد أنك تريد تسجيل الخروج؟",
+"customerName":"اسم العميل",
+"call":"اتصال",
+"directions":"اتجاهات",
+"images":"صور",
+"video":"فيديو",
 "notifications": "الاشعارات"
 }

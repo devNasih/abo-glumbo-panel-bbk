@@ -1,6 +1,7 @@
 import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
+import 'package:aboglumbo_bbk_panel/pages/bookings/booking_info.dart';
 import 'package:flutter/material.dart';
 
 class BookingCards extends StatelessWidget {
@@ -12,16 +13,10 @@ class BookingCards extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
-      onTap: () {
-        // context.push(
-        //   AppRoutes.bookingInfo,
-        //   extra: {
-        //     'booking': booking,
-        //     'uid':
-        //         uid ?? FirebaseAuth.instance.currentUser!.uid,
-        //   },
-        // );
-      },
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => BookingInfo(booking: booking)),
+      ),
       leading: booking.bookingStatusCode == "X"
           ? const Icon(Icons.cancel_rounded, color: Colors.red)
           : booking.bookingStatusCode == "C"

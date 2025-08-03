@@ -400,5 +400,10 @@
   "enterPasswordToConfirm":"Enter Password to Confirm",
   "deleteAccountWarning":"Are you sure you want to delete your account? This action cannot be undone",
   "logoutConfirmation":"Are you sure you want to logout?",
+  "customerName":"Customer Name",
+  "call":"Call",
+  "directions":"Directions",
+  "images":"Images",
+  "video":"Video",
   "failedToSendNotification": "Failed to send notification to customer"
 }

@@ -1,7 +1,12 @@
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
+import 'package:aboglumbo_bbk_panel/models/banner.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
+import 'package:aboglumbo_bbk_panel/models/categories.dart';
+import 'package:aboglumbo_bbk_panel/models/highlighted_services.dart';
 import 'package:aboglumbo_bbk_panel/models/location.dart';
+import 'package:aboglumbo_bbk_panel/models/service.dart';
+import 'package:aboglumbo_bbk_panel/models/tipping.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -127,6 +132,40 @@ class AppServices {
     }
   }
 
+  static Future<List<Map<String, dynamic>>> getUserNotifications({
+    int limit = 20,
+    bool onlyUnread = false,
+  }) async {
+    try {
+      String userId = LocalStore.getUID() ?? '';
+      if (userId.isEmpty) {
+        if (kDebugMode) {
+          print('⚠️ No user logged in, cannot retrieve notifications');
+        }
+        return [];
+      }
+
+      Query query = AppFirestore.notificationsCollectionRef
+          .where('userId', isEqualTo: userId)
+          .orderBy('createdAt', descending: true);
+
+      if (onlyUnread) {
+        query = query.where('isRead', isEqualTo: false);
+      }
+
+      QuerySnapshot querySnapshot = await query.limit(limit).get();
+
+      return querySnapshot.docs
+          .map((doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>})
+          .toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error retrieving notifications: $e');
+      }
+      return [];
+    }
+  }
+
   //
   static Stream<List<BookingModel>> getBookingsStream({
     String? bookingStatusCode,
@@ -144,6 +183,81 @@ class AppServices {
       return snapshot.docs
           .map((doc) => BookingModel.fromDocumentSnapshot(doc))
           .toList();
+    });
+  }
+
+  static Stream<List<BookingModel>> getBookingsStreamByStatus(
+    String bookingStatusCode,
+  ) {
+    Query query = AppFirestore.bookingsCollectionRef
+        .where('bookingStatusCode', isEqualTo: bookingStatusCode)
+        .orderBy('createdAt', descending: true);
+
+    return query.snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => BookingModel.fromDocumentSnapshot(doc))
+          .toList();
+    });
+  }
+
+  static Stream<List<CategoryModel>> getAllCategoriesStream() {
+    return AppFirestore.categoriesCollectionRef.snapshots().map((snapshot) {
+      return snapshot.docs
+          .map(
+            (doc) => CategoryModel.fromJson(doc.data() as Map<String, dynamic>),
+          )
+          .toList();
+    });
+  }
+
+  static Stream<List<ServiceModel>> getAllServicesStream() {
+    return AppFirestore.servicesCollectionRef.snapshots().map((snapshot) {
+      return snapshot.docs
+          .map(
+            (doc) => ServiceModel.fromJson(doc.data() as Map<String, dynamic>),
+          )
+          .toList();
+    });
+  }
+
+  static Stream<List<HighlightedServicesModel>>
+  getAllHighlightedServicesStream() {
+    return AppFirestore.highlightedServicesCollectionRef.snapshots().map((
+      snapshot,
+    ) {
+      return snapshot.docs
+          .map((doc) => HighlightedServicesModel.fromQueryDocumentSnapshot(doc))
+          .toList();
+    });
+  }
+
+  static Stream<List<BannerModel>> getAllBannersStream() {
+    return AppFirestore.bannersCollectionRef.snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => BannerModel.fromDocumentSnapshot(doc))
+          .toList();
+    });
+  }
+
+  static Stream<List<UserModel>> getAllAgentsStream() {
+    return AppFirestore.usersCollectionRef
+        .where('isAdmin', isEqualTo: false)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map(
+                (doc) => UserModel.fromJson(doc.data() as Map<String, dynamic>),
+              )
+              .toList();
+        });
+  }
+
+  static Stream<List<TippingModel>> getTippingStream() {
+    return AppFirestore.tippingCollectionRef.snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return TippingModel.fromJson(doc.data() as Map<String, dynamic>);
+      }).toList();
     });
   }
 }

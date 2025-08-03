@@ -5,6 +5,7 @@ import 'package:aboglumbo_bbk_panel/models/language.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/edit_profile.dart';
+import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -326,7 +327,15 @@ class _AccountPageState extends State<AccountPage> {
                 ListTile(
                   onTap: () => AccountActionDialogs.showLogoutConfirmation(
                     context,
-                    onConfirm: () {},
+                    onConfirm: () {
+                      LocalStore.clearUID();
+                      LocalStore.putlogoutStatus(true);
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginPage()),
+                        (route) => false,
+                      );
+                    },
                   ),
                   title: Text(
                     AppLocalizations.of(context)?.logout ?? '',

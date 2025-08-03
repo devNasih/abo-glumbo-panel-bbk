@@ -1,7 +1,9 @@
+import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/account.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/admin_home.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/admin/manage_app.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/worker/worker_home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/services/notification.dart';
@@ -12,8 +14,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 class Home extends StatefulWidget {
-  final String? byPassUid;
-  const Home({super.key, this.byPassUid});
+  const Home({super.key});
 
   @override
   State<Home> createState() => _HomeState();
@@ -21,18 +22,11 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   int currentIndex = 0;
+
   @override
   void initState() {
     NotificationServices.initializeFCM();
-    _loadUserData();
     super.initState();
-  }
-
-  void _loadUserData() {
-    final loginState = context.read<LoginBloc>().state;
-    if (loginState is! LoginSuccess && loginState is! LoginLoadWorkerData) {
-      context.read<LoginBloc>().add(LoadWorkerData(uid: widget.byPassUid));
-    }
   }
 
   @override
@@ -40,6 +34,7 @@ class _HomeState extends State<Home> {
     final locale = AppLocalizations.of(context);
     return BlocBuilder<LoginBloc, LoginState>(
       builder: (context, state) {
+        // Handle error state with retry option to go back to splash
         if (state is LoginLoadWorkerDataFailure) {
           return Scaffold(
             body: Center(
@@ -48,7 +43,14 @@ class _HomeState extends State<Home> {
                 children: [
                   Text('Error: ${state.error}'),
                   ElevatedButton(
-                    onPressed: _loadUserData,
+                    onPressed: () {
+                      // Go back to splash to reload
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/',
+                        (route) => false,
+                      );
+                    },
                     child: const Text('Retry'),
                   ),
                 ],
@@ -56,17 +58,22 @@ class _HomeState extends State<Home> {
             ),
           );
         }
+
+        // Get user data from loaded state
         UserModel userData;
         if (state is LoginSuccess) {
           userData = state.user;
         } else if (state is LoginLoadWorkerData) {
           userData = state.user;
         } else {
-          userData = UserModel();
+          // This shouldn't happen if we're coming from splash, but just in case
+          return Scaffold(
+            body: Center(child: Loader(color: AppColors.black2)),
+          );
         }
         List<Widget> adminPages = [
-          const AdminHome(),
-          // const ManagePage(),
+          AdminHome(),
+          const ManageApp(),
           AccountPage(workerData: userData),
         ];
 
@@ -78,20 +85,6 @@ class _HomeState extends State<Home> {
             ? adminPages
             : workerPages;
         return Scaffold(
-          appBar: AppBar(
-            titleSpacing: 16,
-            title: Text(
-              AppLocalizations.of(context)?.manageOrders ?? "Manage Orders",
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.notifications),
-                onPressed: () {
-                  // context.push('/notifications');
-                },
-              ),
-            ],
-          ),
           extendBodyBehindAppBar: true,
           body: currentPages[currentIndex],
           bottomNavigationBar: NavigationBar(

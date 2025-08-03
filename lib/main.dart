@@ -99,6 +99,7 @@ class MyApp extends StatelessWidget {
                   ),
                 ),
                 appBarTheme: AppBarTheme(
+                  centerTitle: false,
                   backgroundColor: AppColors.primary,
                   elevation: 0,
                   iconTheme: const IconThemeData(color: Colors.white),

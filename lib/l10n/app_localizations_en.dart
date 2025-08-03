@@ -1212,5 +1212,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logoutConfirmation => 'Are you sure you want to logout?';
 
   @override
+  String get customerName => 'Customer Name';
+
+  @override
+  String get call => 'Call';
+
+  @override
+  String get directions => 'Directions';
+
+  @override
+  String get images => 'Images';
+
+  @override
+  String get video => 'Video';
+
+  @override
   String get failedToSendNotification => 'Failed to send notification to customer';
 }

@@ -1212,5 +1212,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get logoutConfirmation => 'هل أنت متأكد أنك تريد تسجيل الخروج؟';
 
   @override
+  String get customerName => 'اسم العميل';
+
+  @override
+  String get call => 'اتصال';
+
+  @override
+  String get directions => 'اتجاهات';
+
+  @override
+  String get images => 'صور';
+
+  @override
+  String get video => 'فيديو';
+
+  @override
   String get failedToSendNotification => 'فشل في إرسال الإشعار للعميل';
 }
