@@ -1,5 +1,6 @@
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/categories/add_new_categories.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/widgets/category_tile.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +30,13 @@ class ManageCategories extends StatelessWidget {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AddNewCategories()),
+        ),
+        child: const Icon(Icons.add),
       ),
     );
   }

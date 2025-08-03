@@ -294,4 +294,45 @@ class AppServices {
       return false;
     }
   }
+
+  // Banners
+  static Future<bool> addBanner(BannerModel banner, String bannerId) async {
+    try {
+      await AppFirestore.bannersCollectionRef
+          .doc(bannerId)
+          .set(banner.toJson());
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error adding banner: $e');
+      }
+      return false;
+    }
+  }
+
+  static Future<bool> updateBanner(BannerModel banner) async {
+    try {
+      await AppFirestore.bannersCollectionRef
+          .doc(banner.id)
+          .update(banner.toJson());
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error updating banner: $e');
+      }
+      return false;
+    }
+  }
+
+  static Future<bool> deleteBanner(String bannerId) async {
+    try {
+      await AppFirestore.bannersCollectionRef.doc(bannerId).delete();
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error deleting banner: $e');
+      }
+      return false;
+    }
+  }
 }

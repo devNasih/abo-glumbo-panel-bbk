@@ -135,7 +135,7 @@ class _EditServicesState extends State<EditServices> {
       // TODO: Implement service save functionality
       // This would typically involve calling an API or service method
       // to save the service data
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -145,7 +145,7 @@ class _EditServicesState extends State<EditServices> {
           ),
         ),
       );
-      
+
       // Optionally navigate back
       Navigator.of(context).pop();
     }
@@ -154,13 +154,15 @@ class _EditServicesState extends State<EditServices> {
   Future<void> _showLocationSelector() async {
     // Create a copy of currently selected locations to avoid reference issues
     final currentSelectedLocations = selectedLocations
-        .map((location) => LocationModel(
-              id: location.id,
-              name: location.name,
-              name_ar: location.name_ar,
-              lat: location.lat,
-              lon: location.lon,
-            ))
+        .map(
+          (location) => LocationModel(
+            id: location.id,
+            name: location.name,
+            name_ar: location.name_ar,
+            lat: location.lat,
+            lon: location.lon,
+          ),
+        )
         .toList();
 
     final result = await LocationSelectorHelper.showMultipleLocationSelector(
@@ -216,10 +218,7 @@ class _EditServicesState extends State<EditServices> {
                   : AppLocalizations.of(context)!.editService,
             ),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.save),
-                onPressed: _saveService,
-              ),
+              IconButton(icon: const Icon(Icons.save), onPressed: _saveService),
             ],
           ),
           body: Form(
@@ -351,7 +350,9 @@ class _EditServicesState extends State<EditServices> {
                   },
                   validator: (value) {
                     if (value == null) {
-                      return AppLocalizations.of(context)?.pleaseSelectACategory;
+                      return AppLocalizations.of(
+                        context,
+                      )?.pleaseSelectACategory;
                     }
                     return null;
                   },

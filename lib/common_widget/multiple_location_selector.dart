@@ -52,13 +52,15 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
     // Initialize selected locations for multiple selection with deep copy
     if (widget.allowMultipleSelection && widget.selectedLocations != null) {
       selectedLocations = widget.selectedLocations!
-          .map((location) => LocationModel(
-                id: location.id,
-                name: location.name,
-                name_ar: location.name_ar,
-                lat: location.lat,
-                lon: location.lon,
-              ))
+          .map(
+            (location) => LocationModel(
+              id: location.id,
+              name: location.name,
+              name_ar: location.name_ar,
+              lat: location.lat,
+              lon: location.lon,
+            ),
+          )
           .toList();
     }
   }
@@ -85,7 +87,7 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
   List<LocationModel> _removeDuplicates(List<LocationModel> locations) {
     final seen = <String>{};
     final seenIds = <String>{};
-    
+
     return locations.where((location) {
       // First check by ID if available
       if (location.id != null && location.id!.isNotEmpty) {
@@ -95,7 +97,7 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
         seenIds.add(location.id!);
         return true;
       }
-      
+
       // Fallback to name-based deduplication
       final name = isArabic ? location.name_ar : location.name;
       if (name == null || name.isEmpty) return true;
@@ -138,11 +140,15 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
       // More robust comparison - check both id and name as fallback
       return selectedLocations.any((selected) {
         // First try ID comparison if both have IDs
-        if (selected.id != null && location.id != null && selected.id!.isNotEmpty && location.id!.isNotEmpty) {
+        if (selected.id != null &&
+            location.id != null &&
+            selected.id!.isNotEmpty &&
+            location.id!.isNotEmpty) {
           return selected.id == location.id;
         }
         // Fallback to name comparison if IDs are not available
-        return selected.name == location.name && selected.name_ar == location.name_ar;
+        return selected.name == location.name &&
+            selected.name_ar == location.name_ar;
       });
     } else {
       return widget.selectedLocation?.id == location.id;
@@ -155,14 +161,17 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
         // Use more robust comparison for finding and removing
         final index = selectedLocations.indexWhere((selected) {
           // First try ID comparison if both have IDs
-          if (selected.id != null && location.id != null && 
-              selected.id!.isNotEmpty && location.id!.isNotEmpty) {
+          if (selected.id != null &&
+              location.id != null &&
+              selected.id!.isNotEmpty &&
+              location.id!.isNotEmpty) {
             return selected.id == location.id;
           }
           // Fallback to name comparison if IDs are not available
-          return selected.name == location.name && selected.name_ar == location.name_ar;
+          return selected.name == location.name &&
+              selected.name_ar == location.name_ar;
         });
-        
+
         if (index >= 0) {
           selectedLocations.removeAt(index);
         } else {
@@ -320,7 +329,9 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
                         final isSelected = _isLocationSelected(location);
 
                         return ListTile(
-                          key: ValueKey('location_${location.id ?? location.name}'),
+                          key: ValueKey(
+                            'location_${location.id ?? location.name}',
+                          ),
                           dense: true,
                           leading: Icon(
                             Icons.location_on_rounded,
@@ -340,7 +351,9 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
                           ),
                           trailing: widget.allowMultipleSelection
                               ? Checkbox(
-                                  key: ValueKey('checkbox_${location.id ?? location.name}'),
+                                  key: ValueKey(
+                                    'checkbox_${location.id ?? location.name}',
+                                  ),
                                   value: isSelected,
                                   onChanged: (value) {
                                     _handleLocationTap(location);
