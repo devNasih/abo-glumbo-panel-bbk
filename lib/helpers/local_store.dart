@@ -1,0 +1,63 @@
+import 'package:aboglumbo_bbk_panel/main.dart';
+
+class LocalStore {
+  static Future<void> putUID(String uid) {
+    return MyApp.box.put('uid', uid);
+  }
+
+  static String? getUID() {
+    return MyApp.box.get('uid');
+  }
+
+  // clear uid
+  static Future<void> clearUID() {
+    return MyApp.box.delete('uid');
+  }
+
+  // WORKER LOGOUT STATUS
+  static Future<void> putlogoutStatus(bool isLoggedOut) async {
+    await MyApp.box.put('is_logged_out', isLoggedOut);
+  }
+
+  static bool getLogoutStatus() {
+    return MyApp.box.get('is_logged_out', defaultValue: false) ?? false;
+  }
+
+  static Future<void> clearLogoutStatus() async {
+    await MyApp.box.delete('is_logged_out');
+  }
+
+  // Remember me feature
+  static Future<void> putRememberMe(bool rememberMe) async {
+    return MyApp.box.put('remember_me', rememberMe);
+  }
+
+  static bool getRememberMe() {
+    return MyApp.box.get('remember_me', defaultValue: false) ?? false;
+  }
+
+  static Future<void> clearRememberMe() async {
+    return MyApp.box.delete('remember_me');
+  }
+
+  static Future<void> rememberEmailAndPassword(
+    String email,
+    String password,
+  ) async {
+    await MyApp.box.put('remember_email', email);
+    await MyApp.box.put('remember_password', password);
+  }
+
+  static String? getRememberedEmail() {
+    return MyApp.box.get('remember_email');
+  }
+
+  static String? getRememberedPassword() {
+    return MyApp.box.get('remember_password');
+  }
+
+  static Future<void> clearRememberedCredentials() async {
+    await MyApp.box.delete('remember_email');
+    await MyApp.box.delete('remember_password');
+  }
+}
