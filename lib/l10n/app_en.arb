@@ -434,5 +434,18 @@
   "errorAddingCategory":"Error adding category",
   "errorUpdatingCategory":"Error updating category",
   "assign":"Assign",
+  "customerSubmittedBookingRequest":"Customer submitted booking request",
+  "serviceProviderConfirmedAppointment":"Service provider confirmed appointment",
+  "serviceTrackingInitiated":"Service tracking initiated",
+  "serviceHasBeenSuccessfullyCompleted":"Service has been successfully completed",
+  "bookingWasRejectedByServiceProvider":"Booking was rejected by service provider",
+  "bookingWasCancelled":"Booking was cancelled",
+  "serviceInProgress":"Service in progress",
+  "current":"Current",
+  "serviceIsCurrentlyBeingPerformed":"Service is currently being performed",
+  "waitingForServiceProvider":"Waiting for service provider",
+  "waitingForTechnicianToStartService":"Waiting for technician to start service",
+  "waitingForAcceptance":"Waiting for acceptance",
+  "waitingForServiceProviderResponse":"Waiting for service provider response",
   "failedToSendNotification": "Failed to send notification to customer"
 }

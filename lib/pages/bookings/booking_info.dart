@@ -1,4 +1,5 @@
 import 'package:aboglumbo_bbk_panel/common_widget/cached_video_player.dart';
+import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/address.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
@@ -623,7 +624,9 @@ class BookingInfo extends StatelessWidget {
       timelineItems.add({
         'title': AppLocalizations.of(context)!.createdAt,
         'time': _formatDateLocalized(booking.createdAt!.toDate(), context),
-        'description': 'Customer submitted the booking request',
+        'description': AppLocalizations.of(
+          context,
+        )!.customerSubmittedBookingRequest,
         'status': 'completed',
       });
     }
@@ -633,7 +636,9 @@ class BookingInfo extends StatelessWidget {
       timelineItems.add({
         'title': AppLocalizations.of(context)!.acceptedAt,
         'time': _formatDateLocalized(booking.acceptedAt!.toDate(), context),
-        'description': 'Service provider confirmed the appointment',
+        'description': AppLocalizations.of(
+          context,
+        )!.serviceProviderConfirmedAppointment,
         'status': 'completed',
       });
     }
@@ -646,7 +651,7 @@ class BookingInfo extends StatelessWidget {
           booking.trackingStartedAt!.toDate(),
           context,
         ),
-        'description': 'Service tracking has been initiated',
+        'description': AppLocalizations.of(context)!.serviceTrackingInitiated,
         'status': 'completed',
       });
     }
@@ -656,7 +661,9 @@ class BookingInfo extends StatelessWidget {
       timelineItems.add({
         'title': AppLocalizations.of(context)!.completedAt,
         'time': _formatDateLocalized(booking.completedAt!.toDate(), context),
-        'description': 'Service has been successfully completed',
+        'description': AppLocalizations.of(
+          context,
+        )!.serviceHasBeenSuccessfullyCompleted,
         'status': 'completed',
       });
     }
@@ -666,7 +673,9 @@ class BookingInfo extends StatelessWidget {
       timelineItems.add({
         'title': AppLocalizations.of(context)!.rejectedAt,
         'time': _formatDateLocalized(booking.rejectedAt!.toDate(), context),
-        'description': 'Booking was rejected by service provider',
+        'description': AppLocalizations.of(
+          context,
+        )!.bookingWasRejectedByServiceProvider,
         'status': 'rejected',
       });
     }
@@ -676,7 +685,7 @@ class BookingInfo extends StatelessWidget {
       timelineItems.add({
         'title': AppLocalizations.of(context)!.cancelledAt,
         'time': _formatDateLocalized(booking.cancelledAt!.toDate(), context),
-        'description': 'Booking was cancelled',
+        'description': AppLocalizations.of(context)!.bookingWasCancelled,
         'status': 'cancelled',
       });
     }
@@ -687,23 +696,29 @@ class BookingInfo extends StatelessWidget {
         booking.cancelledAt == null) {
       if (booking.trackingStartedAt != null) {
         timelineItems.add({
-          'title': 'Service In Progress',
-          'time': 'Current',
-          'description': 'Service is currently being performed',
+          'title': AppLocalizations.of(context)!.serviceInProgress,
+          'time': AppLocalizations.of(context)!.current,
+          'description': AppLocalizations.of(
+            context,
+          )!.serviceIsCurrentlyBeingPerformed,
           'status': 'current',
         });
       } else if (booking.acceptedAt != null) {
         timelineItems.add({
-          'title': 'Waiting for Service',
-          'time': 'Pending',
-          'description': 'Waiting for technician to start service',
+          'title': AppLocalizations.of(context)!.waitingForServiceProvider,
+          'time': AppLocalizations.of(context)!.pending,
+          'description': AppLocalizations.of(
+            context,
+          )!.waitingForTechnicianToStartService,
           'status': 'current',
         });
       } else {
         timelineItems.add({
-          'title': 'Waiting for Acceptance',
-          'time': 'Pending',
-          'description': 'Waiting for service provider response',
+          'title': AppLocalizations.of(context)!.waitingForAcceptance,
+          'time': AppLocalizations.of(context)!.pending,
+          'description': AppLocalizations.of(
+            context,
+          )!.waitingForServiceProviderResponse,
           'status': 'current',
         });
       }
@@ -782,8 +797,7 @@ class BookingInfo extends StatelessWidget {
 
   // Helper method to format dates (you might already have this in your project)
   String _formatDateLocalized(DateTime date, BuildContext context) {
-    // Replace this with your actual formatDateLocalized method
-    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    return LocalizationHelper().formatDateLocalized(date, context);
   }
 
   Widget _buildTimelineItem({

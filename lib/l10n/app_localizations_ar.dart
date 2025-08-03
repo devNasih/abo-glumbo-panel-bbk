@@ -1314,5 +1314,44 @@ class AppLocalizationsAr extends AppLocalizations {
   String get assign => 'تعيين';
 
   @override
+  String get customerSubmittedBookingRequest => 'تم إرسال طلب حجز من العميل';
+
+  @override
+  String get serviceProviderConfirmedAppointment => 'تم تأكيد موعد الخدمة';
+
+  @override
+  String get serviceTrackingInitiated => 'تم بدء تتبع الخدمة';
+
+  @override
+  String get serviceHasBeenSuccessfullyCompleted => 'تم إنجاز الخدمة بنجاح';
+
+  @override
+  String get bookingWasRejectedByServiceProvider => 'تم رفض الحجز من قبل وكيل الخدمة';
+
+  @override
+  String get bookingWasCancelled => 'تم إلغاء الحجز';
+
+  @override
+  String get serviceInProgress => 'الخدمة قيد التنفيذ';
+
+  @override
+  String get current => 'الحالي';
+
+  @override
+  String get serviceIsCurrentlyBeingPerformed => 'الخدمة قيد التنفيذ';
+
+  @override
+  String get waitingForServiceProvider => 'انتظار وكيل الخدمة';
+
+  @override
+  String get waitingForTechnicianToStartService => 'انتظار وكيل الخدمة لبدء الخدمة';
+
+  @override
+  String get waitingForAcceptance => 'انتظار الموافقة';
+
+  @override
+  String get waitingForServiceProviderResponse => 'انتظار وكيل الخدمة';
+
+  @override
   String get failedToSendNotification => 'فشل في إرسال الإشعار للعميل';
 }

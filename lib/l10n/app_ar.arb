@@ -445,5 +445,18 @@
 "errorAddingCategory":"خطأ في إضافة القسم",
 "errorUpdatingCategory":"خطأ في تحديث القسم",
 "assign":"تعيين",
+"customerSubmittedBookingRequest":"تم إرسال طلب حجز من العميل",
+"serviceProviderConfirmedAppointment":"تم تأكيد موعد الخدمة",
+"serviceTrackingInitiated":"تم بدء تتبع الخدمة",
+"serviceHasBeenSuccessfullyCompleted":"تم إنجاز الخدمة بنجاح",
+"bookingWasRejectedByServiceProvider":"تم رفض الحجز من قبل وكيل الخدمة",
+"bookingWasCancelled":"تم إلغاء الحجز",
+"serviceInProgress":"الخدمة قيد التنفيذ",
+"current":"الحالي",
+"serviceIsCurrentlyBeingPerformed":"الخدمة قيد التنفيذ",
+"waitingForServiceProvider":"انتظار وكيل الخدمة",
+"waitingForTechnicianToStartService":"انتظار وكيل الخدمة لبدء الخدمة",
+"waitingForAcceptance":"انتظار الموافقة",
+"waitingForServiceProviderResponse":"انتظار وكيل الخدمة",
 "notifications": "الاشعارات"
 }

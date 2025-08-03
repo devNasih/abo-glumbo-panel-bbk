@@ -2705,6 +2705,84 @@ abstract class AppLocalizations {
   /// **'Assign'**
   String get assign;
 
+  /// No description provided for @customerSubmittedBookingRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer submitted booking request'**
+  String get customerSubmittedBookingRequest;
+
+  /// No description provided for @serviceProviderConfirmedAppointment.
+  ///
+  /// In en, this message translates to:
+  /// **'Service provider confirmed appointment'**
+  String get serviceProviderConfirmedAppointment;
+
+  /// No description provided for @serviceTrackingInitiated.
+  ///
+  /// In en, this message translates to:
+  /// **'Service tracking initiated'**
+  String get serviceTrackingInitiated;
+
+  /// No description provided for @serviceHasBeenSuccessfullyCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Service has been successfully completed'**
+  String get serviceHasBeenSuccessfullyCompleted;
+
+  /// No description provided for @bookingWasRejectedByServiceProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking was rejected by service provider'**
+  String get bookingWasRejectedByServiceProvider;
+
+  /// No description provided for @bookingWasCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking was cancelled'**
+  String get bookingWasCancelled;
+
+  /// No description provided for @serviceInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Service in progress'**
+  String get serviceInProgress;
+
+  /// No description provided for @current.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get current;
+
+  /// No description provided for @serviceIsCurrentlyBeingPerformed.
+  ///
+  /// In en, this message translates to:
+  /// **'Service is currently being performed'**
+  String get serviceIsCurrentlyBeingPerformed;
+
+  /// No description provided for @waitingForServiceProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for service provider'**
+  String get waitingForServiceProvider;
+
+  /// No description provided for @waitingForTechnicianToStartService.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for technician to start service'**
+  String get waitingForTechnicianToStartService;
+
+  /// No description provided for @waitingForAcceptance.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for acceptance'**
+  String get waitingForAcceptance;
+
+  /// No description provided for @waitingForServiceProviderResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for service provider response'**
+  String get waitingForServiceProviderResponse;
+
   /// No description provided for @failedToSendNotification.
   ///
   /// In en, this message translates to:

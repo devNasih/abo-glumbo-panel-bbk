@@ -1,5 +1,6 @@
 import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
+import 'package:aboglumbo_bbk_panel/models/address.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
 import 'package:aboglumbo_bbk_panel/pages/bookings/booking_info.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,11 @@ class BookingCards extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final addresses = booking.customer.addresses;
+    AddressModel? selectedAddress =
+        addresses.where((a) => a.isSelected == true).isNotEmpty
+        ? addresses.firstWhere((a) => a.isSelected == true)
+        : null;
 
     return GestureDetector(
       onTap: () => Navigator.push(
@@ -79,14 +85,18 @@ class BookingCards extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  if (isAdmin && onAssign != null && booking.bookingStatusCode == 'P')
+                  if (isAdmin &&
+                      onAssign != null &&
+                      booking.bookingStatusCode == 'P')
                     OutlinedButton(
                       onPressed: onAssign,
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(60, 28),
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                       ),
-                      child:  Text(AppLocalizations.of(context)?.assign ?? 'Assign'),
+                      child: Text(
+                        AppLocalizations.of(context)?.assign ?? 'Assign',
+                      ),
                     ),
                 ],
               ),
@@ -115,7 +125,10 @@ class BookingCards extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              (booking.customer.name ?? ''),
+                              (selectedAddress != null &&
+                                      selectedAddress.id.isNotEmpty)
+                                  ? (selectedAddress.fullName)
+                                  : (booking.customer.name ?? ''),
                               style: textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.w500,
                               ),
@@ -124,7 +137,10 @@ class BookingCards extends StatelessWidget {
                             ),
                             if (booking.customer.location != null)
                               Text(
-                                booking.customer.location?.name ?? '',
+                                (selectedAddress != null &&
+                                        selectedAddress.id.isNotEmpty)
+                                    ? (selectedAddress.streetName ?? '')
+                                    : (booking.customer.location?.name ?? ''),
                                 style: textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurface.withOpacity(0.6),
                                 ),
@@ -195,7 +211,7 @@ class BookingCards extends StatelessWidget {
                             ),
                             if (booking.createdAt != null)
                               Text(
-                                "Booked: ${LocalizationHelper().formatDateLocalized(booking.createdAt!.toDate(), context)}",
+                                "${AppLocalizations.of(context)!.bookedOn}: ${LocalizationHelper().formatDateLocalized(booking.createdAt!.toDate(), context)}",
                                 style: textTheme.labelSmall?.copyWith(
                                   color: colorScheme.onSurface.withOpacity(0.5),
                                 ),

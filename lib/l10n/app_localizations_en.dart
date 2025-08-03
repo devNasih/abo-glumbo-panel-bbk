@@ -1314,5 +1314,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get assign => 'Assign';
 
   @override
+  String get customerSubmittedBookingRequest => 'Customer submitted booking request';
+
+  @override
+  String get serviceProviderConfirmedAppointment => 'Service provider confirmed appointment';
+
+  @override
+  String get serviceTrackingInitiated => 'Service tracking initiated';
+
+  @override
+  String get serviceHasBeenSuccessfullyCompleted => 'Service has been successfully completed';
+
+  @override
+  String get bookingWasRejectedByServiceProvider => 'Booking was rejected by service provider';
+
+  @override
+  String get bookingWasCancelled => 'Booking was cancelled';
+
+  @override
+  String get serviceInProgress => 'Service in progress';
+
+  @override
+  String get current => 'Current';
+
+  @override
+  String get serviceIsCurrentlyBeingPerformed => 'Service is currently being performed';
+
+  @override
+  String get waitingForServiceProvider => 'Waiting for service provider';
+
+  @override
+  String get waitingForTechnicianToStartService => 'Waiting for technician to start service';
+
+  @override
+  String get waitingForAcceptance => 'Waiting for acceptance';
+
+  @override
+  String get waitingForServiceProviderResponse => 'Waiting for service provider response';
+
+  @override
   String get failedToSendNotification => 'Failed to send notification to customer';
 }

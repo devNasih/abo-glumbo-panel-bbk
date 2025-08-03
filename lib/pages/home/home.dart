@@ -48,7 +48,7 @@ class _HomeState extends State<Home> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Error: ${state.error}'),
+                  Text('${locale?.error}: ${state.error}'),
                   ElevatedButton(
                     onPressed: () {
                       Navigator.pushNamedAndRemoveUntil(
