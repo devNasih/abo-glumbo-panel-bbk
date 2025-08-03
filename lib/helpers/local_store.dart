@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:aboglumbo_bbk_panel/main.dart';
 
 class LocalStore {
@@ -59,5 +61,15 @@ class LocalStore {
   static Future<void> clearRememberedCredentials() async {
     await MyApp.box.delete('remember_email');
     await MyApp.box.delete('remember_password');
+  }
+
+  static Future<String> putUserlanguage(String lang) async {
+    await MyApp.box.put('user_language', lang);
+    await MyApp.box.flush();
+    return lang;
+  }
+
+  static String getUserlanguage() {
+    return MyApp.box.get('user_language', defaultValue: 'en');
   }
 }

@@ -33,3 +33,15 @@ final class LoginRememberMeToggled extends LoginState {
   final bool value;
   LoginRememberMeToggled(this.value);
 }
+final class LoginBypassUsingBiometric extends LoginState {
+  final UserModel user;
+  LoginBypassUsingBiometric({required this.user});
+}
+final class LoginLoadWorkerData extends LoginState {
+  final UserModel user;
+  LoginLoadWorkerData({required this.user});
+}
+final class LoginLoadWorkerDataFailure extends LoginState {
+  final String error;
+  LoginLoadWorkerDataFailure({required this.error});
+}

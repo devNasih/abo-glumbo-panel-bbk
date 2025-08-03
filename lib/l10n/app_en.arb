@@ -394,5 +394,11 @@
   "issueMedia":"Issue Media",
   "loadingVideo":"Loading Video",
   "categoryAlreadyExists":"Category already exists",
+  "errorLoadingDistricts":"Error loading districts",
+  "noLocationsAvailable":"No locations available",
+  "close":"Close",
+  "enterPasswordToConfirm":"Enter Password to Confirm",
+  "deleteAccountWarning":"Are you sure you want to delete your account? This action cannot be undone",
+  "logoutConfirmation":"Are you sure you want to logout?",
   "failedToSendNotification": "Failed to send notification to customer"
 }

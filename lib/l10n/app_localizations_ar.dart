@@ -1194,5 +1194,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get categoryAlreadyExists => 'القسم موجود بالفعل';
 
   @override
+  String get errorLoadingDistricts => 'خطأ في تحميل المناطق';
+
+  @override
+  String get noLocationsAvailable => 'لا يوجد مواقع متاحة';
+
+  @override
+  String get close => 'اغلاق';
+
+  @override
+  String get enterPasswordToConfirm => 'أدخل كلمة المرور للتأكيد';
+
+  @override
+  String get deleteAccountWarning => 'هل أنت متأكد أنك تريد حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه';
+
+  @override
+  String get logoutConfirmation => 'هل أنت متأكد أنك تريد تسجيل الخروج؟';
+
+  @override
   String get failedToSendNotification => 'فشل في إرسال الإشعار للعميل';
 }

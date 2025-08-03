@@ -405,5 +405,11 @@
 "issueMedia":"محتوى المشكلة",
 "loadingVideo":"تحميل الفيديو",
 "categoryAlreadyExists":"القسم موجود بالفعل",
+"errorLoadingDistricts":"خطأ في تحميل المناطق",
+"noLocationsAvailable":"لا يوجد مواقع متاحة",
+"close":"اغلاق",
+"enterPasswordToConfirm":"أدخل كلمة المرور للتأكيد",
+"deleteAccountWarning":"هل أنت متأكد أنك تريد حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه",
+"logoutConfirmation":"هل أنت متأكد أنك تريد تسجيل الخروج؟",
 "notifications": "الاشعارات"
 }

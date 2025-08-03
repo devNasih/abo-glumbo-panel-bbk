@@ -25,6 +25,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void initState() {
+    super.initState();
     if (LocalStore.getRememberMe()) {
       rememberMe = true;
       emailController.text = LocalStore.getRememberedEmail() ?? '';
@@ -35,12 +36,11 @@ class _LoginPageState extends State<LoginPage> {
       passwordController.clear();
     }
     // if (kDebugMode) {
-    //   emailController.text = "adnanyousufpangat@gmail.com";
-    //   passwordController.text = "qwertyuiop";
+    // emailController.text = "adnanyousufpangat@gmail.com";
+    // passwordController.text = "qwertyuiop";
     //   // emailController.text = "admin@abogalambo.app";
     //   // passwordController.text = "testPassword";
     // }
-    super.initState();
   }
 
   @override
@@ -339,6 +339,22 @@ class _LoginPageState extends State<LoginPage> {
                     child: ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
+                          // Save remember me state before login
+                          final currentRememberMe =
+                              state is LoginRememberMeToggled
+                              ? state.value
+                              : rememberMe;
+
+                          if (currentRememberMe) {
+                            context.read<LoginBloc>().add(
+                              RememberMeToggled(
+                                true,
+                                email: emailController.text.trim(),
+                                password: passwordController.text.trim(),
+                              ),
+                            );
+                          }
+
                           context.read<LoginBloc>().add(
                             LoginButtonPressed(
                               email: emailController.text.trim(),

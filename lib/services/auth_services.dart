@@ -1,4 +1,5 @@
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
+import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -20,7 +21,10 @@ class AuthServices {
     try {
       final userDoc = await AppFirestore.usersCollectionRef.doc(uid).get();
       if (userDoc.exists) {
-        return UserModel.fromJson(userDoc.data()! as Map<String, dynamic>);
+        final userData = userDoc.data() as Map<String, dynamic>?;
+        LocalStore.putUID(userData?['uid'] ?? uid);
+        LocalStore.putlogoutStatus(false);
+        return UserModel.fromJson(userData ?? {});
       } else {
         throw Exception("User does not exist");
       }

@@ -1,4 +1,9 @@
+import 'dart:developer';
+
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
+import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
+import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -11,6 +16,36 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  bool _hasInitialized = false;
+  bool _isUserLogout = false;
+  @override
+  void initState() {
+    if (!_hasInitialized) {
+      _hasInitialized = true;
+      _isUserLogout = LocalStore.getLogoutStatus();
+    }
+    Future.delayed(const Duration(seconds: 2), () {
+      log("User Logout Status: $_isUserLogout");
+      log("User UID: ${LocalStore.getUID()}");
+      if (mounted) {
+        if (LocalStore.getUID() != null && !_isUserLogout) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => Home()),
+            (Route<dynamic> route) => false,
+          );
+        } else {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => LoginPage()),
+            (Route<dynamic> route) => false,
+          );
+        }
+      }
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

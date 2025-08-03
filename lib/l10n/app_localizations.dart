@@ -2465,6 +2465,42 @@ abstract class AppLocalizations {
   /// **'Category already exists'**
   String get categoryAlreadyExists;
 
+  /// No description provided for @errorLoadingDistricts.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading districts'**
+  String get errorLoadingDistricts;
+
+  /// No description provided for @noLocationsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No locations available'**
+  String get noLocationsAvailable;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @enterPasswordToConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Password to Confirm'**
+  String get enterPasswordToConfirm;
+
+  /// No description provided for @deleteAccountWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete your account? This action cannot be undone'**
+  String get deleteAccountWarning;
+
+  /// No description provided for @logoutConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to logout?'**
+  String get logoutConfirmation;
+
   /// No description provided for @failedToSendNotification.
   ///
   /// In en, this message translates to:

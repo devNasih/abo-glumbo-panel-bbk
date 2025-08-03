@@ -25,7 +25,14 @@ class RememberMeToggled extends LoginEvent {
   final String? password;
   RememberMeToggled(this.value, {this.email, this.password});
   @override
-  String toString() => 'RememberMeToggled { value: $value, email: $email, password: $password }';
+  String toString() =>
+      'RememberMeToggled { value: $value, email: $email, password: $password }';
 }
 
 class BypassUsingBiometric extends LoginEvent {}
+
+class LoadWorkerData extends LoginEvent {
+  final String? uid;
+  LoadWorkerData({this.uid});
+  List<Object?> get props => [uid];
+}

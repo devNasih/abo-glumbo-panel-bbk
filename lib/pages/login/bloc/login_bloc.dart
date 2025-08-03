@@ -13,6 +13,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<LoginButtonPressed>(_loginWorker);
     on<ForrgotPasswordPressed>(_resetPasswordWorker);
     on<RememberMeToggled>(_rememberMeToggled);
+    on<LoadWorkerData>(_loadWorkerData);
   }
 
   Future<void> _loginWorker(
@@ -26,8 +27,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         event.password,
       );
       if (res?.user != null) {
-        LocalStore.putUID(res!.user!.uid);
-        UserModel user = await AuthServices.checkUser(res.user!.uid);
+        UserModel user = await AuthServices.checkUser(res!.user!.uid);
         emit(LoginSuccess(user: user));
       } else {
         emit(
@@ -80,5 +80,23 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       await LocalStore.clearRememberedCredentials();
     }
     emit(LoginRememberMeToggled(event.value));
+  }
+
+  Future<void> _loadWorkerData(
+    LoadWorkerData event,
+    Emitter<LoginState> emit,
+  ) async {
+    try {
+      UserModel user = await AuthServices.checkUser(
+        event.uid ?? LocalStore.getUID()!,
+      );
+      if (user.uid == null || user.uid!.isEmpty) {
+        emit(LoginLoadWorkerDataFailure(error: "User not found"));
+      } else {
+        emit(LoginLoadWorkerData(user: user));
+      }
+    } catch (e) {
+      emit(LoginLoadWorkerDataFailure(error: e.toString()));
+    }
   }
 }

@@ -1194,5 +1194,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categoryAlreadyExists => 'Category already exists';
 
   @override
+  String get errorLoadingDistricts => 'Error loading districts';
+
+  @override
+  String get noLocationsAvailable => 'No locations available';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get enterPasswordToConfirm => 'Enter Password to Confirm';
+
+  @override
+  String get deleteAccountWarning => 'Are you sure you want to delete your account? This action cannot be undone';
+
+  @override
+  String get logoutConfirmation => 'Are you sure you want to logout?';
+
+  @override
   String get failedToSendNotification => 'Failed to send notification to customer';
 }

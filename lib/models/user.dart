@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '/models/location.dart';
 
 class UserModel {
-  String uid;
+  String? uid;
   String? name;
   String? email;
   String? phone;
@@ -21,7 +21,7 @@ class UserModel {
   String? fcmToken;
 
   UserModel({
-    required this.uid,
+    this.uid,
     this.name,
     this.email,
     this.phone,
@@ -192,9 +192,7 @@ class UserModel {
 
   // to edit json
   Map<String, dynamic> toEditJson({required UserModel previous}) {
-    Map<String, dynamic> json = {
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
+    Map<String, dynamic> json = {'updatedAt': FieldValue.serverTimestamp()};
 
     if (name != previous.name && name != null) {
       json['name'] = name;
@@ -251,10 +249,7 @@ class LiveLocation {
     longitude = json['longitude'];
   }
   Map<String, dynamic> toJson() {
-    return {
-      'latitude': latitude,
-      'longitude': longitude,
-    };
+    return {'latitude': latitude, 'longitude': longitude};
   }
 
   @override
