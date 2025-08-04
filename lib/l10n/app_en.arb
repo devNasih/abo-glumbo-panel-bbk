@@ -448,5 +448,7 @@
   "waitingForAcceptance":"Waiting for acceptance",
   "waitingForServiceProviderResponse":"Waiting for service provider response",
   "orderRejected":"Order Rejected Successfully",
+  "registrationSuccess":"Registration Success",
+  "registrationFailed":"Registration Failed",
   "failedToSendNotification": "Failed to send notification to customer"
 }

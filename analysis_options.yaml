@@ -13,6 +13,7 @@ analyzer:
     avoid_init_to_null: ignore
     must_be_immutable: ignore
     deprecated_member_use: ignore
+    override_on_non_overriding_member: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:

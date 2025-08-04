@@ -2,6 +2,9 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven {
+            url = uri(project(":background_fetch").projectDir.resolve("libs"))
+        }
     }
 }
 

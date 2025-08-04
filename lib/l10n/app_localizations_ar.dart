@@ -1356,5 +1356,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get orderRejected => 'تم رفض الطلب';
 
   @override
+  String get registrationSuccess => 'تم التسجيل بنجاح';
+
+  @override
+  String get registrationFailed => 'فشل التسجيل';
+
+  @override
   String get failedToSendNotification => 'فشل في إرسال الإشعار للعميل';
 }

@@ -75,6 +75,50 @@ class _HomeState extends State<Home> {
             body: Center(child: Loader(color: AppColors.black2)),
           );
         }
+        if (userData.isVerified != true) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(locale?.account ?? ''),
+              centerTitle: true,
+            ),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.hourglass_empty,
+                      size: 80,
+                      color: AppColors.secondary,
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      AppLocalizations.of(
+                            context,
+                          )?.pleaseWaitAccountVerification ??
+                          'Please wait for account verification',
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      AppLocalizations.of(
+                            context,
+                          )?.accountVerificationPending ??
+                          'Your account is pending verification. You will be notified once it is approved.',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
         List<Widget> adminPages = [
           AdminHome(),
           const ManageApp(),

@@ -33,12 +33,58 @@ class AuthServices {
     }
   }
 
-  // Forget Password
   static Future<void> resetPassword(String email) async {
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
     } catch (e) {
       throw Exception("Error sending password reset email");
+    }
+  }
+
+  static Future<bool> registerUser(
+    String email,
+    String password,
+    UserModel userModel,
+  ) async {
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      if (userCredential.user == null) {
+        throw Exception("Failed to create user account");
+      }
+
+      userModel.uid = userCredential.user?.uid;
+
+      await AppFirestore.usersCollectionRef
+          .doc(userModel.uid)
+          .set(userModel.toJson());
+
+      LocalStore.putUID(userModel.uid ?? '');
+      LocalStore.putlogoutStatus(false);
+
+      return true;
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'weak-password':
+          errorMessage = 'The password provided is too weak.';
+          break;
+        case 'email-already-in-use':
+          errorMessage = 'The account already exists for that email.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'The email address is not valid.';
+          break;
+        case 'network-request-failed':
+          errorMessage = 'Network error. Please check your connection.';
+          break;
+        default:
+          errorMessage = e.message ?? 'Registration failed';
+      }
+      throw Exception(errorMessage);
+    } catch (e) {
+      throw Exception("Registration failed: ${e.toString()}");
     }
   }
 }

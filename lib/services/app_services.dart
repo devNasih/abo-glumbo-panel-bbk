@@ -357,4 +357,27 @@ class AppServices {
           .toList();
     });
   }
+
+  static Future<bool> isEmailRegistered(String email) async {
+    try {
+      final snapshot = await AppFirestore.usersCollectionRef
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+      return snapshot.docs.isNotEmpty;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error checking email registration: $e');
+      }
+      return false;
+    }
+  }
+
+  static Future<bool> checkThePhoneExists(String phone) async {
+    final snapshot = await AppFirestore.usersCollectionRef
+        .where('phone', isEqualTo: phone)
+        .limit(1)
+        .get();
+    return snapshot.docs.isNotEmpty;
+  }
 }

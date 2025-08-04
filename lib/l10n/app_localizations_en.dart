@@ -1356,5 +1356,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orderRejected => 'Order Rejected Successfully';
 
   @override
+  String get registrationSuccess => 'Registration Success';
+
+  @override
+  String get registrationFailed => 'Registration Failed';
+
+  @override
   String get failedToSendNotification => 'Failed to send notification to customer';
 }

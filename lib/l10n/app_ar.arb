@@ -459,5 +459,7 @@
 "waitingForAcceptance":"انتظار الموافقة",
 "waitingForServiceProviderResponse":"انتظار وكيل الخدمة",
 "orderRejected":"تم رفض الطلب",
+"registrationSuccess":"تم التسجيل بنجاح",
+"registrationFailed":"فشل التسجيل",
 "notifications": "الاشعارات"
 }

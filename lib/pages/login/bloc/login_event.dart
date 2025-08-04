@@ -36,3 +36,39 @@ class LoadWorkerData extends LoginEvent {
   LoadWorkerData({this.uid});
   List<Object?> get props => [uid];
 }
+
+class RegisterButtonPressed extends LoginEvent {
+  final String email;
+  final String password;
+  final String confirmPassword;
+  RegisterButtonPressed({
+    required this.email,
+    required this.password,
+    required this.confirmPassword,
+  });
+  @override
+  List<Object?> get props => [email, password, confirmPassword];
+}
+
+class SignUpButtonPressed extends LoginEvent {
+  final String email;
+  final String password;
+  final XFile? profileImage;
+  final XFile? idImage;
+  UserModel userModel;
+  SignUpButtonPressed({
+    required this.email,
+    required this.password,
+    this.profileImage,
+    this.idImage,
+    required this.userModel,
+  });
+  @override
+  List<Object?> get props => [
+    email,
+    password,
+    profileImage,
+    idImage,
+    userModel,
+  ];
+}

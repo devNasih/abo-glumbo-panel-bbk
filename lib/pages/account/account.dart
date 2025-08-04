@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:aboglumbo_bbk_panel/common_widget/danger_alerts.dart';
+import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/language.dart';
@@ -11,6 +12,7 @@ import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
 import 'package:aboglumbo_bbk_panel/services/biometric_service.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -342,6 +344,9 @@ class _AccountPageState extends State<AccountPage> {
                     context,
                     onConfirm: () {
                       LocalStore.putlogoutStatus(true);
+                      // Clear remember me data when logging out
+                      LocalStore.putRememberMe(false);
+                      LocalStore.clearRememberedCredentials();
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(builder: (context) => LoginPage()),
@@ -361,7 +366,8 @@ class _AccountPageState extends State<AccountPage> {
                   onTap: () =>
                       AccountActionDialogs.showDeleteAccountConfirmation(
                         context,
-                        onConfirm: (pass) {},
+                        onConfirm: (password) =>
+                            deleteAccount(context, password),
                       ),
                   title: Text(
                     AppLocalizations.of(context)?.deleteAccount ?? '',
@@ -394,6 +400,54 @@ class _AccountPageState extends State<AccountPage> {
         setState(() => _isBiometricEnabled = false);
       }
       BiometricService.setBiometricEnabled(false);
+    }
+  }
+
+  Future<void> deleteAccount(BuildContext context, String userPassword) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return;
+
+    try {
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: userPassword,
+      );
+
+      LocalStore.clearLogoutStatus();
+      LocalStore.putRememberMe(false);
+      LocalStore.clearRememberedCredentials();
+      LocalStore.clearUID();
+
+      await user.reauthenticateWithCredential(credential);
+
+      await AppFirestore.usersCollectionRef.doc(user.uid).delete();
+
+      await user.delete();
+
+      await FirebaseAuth.instance.signOut();
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+        (route) => false,
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.accountDeleted ?? 'Account Deleted',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to delete account: ${e.toString()}")),
+        );
+      }
     }
   }
 }

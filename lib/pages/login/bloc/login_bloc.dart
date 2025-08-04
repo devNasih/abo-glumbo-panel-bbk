@@ -2,8 +2,10 @@ import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/services/auth_services.dart';
+import 'package:aboglumbo_bbk_panel/services/firestorage.dart';
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:meta/meta.dart';
 part 'login_event.dart';
 part 'login_state.dart';
@@ -14,6 +16,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<ForrgotPasswordPressed>(_resetPasswordWorker);
     on<RememberMeToggled>(_rememberMeToggled);
     on<LoadWorkerData>(_loadWorkerData);
+    on<RegisterButtonPressed>(_registerWorker);
+    on<SignUpButtonPressed>(_signUpWorker);
   }
 
   Future<void> _loginWorker(
@@ -63,13 +67,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     RememberMeToggled event,
     Emitter<LoginState> emit,
   ) async {
-    if (event.email == null && event.password == null) {
-      await LocalStore.putRememberMe(false);
-      emit(LoginRememberMeToggled(false));
-      return;
-    }
-
     if (event.value) {
+      // Save remember me state
+      await LocalStore.putRememberMe(true);
+
+      // Save credentials only if both email and password are provided
       if (event.email != null && event.password != null) {
         await LocalStore.rememberEmailAndPassword(
           event.email!,
@@ -77,6 +79,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         );
       }
     } else {
+      // Clear remember me state and credentials
+      await LocalStore.putRememberMe(false);
       await LocalStore.clearRememberedCredentials();
     }
     emit(LoginRememberMeToggled(event.value));
@@ -98,5 +102,74 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     } catch (e) {
       emit(LoginLoadWorkerDataFailure(error: e.toString()));
     }
+  }
+
+  Future<void> _registerWorker(
+    RegisterButtonPressed event,
+    Emitter<LoginState> emit,
+  ) async {
+    emit(RegistrationLoading());
+    try {
+      bool isEmailExists = await AppServices.isEmailRegistered(event.email);
+      if (!isEmailExists) {
+        emit(RegisterSuccess(isSuccess: true));
+      } else {
+        emit(RegisterSuccess(isSuccess: false));
+      }
+    } catch (e) {
+      emit(RegisterFailure(error: e.toString()));
+    }
+  }
+
+  Future<void> _signUpWorker(
+    SignUpButtonPressed event,
+    Emitter<LoginState> emit,
+  ) async {
+    emit(SignUpLoading());
+    try {
+      // Add timeout to the entire signup process
+      await Future.any([
+        _performSignUp(event),
+        Future.delayed(const Duration(minutes: 5), () {
+          throw Exception('Signup process timed out. Please try again.');
+        }),
+      ]).then((result) {
+        if (result == true) {
+          emit(SignUpSuccess(isSuccess: true));
+        } else {
+          emit(SignUpSuccess(isSuccess: false));
+        }
+      });
+    } catch (e) {
+      emit(SignUpFailure(error: e.toString()));
+    }
+  }
+
+  Future<bool> _performSignUp(SignUpButtonPressed event) async {
+    String? profileImageUrl;
+    String? idImageUrl;
+
+    if (event.profileImage != null) {
+      profileImageUrl = await UploadToFireStorage().uploadFile(
+        event.profileImage!,
+        'agents/profiles',
+      );
+    }
+
+    if (event.idImage != null) {
+      idImageUrl = await UploadToFireStorage().uploadFile(
+        event.idImage!,
+        'agents/documents',
+      );
+    }
+
+    event.userModel.profileUrl = profileImageUrl;
+    event.userModel.docUrl = idImageUrl;
+
+    return await AuthServices.registerUser(
+      event.email,
+      event.password,
+      event.userModel,
+    );
   }
 }

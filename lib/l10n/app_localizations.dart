@@ -2789,6 +2789,18 @@ abstract class AppLocalizations {
   /// **'Order Rejected Successfully'**
   String get orderRejected;
 
+  /// No description provided for @registrationSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration Success'**
+  String get registrationSuccess;
+
+  /// No description provided for @registrationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration Failed'**
+  String get registrationFailed;
+
   /// No description provided for @failedToSendNotification.
   ///
   /// In en, this message translates to:

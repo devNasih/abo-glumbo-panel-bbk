@@ -1,8 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:aboglumbo_bbk_panel/common_widget/crop_confirm_dialog.dart';
-import 'package:aboglumbo_bbk_panel/common_widget/multiple_location_selector.dart'
-    as LocationSelectorHelper;
+import 'package:aboglumbo_bbk_panel/common_widget/multiple_location_selector.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/saving_stack.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';

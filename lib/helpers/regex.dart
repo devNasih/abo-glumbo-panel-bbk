@@ -14,4 +14,5 @@ class Regex {
     r'([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}'
     r'(\/[^\s]*)?$',
   );
+  static final RegExp emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
 }

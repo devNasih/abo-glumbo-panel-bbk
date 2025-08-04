@@ -1,9 +1,11 @@
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/login_carousel.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
+import 'package:aboglumbo_bbk_panel/helpers/regex.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
+import 'package:aboglumbo_bbk_panel/pages/login/register.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -187,11 +189,29 @@ class _LoginPageState extends State<LoginPage> {
       body: BlocConsumer<LoginBloc, LoginState>(
         listener: (context, state) {
           if (state is LoginSuccess) {
+            // Handle remember me on successful login using the current checkbox state
+            if (rememberMe) {
+              LocalStore.putRememberMe(true);
+              LocalStore.rememberEmailAndPassword(
+                emailController.text.trim(),
+                passwordController.text.trim(),
+              );
+            } else {
+              // Clear remember me if unchecked
+              LocalStore.putRememberMe(false);
+              LocalStore.clearRememberedCredentials();
+            }
+
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => const Home()),
               (route) => false,
             );
+          } else if (state is LoginRememberMeToggled) {
+            // Update local state when remember me is toggled
+            setState(() {
+              rememberMe = state.value;
+            });
           } else if (state is LoginFailure) {
             String errorMessage;
             switch (state.error) {
@@ -275,10 +295,9 @@ class _LoginPageState extends State<LoginPage> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return AppLocalizations.of(context)!.pleaseEnterYourEmail;
+                    } else if (!Regex.emailRegex.hasMatch(value)) {
+                      return AppLocalizations.of(context)!.invalidEmailFormat;
                     }
-                    // else if (!emailRegex.hasMatch(value)) {
-                    //   return AppLocalizations.of(context)!.invalidEmailFormat;
-                    // }
 
                     return null;
                   },
@@ -444,22 +463,6 @@ class _LoginPageState extends State<LoginPage> {
                     child: ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          // Save remember me state before login
-                          final currentRememberMe =
-                              state is LoginRememberMeToggled
-                              ? state.value
-                              : rememberMe;
-
-                          if (currentRememberMe) {
-                            context.read<LoginBloc>().add(
-                              RememberMeToggled(
-                                true,
-                                email: emailController.text.trim(),
-                                password: passwordController.text.trim(),
-                              ),
-                            );
-                          }
-
                           context.read<LoginBloc>().add(
                             LoginButtonPressed(
                               email: emailController.text.trim(),
@@ -501,7 +504,10 @@ class _LoginPageState extends State<LoginPage> {
                     width: double.maxFinite,
                     height: 50,
                     child: TextButton(
-                      onPressed: () {},
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => RegisterPage()),
+                      ),
                       style: TextButton.styleFrom(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),

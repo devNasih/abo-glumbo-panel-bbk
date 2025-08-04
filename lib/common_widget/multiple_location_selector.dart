@@ -7,17 +7,16 @@ import 'package:google_fonts/google_fonts.dart';
 class LocationSelectorWidget extends StatefulWidget {
   final List<LocationModel> locations;
   final LocationModel? selectedLocation;
-  final List<LocationModel>? selectedLocations; // For multiple selection
-  final Function(LocationModel)? onLocationSelected; // Single selection
-  final Function(List<LocationModel>)?
-  onLocationsSelected; // Multiple selection
+  final List<LocationModel>? selectedLocations;
+  final Function(LocationModel)? onLocationSelected;
+  final Function(List<LocationModel>)? onLocationsSelected;
   final VoidCallback? onUseCurrentLocation;
   final bool isLoading;
   final String? searchHint;
   final String? title;
   final String? noLocationsMessage;
   final String? currentLocationText;
-  final bool allowMultipleSelection; // New boolean flag
+  final bool allowMultipleSelection;
 
   const LocationSelectorWidget({
     super.key,
@@ -32,7 +31,7 @@ class LocationSelectorWidget extends StatefulWidget {
     this.title,
     this.noLocationsMessage,
     this.currentLocationText,
-    this.allowMultipleSelection = false, // Default to false
+    this.allowMultipleSelection = false,
   });
 
   @override
@@ -49,18 +48,9 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
   void initState() {
     super.initState();
     filteredLocations = widget.locations;
-    // Initialize selected locations for multiple selection with deep copy
+
     if (widget.allowMultipleSelection && widget.selectedLocations != null) {
-      selectedLocations = widget.selectedLocations!
-          .map(
-            (location) => LocationModel(
-              name: location.name,
-              name_ar: location.name_ar,
-              lat: location.lat,
-              lon: location.lon,
-            ),
-          )
-          .toList();
+      selectedLocations = List.from(widget.selectedLocations!);
     }
   }
 
@@ -85,19 +75,7 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
 
   List<LocationModel> _removeDuplicates(List<LocationModel> locations) {
     final seen = <String>{};
-    final seenIds = <String>{};
-
     return locations.where((location) {
-      // First check by ID if available
-      if (location.name != null && location.name!.isNotEmpty) {
-        if (seenIds.contains(location.name)) {
-          return false;
-        }
-        seenIds.add(location.name!);
-        return true;
-      }
-
-      // Fallback to name-based deduplication
       final name = isArabic ? location.name_ar : location.name;
       if (name == null || name.isEmpty) return true;
 
@@ -136,48 +114,22 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
 
   bool _isLocationSelected(LocationModel location) {
     if (widget.allowMultipleSelection) {
-      // More robust comparison - check both id and name as fallback
-      return selectedLocations.any((selected) {
-        // First try ID comparison if both have IDs
-        if (selected.name != null &&
-            location.name != null &&
-            selected.name!.isNotEmpty &&
-            location.name!.isNotEmpty) {
-          return selected.name == location.name;
-        }
-        // Fallback to name comparison if IDs are not available
-        return selected.name == location.name &&
-            selected.name_ar == location.name_ar;
-      });
+      return selectedLocations.any((selected) => selected.id == location.id);
     } else {
-      return widget.selectedLocation?.name == location.name;
+      return widget.selectedLocation?.id == location.id;
     }
   }
 
   void _handleLocationTap(LocationModel location) {
     if (widget.allowMultipleSelection) {
       setState(() {
-        // Use more robust comparison for finding and removing
-        final index = selectedLocations.indexWhere((selected) {
-          // First try ID comparison if both have IDs
-          if (selected.name != null &&
-              location.name != null &&
-              selected.name!.isNotEmpty &&
-              location.name!.isNotEmpty) {
-            return selected.name == location.name;
-          }
-          // Fallback to name comparison if IDs are not available
-          return selected.name == location.name &&
-              selected.name_ar == location.name_ar;
-        });
-
+        final index = selectedLocations.indexWhere(
+          (selected) => selected.id == location.id,
+        );
         if (index >= 0) {
           selectedLocations.removeAt(index);
         } else {
-          // Validate before adding
-          if (location.name != null && location.name!.isNotEmpty) {
-            selectedLocations.add(location);
-          }
+          selectedLocations.add(location);
         }
       });
     } else {
@@ -222,7 +174,6 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
                   ),
                   Row(
                     children: [
-                      // Show selected count for multiple selection
                       if (widget.allowMultipleSelection &&
                           selectedLocations.isNotEmpty)
                         Container(
@@ -315,9 +266,7 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
                       ),
                     )
                   : ListView.builder(
-                      key: const ValueKey('location_list'),
                       itemCount: filteredLocations.length,
-                      physics: const AlwaysScrollableScrollPhysics(),
                       padding: EdgeInsets.only(
                         bottom:
                             safePaddings.bottom +
@@ -328,9 +277,6 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
                         final isSelected = _isLocationSelected(location);
 
                         return ListTile(
-                          key: ValueKey(
-                            'location_${location.name ?? location.name}',
-                          ),
                           dense: true,
                           leading: Icon(
                             Icons.location_on_rounded,
@@ -350,9 +296,6 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
                           ),
                           trailing: widget.allowMultipleSelection
                               ? Checkbox(
-                                  key: ValueKey(
-                                    'checkbox_${location.name ?? location.name}',
-                                  ),
                                   value: isSelected,
                                   onChanged: (value) {
                                     _handleLocationTap(location);
@@ -372,7 +315,7 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
                       },
                     ),
             ),
-            // Done button for multiple selection
+
             if (widget.allowMultipleSelection)
               Container(
                 width: double.infinity,
@@ -409,39 +352,85 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
   }
 }
 
-Future<List<LocationModel>?> showMultipleLocationSelector({
-  required BuildContext context,
-  required List<LocationModel> locations,
-  List<LocationModel>? selectedLocations,
-  VoidCallback? onUseCurrentLocation,
-  bool isLoading = false,
-  String? searchHint,
-  String? title,
-  String? noLocationsMessage,
-  String? currentLocationText,
-}) async {
-  List<LocationModel>? result;
+class LocationSelectorHelper {
+  static Future<LocationModel?> showLocationSelector({
+    required BuildContext context,
+    required List<LocationModel> locations,
+    LocationModel? selectedLocation,
+    VoidCallback? onUseCurrentLocation,
+    bool isLoading = false,
+    String? searchHint,
+    String? title,
+    String? noLocationsMessage,
+    String? currentLocationText,
+  }) async {
+    return await showModalBottomSheet<LocationModel>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return LocationSelectorWidget(
+          locations: locations,
+          selectedLocation: selectedLocation,
+          onLocationSelected: (location) {
+            Navigator.pop(context, location);
+          },
+          onUseCurrentLocation: onUseCurrentLocation,
+          isLoading: isLoading,
+          searchHint: searchHint,
+          title: title,
+          noLocationsMessage: noLocationsMessage,
+          currentLocationText: currentLocationText,
+          allowMultipleSelection: false,
+        );
+      },
+    );
+  }
 
-  await showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    builder: (context) {
-      return LocationSelectorWidget(
-        locations: locations,
-        selectedLocations: selectedLocations,
-        onLocationsSelected: (locations) {
-          result = locations;
-        },
-        onUseCurrentLocation: onUseCurrentLocation,
-        isLoading: isLoading,
-        searchHint: searchHint,
-        title: title,
-        noLocationsMessage: noLocationsMessage,
-        currentLocationText: currentLocationText,
-        allowMultipleSelection: true,
-      );
-    },
-  );
+  static Future<List<LocationModel>?> showMultipleLocationSelector({
+    required BuildContext context,
+    required List<LocationModel> locations,
+    List<LocationModel>? selectedLocations,
+    VoidCallback? onUseCurrentLocation,
+    bool isLoading = false,
+    String? searchHint,
+    String? title,
+    String? noLocationsMessage,
+    String? currentLocationText,
+  }) async {
+    List<LocationModel>? result;
 
-  return result;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return LocationSelectorWidget(
+          locations: locations,
+          selectedLocations: selectedLocations,
+          onLocationsSelected: (locations) {
+            result = locations;
+          },
+          onUseCurrentLocation: onUseCurrentLocation,
+          isLoading: isLoading,
+          searchHint: searchHint,
+          title: title,
+          noLocationsMessage: noLocationsMessage,
+          currentLocationText: currentLocationText,
+          allowMultipleSelection: true,
+        );
+      },
+    );
+
+    return result;
+  }
+
+  static List<String> getLocationNames(
+    List<LocationModel> locations, {
+    bool isArabic = false,
+  }) {
+    return locations.map((location) {
+      return isArabic
+          ? (location.name_ar ?? location.name ?? '')
+          : (location.name ?? '');
+    }).toList();
+  }
 }
