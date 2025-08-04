@@ -42,9 +42,7 @@ class BookingInfo extends StatelessWidget {
             BookingControlsWidget(
               booking: booking,
               isTracking: false,
-              isLoading: false,
-              onCancelBooking: () {},
-              onCompleteWork: () {},
+              isTrackingLoading: false,
               onStartTracking: () {},
               onStopTracking: () {},
             ),

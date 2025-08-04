@@ -5,8 +5,8 @@ import 'package:aboglumbo_bbk_panel/services/auth_services.dart';
 import 'package:aboglumbo_bbk_panel/services/firestorage.dart';
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:meta/meta.dart';
 part 'login_event.dart';
 part 'login_state.dart';
 
@@ -67,21 +67,45 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     RememberMeToggled event,
     Emitter<LoginState> emit,
   ) async {
-    if (event.value) {
-      // Save remember me state
-      await LocalStore.putRememberMe(true);
+    if (kDebugMode) {
+      print(
+        'RememberMeToggled - value: ${event.value}, email: ${event.email}, password: ${event.password != null ? 'provided' : 'null'}',
+      );
+    }
 
-      // Save credentials only if both email and password are provided
-      if (event.email != null && event.password != null) {
+    if (event.value) {
+      // Always save remember me state when toggled on
+      await LocalStore.putRememberMe(true);
+      if (kDebugMode) {
+        print('Remember me enabled and saved to local storage');
+      }
+
+      // Save credentials if both email and password are provided
+      if (event.email != null &&
+          event.password != null &&
+          event.email!.isNotEmpty &&
+          event.password!.isNotEmpty) {
         await LocalStore.rememberEmailAndPassword(
           event.email!,
           event.password!,
         );
+        if (kDebugMode) {
+          print('Saved credentials to local storage');
+        }
+      } else {
+        if (kDebugMode) {
+          print(
+            'Email or password is empty, remember me enabled but credentials not saved yet',
+          );
+        }
       }
     } else {
-      // Clear remember me state and credentials
+      // Clear remember me state and credentials when toggled off
       await LocalStore.putRememberMe(false);
       await LocalStore.clearRememberedCredentials();
+      if (kDebugMode) {
+        print('Cleared remember me and credentials');
+      }
     }
     emit(LoginRememberMeToggled(event.value));
   }

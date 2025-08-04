@@ -1374,5 +1374,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirmRejectMessage => 'Are you sure you want to reject this order?';
 
   @override
+  String get bookingCancelledSuccessfully => 'Booking Cancelled Successfully';
+
+  @override
+  String get workMarkedAsComplete => 'Work Marked As Complete';
+
+  @override
+  String get areYouSureYouWantToStartTrackingThisBooking => 'Are you sure you want to start tracking this booking?';
+
+  @override
+  String get areYouSureYouWantToStopTrackingThisBooking => 'Are you sure you want to stop tracking this booking?';
+
+  @override
+  String get areYouSureYouWantToCompleteThisWork => 'Are you sure you want to complete this work?';
+
+  @override
+  String get useBiometric => 'Use Biometric';
+
+  @override
   String get failedToSendNotification => 'Failed to send notification to customer';
 }

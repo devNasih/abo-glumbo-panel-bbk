@@ -3,6 +3,7 @@ import 'package:aboglumbo_bbk_panel/common_widget/login_carousel.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/helpers/regex.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
+import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/register.dart';
@@ -15,6 +16,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:local_auth/error_codes.dart' as local_auth_error;
 import 'package:local_auth/local_auth.dart';
+
+// Language model for the dropdown
+class Language {
+  final String name;
+  final String code;
+  final String flag;
+
+  Language({required this.name, required this.code, required this.flag});
+}
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -33,6 +43,13 @@ class _LoginPageState extends State<LoginPage> {
   String? customerLastUid;
   bool isUserLogout = false;
 
+  // Language selection variables
+  String currentLanguageCode = 'en';
+  final List<Language> availableLanguages = [
+    Language(name: 'English', code: 'en', flag: '🇺🇸'),
+    Language(name: 'العربية', code: 'ar', flag: '🇸🇦'),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -41,21 +58,186 @@ class _LoginPageState extends State<LoginPage> {
       customerLastUid ?? '',
     );
     isUserLogout = LocalStore.getLogoutStatus();
-    if (LocalStore.getRememberMe()) {
+
+    // Load current language from local storage
+    currentLanguageCode = LocalStore.getUserlanguage();
+
+    // Load remember me state from local storage
+    bool savedRememberMe = LocalStore.getRememberMe();
+    if (kDebugMode) {
+      print('Loading remember me state: $savedRememberMe');
+    }
+
+    if (savedRememberMe) {
       rememberMe = true;
-      emailController.text = LocalStore.getRememberedEmail() ?? '';
-      passwordController.text = LocalStore.getRememberedPassword() ?? '';
+      String? savedEmail = LocalStore.getRememberedEmail();
+      String? savedPassword = LocalStore.getRememberedPassword();
+
+      if (savedEmail != null) {
+        emailController.text = savedEmail;
+      }
+      if (savedPassword != null) {
+        passwordController.text = savedPassword;
+      }
+
+      if (kDebugMode) {
+        print(
+          'Loaded credentials - Email: ${savedEmail != null ? 'Yes' : 'No'}, Password: ${savedPassword != null ? 'Yes' : 'No'}',
+        );
+      }
     } else {
       rememberMe = false;
       emailController.clear();
       passwordController.clear();
+      if (kDebugMode) {
+        print('Remember me disabled, cleared controllers');
+      }
     }
+
+    // Add listeners to save credentials when user types and remember me is enabled
+    emailController.addListener(_saveCredentialsIfRememberMe);
+    passwordController.addListener(_saveCredentialsIfRememberMe);
+
     if (kDebugMode) {
-    // emailController.text = "adnanyousufpangat@gmail.com";
-    // passwordController.text = "qwertyuiop";
-    // emailController.text = "admin@abogalambo.app";
-    // passwordController.text = "testPassword";
+      // emailController.text = "adnanyousufpangat@gmail.com";
+      // passwordController.text = "qwertyuiop";
+      // emailController.text = "admin@abogalambo.app";
+      // passwordController.text = "testPassword";
     }
+  }
+
+  void _saveCredentialsIfRememberMe() {
+    if (rememberMe &&
+        emailController.text.trim().isNotEmpty &&
+        passwordController.text.trim().isNotEmpty) {
+      LocalStore.rememberEmailAndPassword(
+        emailController.text.trim(),
+        passwordController.text.trim(),
+      );
+      if (kDebugMode) {
+        print('Auto-saved credentials due to text change');
+      }
+    }
+  }
+
+  void _showLanguageSelector() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(top: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)?.selectLanguage ??
+                          'Select Language',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ...availableLanguages.map((language) {
+                      final isSelected = currentLanguageCode == language.code;
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isSelected
+                                ? AppColors.primary
+                                : Colors.grey[300]!,
+                            width: isSelected ? 2 : 1,
+                          ),
+                          color: isSelected
+                              ? AppColors.primary.withOpacity(0.1)
+                              : Colors.transparent,
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 4,
+                          ),
+                          leading: Text(
+                            language.flag,
+                            style: const TextStyle(fontSize: 24),
+                          ),
+                          title: Text(
+                            language.name,
+                            style: GoogleFonts.dmSans(
+                              fontSize: 16,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : Colors.black87,
+                            ),
+                          ),
+                          trailing: isSelected
+                              ? Icon(
+                                  Icons.check_circle,
+                                  color: AppColors.primary,
+                                  size: 24,
+                                )
+                              : null,
+                          onTap: () {
+                            if (currentLanguageCode != language.code) {
+                              context.read<AccountBloc>().add(
+                                ChangeLanguageEvent(
+                                  language.code.toLowerCase(),
+                                ),
+                              );
+                              setState(() {
+                                currentLanguageCode = language.code;
+                              });
+                            }
+                            Navigator.pop(context);
+                          },
+                        ),
+                      );
+                    }).toList(),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    emailController.removeListener(_saveCredentialsIfRememberMe);
+    passwordController.removeListener(_saveCredentialsIfRememberMe);
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   void _byPassUsingBioAuth(BuildContext context) async {
@@ -151,6 +333,11 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final safePadding = MediaQuery.of(context).padding;
+    final currentLanguage = availableLanguages.firstWhere(
+      (lang) => lang.code == currentLanguageCode,
+      orElse: () => availableLanguages.first,
+    );
+
     return Scaffold(
       backgroundColor: AppColors.primary,
       extendBodyBehindAppBar: true,
@@ -160,31 +347,41 @@ class _LoginPageState extends State<LoginPage> {
         elevation: 0,
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: _showLanguageSelector,
             icon: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.white.withOpacity(0.3)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.language, color: Colors.white, size: 18),
+                  Text(
+                    currentLanguage.flag,
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    currentLanguage.code.toUpperCase(),
+                    style: GoogleFonts.dmSans(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(width: 4),
-                  // Text(
-                  //   ref.watch(languageState).code.toUpperCase(),
-                  //   style: GoogleFonts.dmSans(
-                  //     color: Colors.white,
-                  //     fontSize: 12,
-                  //     fontWeight: FontWeight.bold,
-                  //   ),
-                  // ),
+                  const Icon(
+                    Icons.keyboard_arrow_down,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                 ],
               ),
             ),
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: BlocConsumer<LoginBloc, LoginState>(
@@ -210,9 +407,25 @@ class _LoginPageState extends State<LoginPage> {
             );
           } else if (state is LoginRememberMeToggled) {
             // Update local state when remember me is toggled
+            if (kDebugMode) {
+              print('LoginRememberMeToggled received: ${state.value}');
+            }
             setState(() {
               rememberMe = state.value;
             });
+
+            // If remember me was just enabled and we have credentials, save them
+            if (state.value &&
+                emailController.text.trim().isNotEmpty &&
+                passwordController.text.trim().isNotEmpty) {
+              LocalStore.rememberEmailAndPassword(
+                emailController.text.trim(),
+                passwordController.text.trim(),
+              );
+              if (kDebugMode) {
+                print('Saved existing credentials after enabling remember me');
+              }
+            }
           } else if (state is LoginFailure) {
             String errorMessage;
             switch (state.error) {
@@ -371,9 +584,7 @@ class _LoginPageState extends State<LoginPage> {
                     Row(
                       children: [
                         Checkbox(
-                          value: state is LoginRememberMeToggled
-                              ? state.value
-                              : rememberMe,
+                          value: rememberMe,
                           onChanged: (value) => context.read<LoginBloc>().add(
                             RememberMeToggled(
                               value ?? false,
@@ -399,10 +610,6 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
-                    // if (isCheckUserEnableTwoStepVerification &&
-                    //     customerLastUid != null) ...[
-
-                    // ],
                     TextButton(
                       onPressed: () {
                         if (emailController.text.isNotEmpty) {
@@ -447,13 +654,40 @@ class _LoginPageState extends State<LoginPage> {
                 if (isCheckUserEnableTwoStepVerification &&
                     isUserLogout &&
                     customerLastUid != null)
-                  GestureDetector(
-                    onTap: () => _byPassUsingBioAuth(context),
-                    child: Image.asset(
-                      'assets/images/fingerPrint.png',
-                      color: Colors.white,
-                      width: 54,
-                      height: 54,
+                  Center(
+                    child: GestureDetector(
+                      onTap: () => _byPassUsingBioAuth(context),
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Image.asset(
+                              'assets/images/fingerPrint.png',
+                              color: Colors.white,
+                              width: 54,
+                              height: 54,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              AppLocalizations.of(context)?.useBiometric ??
+                                  'Use Biometric',
+                              style: GoogleFonts.dmSans(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 Padding(
@@ -491,14 +725,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-                // Padding(
-                //   padding: const EdgeInsets.only(top: 10.0),
-                //   child: SizedBox(
-                //     width: double.maxFinite,
-                //     height: 40,
-                //     child:
-                //   ),
-                // ),
                 Padding(
                   padding: const EdgeInsets.only(top: 10.0),
                   child: SizedBox(

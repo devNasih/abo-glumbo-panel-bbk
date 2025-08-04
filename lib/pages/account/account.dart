@@ -344,9 +344,6 @@ class _AccountPageState extends State<AccountPage> {
                     context,
                     onConfirm: () {
                       LocalStore.putlogoutStatus(true);
-                      // Clear remember me data when logging out
-                      LocalStore.putRememberMe(false);
-                      LocalStore.clearRememberedCredentials();
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(builder: (context) => LoginPage()),

@@ -454,5 +454,11 @@
   "registrationFailed":"Registration Failed",
   "confirmReject":"Confirm Reject",
   "confirmRejectMessage":"Are you sure you want to reject this order?",
+  "bookingCancelledSuccessfully":"Booking Cancelled Successfully",
+  "workMarkedAsComplete":"Work Marked As Complete",
+  "areYouSureYouWantToStartTrackingThisBooking":"Are you sure you want to start tracking this booking?",
+  "areYouSureYouWantToStopTrackingThisBooking":"Are you sure you want to stop tracking this booking?",
+  "areYouSureYouWantToCompleteThisWork":"Are you sure you want to complete this work?",
+  "useBiometric":"Use Biometric",
   "failedToSendNotification": "Failed to send notification to customer"
 }

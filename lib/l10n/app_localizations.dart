@@ -2825,6 +2825,42 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to reject this order?'**
   String get confirmRejectMessage;
 
+  /// No description provided for @bookingCancelledSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking Cancelled Successfully'**
+  String get bookingCancelledSuccessfully;
+
+  /// No description provided for @workMarkedAsComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Work Marked As Complete'**
+  String get workMarkedAsComplete;
+
+  /// No description provided for @areYouSureYouWantToStartTrackingThisBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to start tracking this booking?'**
+  String get areYouSureYouWantToStartTrackingThisBooking;
+
+  /// No description provided for @areYouSureYouWantToStopTrackingThisBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to stop tracking this booking?'**
+  String get areYouSureYouWantToStopTrackingThisBooking;
+
+  /// No description provided for @areYouSureYouWantToCompleteThisWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to complete this work?'**
+  String get areYouSureYouWantToCompleteThisWork;
+
+  /// No description provided for @useBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Biometric'**
+  String get useBiometric;
+
   /// No description provided for @failedToSendNotification.
   ///
   /// In en, this message translates to:

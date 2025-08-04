@@ -378,4 +378,38 @@ class AppServices {
         .get();
     return snapshot.docs.isNotEmpty;
   }
+
+  static Future<bool> cancelBooking(String bookingId) async {
+    try {
+      await AppFirestore.bookingsCollectionRef.doc(bookingId).update({
+        'bookingStatusCode': 'P',
+        'acceptedAt': FieldValue.delete(),
+        'cancelledBy': 'worker',
+        'agent': FieldValue.delete(),
+      });
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error canceling booking: $e');
+      }
+      return false;
+    }
+  }
+
+  static Future<bool> completeBooking(String bookingId) async {
+    try {
+      await AppFirestore.bookingsCollectionRef.doc(bookingId).update({
+        'bookingStatusCode': 'C',
+        'isStarted': false,
+        'completedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error completing booking: $e');
+      }
+      return false;
+    }
+  }
 }

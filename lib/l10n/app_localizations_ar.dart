@@ -1374,5 +1374,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get confirmRejectMessage => 'هل أنت متأكد أنك تريد رفض هذا الطلب؟';
 
   @override
+  String get bookingCancelledSuccessfully => 'تم إلغاء الحجز بنجاح';
+
+  @override
+  String get workMarkedAsComplete => 'تم تعيين العمل كمكتمل';
+
+  @override
+  String get areYouSureYouWantToStartTrackingThisBooking => 'هل أنت متأكد أنك تريد بدء تتبع هذا الحجز؟';
+
+  @override
+  String get areYouSureYouWantToStopTrackingThisBooking => 'هل أنت متأكد أنك تريد إيقاف تتبع هذا الحجز؟';
+
+  @override
+  String get areYouSureYouWantToCompleteThisWork => 'هل أنت متأكد أنك تريد إنجاز هذا العمل؟';
+
+  @override
+  String get useBiometric => 'استخدام البيوميتريك';
+
+  @override
   String get failedToSendNotification => 'فشل في إرسال الإشعار للعميل';
 }
