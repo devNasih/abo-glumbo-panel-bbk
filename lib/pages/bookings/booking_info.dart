@@ -1,4 +1,5 @@
 import 'package:aboglumbo_bbk_panel/common_widget/cached_video_player.dart';
+import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/address.dart';
@@ -39,13 +40,15 @@ class BookingInfo extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            BookingControlsWidget(
-              booking: booking,
-              isTracking: false,
-              isTrackingLoading: false,
-              onStartTracking: () {},
-              onStopTracking: () {},
-            ),
+            if ((booking.bookingStatusCode.toLowerCase() == 'a') &&
+                (booking.agent?.uid == LocalStore.getUID()))
+              BookingControlsWidget(
+                booking: booking,
+                isTracking: false,
+                isTrackingLoading: false,
+                onStartTracking: () {},
+                onStopTracking: () {},
+              ),
             _buildServiceCard(context, locale, textTheme, colorScheme),
             const SizedBox(height: 16),
             _buildCustomerInfoCard(context, textTheme, colorScheme),
