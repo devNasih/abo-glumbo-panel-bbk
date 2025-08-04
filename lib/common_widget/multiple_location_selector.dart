@@ -54,7 +54,6 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
       selectedLocations = widget.selectedLocations!
           .map(
             (location) => LocationModel(
-              id: location.id,
               name: location.name,
               name_ar: location.name_ar,
               lat: location.lat,
@@ -90,11 +89,11 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
 
     return locations.where((location) {
       // First check by ID if available
-      if (location.id != null && location.id!.isNotEmpty) {
-        if (seenIds.contains(location.id)) {
+      if (location.name != null && location.name!.isNotEmpty) {
+        if (seenIds.contains(location.name)) {
           return false;
         }
-        seenIds.add(location.id!);
+        seenIds.add(location.name!);
         return true;
       }
 
@@ -140,18 +139,18 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
       // More robust comparison - check both id and name as fallback
       return selectedLocations.any((selected) {
         // First try ID comparison if both have IDs
-        if (selected.id != null &&
-            location.id != null &&
-            selected.id!.isNotEmpty &&
-            location.id!.isNotEmpty) {
-          return selected.id == location.id;
+        if (selected.name != null &&
+            location.name != null &&
+            selected.name!.isNotEmpty &&
+            location.name!.isNotEmpty) {
+          return selected.name == location.name;
         }
         // Fallback to name comparison if IDs are not available
         return selected.name == location.name &&
             selected.name_ar == location.name_ar;
       });
     } else {
-      return widget.selectedLocation?.id == location.id;
+      return widget.selectedLocation?.name == location.name;
     }
   }
 
@@ -161,11 +160,11 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
         // Use more robust comparison for finding and removing
         final index = selectedLocations.indexWhere((selected) {
           // First try ID comparison if both have IDs
-          if (selected.id != null &&
-              location.id != null &&
-              selected.id!.isNotEmpty &&
-              location.id!.isNotEmpty) {
-            return selected.id == location.id;
+          if (selected.name != null &&
+              location.name != null &&
+              selected.name!.isNotEmpty &&
+              location.name!.isNotEmpty) {
+            return selected.name == location.name;
           }
           // Fallback to name comparison if IDs are not available
           return selected.name == location.name &&
@@ -176,7 +175,7 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
           selectedLocations.removeAt(index);
         } else {
           // Validate before adding
-          if (location.id != null && location.id!.isNotEmpty) {
+          if (location.name != null && location.name!.isNotEmpty) {
             selectedLocations.add(location);
           }
         }
@@ -330,7 +329,7 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
 
                         return ListTile(
                           key: ValueKey(
-                            'location_${location.id ?? location.name}',
+                            'location_${location.name ?? location.name}',
                           ),
                           dense: true,
                           leading: Icon(
@@ -352,7 +351,7 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
                           trailing: widget.allowMultipleSelection
                               ? Checkbox(
                                   key: ValueKey(
-                                    'checkbox_${location.id ?? location.name}',
+                                    'checkbox_${location.name ?? location.name}',
                                   ),
                                   value: isSelected,
                                   onChanged: (value) {

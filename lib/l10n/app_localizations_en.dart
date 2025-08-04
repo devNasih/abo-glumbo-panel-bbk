@@ -1353,5 +1353,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get waitingForServiceProviderResponse => 'Waiting for service provider response';
 
   @override
+  String get orderRejected => 'Order Rejected Successfully';
+
+  @override
   String get failedToSendNotification => 'Failed to send notification to customer';
 }

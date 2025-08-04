@@ -36,7 +36,7 @@ class ManageServices extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => EditServices()),
+          MaterialPageRoute(builder: (context) => AddServicesDevPage()),
         ),
         child: const Icon(Icons.add),
       ),

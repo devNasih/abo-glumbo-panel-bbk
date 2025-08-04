@@ -2783,6 +2783,12 @@ abstract class AppLocalizations {
   /// **'Waiting for service provider response'**
   String get waitingForServiceProviderResponse;
 
+  /// No description provided for @orderRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Rejected Successfully'**
+  String get orderRejected;
+
   /// No description provided for @failedToSendNotification.
   ///
   /// In en, this message translates to:

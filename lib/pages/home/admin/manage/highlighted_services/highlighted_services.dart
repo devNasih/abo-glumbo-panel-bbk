@@ -1,5 +1,6 @@
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/highlighted_services/edit_highlighted_services.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/widgets/highlighted_service.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:flutter/material.dart';
@@ -41,12 +42,14 @@ class HighlightedServices extends StatelessWidget {
                         : Alignment.topLeft,
                     child: IconButton(
                       icon: const Icon(Icons.edit),
-                      onPressed: () {
-                        // context.push(
-                        //   AppRoutes.devEditHighlightedServices,
-                        //   extra: thisData,
-                        // );
-                      },
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddHighlightedServices(
+                            service: service,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -54,6 +57,15 @@ class HighlightedServices extends StatelessWidget {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddHighlightedServices()),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }

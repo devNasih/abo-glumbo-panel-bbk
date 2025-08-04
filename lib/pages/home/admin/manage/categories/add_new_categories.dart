@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:aboglumbo_bbk_panel/common_widget/crop_confirm_dialog.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/removable_image.dart';
@@ -45,8 +47,31 @@ class _AddNewCategoriesState extends State<AddNewCategories> {
 
   Future pickImage() async {
     try {
-      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+      final image = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 512,
+        maxHeight: 512,
+      );
+
       if (image != null) {
+        // Check if file exists
+        final file = File(image.path);
+        if (!await file.exists()) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Selected file could not be found. Please try again.',
+                ),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return;
+        }
+
         setState(() {
           selectedImage = image;
           shouldRemoveExistingImage = false;
@@ -54,13 +79,16 @@ class _AddNewCategoriesState extends State<AddNewCategories> {
         await cropImage();
       }
     } catch (e) {
+      debugPrint('Error picking image: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               AppLocalizations.of(context)?.imageLoadError ??
-                  'Error picking image',
+                  'Error picking image: ${e.toString()}',
             ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red,
           ),
         );
       }
@@ -134,6 +162,23 @@ class _AddNewCategoriesState extends State<AddNewCategories> {
   }
 
   void _saveCategory() {
+    final hasImage =
+        selectedImage != null ||
+        (widget.category?.svg != null && !shouldRemoveExistingImage);
+  
+    if (!hasImage) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)?.pleaseSelectAnImage ??
+                'Please select an image.',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     if (_formKey.currentState!.validate()) {
       final category = CategoryModel(
         id: widget.category?.id,

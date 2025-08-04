@@ -458,5 +458,6 @@
 "waitingForTechnicianToStartService":"انتظار وكيل الخدمة لبدء الخدمة",
 "waitingForAcceptance":"انتظار الموافقة",
 "waitingForServiceProviderResponse":"انتظار وكيل الخدمة",
+"orderRejected":"تم رفض الطلب",
 "notifications": "الاشعارات"
 }

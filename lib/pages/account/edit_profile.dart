@@ -60,79 +60,131 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   Future<void> pickImage(bool isProfile) async {
-    final image = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 70,
-      maxWidth: isProfile ? 800 : 1200,
-      maxHeight: isProfile ? 800 : 1200,
-    );
+    try {
+      final image = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 70,
+        maxWidth: isProfile ? 800 : 1200,
+        maxHeight: isProfile ? 800 : 1200,
+      );
 
-    if (image != null) {
-      final file = File(image.path);
-      final fileSize = await file.length();
+      if (image != null) {
+        final file = File(image.path);
 
-      if (fileSize > 5 * 1024 * 1024) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Image is too large. Please select an image smaller than 5MB.',
+        // Check if file exists
+        if (!await file.exists()) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Selected file could not be found. Please try again.',
+                ),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 3),
               ),
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: Colors.red,
-              duration: Duration(seconds: 5),
-            ),
-          );
+            );
+          }
+          return;
         }
-        return;
+
+        final fileSize = await file.length();
+
+        if (fileSize > 5 * 1024 * 1024) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Image is too large. Please select an image smaller than 5MB.',
+                ),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 5),
+              ),
+            );
+          }
+          return;
+        }
+
+        debugPrint('Selected image size: $fileSize bytes');
+
+        if (isProfile) {
+          setState(() => selectedProfileImage = image);
+          await cropImage(true);
+        } else {
+          setState(() => selectedImage = image);
+          await cropImage(false);
+        }
       }
-
-      debugPrint('Selected image size: $fileSize bytes');
-
-      if (isProfile) {
-        setState(() => selectedProfileImage = image);
-        cropImage(true);
-      } else {
-        setState(() => selectedImage = image);
-        cropImage(false);
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error selecting image: ${e.toString()}'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
       }
     }
   }
 
   Future<void> cropImage(bool isProfile) async {
-    final sourcePath = isProfile
-        ? selectedProfileImage!.path
-        : selectedImage!.path;
-    CroppedFile? res = await ImageCropper().cropImage(
-      sourcePath: sourcePath,
-      aspectRatio: isProfile
-          ? const CropAspectRatio(ratioX: 1, ratioY: 1)
-          : null,
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: AppLocalizations.of(context)?.cropImage ?? 'Crop Image',
-          toolbarColor: AppColors.primary,
-          toolbarWidgetColor: Colors.white,
-          lockAspectRatio: isProfile,
-        ),
-      ],
-    );
+    try {
+      final sourcePath = isProfile
+          ? selectedProfileImage!.path
+          : selectedImage!.path;
 
-    if (res != null) {
-      if (isProfile) {
-        setState(() => selectedProfileImage = XFile(res.path));
-      } else {
-        setState(() => selectedImage = XFile(res.path));
-      }
-    } else {
-      final bool? shouldKeepImage = await showCropConfirmDialog(context);
+      CroppedFile? res = await ImageCropper().cropImage(
+        sourcePath: sourcePath,
+        aspectRatio: isProfile
+            ? const CropAspectRatio(ratioX: 1, ratioY: 1)
+            : null,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle:
+                AppLocalizations.of(context)?.cropImage ?? 'Crop Image',
+            toolbarColor: AppColors.primary,
+            toolbarWidgetColor: Colors.white,
+            lockAspectRatio: isProfile,
+          ),
+          IOSUiSettings(
+            title: AppLocalizations.of(context)?.cropImage ?? 'Crop Image',
+            aspectRatioLockEnabled: isProfile,
+          ),
+        ],
+      );
 
-      if (shouldKeepImage != true) {
+      if (res != null) {
         if (isProfile) {
-          setState(() => selectedProfileImage = null);
+          setState(() => selectedProfileImage = XFile(res.path));
         } else {
-          setState(() => selectedImage = null);
+          setState(() => selectedImage = XFile(res.path));
         }
+      } else {
+        final bool? shouldKeepImage = await showCropConfirmDialog(context);
+
+        if (shouldKeepImage != true) {
+          if (isProfile) {
+            setState(() => selectedProfileImage = null);
+          } else {
+            setState(() => selectedImage = null);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error cropping image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error cropping image: ${e.toString()}'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
     }
   }

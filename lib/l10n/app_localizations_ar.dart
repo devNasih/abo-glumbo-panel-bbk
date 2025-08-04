@@ -1353,5 +1353,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get waitingForServiceProviderResponse => 'انتظار وكيل الخدمة';
 
   @override
+  String get orderRejected => 'تم رفض الطلب';
+
+  @override
   String get failedToSendNotification => 'فشل في إرسال الإشعار للعميل';
 }

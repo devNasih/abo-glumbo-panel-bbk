@@ -42,8 +42,8 @@ class _AssignWorkerState extends State<AssignWorker> {
 
     if (selectedLocationId != null) {
       final selectedLocation = widget.locations.firstWhere(
-        (loc) => loc.id == selectedLocationId,
-        orElse: () => LocationModel(id: '', name: '', name_ar: ''),
+        (loc) => loc.name == selectedLocationId,
+        orElse: () => LocationModel(name: '', name_ar: ''),
       );
 
       String locationName = Directionality.of(context) == TextDirection.ltr
@@ -190,7 +190,7 @@ class _AssignWorkerState extends State<AssignWorker> {
                             setState(() {
                               selectedLocationId = newValue;
                             });
-                            onLocationChanged?.call(newValue);
+                            onLocationChanged.call(newValue);
                           },
                         ),
                       ),
@@ -249,8 +249,8 @@ class _AssignWorkerState extends State<AssignWorker> {
                         const SizedBox(width: 4),
                         Text(
                           "${AppLocalizations.of(context)!.filterByLocation}: ${widget.locations.firstWhere(
-                            (loc) => loc.id == selectedLocationId,
-                            orElse: () => LocationModel(id: '', name: 'Unknown', name_ar: 'غير معروف'),
+                            (loc) => loc.name == selectedLocationId,
+                            orElse: () => LocationModel(name: 'Unknown', name_ar: 'غير معروف'),
                           ).name}",
                           style: textTheme.bodySmall?.copyWith(
                             color: Theme.of(

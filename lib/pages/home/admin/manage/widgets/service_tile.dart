@@ -65,7 +65,7 @@ class ServiceTileDevWidget extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  EditServices(service: service),
+                                  AddServicesDevPage(service: service),
                             ),
                           ),
                           icon: const Icon(Icons.edit, size: 18),

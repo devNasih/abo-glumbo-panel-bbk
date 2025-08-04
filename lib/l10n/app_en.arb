@@ -447,5 +447,6 @@
   "waitingForTechnicianToStartService":"Waiting for technician to start service",
   "waitingForAcceptance":"Waiting for acceptance",
   "waitingForServiceProviderResponse":"Waiting for service provider response",
+  "orderRejected":"Order Rejected Successfully",
   "failedToSendNotification": "Failed to send notification to customer"
 }

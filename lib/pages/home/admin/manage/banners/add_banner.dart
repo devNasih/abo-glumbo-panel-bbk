@@ -30,46 +30,106 @@ class _AddBannerState extends State<AddBanner> {
   XFile? tempSelectedImage;
   bool showImageConfirmation = false;
   Future pickImage() async {
-    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      setState(() => tempSelectedImage = image);
-      cropImage();
+    try {
+      final image = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 1920,
+        maxHeight: 1080,
+      );
+
+      if (image != null) {
+        // Check if file exists
+        final file = File(image.path);
+        if (!await file.exists()) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Selected file could not be found. Please try again.',
+                ),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return;
+        }
+
+        setState(() => tempSelectedImage = image);
+        await cropImage();
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error selecting image: ${e.toString()}'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
   Future cropImage() async {
-    CroppedFile? res = await ImageCropper().cropImage(
-      sourcePath: tempSelectedImage!.path,
-      aspectRatio: const CropAspectRatio(ratioX: 370, ratioY: 136),
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: AppLocalizations.of(context)?.cropImage ?? 'Crop Image',
-          toolbarColor: AppColors.primary,
-          toolbarWidgetColor: Colors.white,
-        ),
-      ],
-    );
+    try {
+      if (tempSelectedImage == null) return;
 
-    if (res != null) {
-      setState(() {
-        selectedImage = XFile(res.path);
-        tempSelectedImage = null;
-        showImageConfirmation = false;
-      });
-    } else {
-      final bool? shouldKeepImage = await showCropConfirmDialog(context);
+      CroppedFile? res = await ImageCropper().cropImage(
+        sourcePath: tempSelectedImage!.path,
+        aspectRatio: const CropAspectRatio(ratioX: 370, ratioY: 136),
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle:
+                AppLocalizations.of(context)?.cropImage ?? 'Crop Image',
+            toolbarColor: AppColors.primary,
+            toolbarWidgetColor: Colors.white,
+          ),
+          IOSUiSettings(
+            title: AppLocalizations.of(context)?.cropImage ?? 'Crop Image',
+            aspectRatioLockEnabled: true,
+          ),
+        ],
+      );
 
-      if (shouldKeepImage == true) {
+      if (res != null) {
         setState(() {
-          selectedImage = tempSelectedImage;
+          selectedImage = XFile(res.path);
           tempSelectedImage = null;
+          showImageConfirmation = false;
         });
       } else {
-        setState(() {
-          selectedImage = null;
-          tempSelectedImage = null;
-        });
+        final bool? shouldKeepImage = await showCropConfirmDialog(context);
+
+        if (shouldKeepImage == true) {
+          setState(() {
+            selectedImage = tempSelectedImage;
+            tempSelectedImage = null;
+          });
+        } else {
+          setState(() {
+            selectedImage = null;
+            tempSelectedImage = null;
+          });
+        }
       }
+    } catch (e) {
+      debugPrint('Error cropping image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error cropping image: ${e.toString()}'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      setState(() {
+        selectedImage = null;
+        tempSelectedImage = null;
+      });
     }
   }
 

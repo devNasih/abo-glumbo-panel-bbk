@@ -42,20 +42,6 @@ class UploadToFireStorage {
       );
 
       if (compressedFile != null) {
-        final compressedSize = await File(compressedFile.path).length();
-        if (compressedSize > 300 * 1024) {
-          final ultraCompressedPath =
-              '${file.path.substring(0, file.path.lastIndexOf('.'))}_ultra_$timestamp.jpg';
-          final ultraCompressed = await FlutterImageCompress.compressAndGetFile(
-            compressedFile.path,
-            ultraCompressedPath,
-            quality: 30,
-            minWidth: 600,
-            minHeight: 600,
-            format: CompressFormat.jpeg,
-            keepExif: false,
-          );
-        }
         return compressedFile;
       }
       return file;
