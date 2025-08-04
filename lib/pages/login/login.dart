@@ -8,6 +8,7 @@ import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/register.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -49,12 +50,12 @@ class _LoginPageState extends State<LoginPage> {
       emailController.clear();
       passwordController.clear();
     }
-    // if (kDebugMode) {
+    if (kDebugMode) {
     // emailController.text = "adnanyousufpangat@gmail.com";
     // passwordController.text = "qwertyuiop";
-    emailController.text = "admin@abogalambo.app";
-    passwordController.text = "testPassword";
-    // }
+    // emailController.text = "admin@abogalambo.app";
+    // passwordController.text = "testPassword";
+    }
   }
 
   void _byPassUsingBioAuth(BuildContext context) async {

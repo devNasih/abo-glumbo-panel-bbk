@@ -26,7 +26,7 @@ class BookingControlsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.symmetric( vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -56,7 +56,9 @@ class BookingControlsWidget extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _buildButton(
-                  onPressed: isTracking ? onStopTracking : onStartTracking,
+                  onPressed: isTracking
+                      ? () => _showStopTrackingDialog(context)
+                      : () => _showStartTrackingDialog(context),
                   label: isTracking
                       ? AppLocalizations.of(context)!.stopTracking
                       : AppLocalizations.of(context)!.startTracking,
@@ -81,7 +83,7 @@ class BookingControlsWidget extends StatelessWidget {
             width: double.infinity,
             height: 48,
             child: ElevatedButton(
-              onPressed: onCompleteWork,
+              onPressed: () => _showCompleteWorkDialog(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.white,
@@ -103,6 +105,7 @@ class BookingControlsWidget extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildButton({
     required VoidCallback onPressed,
     required String label,
@@ -168,6 +171,90 @@ class BookingControlsWidget extends StatelessWidget {
                 onCancelBooking();
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showStartTrackingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(AppLocalizations.of(context)!.startTracking),
+          content: const Text(
+            'Are you sure you want to start tracking this booking?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(AppLocalizations.of(context)!.no),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                onStartTracking();
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.blue),
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showStopTrackingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(AppLocalizations.of(context)!.stopTracking),
+          content: const Text(
+            'Are you sure you want to stop tracking this booking?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(AppLocalizations.of(context)!.no),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                onStopTracking();
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.orange),
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showCompleteWorkDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(AppLocalizations.of(context)!.completeWork),
+          content: const Text(
+            'Are you sure you want to mark this work as complete?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(AppLocalizations.of(context)!.no),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                onCompleteWork();
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.green),
               child: const Text('Yes'),
             ),
           ],

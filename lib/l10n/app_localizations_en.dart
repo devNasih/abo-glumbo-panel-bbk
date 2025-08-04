@@ -162,6 +162,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get failedToSaveService => 'Failed to save service';
 
   @override
+  String get failedToCreateService => 'Failed to create service';
+
+  @override
+  String get failedToUpdateService => 'Failed to update service';
+
+  @override
   String get pleaseVerifyYourIqama => 'Please verify your iqama by checking the confirmation box';
 
   @override
@@ -1360,6 +1366,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get registrationFailed => 'Registration Failed';
+
+  @override
+  String get confirmReject => 'Confirm Reject';
+
+  @override
+  String get confirmRejectMessage => 'Are you sure you want to reject this order?';
 
   @override
   String get failedToSendNotification => 'Failed to send notification to customer';

@@ -213,9 +213,7 @@ class AppServices {
   static Stream<List<ServiceModel>> getAllServicesStream() {
     return AppFirestore.servicesCollectionRef.snapshots().map((snapshot) {
       return snapshot.docs
-          .map(
-            (doc) => ServiceModel.fromJson(doc.data() as Map<String, dynamic>),
-          )
+          .map((doc) => ServiceModel.fromQueryDocumentSnapshot(doc))
           .toList();
     });
   }

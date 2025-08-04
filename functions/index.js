@@ -116,7 +116,7 @@ exports.notifyAgentOnAssignment = onDocumentWritten(
         .get();
       if (agentDoc.exists) {
         const agentData = agentDoc.data();
-        agentLanCode = agentData.lanCode || "en";
+        agentLanCode = agentData.lanCode;
         agentFcmToken = agentData.fcmToken;
       }
     } catch (error) {

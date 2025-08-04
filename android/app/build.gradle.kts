@@ -15,7 +15,7 @@ val kotlin_version: String by project
 android {
     namespace = "com.aboglumbo.cPanel"
     compileSdk = 35
-    ndkVersion = "25.2.9519653"
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

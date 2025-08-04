@@ -162,6 +162,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToSaveService => 'فشل في حفظ الخدمة';
 
   @override
+  String get failedToCreateService => 'فشل في إنشاء الخدمة';
+
+  @override
+  String get failedToUpdateService => 'فشل في تحديث الخدمة';
+
+  @override
   String get pleaseVerifyYourIqama => 'يرجى التحقق من الإقامة الخاصة بك من خلال تحديد مربع التأكيد';
 
   @override
@@ -1360,6 +1366,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get registrationFailed => 'فشل التسجيل';
+
+  @override
+  String get confirmReject => 'تأكيد الرفض';
+
+  @override
+  String get confirmRejectMessage => 'هل أنت متأكد أنك تريد رفض هذا الطلب؟';
 
   @override
   String get failedToSendNotification => 'فشل في إرسال الإشعار للعميل';

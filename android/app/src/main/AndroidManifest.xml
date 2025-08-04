@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -18,8 +19,10 @@
     <!-- Optional fingerprint hardware feature -->
     <uses-feature android:name="android.hardware.fingerprint" android:required="false" />
     <application
+
         android:enableOnBackInvokedCallback="true"
         android:label="Abo Glumbo Worker"
+        tools:replace="android:label"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

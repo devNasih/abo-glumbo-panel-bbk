@@ -50,6 +50,8 @@
   "addService": "Add Service",
   "noServicesSelected": "No services selected",
   "failedToSaveService": "Failed to save service",
+  "failedToCreateService": "Failed to create service",
+  "failedToUpdateService": "Failed to update service",
   "pleaseVerifyYourIqama": "Please verify your iqama by checking the confirmation box",
   "uploadYourIqama": "Upload Your Iqama",
   "locationPermissionsAreDenied": "Location Permissions Are Denied",
@@ -450,5 +452,7 @@
   "orderRejected":"Order Rejected Successfully",
   "registrationSuccess":"Registration Success",
   "registrationFailed":"Registration Failed",
+  "confirmReject":"Confirm Reject",
+  "confirmRejectMessage":"Are you sure you want to reject this order?",
   "failedToSendNotification": "Failed to send notification to customer"
 }

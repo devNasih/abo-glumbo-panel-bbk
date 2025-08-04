@@ -68,6 +68,8 @@
   "noServicesSelected": "لم يتم اختيار خدمات",
   "failedToLoadCategories": "فشل في تحميل الفئات",
   "failedToSaveService": "فشل في حفظ الخدمة",
+  "failedToCreateService": "فشل في إنشاء الخدمة",
+  "failedToUpdateService": "فشل في تحديث الخدمة",
   "pleaseVerifyYourIqama": "يرجى التحقق من الإقامة الخاصة بك من خلال تحديد مربع التأكيد",
   "uploadYourIqama": "رفع الإقامة الخاصة بك",
   "locationPermissionsAreDenied": "تم رفض أذونات الموقع",
@@ -461,5 +463,7 @@
 "orderRejected":"تم رفض الطلب",
 "registrationSuccess":"تم التسجيل بنجاح",
 "registrationFailed":"فشل التسجيل",
+"confirmReject":"تأكيد الرفض",
+"confirmRejectMessage":"هل أنت متأكد أنك تريد رفض هذا الطلب؟",
 "notifications": "الاشعارات"
 }

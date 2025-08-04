@@ -296,7 +296,7 @@ class _AssignUserBottomSheet extends StatefulWidget {
   final BookingModel booking;
   final List<LocationModel> locations;
   final Function({required BookingModel booking, required UserModel user})
-      onAssignAgent;
+  onAssignAgent;
   final Function(BookingModel booking) onRejectOrder;
 
   const _AssignUserBottomSheet({
@@ -307,8 +307,7 @@ class _AssignUserBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<_AssignUserBottomSheet> createState() =>
-      _AssignUserBottomSheetState();
+  State<_AssignUserBottomSheet> createState() => _AssignUserBottomSheetState();
 }
 
 class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
@@ -320,12 +319,13 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
   void initState() {
     super.initState();
     _loadCategory();
-    
-    // Debug: Log location data to understand the issue
+
     debugPrint('📍 Location data debug:');
     for (int i = 0; i < widget.locations.length; i++) {
       final loc = widget.locations[i];
-      debugPrint('  Location $i: id=${loc.id}, name=${loc.name}, name_ar=${loc.name_ar}');
+      debugPrint(
+        '  Location $i: id=${loc.id}, name=${loc.name}, name_ar=${loc.name_ar}',
+      );
     }
   }
 
@@ -335,7 +335,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
         final docSnapshot = await AppFirestore.categoriesCollectionRef
             .doc(widget.booking.service.category)
             .get();
-        
+
         if (docSnapshot.exists) {
           final data = docSnapshot.data() as Map<String, dynamic>?;
           if (data != null) {
@@ -347,37 +347,66 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
           }
         }
       } catch (e) {
-        debugPrint('❌ Category not found for ID: ${widget.booking.service.category}');
+        debugPrint(
+          '❌ Category not found for ID: ${widget.booking.service.category}',
+        );
       }
     }
-    
+
     setState(() {
       isLoadingCategory = false;
     });
   }
 
-  // Get filtered stream based on category and location
+  Future<void> _showRejectConfirmationDialog() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(AppLocalizations.of(context)!.confirmReject),
+          content: Text(AppLocalizations.of(context)!.confirmRejectMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(AppLocalizations.of(context)!.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(AppLocalizations.of(context)!.reject),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      widget.onRejectOrder(widget.booking);
+      Navigator.pop(context);
+    }
+  }
+
   Stream<List<UserModel>> getFilteredUsersStream() {
     if (widget.booking.service.category != null) {
-      // Use the static method for category-wise workers
-      return getCategoryWiseWorkersStream(widget.booking.service.category!)
-          .map((users) => _filterByLocation(users));
+      return getCategoryWiseWorkersStream(
+        widget.booking.service.category!,
+      ).map((users) => _filterByLocation(users));
     } else {
-      // Fallback query for all verified non-admin users
       Query baseQuery = AppFirestore.usersCollectionRef
           .where('isVerified', isEqualTo: true)
           .where('isAdmin', isNotEqualTo: true);
 
       return baseQuery.snapshots().map((snapshot) {
         final users = snapshot.docs
-            .map((doc) => UserModel.fromJson(doc.data() as Map<String, dynamic>))
+            .map(
+              (doc) => UserModel.fromJson(doc.data() as Map<String, dynamic>),
+            )
             .toList();
         return _filterByLocation(users);
       });
     }
   }
 
-  // Filter users by selected location
   List<UserModel> _filterByLocation(List<UserModel> users) {
     final validLocationId = validatedSelectedLocationId;
     if (validLocationId == null) return users;
@@ -397,7 +426,6 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
   static Stream<List<UserModel>> getCategoryWiseWorkersStream(
     String categoryId,
   ) async* {
-    // Find the category name and pass
     final docSnapshot = await AppFirestore.categoriesCollectionRef
         .doc(categoryId)
         .get();
@@ -422,21 +450,20 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
     });
   }
 
-  // Get a unique identifier for location (fallback to name if id is null)
   String getLocationKey(LocationModel location) {
     if (location.id != null && location.id!.isNotEmpty) {
       return location.id!;
     }
-    // Fallback to name as identifier if id is null
+
     return location.name ?? location.name_ar ?? 'unknown_${location.hashCode}';
   }
 
-  // Validate selected location exists in current locations list
   String? get validatedSelectedLocationId {
     if (selectedLocationId == null) return null;
-    
-    // Check if the selected location still exists in the locations list
-    final locationExists = widget.locations.any((loc) => getLocationKey(loc) == selectedLocationId);
+
+    final locationExists = widget.locations.any(
+      (loc) => getLocationKey(loc) == selectedLocationId,
+    );
     return locationExists ? selectedLocationId : null;
   }
 
@@ -450,7 +477,6 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    // Use loaded category data
     String? categoryName = categoryModel?.name;
     String? categoryNameAr = categoryModel?.name_ar;
 
@@ -461,42 +487,33 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(
-              bottom: 8,
-              top: 16,
-            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+            ).copyWith(bottom: 8, top: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: isLoadingCategory
-                      ? const SizedBox(
-                          height: 20,
-                          child: LinearProgressIndicator(),
-                        )
-                      : Text(
-                          categoryName != null
-                              ? "${AppLocalizations.of(context)!.assignTo} ${Directionality.of(context) == TextDirection.ltr ? categoryName : categoryNameAr}"
-                              : AppLocalizations.of(context)!.assignToUser,
-                          style: textTheme.titleLarge,
-                        ),
+                  child: Text(
+                    categoryName != null
+                        ? "${AppLocalizations.of(context)!.assignTo} ${Directionality.of(context) == TextDirection.ltr ? categoryName : categoryNameAr}"
+                        : AppLocalizations.of(context)!.assignToUser,
+                    style: textTheme.titleLarge,
+                  ),
                 ),
                 IconButton.filledTonal(
                   color: Colors.red,
-                  onPressed: () {
-                    // context.pop();
-                    widget.onRejectOrder(widget.booking);
-                  },
+                  onPressed: _showRejectConfirmationDialog,
                   icon: const Icon(Icons.highlight_off_rounded),
                 ),
               ],
             ),
           ),
 
-          // Location Filter Section
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16).copyWith(bottom: 12),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+            ).copyWith(bottom: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -513,10 +530,9 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                       child: Container(
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .outline
-                                .withOpacity(0.5),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.outline.withOpacity(0.5),
                           ),
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -528,8 +544,9 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                               vertical: 8,
                             ),
                             border: InputBorder.none,
-                            hintText:
-                                AppLocalizations.of(context)!.selectLocation,
+                            hintText: AppLocalizations.of(
+                              context,
+                            )!.selectLocation,
                             prefixIcon: const Icon(
                               Icons.location_on_outlined,
                               size: 20,
@@ -541,9 +558,9 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                               child: Text(
                                 AppLocalizations.of(context)!.allLocations,
                                 style: textTheme.bodyMedium?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ),
@@ -573,16 +590,16 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: IconButton(
-                        onPressed:
-                            validatedSelectedLocationId != null ? clearFilter : null,
+                        onPressed: validatedSelectedLocationId != null
+                            ? clearFilter
+                            : null,
                         icon: Icon(
                           Icons.clear_rounded,
                           color: validatedSelectedLocationId != null
                               ? Theme.of(context).colorScheme.onPrimaryContainer
-                              : Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant
-                                  .withOpacity(0.5),
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant.withOpacity(0.5),
                           size: 20,
                         ),
                         tooltip: AppLocalizations.of(context)!.clearFilter,
@@ -591,17 +608,17 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                   ],
                 ),
 
-                // Show filter indicator when location is selected
                 if (validatedSelectedLocationId != null) ...[
                   const SizedBox(height: 8),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primaryContainer
-                          .withOpacity(0.7),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primaryContainer.withOpacity(0.7),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
@@ -610,16 +627,20 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                         Icon(
                           Icons.filter_alt,
                           size: 16,
-                          color:
-                              Theme.of(context).colorScheme.onPrimaryContainer,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          "${AppLocalizations.of(context)!.filterByLocation}: ${widget.locations.firstWhere((loc) => getLocationKey(loc) == validatedSelectedLocationId, orElse: () => LocationModel(id: '', name: 'Unknown', name_ar: 'غير معروف')).name}",
+                          "${AppLocalizations.of(context)!.filterByLocation}: ${widget.locations.firstWhere(
+                            (loc) => getLocationKey(loc) == validatedSelectedLocationId,
+                            orElse: () => LocationModel(id: '', name: 'Unknown', name_ar: 'غير معروف'),
+                          ).name}",
                           style: textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onPrimaryContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -631,17 +652,16 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
             ),
           ),
 
-          // Divider
           Divider(
             height: 1,
             color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
           ),
 
-          // Users List with StreamBuilder
           Expanded(
             child: StreamBuilder<List<UserModel>>(
               key: ValueKey(
-                  'users_${validatedSelectedLocationId}_${DateTime.now().millisecondsSinceEpoch ~/ 1000}'),
+                'users_${validatedSelectedLocationId}_${DateTime.now().millisecondsSinceEpoch ~/ 1000}',
+              ),
               stream: getFilteredUsersStream(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
@@ -649,15 +669,16 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.error_outline,
-                            color: Colors.red, size: 48),
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.red,
+                          size: 48,
+                        ),
                         const SizedBox(height: 16),
                         Text('Error: ${snapshot.error}'),
                         TextButton(
                           onPressed: () {
-                            setState(() {
-                              // Force rebuild
-                            });
+                            setState(() {});
                           },
                           child: const Text('Retry'),
                         ),
@@ -682,9 +703,8 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                           validatedSelectedLocationId != null
                               ? "${AppLocalizations.of(context)!.no} ${categoryName != null ? (Directionality.of(context) == TextDirection.ltr ? categoryName : categoryNameAr) : 'agents'} available in selected location"
                               : categoryName != null
-                                  ? "${AppLocalizations.of(context)!.no} ${Directionality.of(context) == TextDirection.ltr ? categoryName : categoryNameAr} ${AppLocalizations.of(context)!.agentsAvailable}"
-                                  : AppLocalizations.of(context)!
-                                      .noAgentsAvailable,
+                              ? "${AppLocalizations.of(context)!.no} ${Directionality.of(context) == TextDirection.ltr ? categoryName : categoryNameAr} ${AppLocalizations.of(context)!.agentsAvailable}"
+                              : AppLocalizations.of(context)!.noAgentsAvailable,
                           style: textTheme.titleMedium,
                           textAlign: TextAlign.center,
                         ),
@@ -713,23 +733,13 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                           children: [
                             if (user.districtName != null) ...[
                               const WidgetSpan(
-                                // alignment: ui.PlaceholderAlignment.middle,
-                                child: Icon(
-                                  Icons.location_city,
-                                  size: 15,
-                                ),
+                                child: Icon(Icons.location_city, size: 15),
                               ),
-                              TextSpan(
-                                text: " ${user.districtName ?? ''} ",
-                              ),
+                              TextSpan(text: " ${user.districtName ?? ''} "),
                             ],
                             if (user.jobRoles != null) ...[
                               const WidgetSpan(
-                                // alignment: ui.PlaceholderAlignment.middle,
-                                child: Icon(
-                                  Icons.work_rounded,
-                                  size: 15,
-                                ),
+                                child: Icon(Icons.work_rounded, size: 15),
                               ),
                               TextSpan(
                                 text: " ${user.jobRoles?.join(', ') ?? ''}",
@@ -740,7 +750,9 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                       ),
                       onTap: () {
                         widget.onAssignAgent(
-                            booking: widget.booking, user: user);
+                          booking: widget.booking,
+                          user: user,
+                        );
                         Navigator.pop(context);
                       },
                     );

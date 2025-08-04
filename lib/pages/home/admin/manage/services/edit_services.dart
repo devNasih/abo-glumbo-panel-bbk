@@ -59,7 +59,7 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await loadCategories();
       await loadLocations(); // Load locations
-      fillContents();
+      fillContents(); // Call after both categories and locations are loaded
     });
   }
 
@@ -153,6 +153,8 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
       } catch (e) {
         log('Error: $e');
       }
+
+      setState(() {}); // Update UI after filling contents
     }
   }
 
@@ -234,8 +236,11 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
           price: double.tryParse(priceController.text.trim()),
           category: selectedCategory?.id,
           locations: selectedLocations.isNotEmpty
-              ? selectedLocations.map((location) => location.id).toList()
-              : [],
+              ? selectedLocations
+                    .map((location) => location.id)
+                    .toList()
+                    .cast<String?>()
+              : <String?>[],
           isActive: isActive,
           updatedAt: Timestamp.now(),
         );
@@ -243,8 +248,11 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
           service = service.copyWith(
             id: widget.service!.id,
             locations: selectedLocations.isNotEmpty
-                ? selectedLocations.map((location) => location.id).toList()
-                : [],
+                ? selectedLocations
+                      .map((location) => location.id)
+                      .toList()
+                      .cast<String?>()
+                : <String?>[],
           );
         } else {
           service.createdAt = Timestamp.now();
@@ -277,9 +285,19 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
         if (widget.service == null) {
           await AppFirestore.servicesCollectionRef.add(service.toJson());
         } else {
-          await AppFirestore.servicesCollectionRef
-              .doc(widget.service!.id)
-              .update(service.toEditJson(previous: widget.service!));
+          // Check if the document exists before updating
+          final docRef = AppFirestore.servicesCollectionRef.doc(
+            widget.service!.id,
+          );
+          final docSnapshot = await docRef.get();
+
+          if (!docSnapshot.exists) {
+            throw Exception(
+              'Service document not found. Please refresh and try again.',
+            );
+          }
+
+          await docRef.update(service.toEditJson(previous: widget.service!));
         }
 
         if (mounted) {
@@ -295,12 +313,16 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
           );
         }
       } catch (e) {
+        log('Error saving service: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                AppLocalizations.of(context)?.failedToSaveService ??
-                    'Failed to save service',
+                widget.service == null
+                    ? AppLocalizations.of(context)?.failedToCreateService ??
+                          'Failed to create service'
+                    : AppLocalizations.of(context)?.failedToUpdateService ??
+                          'Failed to update service',
               ),
               action: SnackBarAction(
                 label: AppLocalizations.of(context)?.retry ?? 'Retry',

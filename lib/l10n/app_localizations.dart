@@ -401,6 +401,18 @@ abstract class AppLocalizations {
   /// **'Failed to save service'**
   String get failedToSaveService;
 
+  /// No description provided for @failedToCreateService.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create service'**
+  String get failedToCreateService;
+
+  /// No description provided for @failedToUpdateService.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update service'**
+  String get failedToUpdateService;
+
   /// No description provided for @pleaseVerifyYourIqama.
   ///
   /// In en, this message translates to:
@@ -2800,6 +2812,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Registration Failed'**
   String get registrationFailed;
+
+  /// No description provided for @confirmReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Reject'**
+  String get confirmReject;
+
+  /// No description provided for @confirmRejectMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to reject this order?'**
+  String get confirmRejectMessage;
 
   /// No description provided for @failedToSendNotification.
   ///
