@@ -1,4 +1,5 @@
 import 'package:aboglumbo_bbk_panel/common_widget/cached_video_player.dart';
+import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
@@ -6,6 +7,7 @@ import 'package:aboglumbo_bbk_panel/models/address.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
 import 'package:aboglumbo_bbk_panel/pages/bookings/booking_controllers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -42,12 +44,25 @@ class BookingInfo extends StatelessWidget {
           children: [
             if ((booking.bookingStatusCode.toLowerCase() == 'a') &&
                 (booking.agent?.uid == LocalStore.getUID()))
-              BookingControlsWidget(
-                booking: booking,
-                isTracking: false,
-                isTrackingLoading: false,
-                onStartTracking: () {},
-                onStopTracking: () {},
+              StreamBuilder<DocumentSnapshot>(
+                stream: AppFirestore.bookingsCollectionRef
+                    .doc(booking.id)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  bool isTracking = booking.isStartTracking ?? false;
+
+                  // Use real-time data if available, otherwise fallback to original booking data
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    final data = snapshot.data!.data() as Map<String, dynamic>?;
+                    isTracking = data?['isStartTracking'] ?? false;
+                  }
+
+                  return BookingControlsWidget(
+                    booking: booking,
+                    isTracking: isTracking,
+                    uid: LocalStore.getUID()!,
+                  );
+                },
               ),
             _buildServiceCard(context, locale, textTheme, colorScheme),
             const SizedBox(height: 16),
@@ -151,6 +166,16 @@ class BookingInfo extends StatelessWidget {
 
             // Price with prominent styling
             _buildPriceSection(context, textTheme, colorScheme),
+            const SizedBox(height: 16),
+
+            // Payment Mode
+            _buildInfoRow(
+              context,
+              label: AppLocalizations.of(context)!.paymentMode,
+              value: booking.paymentModeGen,
+              textTheme: textTheme,
+              colorScheme: colorScheme,
+            ),
           ],
         ),
       ),

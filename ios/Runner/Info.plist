@@ -13,8 +13,7 @@
                 <string>CA92.1</string>
             </array>
         </dict>        
-    </array>	
-    <array>
+    </array>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.transistorsoft.aboglumbopanel</string>
@@ -50,16 +49,16 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>We use Face ID to secure your account</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>This app requires access to your location even when the app is in the background to provide location-based services.</string>
+	<string>This app requires access to your location even when the app is in the background to track your service delivery progress and provide real-time updates to customers.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>We need your location for background services.</string>
+	<string>We need continuous access to your location to track service delivery progress even when the app is in the background.</string>
 	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
 	<dict>
 		<key>LocationService</key>
-		<string>Accessing your location temporarily</string>
+		<string>Accessing your location temporarily for service tracking</string>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We need your location to provide nearby services.</string>
+	<string>We need your location to track service delivery and provide updates to customers.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>We need access to your microphone for audio recording.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

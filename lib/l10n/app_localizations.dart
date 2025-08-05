@@ -2861,6 +2861,30 @@ abstract class AppLocalizations {
   /// **'Use Biometric'**
   String get useBiometric;
 
+  /// No description provided for @imageIsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Image is required'**
+  String get imageIsRequired;
+
+  /// No description provided for @bookingCompletedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking completed successfully'**
+  String get bookingCompletedSuccessfully;
+
+  /// No description provided for @startedWorkingOnBookingSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Started working on booking successfully'**
+  String get startedWorkingOnBookingSuccessfully;
+
+  /// No description provided for @stopTrackingBookingSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop tracking booking successfully'**
+  String get stopTrackingBookingSuccessfully;
+
   /// No description provided for @failedToSendNotification.
   ///
   /// In en, this message translates to:

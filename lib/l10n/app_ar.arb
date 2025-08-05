@@ -471,5 +471,9 @@
 "areYouSureYouWantToStopTrackingThisBooking":"هل أنت متأكد أنك تريد إيقاف تتبع هذا الحجز؟",
 "areYouSureYouWantToCompleteThisWork":"هل أنت متأكد أنك تريد إنجاز هذا العمل؟",
 "useBiometric":"استخدام البيوميتريك",
+"imageIsRequired":"الصورة مطلوبة",
+"bookingCompletedSuccessfully":"تم إنجاز الحجز بنجاح",
+"startedWorkingOnBookingSuccessfully":"بدء العمل على الحجز بنجاح",
+"stopTrackingBookingSuccessfully":"إيقاف تتبع الحجز بنجاح",
 "notifications": "الاشعارات"
 }

@@ -84,4 +84,12 @@ class LocalStore {
     return MyApp.box.get('biometric_auth_enabled_$uid', defaultValue: false) ??
         false;
   }
+
+  static Future<void> setActiveBookingId(String bookingId) async {
+    await MyApp.box.put('active_booking_id', bookingId);
+  }
+
+  static String? getActiveBookingId() {
+    return MyApp.box.get('active_booking_id');
+  }
 }

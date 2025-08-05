@@ -1,18 +1,94 @@
 import 'package:aboglumbo_bbk_panel/firebase_options.dart';
+import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
+import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/splash.dart';
 import 'package:aboglumbo_bbk_panel/providers.dart';
 import 'package:aboglumbo_bbk_panel/services/notification.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
+import 'package:background_fetch/background_fetch.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'dart:io';
+
+// Enhanced Background Fetch Handler
+void backgroundFetchHeadlessTask(HeadlessTask task) async {
+  String taskId = task.taskId;
+  bool timeout = task.timeout;
+
+  print('Background fetch executing: $taskId, timeout: $timeout');
+
+  if (timeout) {
+    print('Background fetch timeout for task: $taskId');
+    BackgroundFetch.finish(taskId);
+    return;
+  }
+
+  try {
+    final String? bookingId = LocalStore.getActiveBookingId();
+    final String? uid = LocalStore.getUID();
+
+    if (bookingId == null || bookingId.isEmpty || uid == null) {
+      print(
+        'No active booking or user ID, skipping background location update',
+      );
+      BackgroundFetch.finish(taskId);
+      return;
+    }
+
+    // Check if location services are available
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      print('Location services disabled, skipping background update');
+      BackgroundFetch.finish(taskId);
+      return;
+    }
+
+    // Check permissions
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      print('Location permission denied, skipping background update');
+      BackgroundFetch.finish(taskId);
+      return;
+    }
+
+    // Get current position with timeout
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.medium,
+      timeLimit: const Duration(seconds: 15),
+    );
+
+    // Update location in Firestore
+    await AppFirestore.usersCollectionRef.doc(uid).set({
+      'liveLocation': {
+        'accuracy': position.accuracy,
+        'latitude': position.latitude,
+        'longitude': position.longitude,
+        'timestamp': FieldValue.serverTimestamp(),
+        'source': 'background_fetch',
+        'taskId': taskId,
+      },
+    }, SetOptions(merge: true));
+
+    print(
+      'Background location updated successfully: ${position.latitude}, ${position.longitude}',
+    );
+  } catch (e) {
+    print('Error in background fetch: $e');
+  } finally {
+    BackgroundFetch.finish(taskId);
+  }
+}
 
 final String hiveBoxName = 'myBox';
 GlobalKey<NavigatorState>? navigatorKey = GlobalKey();
@@ -32,6 +108,38 @@ void main() async {
       statusBarColor: Colors.transparent,
     ),
   );
+  try {
+    // Register headless background fetch task
+    BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
+
+    // Configure background fetch with platform-specific settings
+    await BackgroundFetch.configure(
+      BackgroundFetchConfig(
+        minimumFetchInterval: Platform.isIOS
+            ? 15
+            : 30, // iOS needs more frequent updates
+        stopOnTerminate: false,
+        enableHeadless: true,
+        startOnBoot: true,
+        requiresBatteryNotLow: false,
+        requiresCharging: false,
+        requiresStorageNotLow: false,
+        requiredNetworkType: NetworkType.ANY,
+      ),
+      (String taskId) async {
+        print('Foreground background fetch: $taskId');
+        backgroundFetchHeadlessTask(HeadlessTask(taskId, false));
+      },
+      (String taskId) async {
+        print('Background fetch timeout: $taskId');
+        backgroundFetchHeadlessTask(HeadlessTask(taskId, true));
+      },
+    );
+
+    print('Background fetch registration successful');
+  } catch (e) {
+    print('Background Fetch registration failed: $e');
+  }
   runApp(MyApp(navigatorKey: navigatorKey));
 }
 

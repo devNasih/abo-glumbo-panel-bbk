@@ -1392,5 +1392,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get useBiometric => 'استخدام البيوميتريك';
 
   @override
+  String get imageIsRequired => 'الصورة مطلوبة';
+
+  @override
+  String get bookingCompletedSuccessfully => 'تم إنجاز الحجز بنجاح';
+
+  @override
+  String get startedWorkingOnBookingSuccessfully => 'بدء العمل على الحجز بنجاح';
+
+  @override
+  String get stopTrackingBookingSuccessfully => 'إيقاف تتبع الحجز بنجاح';
+
+  @override
   String get failedToSendNotification => 'فشل في إرسال الإشعار للعميل';
 }

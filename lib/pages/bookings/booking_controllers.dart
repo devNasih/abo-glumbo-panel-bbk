@@ -7,17 +7,13 @@ import 'package:aboglumbo_bbk_panel/models/booking.dart';
 class BookingControlsWidget extends StatelessWidget {
   final BookingModel booking;
   final bool isTracking;
-  final bool isTrackingLoading;
-  final VoidCallback onStartTracking;
-  final VoidCallback onStopTracking;
+  final String uid;
 
   const BookingControlsWidget({
     super.key,
     required this.booking,
     required this.isTracking,
-    required this.isTrackingLoading,
-    required this.onStartTracking,
-    required this.onStopTracking,
+    required this.uid,
   });
 
   @override
@@ -25,7 +21,6 @@ class BookingControlsWidget extends StatelessWidget {
     return BlocConsumer<BookingBloc, BookingState>(
       listener: (context, state) {
         if (state is BookingCancelSuccess) {
-          Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -39,14 +34,43 @@ class BookingControlsWidget extends StatelessWidget {
             SnackBar(content: Text(state.error), backgroundColor: Colors.red),
           );
         } else if (state is BookingCompleteSuccess) {
-          Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(AppLocalizations.of(context)!.workMarkedAsComplete),
+              content: Text(
+                AppLocalizations.of(context)!.bookingCompletedSuccessfully,
+              ),
               backgroundColor: Colors.green,
             ),
           );
         } else if (state is BookingCompleteFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.error), backgroundColor: Colors.red),
+          );
+        } else if (state is BookingStartWorkingSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(
+                  context,
+                )!.startedWorkingOnBookingSuccessfully,
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else if (state is BookingStartWorkingFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.error), backgroundColor: Colors.red),
+          );
+        } else if (state is BookingStopWorkingSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.stopTrackingBookingSuccessfully,
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else if (state is BookingStopWorkingFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.error), backgroundColor: Colors.red),
           );
@@ -55,6 +79,8 @@ class BookingControlsWidget extends StatelessWidget {
       builder: (context, state) {
         final isCancelLoading = state is BookingCancelLoading;
         final isCompleteLoading = state is BookingCompleteLoading;
+        final isStartWorkingLoading = state is BookingStartWorkingLoading;
+        final isStopWorkingLoading = state is BookingStopWorkingLoading;
 
         return Container(
           padding: const EdgeInsets.all(16),
@@ -91,7 +117,13 @@ class BookingControlsWidget extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildButton(
-                      onPressed: isTracking
+                      onPressed:
+                          (isStartWorkingLoading ||
+                              isStopWorkingLoading ||
+                              isCancelLoading ||
+                              isCompleteLoading)
+                          ? null
+                          : isTracking
                           ? () => _showStopTrackingDialog(context)
                           : () => _showStartTrackingDialog(context),
                       label: isTracking
@@ -106,7 +138,7 @@ class BookingControlsWidget extends StatelessWidget {
                       borderColor: isTracking
                           ? Colors.orange.shade200
                           : Colors.blue.shade200,
-                      isLoading: isTrackingLoading,
+                      isLoading: isStartWorkingLoading || isStopWorkingLoading,
                     ),
                   ),
                 ],
@@ -252,7 +284,13 @@ class BookingControlsWidget extends StatelessWidget {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                onStartTracking();
+                context.read<BookingBloc>().add(
+                  StartWorkingOnBooking(
+                    context: context,
+                    bookingId: booking.id,
+                    uid: uid,
+                  ),
+                );
               },
               style: TextButton.styleFrom(foregroundColor: Colors.blue),
               child: Text(AppLocalizations.of(context)!.yes),
@@ -269,10 +307,8 @@ class BookingControlsWidget extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(AppLocalizations.of(context)!.stopTracking),
-          content: Text(
-            AppLocalizations.of(
-              context,
-            )!.areYouSureYouWantToStopTrackingThisBooking,
+          content: const Text(
+            'Are you sure you want to stop tracking this booking?',
           ),
           actions: [
             TextButton(
@@ -282,7 +318,9 @@ class BookingControlsWidget extends StatelessWidget {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                onStopTracking();
+                context.read<BookingBloc>().add(
+                  StopWorkingOnBooking(bookingId: booking.id),
+                );
               },
               style: TextButton.styleFrom(foregroundColor: Colors.orange),
               child: Text(AppLocalizations.of(context)!.yes),
@@ -299,8 +337,8 @@ class BookingControlsWidget extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(AppLocalizations.of(context)!.completeWork),
-          content: Text(
-            AppLocalizations.of(context)!.areYouSureYouWantToCompleteThisWork,
+          content: const Text(
+            'Are you sure you want to mark this work as complete?',
           ),
           actions: [
             TextButton(

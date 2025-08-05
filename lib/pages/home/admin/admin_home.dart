@@ -367,7 +367,10 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
           content: Text(AppLocalizations.of(context)!.confirmRejectMessage),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+                Navigator.of(context).pop(false);
+              },
               child: Text(AppLocalizations.of(context)!.cancel),
             ),
             TextButton(

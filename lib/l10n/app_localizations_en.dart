@@ -1392,5 +1392,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get useBiometric => 'Use Biometric';
 
   @override
+  String get imageIsRequired => 'Image is required';
+
+  @override
+  String get bookingCompletedSuccessfully => 'Booking completed successfully';
+
+  @override
+  String get startedWorkingOnBookingSuccessfully => 'Started working on booking successfully';
+
+  @override
+  String get stopTrackingBookingSuccessfully => 'Stop tracking booking successfully';
+
+  @override
   String get failedToSendNotification => 'Failed to send notification to customer';
 }

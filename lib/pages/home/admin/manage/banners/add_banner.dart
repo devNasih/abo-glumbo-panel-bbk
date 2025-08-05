@@ -203,25 +203,65 @@ class _AddBannerState extends State<AddBanner> {
                       : Icon(Icons.save),
                   onPressed: (state is AddingBanner || state is UpdatingBanner)
                       ? null
-                      : () => widget.banner == null
-                            ? context.read<ManageAppBloc>().add(
-                                AddBannerEvent(
-                                  BannerModel(
-                                    url: urlController.text,
-                                    image: selectedImage?.path ?? '',
-                                    label: labelController.text,
-                                    active: isActive,
-                                    section: setction,
+                      : () {
+                          if (formKey.currentState!.validate()) {
+                            // Check if image is mandatory for new banners
+                            if (widget.banner == null &&
+                                selectedImage == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    AppLocalizations.of(
+                                          context,
+                                        )?.imageIsRequired ??
+                                        'Image is required',
                                   ),
-                                  imageFile: selectedImage,
+                                  backgroundColor: Colors.red,
                                 ),
-                              )
-                            : context.read<ManageAppBloc>().add(
-                                UpdateBannerEvent(
-                                  widget.banner!,
-                                  imageFile: selectedImage,
+                              );
+                              return;
+                            }
+
+                            // Check if image is mandatory for existing banners without image
+                            if (widget.banner != null &&
+                                selectedImage == null &&
+                                (widget.banner?.image == null ||
+                                    widget.banner!.image!.isEmpty)) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    AppLocalizations.of(
+                                          context,
+                                        )?.imageIsRequired ??
+                                        'Image is required',
+                                  ),
+                                  backgroundColor: Colors.red,
                                 ),
-                              ),
+                              );
+                              return;
+                            }
+
+                            widget.banner == null
+                                ? context.read<ManageAppBloc>().add(
+                                    AddBannerEvent(
+                                      BannerModel(
+                                        url: urlController.text,
+                                        image: selectedImage?.path ?? '',
+                                        label: labelController.text,
+                                        active: isActive,
+                                        section: setction,
+                                      ),
+                                      imageFile: selectedImage,
+                                    ),
+                                  )
+                                : context.read<ManageAppBloc>().add(
+                                    UpdateBannerEvent(
+                                      widget.banner!,
+                                      imageFile: selectedImage,
+                                    ),
+                                  );
+                          }
+                        },
                 );
               },
             ),
@@ -281,7 +321,8 @@ class _AddBannerState extends State<AddBanner> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return AppLocalizations.of(context)!.urlIsRequired;
-                  } else if (!Regex.urlRegex.hasMatch(value)) {
+                  }
+                  if (!Regex.urlRegex.hasMatch(value)) {
                     return AppLocalizations.of(context)!.invalidUrl;
                   }
                   return null;

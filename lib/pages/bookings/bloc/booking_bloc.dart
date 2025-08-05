@@ -1,14 +1,21 @@
+import 'package:aboglumbo_bbk_panel/main.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
+import 'package:aboglumbo_bbk_panel/services/location_services.dart';
+import 'package:background_fetch/background_fetch.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 
 part 'booking_event.dart';
 part 'booking_state.dart';
 
 class BookingBloc extends Bloc<BookingEvent, BookingState> {
-  BookingBloc() : super(BookingInitial()) {
+  final BookingTrackerService tracker;
+  BookingBloc(this.tracker) : super(BookingInitial()) {
     on<CancelBooking>(_cancelBookingWorker);
     on<CompleteBooking>(_completeBookingWorker);
+    on<StartWorkingOnBooking>(_startBookingWorker);
+    on<StopWorkingOnBooking>(_stopWorkingOnBookingWorker);
   }
   Future<void> _cancelBookingWorker(
     CancelBooking event,
@@ -46,6 +53,50 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
       }
     } catch (e) {
       emit(BookingCompleteFailure(error: e.toString()));
+    }
+  }
+
+  Future<void> _startBookingWorker(
+    StartWorkingOnBooking event,
+    Emitter<BookingState> emit,
+  ) async {
+    emit(BookingStartWorkingLoading());
+    try {
+      await tracker.startWorking(
+        context: event.context,
+        bookingId: event.bookingId,
+        uid: event.uid,
+      );
+      await BackgroundFetch.configure(
+        BackgroundFetchConfig(
+          minimumFetchInterval: 15,
+          stopOnTerminate: false,
+          startOnBoot: true,
+          enableHeadless: true,
+        ),
+        (String taskId) async {
+          backgroundFetchHeadlessTask(HeadlessTask(taskId, false));
+        },
+        (String taskId) {
+          BackgroundFetch.finish(taskId);
+        },
+      );
+      emit(BookingStartWorkingSuccess());
+    } catch (e) {
+      emit(BookingStartWorkingFailure(error: e.toString()));
+    }
+  }
+
+  Future<void> _stopWorkingOnBookingWorker(
+    StopWorkingOnBooking event,
+    Emitter<BookingState> emit,
+  ) async {
+    emit(BookingStopWorkingLoading());
+    try {
+      await tracker.stopTracking();
+      emit(BookingStopWorkingSuccess());
+    } catch (e) {
+      emit(BookingStopWorkingFailure(error: e.toString()));
     }
   }
 }
