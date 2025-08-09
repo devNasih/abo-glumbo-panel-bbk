@@ -1,4 +1,6 @@
 import 'package:aboglumbo_bbk_panel/pages/bookings/bloc/booking_bloc.dart';
+import 'package:aboglumbo_bbk_panel/services/location_services.dart';
+import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
@@ -7,13 +9,14 @@ import 'package:aboglumbo_bbk_panel/models/booking.dart';
 class BookingControlsWidget extends StatelessWidget {
   final BookingModel booking;
   final bool isTracking;
-  final String uid;
+
+  // Static reference to ensure we're using the same service instance
+  static final BookingTrackerService _trackerService = BookingTrackerService();
 
   const BookingControlsWidget({
     super.key,
     required this.booking,
     required this.isTracking,
-    required this.uid,
   });
 
   @override
@@ -21,6 +24,7 @@ class BookingControlsWidget extends StatelessWidget {
     return BlocConsumer<BookingBloc, BookingState>(
       listener: (context, state) {
         if (state is BookingCancelSuccess) {
+          Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -34,6 +38,7 @@ class BookingControlsWidget extends StatelessWidget {
             SnackBar(content: Text(state.error), backgroundColor: Colors.red),
           );
         } else if (state is BookingCompleteSuccess) {
+          Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -82,105 +87,116 @@ class BookingControlsWidget extends StatelessWidget {
         final isStartWorkingLoading = state is BookingStartWorkingLoading;
         final isStopWorkingLoading = state is BookingStopWorkingLoading;
 
-        return Container(
-          padding: const EdgeInsets.all(16),
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              // Action buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildButton(
-                      onPressed: isCancelLoading
-                          ? null
-                          : () => _showCancelDialog(context),
-                      label: AppLocalizations.of(context)!.cancelBooking,
-                      color: Colors.red.shade50,
-                      textColor: Colors.red.shade700,
-                      borderColor: Colors.red.shade200,
-                      isLoading: isCancelLoading,
-                    ),
+        // Use ValueListenableBuilder to get real-time tracking state from the service
+        return ValueListenableBuilder<bool>(
+          valueListenable: _trackerService.isTracking,
+          builder: (context, serviceIsTracking, child) {
+            // Use service state as the primary source of truth
+            // Only fall back to Firestore state if service is not tracking but Firestore shows active
+            final actualIsTracking = serviceIsTracking;
+
+            return Container(
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade200),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildButton(
-                      onPressed:
-                          (isStartWorkingLoading ||
-                              isStopWorkingLoading ||
-                              isCancelLoading ||
-                              isCompleteLoading)
+                ],
+              ),
+              child: Column(
+                children: [
+                  // Action buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildButton(
+                          onPressed: isCancelLoading
+                              ? null
+                              : () => _showCancelDialog(context),
+                          label: AppLocalizations.of(context)!.cancelBooking,
+                          color: Colors.red.shade50,
+                          textColor: Colors.red.shade700,
+                          borderColor: Colors.red.shade200,
+                          isLoading: isCancelLoading,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildButton(
+                          onPressed:
+                              (isStartWorkingLoading ||
+                                  isStopWorkingLoading ||
+                                  isCancelLoading ||
+                                  isCompleteLoading)
+                              ? null
+                              : actualIsTracking
+                              ? () => _showStopTrackingDialog(context)
+                              : () => _showStartTrackingDialog(context),
+                          label: actualIsTracking
+                              ? AppLocalizations.of(context)!.stopTracking
+                              : AppLocalizations.of(context)!.startTracking,
+                          color: actualIsTracking
+                              ? Colors.orange.shade50
+                              : Colors.blue.shade50,
+                          textColor: actualIsTracking
+                              ? Colors.orange.shade700
+                              : Colors.blue.shade700,
+                          borderColor: actualIsTracking
+                              ? Colors.orange.shade200
+                              : Colors.blue.shade200,
+                          isLoading:
+                              isStartWorkingLoading || isStopWorkingLoading,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Complete button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: isCompleteLoading
                           ? null
-                          : isTracking
-                          ? () => _showStopTrackingDialog(context)
-                          : () => _showStartTrackingDialog(context),
-                      label: isTracking
-                          ? AppLocalizations.of(context)!.stopTracking
-                          : AppLocalizations.of(context)!.startTracking,
-                      color: isTracking
-                          ? Colors.orange.shade50
-                          : Colors.blue.shade50,
-                      textColor: isTracking
-                          ? Colors.orange.shade700
-                          : Colors.blue.shade700,
-                      borderColor: isTracking
-                          ? Colors.orange.shade200
-                          : Colors.blue.shade200,
-                      isLoading: isStartWorkingLoading || isStopWorkingLoading,
+                          : () => _showCompleteWorkDialog(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: isCompleteLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              AppLocalizations.of(context)!.completeWork,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-
-              // Complete button
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: isCompleteLoading
-                      ? null
-                      : () => _showCompleteWorkDialog(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: isCompleteLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : Text(
-                          AppLocalizations.of(context)!.completeWork,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                ),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -284,13 +300,16 @@ class BookingControlsWidget extends StatelessWidget {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                context.read<BookingBloc>().add(
-                  StartWorkingOnBooking(
-                    context: context,
-                    bookingId: booking.id,
-                    uid: uid,
-                  ),
-                );
+                final uid = LocalStore.getUID();
+                if (uid != null) {
+                  context.read<BookingBloc>().add(
+                    StartWorkingOnBooking(
+                      context: context,
+                      bookingId: booking.id,
+                      uid: uid,
+                    ),
+                  );
+                }
               },
               style: TextButton.styleFrom(foregroundColor: Colors.blue),
               child: Text(AppLocalizations.of(context)!.yes),
@@ -307,8 +326,10 @@ class BookingControlsWidget extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(AppLocalizations.of(context)!.stopTracking),
-          content: const Text(
-            'Are you sure you want to stop tracking this booking?',
+          content: Text(
+            AppLocalizations.of(
+              context,
+            )!.areYouSureYouWantToStopTrackingThisBooking,
           ),
           actions: [
             TextButton(
@@ -337,8 +358,10 @@ class BookingControlsWidget extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(AppLocalizations.of(context)!.completeWork),
-          content: const Text(
-            'Are you sure you want to mark this work as complete?',
+          content: Text(
+            AppLocalizations.of(
+              context,
+            )!.areYouSureYouWantToCompleteThisBooking,
           ),
           actions: [
             TextButton(

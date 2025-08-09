@@ -4,10 +4,12 @@ import 'package:aboglumbo_bbk_panel/common_widget/crop_confirm_dialog.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/saving_stack.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/text_form.dart';
+import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/location.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
+import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/sheets/locations.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -73,18 +75,6 @@ class _EditProfileState extends State<EditProfile> {
 
         // Check if file exists
         if (!await file.exists()) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Selected file could not be found. Please try again.',
-                ),
-                behavior: SnackBarBehavior.floating,
-                backgroundColor: Colors.red,
-                duration: Duration(seconds: 3),
-              ),
-            );
-          }
           return;
         }
 
@@ -117,16 +107,8 @@ class _EditProfileState extends State<EditProfile> {
         }
       }
     } catch (e) {
-      debugPrint('Error picking image: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error selecting image: ${e.toString()}'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
-        );
+        return null; // Handle error gracefully
       }
     }
   }
@@ -227,6 +209,12 @@ class _EditProfileState extends State<EditProfile> {
                     location: widget.workerData?.location,
                     liveLocation: widget.workerData?.liveLocation,
                   );
+
+              // Update local storage with new user data
+              LocalStore.storeUserData(updatedUser);
+
+              // Refresh user data in LoginBloc to keep it synchronized
+              context.read<LoginBloc>().add(RefreshUserData());
 
               Navigator.pop(context, updatedUser);
               ScaffoldMessenger.of(context).showSnackBar(

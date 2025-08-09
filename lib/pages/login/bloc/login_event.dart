@@ -37,6 +37,13 @@ class LoadWorkerData extends LoginEvent {
   List<Object?> get props => [uid];
 }
 
+class RefreshUserData extends LoginEvent {
+  final String? uid;
+  RefreshUserData({this.uid});
+  @override
+  List<Object?> get props => [uid];
+}
+
 class RegisterButtonPressed extends LoginEvent {
   final String email;
   final String password;

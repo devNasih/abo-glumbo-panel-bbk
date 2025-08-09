@@ -24,7 +24,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get byContinuingYouAgreeToOur => 'من خلال المتابعة، فإنك توافق علينا ';
 
   @override
-  String get termsOfUseAndPrivacyPolicy => 'شروط الاستخدام وسياسة الخصوصية';
+  String get termsOfUseAndPrivacyPolicy => 'شروط الاستخ ';
 
   @override
   String get rememberMe => 'تذكرني';
@@ -670,6 +670,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get networkError => 'خطأ في الشبكة';
+
+  @override
+  String get wrongPassword => 'كلمة المرور خاطئة';
+
+  @override
+  String get userNotFound => 'المستخدم غير موجود';
+
+  @override
+  String get userDisabled => 'حساب المستخدم معطل';
+
+  @override
+  String get deletingAccount => 'جاري حذف الحساب...';
+
+  @override
+  String get requiresRecentLogin => 'تتطلب هذه العملية مصادقة حديثة. يرجى تسجيل الخروج وتسجيل الدخول مرة أخرى.';
 
   @override
   String get resetPasswordError => 'خطأ في استعادة كلمة المرور';
@@ -1404,5 +1419,110 @@ class AppLocalizationsAr extends AppLocalizations {
   String get stopTrackingBookingSuccessfully => 'إيقاف تتبع الحجز بنجاح';
 
   @override
-  String get failedToSendNotification => 'فشل في إرسال الإشعار للعميل';
+  String get cards => 'Cards';
+
+  @override
+  String get goToLogin => 'الذهاب إلى تسجيل الدخول';
+
+  @override
+  String get failedToSendNotification => 'فشل في إرسال الإشعار إلى العميل';
+
+  @override
+  String get locationPermissionErrorIOS => 'حدث خطأ في إذن الموقع على نظام iOS. يرجى الذهاب إلى الإعدادات > الخصوصية والأمان > خدمات الموقع > Abo Glumbo Worker واختيار \'دائمًا\' لتمكين التتبع في الخلفية.';
+
+  @override
+  String get youHaveAnActiveBookingAlready => 'لديك حجز نشط بالفعل.';
+
+  @override
+  String get locationServicesDisabledPleaseEnable => 'تم تعطيل خدمات الموقع. يرجى تمكين خدمات الموقع.';
+
+  @override
+  String get backgroundLocationPermissionRequired => 'مطلوب إذن الموقع في الخلفية. يرجى اختيار \'السماح طوال الوقت\' للوصول إلى الموقع.';
+
+  @override
+  String get locationPermissionDeniedPleaseGrant => 'تم رفض إذن الموقع. يرجى منح إذن الموقع للمتابعة.';
+
+  @override
+  String get areYouSureYouWantToCompleteThisBooking => 'هل أنت متأكد أنك تريد إنجاز هذا الحجز؟';
+
+  @override
+  String get locationPermissionPermanentlyDeniedPleaseEnable => 'تم رفض إذن الموقع بشكل دائم. يرجى تمكين الوصول إلى الموقع من الإعدادات.';
+
+  @override
+  String get locationServicesDisabledCannotRestoreTracking => 'تم تعطيل خدمات الموقع، لا يمكن استعادة التتبع';
+
+  @override
+  String get locationPermissionDeniedCannotRestoreTracking => 'تم رفض إذن الموقع، لا يمكن استعادة التتبع';
+
+  @override
+  String get iosLocationPermissionErrorDuringRestore => 'خطأ في إذن الموقع على iOS أثناء الاستعادة - قد تحتاج إذن \"دائماً\"';
+
+  @override
+  String get locationTrackingRestoredSuccessfully => 'تم استعادة تتبع الموقع بنجاح';
+
+  @override
+  String get iosLocationPermissionIssueDuringRestore => 'مشكلة في إذن الموقع على iOS أثناء الاستعادة';
+
+  @override
+  String get iosOnlyWhenInUsePermissionGranted => 'iOS: تم منح إذن \"عند الاستخدام\" فقط. التتبع في الخلفية سيكون محدوداً.';
+
+  @override
+  String get iosAlwaysPermissionGranted => 'iOS: تم منح إذن \"دائماً\". التتبع الكامل في الخلفية متاح.';
+
+  @override
+  String get iosErrorRequestingAlwaysPermission => 'iOS: خطأ في طلب إذن \"دائماً\"';
+
+  @override
+  String get iosContinuingWithWhenInUsePermissionOnly => 'iOS: المتابعة مع إذن \"عند الاستخدام\" فقط.';
+
+  @override
+  String get batteryOptimizationEnabledMayAffectTracking => 'تحسين البطارية مفعل، قد يؤثر على تتبع الموقع في الخلفية';
+
+  @override
+  String get trackingYourLocationForServiceDelivery => 'تتبع موقعك لتسليم الخدمة';
+
+  @override
+  String get aboGlumboLocationTracking => 'أبو جلمبو - تتبع الموقع';
+
+  @override
+  String get backgroundLocationUpdated => 'تم تحديث الموقع في الخلفية';
+
+  @override
+  String get errorUpdatingBackgroundLocation => 'خطأ في تحديث الموقع في الخلفية';
+
+  @override
+  String get backgroundFetchTriggered => 'تم تشغيل الجلب في الخلفية';
+
+  @override
+  String get backgroundFetchTimeout => 'انتهت مهلة الجلب في الخلفية';
+
+  @override
+  String get locationStreamErrorDuringRestore => 'خطأ في تدفق الموقع أثناء الاستعادة';
+
+  @override
+  String get errorRestoringLocationTracking => 'خطأ في استعادة تتبع الموقع';
+
+  @override
+  String get backgroundFetchConfiguredAndStarted => 'تم تكوين وبدء الجلب في الخلفية';
+
+  @override
+  String get errorConfiguringBackgroundFetch => 'خطأ في تكوين الجلب في الخلفية';
+
+  @override
+  String get locationUpdated => 'تم تحديث الموقع';
+
+  @override
+  String get errorUpdatingLocationToFirestore => 'خطأ في تحديث الموقع إلى Firestore';
+
+  @override
+  String get errorStoppingBackgroundFetch => 'خطأ في إيقاف الجلب في الخلفية';
+
+  @override
+  String get errorUpdatingBookingStatus => 'خطأ في تحديث حالة الحجز';
+
+  @override
+  String get locationTrackingStopped => 'تم إيقاف تتبع الموقع';
+
+  @override
+  String get errorCheckingBatteryOptimization => 'خطأ في فحص تحسين البطارية';
 }

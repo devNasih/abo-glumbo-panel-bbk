@@ -182,17 +182,31 @@ class TipsDataSheet extends StatelessWidget {
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    textDirection: Directionality.of(context),
                     children: [
-                      Icon(Icons.send_rounded, size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        AppLocalizations.of(context)?.sendAndClearWallet ??
-                            'Clear Wallet',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                      if (Directionality.of(context) == TextDirection.ltr) ...[
+                        Icon(Icons.send_rounded, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          AppLocalizations.of(context)?.sendAndClearWallet ??
+                              'Clear Wallet',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
+                      ] else ...[
+                        Text(
+                          AppLocalizations.of(context)?.sendAndClearWallet ??
+                              'Clear Wallet',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(Icons.send_rounded, size: 20),
+                      ],
                     ],
                   ),
                 ),

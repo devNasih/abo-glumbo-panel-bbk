@@ -1,4 +1,5 @@
 import 'package:aboglumbo_bbk_panel/main.dart';
+import 'package:aboglumbo_bbk_panel/models/user.dart';
 
 class LocalStore {
   static Future<void> putUID(String uid) {
@@ -91,5 +92,27 @@ class LocalStore {
 
   static String? getActiveBookingId() {
     return MyApp.box.get('active_booking_id');
+  }
+
+  // User Data Storage
+  static Future<void> storeUserData(UserModel user) async {
+    await MyApp.box.put('cached_user_data', user.toJson());
+    await MyApp.box.flush();
+  }
+
+  static UserModel? getCachedUserData() {
+    final userData = MyApp.box.get('cached_user_data');
+    if (userData != null && userData is Map) {
+      try {
+        return UserModel.fromJson(Map<String, dynamic>.from(userData));
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  static Future<void> clearCachedUserData() async {
+    await MyApp.box.delete('cached_user_data');
   }
 }

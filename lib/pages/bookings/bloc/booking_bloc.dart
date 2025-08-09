@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/main.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/services/location_services.dart';
@@ -67,23 +68,45 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
         bookingId: event.bookingId,
         uid: event.uid,
       );
-      await BackgroundFetch.configure(
-        BackgroundFetchConfig(
-          minimumFetchInterval: 15,
-          stopOnTerminate: false,
-          startOnBoot: true,
-          enableHeadless: true,
-        ),
-        (String taskId) async {
-          backgroundFetchHeadlessTask(HeadlessTask(taskId, false));
-        },
-        (String taskId) {
-          BackgroundFetch.finish(taskId);
-        },
-      );
+
+      // Configure background fetch with error handling
+      try {
+        await BackgroundFetch.configure(
+          BackgroundFetchConfig(
+            minimumFetchInterval: 15,
+            stopOnTerminate: false,
+            startOnBoot: true,
+            enableHeadless: true,
+          ),
+          (String taskId) async {
+            backgroundFetchHeadlessTask(HeadlessTask(taskId, false));
+          },
+          (String taskId) {
+            BackgroundFetch.finish(taskId);
+          },
+        );
+      } catch (backgroundFetchError) {
+        // Background fetch failed, but continue with foreground tracking
+        print('Background fetch configuration failed: $backgroundFetchError');
+      }
+
       emit(BookingStartWorkingSuccess());
     } catch (e) {
-      emit(BookingStartWorkingFailure(error: e.toString()));
+      // Provide specific error messages for common iOS issues
+      String errorMessage = e.toString();
+      if (errorMessage.contains('PlatformException') &&
+          errorMessage.contains('1')) {
+        final localizations = AppLocalizations.of(event.context);
+        errorMessage =
+            localizations?.locationPermissionErrorIOS ??
+            'Location permission error on iOS. Please enable location access in Settings.';
+      } else if (errorMessage.contains('Location permission')) {
+        // Keep existing permission error messages
+      } else if (errorMessage.contains('Location services disabled')) {
+        // Keep existing service error messages
+      }
+
+      emit(BookingStartWorkingFailure(error: errorMessage));
     }
   }
 

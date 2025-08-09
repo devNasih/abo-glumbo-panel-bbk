@@ -1,5 +1,6 @@
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/text_form.dart';
+import 'package:aboglumbo_bbk_panel/helpers/regex.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/signup.dart';
@@ -75,13 +76,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   if (value == null || value.isEmpty) {
                     return AppLocalizations.of(context)?.pleaseEnterYourEmail ??
                         'Please enter your email';
-                  }
-                  final emailRegExp = RegExp(
-                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                  );
-                  if (!emailRegExp.hasMatch(value)) {
-                    return AppLocalizations.of(context)?.invalidEmailFormat ??
-                        'Invalid email format';
+                  } else if (!Regex.emailRegex.hasMatch(value)) {
+                    return AppLocalizations.of(context)!.invalidEmailFormat;
                   }
                   return null;
                 },

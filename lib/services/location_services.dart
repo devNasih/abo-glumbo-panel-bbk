@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
+import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/main.dart';
 import 'package:aboglumbo_bbk_panel/services/battery_optimization_service.dart';
 import 'package:background_fetch/background_fetch.dart';
@@ -190,17 +191,48 @@ class BookingTrackerService {
         return;
       }
 
+      // Get appropriate settings for current permission level
+      LocationSettings settings = _getLocationSettings();
+
+      // For iOS, adjust settings based on actual permission level
+      if (Platform.isIOS && settings is AppleSettings) {
+        if (permission == LocationPermission.always) {
+          settings = AppleSettings(
+            accuracy: LocationAccuracy.high,
+            activityType: ActivityType.otherNavigation,
+            distanceFilter: 10,
+            pauseLocationUpdatesAutomatically: false,
+            showBackgroundLocationIndicator: true,
+            allowBackgroundLocationUpdates: true,
+          );
+        } else {
+          // Keep background updates disabled for "When In Use" permission
+          settings = AppleSettings(
+            accuracy: LocationAccuracy.high,
+            activityType: ActivityType.otherNavigation,
+            distanceFilter: 10,
+            pauseLocationUpdatesAutomatically: false,
+            showBackgroundLocationIndicator: false,
+            allowBackgroundLocationUpdates: false,
+          );
+        }
+      }
+
       // Restart foreground location updates with enhanced settings
       _positionStream?.cancel(); // Cancel any existing stream
-      _positionStream =
-          Geolocator.getPositionStream(
-            locationSettings: _getLocationSettings(),
-          ).listen(
+      _positionStream = Geolocator.getPositionStream(locationSettings: settings)
+          .listen(
             (Position position) async {
               await _updateLocationToFirestore(position, uid, 'foreground');
             },
             onError: (error) {
               print('Location stream error during restore: $error');
+              // For iOS permission errors, provide specific guidance
+              if (Platform.isIOS && error.toString().contains('1')) {
+                print(
+                  'iOS location permission error during restore - may need "Always" permission',
+                );
+              }
               // Try to restart after a delay
               Timer(const Duration(seconds: 5), () {
                 if (isTracking.value) {
@@ -213,6 +245,10 @@ class BookingTrackerService {
       print('Location tracking restored successfully');
     } catch (e) {
       print('Error restoring location tracking: $e');
+      // For iOS errors, provide specific guidance
+      if (Platform.isIOS && e.toString().contains('1')) {
+        print('iOS location permission issue during restore');
+      }
     }
   }
 
@@ -228,18 +264,39 @@ class BookingTrackerService {
         .get();
 
     if (docs.docs.isNotEmpty) {
-      throw Exception("You have an active booking already.");
+      final localizations = AppLocalizations.of(context);
+      throw Exception(
+        localizations?.youHaveAnActiveBookingAlready ??
+            'You have an active booking already',
+      );
     }
 
-    // Enhanced location permissions check
-    await _requestLocationPermissions();
+    // Enhanced location permissions check with iOS specific handling
+    try {
+      await _requestLocationPermissions(context);
+    } catch (e) {
+      // If permission fails on iOS with specific error, provide helpful message
+      if (Platform.isIOS && e.toString().contains('1')) {
+        final localizations = AppLocalizations.of(context);
+        throw Exception(
+          localizations?.locationPermissionErrorIOS ??
+              'Location permission error on iOS. Please go to Settings > Privacy & Security > Location Services > Abo Glumbo Worker and select \'Always\' to enable background tracking.',
+        );
+      }
+      rethrow; // Re-throw other permission errors
+    }
 
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
+      final localizations = AppLocalizations.of(context);
       throw Exception(
-        "Location services disabled. Please enable location services.",
+        localizations?.locationServicesDisabledPleaseEnable ??
+            'Location services are disabled. Please enable them in settings.',
       );
     }
+
+    // Check current permission level for iOS specific settings
+    LocationPermission currentPermission = await Geolocator.checkPermission();
 
     await AppFirestore.bookingsCollectionRef.doc(bookingId).update({
       'isStarted': true,
@@ -250,16 +307,41 @@ class BookingTrackerService {
     LocalStore.setActiveBookingId(bookingId);
     _bookingId = bookingId;
 
-    // Start foreground location updates with better settings
-    _positionStream =
-        Geolocator.getPositionStream(
-          locationSettings: _getLocationSettings(),
-        ).listen(
+    // Start foreground location updates with platform-appropriate settings
+    LocationSettings settings = _getLocationSettings(context: context);
+
+    // For iOS, update settings based on actual permission level
+    if (Platform.isIOS && settings is AppleSettings) {
+      if (currentPermission == LocationPermission.always) {
+        settings = AppleSettings(
+          accuracy: LocationAccuracy.high,
+          activityType: ActivityType.otherNavigation,
+          distanceFilter: 10,
+          pauseLocationUpdatesAutomatically: false,
+          showBackgroundLocationIndicator: true,
+          allowBackgroundLocationUpdates: true,
+        );
+      } else {
+        // Keep background updates disabled for "When In Use" permission
+        settings = AppleSettings(
+          accuracy: LocationAccuracy.high,
+          activityType: ActivityType.otherNavigation,
+          distanceFilter: 10,
+          pauseLocationUpdatesAutomatically: false,
+          showBackgroundLocationIndicator: false,
+          allowBackgroundLocationUpdates: false,
+        );
+      }
+    }
+
+    _positionStream = Geolocator.getPositionStream(locationSettings: settings)
+        .listen(
           (Position position) async {
             await _updateLocationToFirestore(position, uid, 'foreground');
           },
           onError: (error) {
-            print('Location stream error: $error');
+            // For iOS permission errors, provide specific guidance
+            if (Platform.isIOS && error.toString().contains('1')) {}
             // Try to restart the stream after a delay
             Timer(const Duration(seconds: 5), () {
               if (isTracking.value) {
@@ -276,7 +358,7 @@ class BookingTrackerService {
   }
 
   /// Enhanced location permissions request
-  Future<void> _requestLocationPermissions() async {
+  Future<void> _requestLocationPermissions(BuildContext context) async {
     LocationPermission permission = await Geolocator.checkPermission();
 
     if (permission == LocationPermission.denied) {
@@ -284,14 +366,18 @@ class BookingTrackerService {
     }
 
     if (permission == LocationPermission.denied) {
+      final localizations = AppLocalizations.of(context);
       throw Exception(
-        "Location permission denied. Please grant location permission to continue.",
+        localizations?.locationPermissionDeniedPleaseGrant ??
+            'Location permission denied. Please grant location permission.',
       );
     }
 
     if (permission == LocationPermission.deniedForever) {
+      final localizations = AppLocalizations.of(context);
       throw Exception(
-        "Location permission permanently denied. Please enable location access in Settings.",
+        localizations?.locationPermissionPermanentlyDeniedPleaseEnable ??
+            'Location permission permanently denied. Please enable it in settings.',
       );
     }
 
@@ -301,14 +387,38 @@ class BookingTrackerService {
         // On Android, show dialog explaining why we need always permission
         permission = await Geolocator.requestPermission();
         if (permission != LocationPermission.always) {
+          final localizations = AppLocalizations.of(context);
           throw Exception(
-            "Background location permission required. Please select 'Allow all the time' for location access.",
+            localizations?.backgroundLocationPermissionRequired ??
+                'Background location permission is required for tracking.',
           );
         }
       } else if (Platform.isIOS) {
-        // On iOS, the app needs to handle this gracefully
-        // The background app refresh will handle background location
-        print("iOS: Background location will use background app refresh");
+        // On iOS, we need to handle background location more carefully
+        try {
+          // Request always permission for iOS
+          permission = await Geolocator.requestPermission();
+
+          // If still only "whileInUse", we can continue but inform about limitations
+          if (permission == LocationPermission.whileInUse) {
+            print(
+              "iOS: Only 'When In Use' permission granted. Background tracking will be limited.",
+            );
+            // We can continue with limited functionality
+          } else if (permission == LocationPermission.always) {
+            print(
+              "iOS: 'Always' permission granted. Full background tracking available.",
+            );
+          }
+        } catch (e) {
+          print("iOS: Error requesting always permission: $e");
+          // If we can't get always permission, continue with whileInUse
+          if (permission == LocationPermission.whileInUse) {
+            print("iOS: Continuing with 'When In Use' permission only.");
+          } else {
+            rethrow;
+          }
+        }
       }
     }
 
@@ -336,16 +446,26 @@ class BookingTrackerService {
   }
 
   /// Get optimized location settings based on platform
-  LocationSettings _getLocationSettings() {
+  LocationSettings _getLocationSettings({BuildContext? context}) {
     if (Platform.isAndroid) {
+      final localizations = context != null
+          ? AppLocalizations.of(context)
+          : null;
+      final notificationText =
+          localizations?.trackingYourLocationForServiceDelivery ??
+          "Tracking your location for service delivery";
+      final notificationTitle =
+          localizations?.aboGlumboLocationTracking ??
+          "Abo Glumbo - Location Tracking";
+
       return AndroidSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: 10, // meters
         forceLocationManager: false,
         intervalDuration: const Duration(seconds: 30),
-        foregroundNotificationConfig: const ForegroundNotificationConfig(
-          notificationText: "Tracking your location for service delivery",
-          notificationTitle: "Abo Glumbo - Location Tracking",
+        foregroundNotificationConfig: ForegroundNotificationConfig(
+          notificationText: notificationText,
+          notificationTitle: notificationTitle,
           enableWakeLock: true,
         ),
       );
@@ -355,8 +475,9 @@ class BookingTrackerService {
         activityType: ActivityType.otherNavigation,
         distanceFilter: 10,
         pauseLocationUpdatesAutomatically: false,
-        showBackgroundLocationIndicator: true,
-        allowBackgroundLocationUpdates: true,
+        showBackgroundLocationIndicator: false, // Disable to avoid issues
+        allowBackgroundLocationUpdates:
+            false, // Will be enabled if "Always" permission is granted
       );
     } else {
       return const LocationSettings(
@@ -397,6 +518,15 @@ class BookingTrackerService {
   /// Configure background fetch with enhanced settings
   Future<void> _configureBackgroundFetch() async {
     try {
+      // Skip background fetch configuration on iOS if we don't have always permission
+      if (Platform.isIOS) {
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission != LocationPermission.always) {
+          print('iOS: Skipping background fetch - requires Always permission');
+          return;
+        }
+      }
+
       await BackgroundFetch.configure(
         BackgroundFetchConfig(
           minimumFetchInterval: Platform.isIOS
@@ -425,10 +555,19 @@ class BookingTrackerService {
       print('Background fetch configured and started');
     } catch (e) {
       print('Error configuring background fetch: $e');
+      // Don't throw the error - continue with foreground tracking only
+      if (Platform.isIOS && e.toString().contains('1')) {
+        print(
+          'iOS background fetch not available - continuing with foreground tracking only',
+        );
+      }
     }
   }
 
   Future<void> stopTracking() async {
+    // Update local state immediately to provide instant UI feedback
+    isTracking.value = false;
+
     // Clean up all tracking resources
     _positionStream?.cancel();
     _positionStream = null;
@@ -455,7 +594,6 @@ class BookingTrackerService {
 
     LocalStore.setActiveBookingId('');
     _bookingId = null;
-    isTracking.value = false;
 
     print('Location tracking stopped');
   }

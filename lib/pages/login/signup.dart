@@ -15,6 +15,7 @@ import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geocoding/geocoding.dart';
@@ -667,6 +668,113 @@ class _SignupState extends State<Signup> {
     );
   }
 
+  void _deleteRegistrationForm() async {
+    if (FirebaseAuth.instance.currentUser != null) {
+      final shouldDelete =
+          await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text(AppLocalizations.of(context)?.goBack ?? 'Go Back'),
+              content: Text(
+                AppLocalizations.of(context)?.deleteRegistrationConfirmation ??
+                    'This will delete your registration. Are you sure you want to go back?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: Text(AppLocalizations.of(context)?.yes ?? 'Yes'),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+
+      if (shouldDelete) {
+        await _deleteCurrentUser();
+      }
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
+  Future<void> _deleteCurrentUser() async {
+    try {
+      setState(() => isDeletingUser = true);
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await user.delete();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting account: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isDeletingUser = false);
+      }
+    }
+  }
+
+  String _getUserFriendlyErrorMessage(String error) {
+    // Convert technical errors to user-friendly messages
+    final errorLower = error.toLowerCase();
+
+    if (errorLower.contains('email-already-in-use')) {
+      return 'This email is already registered. Please use a different email or try logging in.';
+    }
+
+    if (errorLower.contains('weak-password')) {
+      return AppLocalizations.of(context)?.passwordMustBeAtleast6Characters ??
+          'Password is too weak. Please choose a stronger password.';
+    }
+
+    if (errorLower.contains('invalid-email')) {
+      return AppLocalizations.of(context)?.invalidEmailFormat ??
+          'Please enter a valid email address.';
+    }
+
+    if (errorLower.contains('network-request-failed') ||
+        errorLower.contains('network error')) {
+      return AppLocalizations.of(context)?.networkError ??
+          'Network error. Please check your internet connection and try again.';
+    }
+
+    if (errorLower.contains('unauthorized') ||
+        errorLower.contains('permission')) {
+      // Don't show technical authorization errors - these are usually fixed by our reordering
+      return '';
+    }
+
+    if (errorLower.contains('timeout') || errorLower.contains('timed out')) {
+      return 'The operation took too long. Please check your internet connection and try again.';
+    }
+
+    if (errorLower.contains('file') && errorLower.contains('large')) {
+      return 'The selected image is too large. Please choose a smaller image.';
+    }
+
+    if (errorLower.contains('corrupted') ||
+        errorLower.contains('unsupported format')) {
+      return 'The selected image format is not supported. Please choose a different image.';
+    }
+
+    // For any other errors, show a generic message
+    if (error.isNotEmpty) {
+      return 'Something went wrong during account creation. Please try again.';
+    }
+
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
     final safePadding = MediaQuery.of(context).padding;
@@ -686,13 +794,22 @@ class _SignupState extends State<Signup> {
               );
             }
             if (state is SignUpFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.error),
-                  backgroundColor: Colors.red,
-                  behavior: SnackBarBehavior.floating,
-                ),
+              // Filter and provide user-friendly error messages
+              String userFriendlyMessage = _getUserFriendlyErrorMessage(
+                state.error,
               );
+
+              // Only show the snackbar if it's a meaningful error for the user
+              if (userFriendlyMessage.isNotEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(userFriendlyMessage),
+                    backgroundColor: Colors.red,
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 4),
+                  ),
+                );
+              }
             }
           },
           child: Scaffold(
@@ -709,7 +826,7 @@ class _SignupState extends State<Signup> {
                   Row(
                     children: [
                       IconButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: _deleteRegistrationForm,
                         icon: const Icon(
                           Icons.arrow_back_ios_new_rounded,
                           color: Colors.black,
@@ -1037,15 +1154,18 @@ class _SignupState extends State<Signup> {
                                   ),
                                 );
                               } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'An error occurred: ${e.toString()}',
+                                String userFriendlyMessage =
+                                    _getUserFriendlyErrorMessage(e.toString());
+                                if (userFriendlyMessage.isNotEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(userFriendlyMessage),
+                                      backgroundColor: Colors.red,
+                                      behavior: SnackBarBehavior.floating,
+                                      duration: const Duration(seconds: 4),
                                     ),
-                                    backgroundColor: Colors.red,
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
+                                  );
+                                }
                               }
                             },
                       style: ElevatedButton.styleFrom(

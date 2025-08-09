@@ -2,6 +2,7 @@ import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AgentInfo extends StatelessWidget {
   final UserModel agent;
@@ -19,6 +20,19 @@ class AgentInfo extends StatelessWidget {
     'painter': {'en': 'Painter', 'ar': 'دهان'},
     'other': {'en': 'Other', 'ar': 'أخرى'},
   };
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
+    try {
+      if (await canLaunchUrl(launchUri)) {
+        await launchUrl(launchUri);
+      } else {
+        throw 'Could not launch $launchUri';
+      }
+    } catch (e) {
+      print('Error launching phone call: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +64,7 @@ class AgentInfo extends StatelessWidget {
                   agent.email,
                   context,
                 ),
-                _buildInfoRow(
+                _buildPhoneRow(
                   AppLocalizations.of(context)!.phone,
                   agent.phone,
                   context,
@@ -128,6 +142,15 @@ class AgentInfo extends StatelessWidget {
           ],
         ),
       ),
+      floatingActionButton: agent.phone != null && agent.phone!.isNotEmpty
+          ? FloatingActionButton.extended(
+              onPressed: () => _makePhoneCall(agent.phone!),
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.phone),
+              label: Text(AppLocalizations.of(context)!.call),
+            )
+          : null,
     );
   }
 
@@ -286,6 +309,58 @@ class AgentInfo extends StatelessWidget {
             child: Text(
               value,
               style: const TextStyle(fontSize: 16, color: Colors.black87),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhoneRow(String label, String? value, BuildContext context) {
+    if (value == null || value.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    value,
+                    style: const TextStyle(fontSize: 16, color: Colors.black87),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () => _makePhoneCall(value),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade100,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.green, width: 1),
+                    ),
+                    child: Icon(
+                      Icons.phone,
+                      size: 16,
+                      color: Colors.green.shade700,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

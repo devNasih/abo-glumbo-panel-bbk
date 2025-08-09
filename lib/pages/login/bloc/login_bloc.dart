@@ -1,9 +1,11 @@
+import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/services/auth_services.dart';
 import 'package:aboglumbo_bbk_panel/services/firestorage.dart';
 import 'package:bloc/bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
@@ -16,6 +18,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<ForrgotPasswordPressed>(_resetPasswordWorker);
     on<RememberMeToggled>(_rememberMeToggled);
     on<LoadWorkerData>(_loadWorkerData);
+    on<RefreshUserData>(_refreshUserData);
     on<RegisterButtonPressed>(_registerWorker);
     on<SignUpButtonPressed>(_signUpWorker);
   }
@@ -128,6 +131,32 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     }
   }
 
+  Future<void> _refreshUserData(
+    RefreshUserData event,
+    Emitter<LoginState> emit,
+  ) async {
+    try {
+      // First try to get cached user data
+      UserModel? cachedUser = LocalStore.getCachedUserData();
+      if (cachedUser != null) {
+        emit(LoginLoadWorkerData(user: cachedUser));
+        return;
+      }
+
+      // If no cached data, fetch from Firebase
+      UserModel user = await AuthServices.checkUser(
+        event.uid ?? LocalStore.getUID()!,
+      );
+      if (user.uid == null || user.uid!.isEmpty) {
+        emit(LoginLoadWorkerDataFailure(error: "User not found"));
+      } else {
+        emit(LoginLoadWorkerData(user: user));
+      }
+    } catch (e) {
+      emit(LoginLoadWorkerDataFailure(error: e.toString()));
+    }
+  }
+
   Future<void> _registerWorker(
     RegisterButtonPressed event,
     Emitter<LoginState> emit,
@@ -152,20 +181,30 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(SignUpLoading());
     try {
       // Add timeout to the entire signup process
-      await Future.any([
+      bool result = await Future.any([
         _performSignUp(event),
         Future.delayed(const Duration(minutes: 5), () {
           throw Exception('Signup process timed out. Please try again.');
         }),
-      ]).then((result) {
-        if (result == true) {
-          emit(SignUpSuccess(isSuccess: true));
-        } else {
-          emit(SignUpSuccess(isSuccess: false));
-        }
-      });
+      ]);
+
+      if (result == true) {
+        emit(SignUpSuccess(isSuccess: true));
+      } else {
+        emit(
+          SignUpFailure(error: 'Account creation failed. Please try again.'),
+        );
+      }
     } catch (e) {
-      emit(SignUpFailure(error: e.toString()));
+      // Filter out technical errors that shouldn't be shown to users
+      String errorMessage = e.toString();
+      if (errorMessage.contains('unauthorized') ||
+          errorMessage.contains('permission denied')) {
+        // These are technical issues that should be handled internally
+        emit(SignUpFailure(error: 'Please try creating your account again.'));
+      } else {
+        emit(SignUpFailure(error: errorMessage));
+      }
     }
   }
 
@@ -173,27 +212,130 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     String? profileImageUrl;
     String? idImageUrl;
 
-    if (event.profileImage != null) {
-      profileImageUrl = await UploadToFireStorage().uploadFile(
-        event.profileImage!,
-        'agents/profiles',
+    try {
+      // Create the user account first to authenticate with Firebase
+      bool userCreated = await AuthServices.registerUser(
+        event.email,
+        event.password,
+        event.userModel,
       );
+
+      if (!userCreated) {
+        return false;
+      }
+
+      // Wait a moment to ensure Firebase Auth state is fully synced
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // Verify the user is actually authenticated before proceeding
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        if (kDebugMode) {
+          print('Error: User account created but not authenticated');
+        }
+        return false;
+      }
+
+      // Now that the user is authenticated, upload the files
+      if (event.profileImage != null) {
+        try {
+          profileImageUrl = await _uploadFileWithRetry(
+            event.profileImage!,
+            'agents/profiles',
+          );
+          if (kDebugMode) {
+            print('Profile image uploaded successfully');
+          }
+        } catch (profileUploadError) {
+          if (kDebugMode) {
+            print('Profile image upload failed: $profileUploadError');
+          }
+          // Continue with signup even if profile image upload fails
+        }
+      }
+
+      if (event.idImage != null) {
+        try {
+          idImageUrl = await _uploadFileWithRetry(
+            event.idImage!,
+            'agents/documents',
+          );
+          if (kDebugMode) {
+            print('ID document uploaded successfully');
+          }
+        } catch (idUploadError) {
+          if (kDebugMode) {
+            print('ID document upload failed: $idUploadError');
+          }
+          // Continue with signup even if ID document upload fails
+        }
+      }
+
+      // Update the user document with the image URLs if they were uploaded
+      if (profileImageUrl != null || idImageUrl != null) {
+        try {
+          Map<String, dynamic> updateData = {};
+          if (profileImageUrl != null) {
+            updateData['profileUrl'] = profileImageUrl;
+          }
+          if (idImageUrl != null) {
+            updateData['docUrl'] = idImageUrl;
+          }
+          updateData['updatedAt'] = Timestamp.now();
+
+          await AppFirestore.usersCollectionRef
+              .doc(event.userModel.uid)
+              .update(updateData);
+
+          if (kDebugMode) {
+            print('User document updated with image URLs');
+          }
+        } catch (updateError) {
+          if (kDebugMode) {
+            print(
+              'Failed to update user document with image URLs: $updateError',
+            );
+          }
+          // Continue with signup even if document update fails
+        }
+      }
+
+      return true;
+    } catch (error) {
+      if (kDebugMode) {
+        print('Signup error: $error');
+      }
+
+      // If this is an authentication-related error, don't retry
+      if (error.toString().contains('email-already-in-use') ||
+          error.toString().contains('weak-password') ||
+          error.toString().contains('invalid-email')) {
+        rethrow; // Let the calling method handle these specific errors
+      }
+
+      return false;
     }
+  }
 
-    if (event.idImage != null) {
-      idImageUrl = await UploadToFireStorage().uploadFile(
-        event.idImage!,
-        'agents/documents',
-      );
+  Future<String?> _uploadFileWithRetry(
+    XFile file,
+    String storagePath, {
+    int maxRetries = 2,
+  }) async {
+    for (int attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await UploadToFireStorage().uploadFile(file, storagePath);
+      } catch (e) {
+        if (attempt == maxRetries) {
+          rethrow; // If final attempt fails, throw the error
+        }
+        // Wait before retrying
+        await Future.delayed(Duration(seconds: (attempt + 1) * 2));
+        if (kDebugMode) {
+          print('Upload attempt ${attempt + 1} failed, retrying...');
+        }
+      }
     }
-
-    event.userModel.profileUrl = profileImageUrl;
-    event.userModel.docUrl = idImageUrl;
-
-    return await AuthServices.registerUser(
-      event.email,
-      event.password,
-      event.userModel,
-    );
+    return null;
   }
 }

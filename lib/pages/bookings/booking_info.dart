@@ -60,7 +60,6 @@ class BookingInfo extends StatelessWidget {
                   return BookingControlsWidget(
                     booking: booking,
                     isTracking: isTracking,
-                    uid: LocalStore.getUID()!,
                   );
                 },
               ),
@@ -172,7 +171,11 @@ class BookingInfo extends StatelessWidget {
             _buildInfoRow(
               context,
               label: AppLocalizations.of(context)!.paymentMode,
-              value: booking.paymentModeGen,
+              value: booking.paymentModeCode.toLowerCase() == 'c'
+                  ? AppLocalizations.of(context)!.card
+                  : booking.paymentModeCode.toLowerCase() == 'a'
+                  ? AppLocalizations.of(context)!.applePay
+                  : AppLocalizations.of(context)!.cashOnHands,
               textTheme: textTheme,
               colorScheme: colorScheme,
             ),

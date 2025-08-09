@@ -315,10 +315,16 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
   CategoryModel? categoryModel;
   bool isLoadingCategory = true;
 
+  // Cache for users stream to prevent unnecessary rebuilds
+  Stream<List<UserModel>>? _cachedUsersStream;
+  String? _lastLocationId;
+  String? _lastCategoryId;
+
   @override
   void initState() {
     super.initState();
     _loadCategory();
+    _initializeUsersStream();
 
     debugPrint('📍 Location data debug:');
     for (int i = 0; i < widget.locations.length; i++) {
@@ -327,6 +333,12 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
         '  Location $i: id=${loc.id}, name=${loc.name}, name_ar=${loc.name_ar}',
       );
     }
+  }
+
+  void _initializeUsersStream() {
+    _cachedUsersStream = _createUsersStream();
+    _lastLocationId = selectedLocationId;
+    _lastCategoryId = widget.booking.service.category;
   }
 
   Future<void> _loadCategory() async {
@@ -389,7 +401,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
     }
   }
 
-  Stream<List<UserModel>> getFilteredUsersStream() {
+  Stream<List<UserModel>> _createUsersStream() {
     if (widget.booking.service.category != null) {
       return getCategoryWiseWorkersStream(
         widget.booking.service.category!,
@@ -408,6 +420,19 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
         return _filterByLocation(users);
       });
     }
+  }
+
+  Stream<List<UserModel>> getFilteredUsersStream() {
+    // Only recreate stream if location or category changed
+    if (_cachedUsersStream == null ||
+        _lastLocationId != selectedLocationId ||
+        _lastCategoryId != widget.booking.service.category) {
+      _cachedUsersStream = _createUsersStream();
+      _lastLocationId = selectedLocationId;
+      _lastCategoryId = widget.booking.service.category;
+    }
+
+    return _cachedUsersStream!;
   }
 
   List<UserModel> _filterByLocation(List<UserModel> users) {
@@ -429,28 +454,48 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
   static Stream<List<UserModel>> getCategoryWiseWorkersStream(
     String categoryId,
   ) async* {
-    final docSnapshot = await AppFirestore.categoriesCollectionRef
-        .doc(categoryId)
-        .get();
-    final data = docSnapshot.data() as Map<String, dynamic>?;
-    String categoryName = data?['name'] ?? '';
+    try {
+      final docSnapshot = await AppFirestore.categoriesCollectionRef
+          .doc(categoryId)
+          .get();
 
-    Query query = AppFirestore.usersCollectionRef
-        .where('isVerified', isEqualTo: true)
-        .where('isAdmin', isNotEqualTo: true)
-        .where('jobRoles', arrayContains: categoryName);
+      if (!docSnapshot.exists) {
+        yield [];
+        return;
+      }
 
-    yield* query.snapshots().map((snapshot) {
-      return snapshot.docs
-          .map((doc) => UserModel.fromJson(doc.data() as Map<String, dynamic>))
-          .toList();
-    });
+      final data = docSnapshot.data() as Map<String, dynamic>?;
+      String categoryName = data?['name'] ?? '';
+
+      if (categoryName.isEmpty) {
+        yield [];
+        return;
+      }
+
+      Query query = AppFirestore.usersCollectionRef
+          .where('isVerified', isEqualTo: true)
+          .where('isAdmin', isNotEqualTo: true)
+          .where('jobRoles', arrayContains: categoryName);
+
+      yield* query.snapshots().map((snapshot) {
+        return snapshot.docs
+            .map(
+              (doc) => UserModel.fromJson(doc.data() as Map<String, dynamic>),
+            )
+            .toList();
+      });
+    } catch (e) {
+      debugPrint('❌ Error in getCategoryWiseWorkersStream: $e');
+      yield [];
+    }
   }
 
   void onLocationChanged(String? newLocationId) {
-    setState(() {
-      selectedLocationId = newLocationId;
-    });
+    if (selectedLocationId != newLocationId) {
+      setState(() {
+        selectedLocationId = newLocationId;
+      });
+    }
   }
 
   String getLocationKey(LocationModel location) {
@@ -471,9 +516,88 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
   }
 
   void clearFilter() {
-    setState(() {
-      selectedLocationId = null;
-    });
+    if (selectedLocationId != null) {
+      setState(() {
+        selectedLocationId = null;
+      });
+    }
+  }
+
+  Widget _buildLocationDisplay() {
+    if (validatedSelectedLocationId == null) return const SizedBox.shrink();
+
+    final selectedLocation = widget.locations.firstWhere(
+      (loc) => getLocationKey(loc) == validatedSelectedLocationId,
+      orElse: () =>
+          LocationModel(id: '', name: 'Unknown', name_ar: 'غير معروف'),
+    );
+
+    final locationName = Directionality.of(context) == TextDirection.ltr
+        ? selectedLocation.name ?? 'Unknown'
+        : selectedLocation.name_ar ?? 'غير معروف';
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Theme.of(
+            context,
+          ).colorScheme.primaryContainer.withOpacity(0.7),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.filter_alt,
+              size: 16,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              "${AppLocalizations.of(context)!.filterByLocation}: $locationName",
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(List<UserModel> users, TextTheme textTheme) {
+    final categoryName = categoryModel?.name;
+    final categoryNameAr = categoryModel?.name_ar;
+
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.person_off_rounded, size: 48),
+          const SizedBox(height: 16),
+          Text(
+            validatedSelectedLocationId != null
+                ? "${AppLocalizations.of(context)!.no} ${categoryName != null ? (Directionality.of(context) == TextDirection.ltr ? categoryName : categoryNameAr) : 'agents'} available in selected location"
+                : categoryName != null
+                ? "${AppLocalizations.of(context)!.no} ${Directionality.of(context) == TextDirection.ltr ? categoryName : categoryNameAr} ${AppLocalizations.of(context)!.agentsAvailable}"
+                : AppLocalizations.of(context)!.noAgentsAvailable,
+            style: textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+          if (validatedSelectedLocationId != null) ...[
+            const SizedBox(height: 12),
+            TextButton.icon(
+              onPressed: clearFilter,
+              icon: const Icon(Icons.clear_all),
+              label: const Text('Show All Agents'),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   @override
@@ -587,7 +711,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                     const SizedBox(width: 8),
                     Container(
                       decoration: BoxDecoration(
-                        color: selectedLocationId != null
+                        color: validatedSelectedLocationId != null
                             ? Theme.of(context).colorScheme.primaryContainer
                             : Theme.of(context).colorScheme.surfaceVariant,
                         borderRadius: BorderRadius.circular(8),
@@ -610,47 +734,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                     ),
                   ],
                 ),
-
-                if (validatedSelectedLocationId != null) ...[
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primaryContainer.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.filter_alt,
-                          size: 16,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimaryContainer,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          "${AppLocalizations.of(context)!.filterByLocation}: ${widget.locations.firstWhere(
-                            (loc) => getLocationKey(loc) == validatedSelectedLocationId,
-                            orElse: () => LocationModel(id: '', name: 'Unknown', name_ar: 'غير معروف'),
-                          ).name}",
-                          style: textTheme.bodySmall?.copyWith(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onPrimaryContainer,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                _buildLocationDisplay(),
               ],
             ),
           ),
@@ -662,9 +746,6 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
 
           Expanded(
             child: StreamBuilder<List<UserModel>>(
-              key: ValueKey(
-                'users_${validatedSelectedLocationId}_${DateTime.now().millisecondsSinceEpoch ~/ 1000}',
-              ),
               stream: getFilteredUsersStream(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
@@ -681,7 +762,9 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                         Text('Error: ${snapshot.error}'),
                         TextButton(
                           onPressed: () {
-                            setState(() {});
+                            setState(() {
+                              _cachedUsersStream = null; // Force refresh
+                            });
                           },
                           child: const Text('Retry'),
                         ),
@@ -696,32 +779,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
 
                 final users = snapshot.data ?? [];
                 if (users.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.person_off_rounded, size: 48),
-                        const SizedBox(height: 16),
-                        Text(
-                          validatedSelectedLocationId != null
-                              ? "${AppLocalizations.of(context)!.no} ${categoryName != null ? (Directionality.of(context) == TextDirection.ltr ? categoryName : categoryNameAr) : 'agents'} available in selected location"
-                              : categoryName != null
-                              ? "${AppLocalizations.of(context)!.no} ${Directionality.of(context) == TextDirection.ltr ? categoryName : categoryNameAr} ${AppLocalizations.of(context)!.agentsAvailable}"
-                              : AppLocalizations.of(context)!.noAgentsAvailable,
-                          style: textTheme.titleMedium,
-                          textAlign: TextAlign.center,
-                        ),
-                        if (validatedSelectedLocationId != null) ...[
-                          const SizedBox(height: 12),
-                          TextButton.icon(
-                            onPressed: clearFilter,
-                            icon: const Icon(Icons.clear_all),
-                            label: const Text('Show All Agents'),
-                          ),
-                        ],
-                      ],
-                    ),
-                  );
+                  return _buildEmptyState(users, textTheme);
                 }
 
                 return ListView.builder(

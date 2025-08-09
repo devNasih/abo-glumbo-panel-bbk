@@ -6,6 +6,7 @@ import 'package:aboglumbo_bbk_panel/pages/home/admin/admin_home.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage_app.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/worker/worker_home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
+import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
 import 'package:aboglumbo_bbk_panel/services/notification.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:aboglumbo_bbk_panel/styles/icons.dart';
@@ -112,6 +113,27 @@ class _HomeState extends State<Home> {
                         context,
                       ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                       textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 32),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LoginPage(),
+                          ),
+                          (route) => false,
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.secondary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 12,
+                        ),
+                      ),
+                      child: Text(locale?.goToLogin ?? 'Go to Login'),
                     ),
                   ],
                 ),

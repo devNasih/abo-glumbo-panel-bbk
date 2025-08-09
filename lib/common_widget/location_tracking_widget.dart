@@ -124,7 +124,8 @@ class _LocationTrackingWidgetState extends State<LocationTrackingWidget> {
             children: [
               Text(error),
               const SizedBox(height: 16),
-              if (error.contains('permission'))
+              if (error.contains('permission') ||
+                  error.contains('Privacy & Security'))
                 Text(
                   'Please grant location permission in Settings and select "Allow all the time" for background tracking.',
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
@@ -132,6 +133,11 @@ class _LocationTrackingWidgetState extends State<LocationTrackingWidget> {
               if (error.contains('services'))
                 Text(
                   'Please enable location services in your device settings.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+              if (error.contains('PlatformException') && error.contains('1'))
+                Text(
+                  'This is an iOS location permission error. Please check your location settings.',
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
             ],

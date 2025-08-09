@@ -69,7 +69,9 @@ class Locations extends StatelessWidget {
                   color: AppColors.grey2,
                 ),
                 title: Text(
-                  location.name ?? '',
+                  AppLocalizations.of(context)?.localeName == 'ar'
+                      ? location.name_ar ?? ''
+                      : location.name ?? '',
                   style: GoogleFonts.dmSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,

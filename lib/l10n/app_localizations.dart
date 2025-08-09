@@ -1421,6 +1421,36 @@ abstract class AppLocalizations {
   /// **'Network Error'**
   String get networkError;
 
+  /// No description provided for @wrongPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong password'**
+  String get wrongPassword;
+
+  /// No description provided for @userNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'User not found'**
+  String get userNotFound;
+
+  /// No description provided for @userDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'User account disabled'**
+  String get userDisabled;
+
+  /// No description provided for @deletingAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting account...'**
+  String get deletingAccount;
+
+  /// No description provided for @requiresRecentLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'This operation requires recent authentication. Please log out and log back in.'**
+  String get requiresRecentLogin;
+
   /// No description provided for @resetPasswordError.
   ///
   /// In en, this message translates to:
@@ -2885,11 +2915,221 @@ abstract class AppLocalizations {
   /// **'Stop tracking booking successfully'**
   String get stopTrackingBookingSuccessfully;
 
+  /// No description provided for @cards.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards'**
+  String get cards;
+
+  /// No description provided for @goToLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Login'**
+  String get goToLogin;
+
   /// No description provided for @failedToSendNotification.
   ///
   /// In en, this message translates to:
   /// **'Failed to send notification to customer'**
   String get failedToSendNotification;
+
+  /// No description provided for @locationPermissionErrorIOS.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission error on iOS. Please go to Settings > Privacy & Security > Location Services > Abo Glumbo Worker and select \'Always\' to enable background tracking.'**
+  String get locationPermissionErrorIOS;
+
+  /// No description provided for @youHaveAnActiveBookingAlready.
+  ///
+  /// In en, this message translates to:
+  /// **'You have an active booking already.'**
+  String get youHaveAnActiveBookingAlready;
+
+  /// No description provided for @locationServicesDisabledPleaseEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Location services disabled. Please enable location services.'**
+  String get locationServicesDisabledPleaseEnable;
+
+  /// No description provided for @backgroundLocationPermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Background location permission required. Please select \'Allow all the time\' for location access.'**
+  String get backgroundLocationPermissionRequired;
+
+  /// No description provided for @locationPermissionDeniedPleaseGrant.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission denied. Please grant location permission to continue.'**
+  String get locationPermissionDeniedPleaseGrant;
+
+  /// No description provided for @areYouSureYouWantToCompleteThisBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to complete this booking?'**
+  String get areYouSureYouWantToCompleteThisBooking;
+
+  /// No description provided for @locationPermissionPermanentlyDeniedPleaseEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission permanently denied. Please enable location access in Settings.'**
+  String get locationPermissionPermanentlyDeniedPleaseEnable;
+
+  /// No description provided for @locationServicesDisabledCannotRestoreTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Location services disabled, cannot restore tracking'**
+  String get locationServicesDisabledCannotRestoreTracking;
+
+  /// No description provided for @locationPermissionDeniedCannotRestoreTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission denied, cannot restore tracking'**
+  String get locationPermissionDeniedCannotRestoreTracking;
+
+  /// No description provided for @iosLocationPermissionErrorDuringRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'iOS location permission error during restore - may need \"Always\" permission'**
+  String get iosLocationPermissionErrorDuringRestore;
+
+  /// No description provided for @locationTrackingRestoredSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Location tracking restored successfully'**
+  String get locationTrackingRestoredSuccessfully;
+
+  /// No description provided for @iosLocationPermissionIssueDuringRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'iOS location permission issue during restore'**
+  String get iosLocationPermissionIssueDuringRestore;
+
+  /// No description provided for @iosOnlyWhenInUsePermissionGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'iOS: Only \'When In Use\' permission granted. Background tracking will be limited.'**
+  String get iosOnlyWhenInUsePermissionGranted;
+
+  /// No description provided for @iosAlwaysPermissionGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'iOS: \'Always\' permission granted. Full background tracking available.'**
+  String get iosAlwaysPermissionGranted;
+
+  /// No description provided for @iosErrorRequestingAlwaysPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'iOS: Error requesting always permission'**
+  String get iosErrorRequestingAlwaysPermission;
+
+  /// No description provided for @iosContinuingWithWhenInUsePermissionOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'iOS: Continuing with \'When In Use\' permission only.'**
+  String get iosContinuingWithWhenInUsePermissionOnly;
+
+  /// No description provided for @batteryOptimizationEnabledMayAffectTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery optimization is enabled, may affect background location'**
+  String get batteryOptimizationEnabledMayAffectTracking;
+
+  /// No description provided for @trackingYourLocationForServiceDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking your location for service delivery'**
+  String get trackingYourLocationForServiceDelivery;
+
+  /// No description provided for @aboGlumboLocationTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Abo Glumbo - Location Tracking'**
+  String get aboGlumboLocationTracking;
+
+  /// No description provided for @backgroundLocationUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Background location updated'**
+  String get backgroundLocationUpdated;
+
+  /// No description provided for @errorUpdatingBackgroundLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Error updating background location'**
+  String get errorUpdatingBackgroundLocation;
+
+  /// No description provided for @backgroundFetchTriggered.
+  ///
+  /// In en, this message translates to:
+  /// **'Background fetch triggered'**
+  String get backgroundFetchTriggered;
+
+  /// No description provided for @backgroundFetchTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Background fetch timeout'**
+  String get backgroundFetchTimeout;
+
+  /// No description provided for @locationStreamErrorDuringRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Location stream error during restore'**
+  String get locationStreamErrorDuringRestore;
+
+  /// No description provided for @errorRestoringLocationTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Error restoring location tracking'**
+  String get errorRestoringLocationTracking;
+
+  /// No description provided for @backgroundFetchConfiguredAndStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Background fetch configured and started'**
+  String get backgroundFetchConfiguredAndStarted;
+
+  /// No description provided for @errorConfiguringBackgroundFetch.
+  ///
+  /// In en, this message translates to:
+  /// **'Error configuring background fetch'**
+  String get errorConfiguringBackgroundFetch;
+
+  /// No description provided for @locationUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Location updated'**
+  String get locationUpdated;
+
+  /// No description provided for @errorUpdatingLocationToFirestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Error updating location to Firestore'**
+  String get errorUpdatingLocationToFirestore;
+
+  /// No description provided for @errorStoppingBackgroundFetch.
+  ///
+  /// In en, this message translates to:
+  /// **'Error stopping background fetch'**
+  String get errorStoppingBackgroundFetch;
+
+  /// No description provided for @errorUpdatingBookingStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Error updating booking status'**
+  String get errorUpdatingBookingStatus;
+
+  /// No description provided for @locationTrackingStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Location tracking stopped'**
+  String get locationTrackingStopped;
+
+  /// No description provided for @errorCheckingBatteryOptimization.
+  ///
+  /// In en, this message translates to:
+  /// **'Error checking battery optimization'**
+  String get errorCheckingBatteryOptimization;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

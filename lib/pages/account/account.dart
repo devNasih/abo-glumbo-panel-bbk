@@ -36,7 +36,9 @@ class _AccountPageState extends State<AccountPage> {
   @override
   void initState() {
     super.initState();
-    currentWorkerData = widget.workerData;
+    // Try to get the most recent user data from cache if available
+    final cachedUser = LocalStore.getCachedUserData();
+    currentWorkerData = cachedUser ?? widget.workerData;
     _loadBiometricSettings();
   }
 
@@ -344,6 +346,7 @@ class _AccountPageState extends State<AccountPage> {
                     context,
                     onConfirm: () {
                       LocalStore.putlogoutStatus(true);
+                      LocalStore.clearCachedUserData(); // Clear cached user data on logout
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(builder: (context) => LoginPage()),
@@ -403,7 +406,46 @@ class _AccountPageState extends State<AccountPage> {
   Future<void> deleteAccount(BuildContext context, String userPassword) async {
     final user = FirebaseAuth.instance.currentUser;
 
-    if (user == null) return;
+    if (user == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.userNotFound ?? 'User not found',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+    Navigator.of(
+      context,
+    ).popUntil((route) => route.isFirst || route is! PopupRoute);
+
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    if (context.mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            key: const ValueKey('delete_account_progress_dialog'),
+            content: Row(
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(width: 16),
+                Text(
+                  AppLocalizations.of(dialogContext)?.deletingAccount ??
+                      'Deleting account...',
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    }
 
     try {
       final credential = EmailAuthProvider.credential(
@@ -411,38 +453,93 @@ class _AccountPageState extends State<AccountPage> {
         password: userPassword,
       );
 
-      LocalStore.clearLogoutStatus();
-      LocalStore.putRememberMe(false);
-      LocalStore.clearRememberedCredentials();
-      LocalStore.clearUID();
-
       await user.reauthenticateWithCredential(credential);
 
       await AppFirestore.usersCollectionRef.doc(user.uid).delete();
 
       await user.delete();
 
-      await FirebaseAuth.instance.signOut();
+      await LocalStore.clearLogoutStatus();
+      await LocalStore.putRememberMe(false);
+      await LocalStore.clearRememberedCredentials();
+      await LocalStore.clearUID();
+      await LocalStore.clearCachedUserData(); // Clear cached user data on account deletion
 
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
-        (route) => false,
-      );
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+          (route) => false,
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+
+      String errorMessage;
+      switch (e.code) {
+        case 'wrong-password':
+          errorMessage =
+              AppLocalizations.of(context)?.wrongPassword ?? 'Wrong password';
+          break;
+        case 'requires-recent-login':
+          errorMessage =
+              AppLocalizations.of(context)?.requiresRecentLogin ??
+              'This operation requires recent authentication. Please log out and log back in.';
+          break;
+        case 'too-many-requests':
+          errorMessage =
+              AppLocalizations.of(context)?.tooManyRequests ??
+              'Too many requests. Please try again later.';
+          break;
+        case 'network-request-failed':
+          errorMessage =
+              AppLocalizations.of(context)?.networkError ??
+              'Network error. Please check your connection.';
+          break;
+        case 'user-disabled':
+          errorMessage =
+              AppLocalizations.of(context)?.userDisabled ??
+              'This user account has been disabled.';
+          break;
+        case 'user-not-found':
+          errorMessage =
+              AppLocalizations.of(context)?.userNotFound ??
+              'User account not found.';
+          break;
+        default:
+          errorMessage =
+              AppLocalizations.of(context)?.failedToDeleteAccount ??
+              'Failed to delete account: ${e.message}';
+      }
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              AppLocalizations.of(context)?.accountDeleted ?? 'Account Deleted',
-            ),
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to delete account: ${e.toString()}")),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.failedToDeleteAccount ??
+                  'Failed to delete account: ${e.toString()}',
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
         );
       }
     }

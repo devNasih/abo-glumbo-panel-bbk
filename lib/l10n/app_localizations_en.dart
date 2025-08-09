@@ -672,6 +672,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get networkError => 'Network Error';
 
   @override
+  String get wrongPassword => 'Wrong password';
+
+  @override
+  String get userNotFound => 'User not found';
+
+  @override
+  String get userDisabled => 'User account disabled';
+
+  @override
+  String get deletingAccount => 'Deleting account...';
+
+  @override
+  String get requiresRecentLogin => 'This operation requires recent authentication. Please log out and log back in.';
+
+  @override
   String get resetPasswordError => 'Reset Password Error';
 
   @override
@@ -1404,5 +1419,110 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stopTrackingBookingSuccessfully => 'Stop tracking booking successfully';
 
   @override
+  String get cards => 'Cards';
+
+  @override
+  String get goToLogin => 'Go to Login';
+
+  @override
   String get failedToSendNotification => 'Failed to send notification to customer';
+
+  @override
+  String get locationPermissionErrorIOS => 'Location permission error on iOS. Please go to Settings > Privacy & Security > Location Services > Abo Glumbo Worker and select \'Always\' to enable background tracking.';
+
+  @override
+  String get youHaveAnActiveBookingAlready => 'You have an active booking already.';
+
+  @override
+  String get locationServicesDisabledPleaseEnable => 'Location services disabled. Please enable location services.';
+
+  @override
+  String get backgroundLocationPermissionRequired => 'Background location permission required. Please select \'Allow all the time\' for location access.';
+
+  @override
+  String get locationPermissionDeniedPleaseGrant => 'Location permission denied. Please grant location permission to continue.';
+
+  @override
+  String get areYouSureYouWantToCompleteThisBooking => 'Are you sure you want to complete this booking?';
+
+  @override
+  String get locationPermissionPermanentlyDeniedPleaseEnable => 'Location permission permanently denied. Please enable location access in Settings.';
+
+  @override
+  String get locationServicesDisabledCannotRestoreTracking => 'Location services disabled, cannot restore tracking';
+
+  @override
+  String get locationPermissionDeniedCannotRestoreTracking => 'Location permission denied, cannot restore tracking';
+
+  @override
+  String get iosLocationPermissionErrorDuringRestore => 'iOS location permission error during restore - may need \"Always\" permission';
+
+  @override
+  String get locationTrackingRestoredSuccessfully => 'Location tracking restored successfully';
+
+  @override
+  String get iosLocationPermissionIssueDuringRestore => 'iOS location permission issue during restore';
+
+  @override
+  String get iosOnlyWhenInUsePermissionGranted => 'iOS: Only \'When In Use\' permission granted. Background tracking will be limited.';
+
+  @override
+  String get iosAlwaysPermissionGranted => 'iOS: \'Always\' permission granted. Full background tracking available.';
+
+  @override
+  String get iosErrorRequestingAlwaysPermission => 'iOS: Error requesting always permission';
+
+  @override
+  String get iosContinuingWithWhenInUsePermissionOnly => 'iOS: Continuing with \'When In Use\' permission only.';
+
+  @override
+  String get batteryOptimizationEnabledMayAffectTracking => 'Battery optimization is enabled, may affect background location';
+
+  @override
+  String get trackingYourLocationForServiceDelivery => 'Tracking your location for service delivery';
+
+  @override
+  String get aboGlumboLocationTracking => 'Abo Glumbo - Location Tracking';
+
+  @override
+  String get backgroundLocationUpdated => 'Background location updated';
+
+  @override
+  String get errorUpdatingBackgroundLocation => 'Error updating background location';
+
+  @override
+  String get backgroundFetchTriggered => 'Background fetch triggered';
+
+  @override
+  String get backgroundFetchTimeout => 'Background fetch timeout';
+
+  @override
+  String get locationStreamErrorDuringRestore => 'Location stream error during restore';
+
+  @override
+  String get errorRestoringLocationTracking => 'Error restoring location tracking';
+
+  @override
+  String get backgroundFetchConfiguredAndStarted => 'Background fetch configured and started';
+
+  @override
+  String get errorConfiguringBackgroundFetch => 'Error configuring background fetch';
+
+  @override
+  String get locationUpdated => 'Location updated';
+
+  @override
+  String get errorUpdatingLocationToFirestore => 'Error updating location to Firestore';
+
+  @override
+  String get errorStoppingBackgroundFetch => 'Error stopping background fetch';
+
+  @override
+  String get errorUpdatingBookingStatus => 'Error updating booking status';
+
+  @override
+  String get locationTrackingStopped => 'Location tracking stopped';
+
+  @override
+  String get errorCheckingBatteryOptimization => 'Error checking battery optimization';
 }

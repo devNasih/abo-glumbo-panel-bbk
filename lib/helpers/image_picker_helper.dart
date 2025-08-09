@@ -29,10 +29,6 @@ class ImagePickerHelper {
       // Check if file exists
       final file = File(image.path);
       if (!await file.exists()) {
-        _showError(
-          context,
-          'Selected file could not be found. Please try again.',
-        );
         return null;
       }
 
@@ -41,10 +37,6 @@ class ImagePickerHelper {
       final maxSizeInBytes = maxSizeInMB * 1024 * 1024;
 
       if (fileSize > maxSizeInBytes) {
-        _showError(
-          context,
-          'Image is too large. Please select an image smaller than ${maxSizeInMB}MB.',
-        );
         return null;
       }
 
@@ -52,7 +44,6 @@ class ImagePickerHelper {
       return image;
     } catch (e) {
       debugPrint('Error picking image: $e');
-      _showError(context, 'Error selecting image: ${e.toString()}');
       return null;
     }
   }
@@ -94,7 +85,6 @@ class ImagePickerHelper {
       return null;
     } catch (e) {
       debugPrint('Error cropping image: $e');
-      _showError(context, 'Error cropping image: ${e.toString()}');
       return null;
     }
   }
@@ -132,20 +122,6 @@ class ImagePickerHelper {
     }
 
     return pickedImage;
-  }
-
-  /// Show error message
-  static void _showError(BuildContext context, String message) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    }
   }
 }
 
