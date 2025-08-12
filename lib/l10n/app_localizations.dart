@@ -62,7 +62,8 @@ import 'app_localizations_en.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -70,7 +71,8 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -82,17 +84,18 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('ar'),
-    Locale('en')
+    Locale('en'),
   ];
 
   /// No description provided for @appName.
@@ -166,6 +169,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to reject this order?'**
   String get areYouSureYouWantToRejectThisOrder;
+
+  /// No description provided for @checkingAvailability.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking agent availability...'**
+  String get checkingAvailability;
+
+  /// No description provided for @loadingAgents.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading agents...'**
+  String get loadingAgents;
 
   /// No description provided for @reject.
   ///
@@ -1544,7 +1559,7 @@ abstract class AppLocalizations {
   /// No description provided for @cancelledAt.
   ///
   /// In en, this message translates to:
-  /// **'Canceled At'**
+  /// **'Cancelled at'**
   String get cancelledAt;
 
   /// No description provided for @completedAt.
@@ -2306,7 +2321,7 @@ abstract class AppLocalizations {
   /// No description provided for @bioMetricAuthentication.
   ///
   /// In en, this message translates to:
-  /// **'Biometric authentication'**
+  /// **'Enable biometric'**
   String get bioMetricAuthentication;
 
   /// No description provided for @confirmDeletion.
@@ -3125,14 +3140,237 @@ abstract class AppLocalizations {
   /// **'Location tracking stopped'**
   String get locationTrackingStopped;
 
+  /// No description provided for @deleteItemConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this item?'**
+  String get deleteItemConfirmation;
+
+  /// No description provided for @agentUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Agent Unavailable'**
+  String get agentUnavailable;
+
+  /// No description provided for @timeConflictDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Conflict Detected'**
+  String get timeConflictDetected;
+
+  /// No description provided for @cannotAssignWorkTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot assign work to'**
+  String get cannotAssignWorkTo;
+
+  /// No description provided for @alreadyAssignedAtExactSameTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Already assigned at exact same time'**
+  String get alreadyAssignedAtExactSameTime;
+
+  /// No description provided for @currentBookingTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Booking Time'**
+  String get currentBookingTime;
+
+  /// No description provided for @workerCannotBeAssignedMultipleTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'A worker cannot be assigned to multiple bookings at the exact same time. Please select a different time slot or choose another agent.'**
+  String get workerCannotBeAssignedMultipleTimes;
+
+  /// No description provided for @unknownWorker.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Worker'**
+  String get unknownWorker;
+
+  /// No description provided for @workerCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Worker Cancelled'**
+  String get workerCancelled;
+
+  /// No description provided for @cancelledByWorker.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled by worker'**
+  String get cancelledByWorker;
+
+  /// No description provided for @workerPreviouslyCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Worker Previously Cancelled'**
+  String get workerPreviouslyCancelled;
+
+  /// No description provided for @agentCancelledAtTimeSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Agent cancelled at this time before'**
+  String get agentCancelledAtTimeSlot;
+
+  /// No description provided for @previouslyCancelledAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Previously cancelled at'**
+  String get previouslyCancelledAt;
+
+  /// No description provided for @chooseDifferentAgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Different Agent'**
+  String get chooseDifferentAgent;
+
+  /// No description provided for @assignAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign Anyway'**
+  String get assignAnyway;
+
+  /// No description provided for @workerCancelledAtTime.
+  ///
+  /// In en, this message translates to:
+  /// **'This agent previously cancelled a booking at this exact time slot. Consider assigning to a different agent for better reliability.'**
+  String get workerCancelledAtTime;
+
   /// No description provided for @errorCheckingBatteryOptimization.
   ///
   /// In en, this message translates to:
   /// **'Error checking battery optimization'**
   String get errorCheckingBatteryOptimization;
+
+  /// No description provided for @workerRestrictedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Worker Restricted'**
+  String get workerRestrictedTitle;
+
+  /// No description provided for @cannotAssignCancelledWorker.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot assign cancelled worker'**
+  String get cannotAssignCancelledWorker;
+
+  /// No description provided for @lastCancellationOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Last cancellation on'**
+  String get lastCancellationOn;
+
+  /// No description provided for @workerCancelledRestrictionMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This agent has previously cancelled a booking and is now restricted from new assignments. Please choose a different agent.'**
+  String get workerCancelledRestrictionMessage;
+
+  /// No description provided for @understood.
+  ///
+  /// In en, this message translates to:
+  /// **'Understood'**
+  String get understood;
+
+  /// No description provided for @cancelledThisBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled This Booking'**
+  String get cancelledThisBooking;
+
+  /// No description provided for @alreadyBookedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Already booked at'**
+  String get alreadyBookedAt;
+
+  /// No description provided for @bookingAssignedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking assigned to'**
+  String get bookingAssignedTo;
+
+  /// No description provided for @bookingAssignmentSuccessful.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking assignment successful'**
+  String get bookingAssignmentSuccessful;
+
+  /// No description provided for @anotherAssignmentInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Another assignment is in progress. Please wait...'**
+  String get anotherAssignmentInProgress;
+
+  /// No description provided for @assignmentInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignment in progress. Please wait...'**
+  String get assignmentInProgress;
+
+  /// No description provided for @checkingAvailabilityAndAssigning.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking availability and assigning...'**
+  String get checkingAvailabilityAndAssigning;
+
+  /// No description provided for @thisBookingAlreadyAssignedToAnotherAgent.
+  ///
+  /// In en, this message translates to:
+  /// **'This booking has already been assigned to another agent.'**
+  String get thisBookingAlreadyAssignedToAnotherAgent;
+
+  /// No description provided for @failedToAssignAgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to assign agent. Please try again.'**
+  String get failedToAssignAgent;
+
+  /// No description provided for @thisAgentCancelledSameBookingBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'This agent cancelled this same booking before'**
+  String get thisAgentCancelledSameBookingBefore;
+
+  /// No description provided for @gotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get gotIt;
+
+  /// No description provided for @availableInSelectedLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'available in selected location'**
+  String get availableInSelectedLocation;
+
+  /// No description provided for @cancelledThisBookingOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled this booking on'**
+  String get cancelledThisBookingOn;
+
+  /// No description provided for @previouslyCancelledAgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Previously Cancelled Agent'**
+  String get previouslyCancelledAgent;
+
+  /// No description provided for @agentPreviouslyCancelledWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This agent previously cancelled this same booking request. You can still assign them, but consider choosing a more reliable agent.'**
+  String get agentPreviouslyCancelledWarning;
+
+  /// No description provided for @busyAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Busy at'**
+  String get busyAt;
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -3141,25 +3379,26 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['ar', 'en'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      <String>['ar', 'en'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'ar': return AppLocalizationsAr();
-    case 'en': return AppLocalizationsEn();
+    case 'ar':
+      return AppLocalizationsAr();
+    case 'en':
+      return AppLocalizationsEn();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.'
+    'that was used.',
   );
 }

@@ -11,7 +11,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 
-/// App lifecycle observer to monitor app background/foreground state
 class _AppLifecycleObserver extends WidgetsBindingObserver {
   final BookingTrackerService _service;
 
@@ -29,7 +28,6 @@ class _AppLifecycleObserver extends WidgetsBindingObserver {
         _service._onAppEnterForeground();
         break;
       case AppLifecycleState.inactive:
-        // Do nothing for now
         break;
       case AppLifecycleState.hidden:
         _service._onAppEnterBackground();
@@ -54,13 +52,17 @@ class BookingTrackerService {
   bool _isAppInBackground = false;
   _AppLifecycleObserver? _lifecycleObserver;
 
-  /// Initialize background app state monitoring
+  String? get currentBookingId => _bookingId;
+
+  bool isTrackingBooking(String bookingId) {
+    return isTracking.value && _bookingId == bookingId;
+  }
+
   void _initializeBackgroundAppState() {
     _lifecycleObserver = _AppLifecycleObserver(this);
     WidgetsBinding.instance.addObserver(_lifecycleObserver!);
   }
 
-  /// Called when app goes to background
   void _onAppEnterBackground() {
     _isAppInBackground = true;
     if (isTracking.value && _bookingId != null) {
@@ -68,7 +70,6 @@ class BookingTrackerService {
     }
   }
 
-  /// Called when app comes to foreground
   void _onAppEnterForeground() {
     _isAppInBackground = false;
     _stopBackgroundLocationTimer();
@@ -77,12 +78,10 @@ class BookingTrackerService {
     }
   }
 
-  /// Start background location timer for when app is backgrounded
   void _startBackgroundLocationTimer() {
-    _stopBackgroundLocationTimer(); // Stop any existing timer
+    _stopBackgroundLocationTimer();
 
-    // For iOS, use shorter intervals due to background app refresh limitations
-    final interval = Platform.isIOS ? 30 : 60; // seconds
+    final interval = Platform.isIOS ? 30 : 60;
 
     _backgroundLocationTimer = Timer.periodic(Duration(seconds: interval), (
       timer,
@@ -95,26 +94,21 @@ class BookingTrackerService {
     });
   }
 
-  /// Stop background location timer
   void _stopBackgroundLocationTimer() {
     _backgroundLocationTimer?.cancel();
     _backgroundLocationTimer = null;
   }
 
-  /// Update location when app is in background
   Future<void> _updateLocationInBackground() async {
     try {
       final uid = LocalStore.getUID();
       if (uid == null) return;
 
-      // Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) return;
 
-      // Get current position with timeout
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy:
-            LocationAccuracy.medium, // Use medium for battery saving
+        desiredAccuracy: LocationAccuracy.medium,
         timeLimit: const Duration(seconds: 10),
       );
 
@@ -152,19 +146,16 @@ class BookingTrackerService {
           if (isStarted && isStartTracking) {
             isTracking.value = true;
             _bookingId = activeBookingId;
-            // Restart location tracking if it was active
+
             _restoreLocationTracking();
           } else {
-            // Clear invalid active booking ID
             LocalStore.setActiveBookingId('');
           }
         } else {
-          // Clear invalid active booking ID
           LocalStore.setActiveBookingId('');
         }
       }
     } catch (e) {
-      // If there's an error, reset the state
       LocalStore.setActiveBookingId('');
       isTracking.value = false;
     }
@@ -177,7 +168,6 @@ class BookingTrackerService {
       final uid = LocalStore.getUID();
       if (uid == null) return;
 
-      // Check if location services are still enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         print('Location services disabled, cannot restore tracking');
@@ -191,10 +181,8 @@ class BookingTrackerService {
         return;
       }
 
-      // Get appropriate settings for current permission level
       LocationSettings settings = _getLocationSettings();
 
-      // For iOS, adjust settings based on actual permission level
       if (Platform.isIOS && settings is AppleSettings) {
         if (permission == LocationPermission.always) {
           settings = AppleSettings(
@@ -206,7 +194,6 @@ class BookingTrackerService {
             allowBackgroundLocationUpdates: true,
           );
         } else {
-          // Keep background updates disabled for "When In Use" permission
           settings = AppleSettings(
             accuracy: LocationAccuracy.high,
             activityType: ActivityType.otherNavigation,
@@ -218,8 +205,7 @@ class BookingTrackerService {
         }
       }
 
-      // Restart foreground location updates with enhanced settings
-      _positionStream?.cancel(); // Cancel any existing stream
+      _positionStream?.cancel();
       _positionStream = Geolocator.getPositionStream(locationSettings: settings)
           .listen(
             (Position position) async {
@@ -227,13 +213,13 @@ class BookingTrackerService {
             },
             onError: (error) {
               print('Location stream error during restore: $error');
-              // For iOS permission errors, provide specific guidance
+
               if (Platform.isIOS && error.toString().contains('1')) {
                 print(
                   'iOS location permission error during restore - may need "Always" permission',
                 );
               }
-              // Try to restart after a delay
+
               Timer(const Duration(seconds: 5), () {
                 if (isTracking.value) {
                   _restoreLocationTracking();
@@ -245,7 +231,7 @@ class BookingTrackerService {
       print('Location tracking restored successfully');
     } catch (e) {
       print('Error restoring location tracking: $e');
-      // For iOS errors, provide specific guidance
+
       if (Platform.isIOS && e.toString().contains('1')) {
         print('iOS location permission issue during restore');
       }
@@ -271,11 +257,9 @@ class BookingTrackerService {
       );
     }
 
-    // Enhanced location permissions check with iOS specific handling
     try {
       await _requestLocationPermissions(context);
     } catch (e) {
-      // If permission fails on iOS with specific error, provide helpful message
       if (Platform.isIOS && e.toString().contains('1')) {
         final localizations = AppLocalizations.of(context);
         throw Exception(
@@ -283,7 +267,7 @@ class BookingTrackerService {
               'Location permission error on iOS. Please go to Settings > Privacy & Security > Location Services > Abo Glumbo Worker and select \'Always\' to enable background tracking.',
         );
       }
-      rethrow; // Re-throw other permission errors
+      rethrow;
     }
 
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -295,7 +279,6 @@ class BookingTrackerService {
       );
     }
 
-    // Check current permission level for iOS specific settings
     LocationPermission currentPermission = await Geolocator.checkPermission();
 
     await AppFirestore.bookingsCollectionRef.doc(bookingId).update({
@@ -307,10 +290,8 @@ class BookingTrackerService {
     LocalStore.setActiveBookingId(bookingId);
     _bookingId = bookingId;
 
-    // Start foreground location updates with platform-appropriate settings
     LocationSettings settings = _getLocationSettings(context: context);
 
-    // For iOS, update settings based on actual permission level
     if (Platform.isIOS && settings is AppleSettings) {
       if (currentPermission == LocationPermission.always) {
         settings = AppleSettings(
@@ -322,7 +303,6 @@ class BookingTrackerService {
           allowBackgroundLocationUpdates: true,
         );
       } else {
-        // Keep background updates disabled for "When In Use" permission
         settings = AppleSettings(
           accuracy: LocationAccuracy.high,
           activityType: ActivityType.otherNavigation,
@@ -340,9 +320,8 @@ class BookingTrackerService {
             await _updateLocationToFirestore(position, uid, 'foreground');
           },
           onError: (error) {
-            // For iOS permission errors, provide specific guidance
             if (Platform.isIOS && error.toString().contains('1')) {}
-            // Try to restart the stream after a delay
+
             Timer(const Duration(seconds: 5), () {
               if (isTracking.value) {
                 _restoreLocationTracking();
@@ -351,13 +330,11 @@ class BookingTrackerService {
           },
         );
 
-    // Enhanced background fetch configuration
     await _configureBackgroundFetch();
 
     isTracking.value = true;
   }
 
-  /// Enhanced location permissions request
   Future<void> _requestLocationPermissions(BuildContext context) async {
     LocationPermission permission = await Geolocator.checkPermission();
 
@@ -381,10 +358,8 @@ class BookingTrackerService {
       );
     }
 
-    // For Android 10+ and iOS, request "Always" permission for background location
     if (permission == LocationPermission.whileInUse) {
       if (Platform.isAndroid) {
-        // On Android, show dialog explaining why we need always permission
         permission = await Geolocator.requestPermission();
         if (permission != LocationPermission.always) {
           final localizations = AppLocalizations.of(context);
@@ -394,17 +369,13 @@ class BookingTrackerService {
           );
         }
       } else if (Platform.isIOS) {
-        // On iOS, we need to handle background location more carefully
         try {
-          // Request always permission for iOS
           permission = await Geolocator.requestPermission();
 
-          // If still only "whileInUse", we can continue but inform about limitations
           if (permission == LocationPermission.whileInUse) {
             print(
               "iOS: Only 'When In Use' permission granted. Background tracking will be limited.",
             );
-            // We can continue with limited functionality
           } else if (permission == LocationPermission.always) {
             print(
               "iOS: 'Always' permission granted. Full background tracking available.",
@@ -412,7 +383,7 @@ class BookingTrackerService {
           }
         } catch (e) {
           print("iOS: Error requesting always permission: $e");
-          // If we can't get always permission, continue with whileInUse
+
           if (permission == LocationPermission.whileInUse) {
             print("iOS: Continuing with 'When In Use' permission only.");
           } else {
@@ -422,13 +393,11 @@ class BookingTrackerService {
       }
     }
 
-    // Check battery optimization on Android
     if (Platform.isAndroid) {
       await _checkBatteryOptimization();
     }
   }
 
-  /// Check and request battery optimization exemption on Android
   Future<void> _checkBatteryOptimization() async {
     try {
       bool isOptimizationDisabled =
@@ -437,15 +406,12 @@ class BookingTrackerService {
         print(
           'Battery optimization is enabled, may affect background location',
         );
-        // Note: We don't force the user to disable it, but we inform them
-        // You can show a dialog here if needed
       }
     } catch (e) {
       print('Error checking battery optimization: $e');
     }
   }
 
-  /// Get optimized location settings based on platform
   LocationSettings _getLocationSettings({BuildContext? context}) {
     if (Platform.isAndroid) {
       final localizations = context != null
@@ -460,7 +426,7 @@ class BookingTrackerService {
 
       return AndroidSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 10, // meters
+        distanceFilter: 10,
         forceLocationManager: false,
         intervalDuration: const Duration(seconds: 30),
         foregroundNotificationConfig: ForegroundNotificationConfig(
@@ -475,9 +441,8 @@ class BookingTrackerService {
         activityType: ActivityType.otherNavigation,
         distanceFilter: 10,
         pauseLocationUpdatesAutomatically: false,
-        showBackgroundLocationIndicator: false, // Disable to avoid issues
-        allowBackgroundLocationUpdates:
-            false, // Will be enabled if "Always" permission is granted
+        showBackgroundLocationIndicator: false,
+        allowBackgroundLocationUpdates: false,
       );
     } else {
       return const LocationSettings(
@@ -487,7 +452,6 @@ class BookingTrackerService {
     }
   }
 
-  /// Update location to Firestore with better error handling
   Future<void> _updateLocationToFirestore(
     Position position,
     String uid,
@@ -515,10 +479,8 @@ class BookingTrackerService {
     }
   }
 
-  /// Configure background fetch with enhanced settings
   Future<void> _configureBackgroundFetch() async {
     try {
-      // Skip background fetch configuration on iOS if we don't have always permission
       if (Platform.isIOS) {
         LocationPermission permission = await Geolocator.checkPermission();
         if (permission != LocationPermission.always) {
@@ -529,9 +491,7 @@ class BookingTrackerService {
 
       await BackgroundFetch.configure(
         BackgroundFetchConfig(
-          minimumFetchInterval: Platform.isIOS
-              ? 15
-              : 30, // iOS needs more frequent updates
+          minimumFetchInterval: Platform.isIOS ? 15 : 30,
           stopOnTerminate: false,
           enableHeadless: true,
           startOnBoot: true,
@@ -555,7 +515,7 @@ class BookingTrackerService {
       print('Background fetch configured and started');
     } catch (e) {
       print('Error configuring background fetch: $e');
-      // Don't throw the error - continue with foreground tracking only
+
       if (Platform.isIOS && e.toString().contains('1')) {
         print(
           'iOS background fetch not available - continuing with foreground tracking only',
@@ -565,10 +525,8 @@ class BookingTrackerService {
   }
 
   Future<void> stopTracking() async {
-    // Update local state immediately to provide instant UI feedback
     isTracking.value = false;
 
-    // Clean up all tracking resources
     _positionStream?.cancel();
     _positionStream = null;
 
@@ -598,7 +556,6 @@ class BookingTrackerService {
     print('Location tracking stopped');
   }
 
-  /// Dispose resources when service is no longer needed
   void dispose() {
     _positionStream?.cancel();
     _stopBackgroundLocationTimer();

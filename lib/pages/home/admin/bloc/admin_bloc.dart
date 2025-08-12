@@ -29,7 +29,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      emit(AgentAssigned(true));
+      emit(AgentAssigned(true, assignedAgent: event.user));
     } catch (e) {
       emit(AgentAssignmentError(e.toString()));
     }

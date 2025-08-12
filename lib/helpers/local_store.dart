@@ -3,11 +3,18 @@ import 'package:aboglumbo_bbk_panel/models/user.dart';
 
 class LocalStore {
   static Future<void> putUID(String uid) {
+    // Also store as last valid UID for biometric authentication
+    MyApp.box.put('last_valid_uid', uid);
     return MyApp.box.put('uid', uid);
   }
 
   static String? getUID() {
     return MyApp.box.get('uid');
+  }
+
+  // Get the last valid UID (for biometric auth after logout)
+  static String? getLastValidUID() {
+    return MyApp.box.get('last_valid_uid');
   }
 
   // clear uid

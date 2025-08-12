@@ -39,7 +39,7 @@ class AgentTileMinimal extends StatelessWidget {
             style: textTheme.titleMedium,
           ),
           content: Text(
-            "Agent: ${user.name ?? 'No Name'}\nEmail: ${user.email ?? 'No Email'}",
+            "${AppLocalizations.of(context)?.agent ?? 'Agent'}: ${user.name ?? 'No Name'}\nEmail: ${user.email ?? 'No Email'}",
             style: textTheme.bodyMedium,
           ),
           actions: [
@@ -107,7 +107,9 @@ class AgentTileMinimal extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              isVerified ? 'Verified' : 'Pending',
+              isVerified
+                  ? AppLocalizations.of(context)?.verified ?? 'Verified'
+                  : AppLocalizations.of(context)?.pending ?? 'Pending',
               style: TextStyle(
                 color: isVerified
                     ? Colors.green.shade800

@@ -1,4 +1,5 @@
 import 'package:aboglumbo_bbk_panel/common_widget/booking_cards.dart';
+import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
@@ -17,6 +18,7 @@ class _WorkerHomeState extends State<WorkerHome> {
   final List<Map<String, String>> bookingStatus = [
     {'code': 'A', 'name': 'To Do'},
     {'code': 'C', 'name': 'Completed'},
+    {'code': 'X', 'name': 'Cancelled'},
   ];
   String selectedBookingStatus = 'A';
 
@@ -106,7 +108,7 @@ class _WorkerHomeState extends State<WorkerHome> {
                 ),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return Loader();
                   }
 
                   if (snapshot.hasError) {

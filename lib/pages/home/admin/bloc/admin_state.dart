@@ -17,10 +17,11 @@ final class RejectingOrder extends AdminState {}
 // Success states
 final class AgentAssigned extends AdminState {
   final bool isAssigned;
-  const AgentAssigned(this.isAssigned);
+  final UserModel? assignedAgent;
+  const AgentAssigned(this.isAssigned, {this.assignedAgent});
 
   @override
-  List<Object> get props => [isAssigned];
+  List<Object> get props => [isAssigned, assignedAgent ?? ''];
 }
 
 final class OrderRejected extends AdminState {

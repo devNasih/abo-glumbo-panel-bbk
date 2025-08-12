@@ -13,7 +13,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
 class AppServices {
-  // NOTIFICTIONS
   static Future<void> updateFCMToken(String token) async {
     try {
       String userId = LocalStore.getUID() ?? '';
@@ -29,11 +28,33 @@ class AppServices {
     }
   }
 
+  static Future<void> clearFCMToken() async {
+    try {
+      String userId = LocalStore.getUID() ?? '';
+      if (userId.isNotEmpty) {
+        await AppFirestore.usersCollectionRef.doc(userId).update({
+          'fcmToken': FieldValue.delete(),
+        });
+        if (kDebugMode) {
+          print('✅ FCM token cleared from user document');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error clearing FCM token from user document: $e');
+      }
+    }
+  }
+
   static Future<void> storeNotificationInFirestore(
     RemoteMessage message,
   ) async {
     try {
       String userId = LocalStore.getUID() ?? '';
+
+      UserModel? currentUser = LocalStore.getCachedUserData();
+      bool isCurrentUserAdmin = currentUser?.isAdmin ?? false;
+
       String title =
           message.notification?.title ??
           message.data['title'] ??
@@ -45,6 +66,11 @@ class AppServices {
       Timestamp sentTime = message.sentTime != null
           ? Timestamp.fromDate(message.sentTime!)
           : Timestamp.now();
+
+      String targetRole = _determineNotificationTargetRole(
+        message,
+        isCurrentUserAdmin,
+      );
 
       Map<String, dynamic> notificationData = {
         'userId': userId,
@@ -58,6 +84,8 @@ class AppServices {
         'category': message.data['category']?.toString() ?? 'general',
         'action': message.data['action']?.toString() ?? '',
         'platform': message.data['platform']?.toString() ?? 'mobile',
+        'targetRole': targetRole,
+        'userRole': isCurrentUserAdmin ? 'admin' : 'worker',
       };
 
       await AppFirestore.notificationsCollectionRef.add(notificationData);
@@ -68,7 +96,37 @@ class AppServices {
     }
   }
 
-  // LOGIN
+  static String _determineNotificationTargetRole(
+    RemoteMessage message,
+    bool isCurrentUserAdmin,
+  ) {
+    if (message.data.containsKey('targetRole')) {
+      return message.data['targetRole'].toString();
+    }
+
+    String title = message.notification?.title ?? message.data['title'] ?? '';
+    String body = message.notification?.body ?? message.data['body'] ?? '';
+    String content = '$title $body'.toLowerCase();
+
+    if (content.contains('admin') ||
+        content.contains('new booking request') ||
+        content.contains('طلب حجز جديد') ||
+        content.contains('agent assigned') ||
+        content.contains('تم تعيين عامل')) {
+      return 'admin';
+    }
+
+    if (content.contains('assigned') ||
+        content.contains('booking') ||
+        content.contains('تم تعيينك') ||
+        content.contains('حجز جديد') ||
+        message.data['category'] == 'booking') {
+      return 'worker';
+    }
+
+    return isCurrentUserAdmin ? 'admin' : 'worker';
+  }
+
   static Future<bool> checkTheMailExists(String email) async {
     final snapshot = await AppFirestore.usersCollectionRef
         .where('email', isEqualTo: email)
@@ -77,7 +135,6 @@ class AppServices {
     return snapshot.docs.isNotEmpty;
   }
 
-  // Account
   static Future<void> updateUserProfile(UserModel user) async {
     try {
       String userId = user.uid ?? '';
@@ -132,6 +189,33 @@ class AppServices {
     }
   }
 
+  static Future<String> getCurrentUserRole() async {
+    try {
+      UserModel? cachedUser = LocalStore.getCachedUserData();
+      if (cachedUser != null) {
+        return cachedUser.isAdmin == true ? 'admin' : 'worker';
+      }
+
+      String userId = LocalStore.getUID() ?? '';
+      if (userId.isNotEmpty) {
+        DocumentSnapshot userDoc = await AppFirestore.usersCollectionRef
+            .doc(userId)
+            .get();
+        if (userDoc.exists) {
+          Map<String, dynamic> userData =
+              userDoc.data() as Map<String, dynamic>;
+          bool isAdmin = userData['isAdmin'] ?? false;
+          return isAdmin ? 'admin' : 'worker';
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error getting current user role: $e');
+      }
+    }
+    return 'worker';
+  }
+
   static Future<List<Map<String, dynamic>>> getUserNotifications({
     int limit = 20,
     bool onlyUnread = false,
@@ -145,6 +229,10 @@ class AppServices {
         return [];
       }
 
+      UserModel? currentUser = LocalStore.getCachedUserData();
+      bool isCurrentUserAdmin = currentUser?.isAdmin ?? false;
+      String currentUserRole = isCurrentUserAdmin ? 'admin' : 'worker';
+
       Query query = AppFirestore.notificationsCollectionRef
           .where('userId', isEqualTo: userId)
           .orderBy('createdAt', descending: true);
@@ -153,11 +241,36 @@ class AppServices {
         query = query.where('isRead', isEqualTo: false);
       }
 
-      QuerySnapshot querySnapshot = await query.limit(limit).get();
+      QuerySnapshot querySnapshot = await query.limit(limit * 2).get();
 
-      return querySnapshot.docs
+      List<Map<String, dynamic>> allNotifications = querySnapshot.docs
           .map((doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>})
           .toList();
+
+      List<Map<String, dynamic>> filteredNotifications = [];
+
+      for (var notification in allNotifications) {
+        String? targetRole = notification['targetRole']?.toString();
+        String? userRole = notification['userRole']?.toString();
+
+        bool shouldInclude =
+            targetRole == null ||
+            targetRole == currentUserRole ||
+            targetRole == 'both' ||
+            userRole == currentUserRole;
+
+        if (shouldInclude && filteredNotifications.length < limit) {
+          filteredNotifications.add(notification);
+        }
+      }
+
+      if (kDebugMode) {
+        print(
+          '📱 Retrieved ${filteredNotifications.length} notifications for $currentUserRole',
+        );
+      }
+
+      return filteredNotifications;
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error retrieving notifications: $e');
@@ -166,18 +279,26 @@ class AppServices {
     }
   }
 
-  //
   static Stream<List<BookingModel>> getBookingsStream({
     String? bookingStatusCode,
   }) {
     String workerId = LocalStore.getUID() ?? '';
-    Query query = AppFirestore.bookingsCollectionRef
-        .where('agent.uid', isEqualTo: workerId)
-        .where('bookingStatusCode', isEqualTo: bookingStatusCode)
-        .orderBy(
-          bookingStatusCode == 'A' ? 'acceptedAt' : 'completedAt',
-          descending: true,
-        );
+
+    Query query;
+
+    if (bookingStatusCode == 'X') {
+      query = AppFirestore.bookingsCollectionRef
+          .where('cancelledWorkerUids', arrayContains: workerId)
+          .orderBy('updatedAt', descending: true);
+    } else {
+      query = AppFirestore.bookingsCollectionRef
+          .where('agent.uid', isEqualTo: workerId)
+          .where('bookingStatusCode', isEqualTo: bookingStatusCode)
+          .orderBy(
+            bookingStatusCode == 'A' ? 'acceptedAt' : 'completedAt',
+            descending: true,
+          );
+    }
 
     return query.snapshots().map((snapshot) {
       return snapshot.docs
@@ -259,7 +380,6 @@ class AppServices {
     });
   }
 
-  // Clear Tip Wallet
   static Future<bool> clearTippingAmount(String agentId) async {
     try {
       await AppFirestore.tippingCollectionRef.doc(agentId).update({
@@ -293,7 +413,6 @@ class AppServices {
     }
   }
 
-  // Banners
   static Future<bool> addBanner(BannerModel banner, String bannerId) async {
     try {
       await AppFirestore.bannersCollectionRef
@@ -337,7 +456,6 @@ class AppServices {
   static Stream<List<UserModel>> getCatagoryWiseWorkersStream(
     String categoryId,
   ) async* {
-    // Find the category name and pass
     final docSnapshot = await AppFirestore.categoriesCollectionRef
         .doc(categoryId)
         .get();
@@ -379,14 +497,26 @@ class AppServices {
     return snapshot.docs.isNotEmpty;
   }
 
-  static Future<bool> cancelBooking(String bookingId) async {
+  static Future<bool> cancelBooking(
+    String bookingId, {
+    required String agentUid,
+    required String agentName,
+  }) async {
     try {
+      final cancelledAt = DateTime.now();
+
       await AppFirestore.bookingsCollectionRef.doc(bookingId).update({
+        'cancelledWorkers': FieldValue.arrayUnion([
+          {'uid': agentUid, 'agentName': agentName, 'cancelledAt': cancelledAt},
+        ]),
+        'cancelledWorkerUids': FieldValue.arrayUnion([agentUid]),
+        'agent': FieldValue.delete(),
         'bookingStatusCode': 'P',
         'acceptedAt': FieldValue.delete(),
         'cancelledBy': 'worker',
-        'agent': FieldValue.delete(),
+        'updatedAt': cancelledAt,
       });
+
       return true;
     } catch (e) {
       if (kDebugMode) {

@@ -6,11 +6,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
 
-class BookingControlsWidget extends StatelessWidget {
+class BookingControlsWidget extends StatefulWidget {
   final BookingModel booking;
   final bool isTracking;
 
-  // Static reference to ensure we're using the same service instance
   static final BookingTrackerService _trackerService = BookingTrackerService();
 
   const BookingControlsWidget({
@@ -18,6 +17,27 @@ class BookingControlsWidget extends StatelessWidget {
     required this.booking,
     required this.isTracking,
   });
+
+  @override
+  State<BookingControlsWidget> createState() => _BookingControlsWidgetState();
+}
+
+class _BookingControlsWidgetState extends State<BookingControlsWidget> {
+  bool isCancelBookingButtonBlocked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeCancelButtonState();
+  }
+
+  void _initializeCancelButtonState() {
+    final isCurrentlyTracking =
+        BookingControlsWidget._trackerService.isTracking.value;
+    setState(() {
+      isCancelBookingButtonBlocked = isCurrentlyTracking;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +58,7 @@ class BookingControlsWidget extends StatelessWidget {
             SnackBar(content: Text(state.error), backgroundColor: Colors.red),
           );
         } else if (state is BookingCompleteSuccess) {
+          setState(() => isCancelBookingButtonBlocked = false);
           Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -52,6 +73,7 @@ class BookingControlsWidget extends StatelessWidget {
             SnackBar(content: Text(state.error), backgroundColor: Colors.red),
           );
         } else if (state is BookingStartWorkingSuccess) {
+          setState(() => isCancelBookingButtonBlocked = true);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -67,6 +89,7 @@ class BookingControlsWidget extends StatelessWidget {
             SnackBar(content: Text(state.error), backgroundColor: Colors.red),
           );
         } else if (state is BookingStopWorkingSuccess) {
+          setState(() => isCancelBookingButtonBlocked = false);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -87,13 +110,17 @@ class BookingControlsWidget extends StatelessWidget {
         final isStartWorkingLoading = state is BookingStartWorkingLoading;
         final isStopWorkingLoading = state is BookingStopWorkingLoading;
 
-        // Use ValueListenableBuilder to get real-time tracking state from the service
         return ValueListenableBuilder<bool>(
-          valueListenable: _trackerService.isTracking,
+          valueListenable: BookingControlsWidget._trackerService.isTracking,
           builder: (context, serviceIsTracking, child) {
-            // Use service state as the primary source of truth
-            // Only fall back to Firestore state if service is not tracking but Firestore shows active
             final actualIsTracking = serviceIsTracking;
+            final currentTrackingBookingId =
+                BookingControlsWidget._trackerService.currentBookingId;
+            final isThisBookingTracked =
+                actualIsTracking &&
+                currentTrackingBookingId == widget.booking.id;
+
+            final shouldBlockCancel = actualIsTracking;
 
             return Container(
               padding: const EdgeInsets.all(16),
@@ -112,18 +139,23 @@ class BookingControlsWidget extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  // Action buttons
                   Row(
                     children: [
                       Expanded(
                         child: _buildButton(
-                          onPressed: isCancelLoading
+                          onPressed: shouldBlockCancel || isCancelLoading
                               ? null
                               : () => _showCancelDialog(context),
                           label: AppLocalizations.of(context)!.cancelBooking,
-                          color: Colors.red.shade50,
-                          textColor: Colors.red.shade700,
-                          borderColor: Colors.red.shade200,
+                          color: shouldBlockCancel
+                              ? Colors.grey
+                              : Colors.red.shade50,
+                          textColor: shouldBlockCancel
+                              ? Colors.grey.shade700
+                              : Colors.red.shade700,
+                          borderColor: shouldBlockCancel
+                              ? Colors.grey.shade200
+                              : Colors.red.shade200,
                           isLoading: isCancelLoading,
                         ),
                       ),
@@ -134,21 +166,26 @@ class BookingControlsWidget extends StatelessWidget {
                               (isStartWorkingLoading ||
                                   isStopWorkingLoading ||
                                   isCancelLoading ||
-                                  isCompleteLoading)
+                                  isCompleteLoading ||
+                                  (actualIsTracking &&
+                                      BookingControlsWidget
+                                              ._trackerService
+                                              .currentBookingId !=
+                                          widget.booking.id))
                               ? null
-                              : actualIsTracking
+                              : isThisBookingTracked
                               ? () => _showStopTrackingDialog(context)
                               : () => _showStartTrackingDialog(context),
-                          label: actualIsTracking
+                          label: isThisBookingTracked
                               ? AppLocalizations.of(context)!.stopTracking
                               : AppLocalizations.of(context)!.startTracking,
-                          color: actualIsTracking
+                          color: isThisBookingTracked
                               ? Colors.orange.shade50
                               : Colors.blue.shade50,
-                          textColor: actualIsTracking
+                          textColor: isThisBookingTracked
                               ? Colors.orange.shade700
                               : Colors.blue.shade700,
-                          borderColor: actualIsTracking
+                          borderColor: isThisBookingTracked
                               ? Colors.orange.shade200
                               : Colors.blue.shade200,
                           isLoading:
@@ -159,7 +196,6 @@ class BookingControlsWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
 
-                  // Complete button
                   SizedBox(
                     width: double.infinity,
                     height: 48,
@@ -252,6 +288,28 @@ class BookingControlsWidget extends StatelessWidget {
   }
 
   void _showCancelDialog(BuildContext context) {
+    final trackerService = BookingControlsWidget._trackerService;
+    if (trackerService.isTracking.value) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(AppLocalizations.of(context)!.cancelBooking),
+            content: Text(
+              'Cannot cancel this booking while tracking is active. Please stop tracking first, then you can cancel the booking.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -269,7 +327,11 @@ class BookingControlsWidget extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop();
                 context.read<BookingBloc>().add(
-                  CancelBooking(bookingId: booking.id),
+                  CancelBooking(
+                    bookingId: widget.booking.id,
+                    agentUid: widget.booking.agent?.uid ?? '',
+                    agentName: widget.booking.agent?.name ?? '',
+                  ),
                 );
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -282,6 +344,22 @@ class BookingControlsWidget extends StatelessWidget {
   }
 
   void _showStartTrackingDialog(BuildContext context) {
+    final trackerService = BookingControlsWidget._trackerService;
+    if (trackerService.isTracking.value &&
+        trackerService.currentBookingId != null &&
+        trackerService.currentBookingId != widget.booking.id) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Another booking is already being tracked. Please complete or stop the current tracking before starting a new one.',
+          ),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -305,7 +383,7 @@ class BookingControlsWidget extends StatelessWidget {
                   context.read<BookingBloc>().add(
                     StartWorkingOnBooking(
                       context: context,
-                      bookingId: booking.id,
+                      bookingId: widget.booking.id,
                       uid: uid,
                     ),
                   );
@@ -340,7 +418,7 @@ class BookingControlsWidget extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop();
                 context.read<BookingBloc>().add(
-                  StopWorkingOnBooking(bookingId: booking.id),
+                  StopWorkingOnBooking(bookingId: widget.booking.id),
                 );
               },
               style: TextButton.styleFrom(foregroundColor: Colors.orange),
@@ -372,7 +450,7 @@ class BookingControlsWidget extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop();
                 context.read<BookingBloc>().add(
-                  CompleteBooking(bookingId: booking.id),
+                  CompleteBooking(bookingId: widget.booking.id),
                 );
               },
               style: TextButton.styleFrom(foregroundColor: Colors.green),

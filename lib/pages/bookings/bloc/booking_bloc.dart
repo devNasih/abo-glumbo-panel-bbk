@@ -26,7 +26,11 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     try {
       emit(BookingCancelLoading());
       try {
-        bool isSuccess = await AppServices.cancelBooking(event.bookingId);
+        bool isSuccess = await AppServices.cancelBooking(
+          event.bookingId,
+          agentUid: event.agentUid,
+          agentName: event.agentName,
+        );
         if (isSuccess) {
           emit(BookingCancelSuccess());
         } else {

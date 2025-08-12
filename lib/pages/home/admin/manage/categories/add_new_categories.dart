@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:aboglumbo_bbk_panel/common_widget/crop_confirm_dialog.dart';
+import 'package:aboglumbo_bbk_panel/common_widget/delete_confirm_dialog.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/removable_image.dart';
 import 'package:aboglumbo_bbk_panel/helpers/regex.dart';
@@ -152,20 +153,28 @@ class _AddNewCategoriesState extends State<AddNewCategories> {
   }
 
   void _removeImage() {
-    setState(() {
-      if (selectedImage != null) {
-        selectedImage = null;
-      } else if (widget.category?.svg != null) {
-        shouldRemoveExistingImage = true;
-      }
-    });
+    showDeleteConfirmDialog(context)
+        .then((shouldDelete) {
+          if (shouldDelete == true && mounted) {
+            setState(() {
+              if (selectedImage != null) {
+                selectedImage = null;
+              } else if (widget.category?.svg != null) {
+                shouldRemoveExistingImage = true;
+              }
+            });
+          }
+        })
+        .catchError((error) {
+          debugPrint('Error showing delete confirmation dialog: $error');
+        });
   }
 
   void _saveCategory() {
     final hasImage =
         selectedImage != null ||
         (widget.category?.svg != null && !shouldRemoveExistingImage);
-  
+
     if (!hasImage) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

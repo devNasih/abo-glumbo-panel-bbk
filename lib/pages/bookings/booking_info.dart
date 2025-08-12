@@ -645,10 +645,10 @@ class BookingInfo extends StatelessWidget {
     TextTheme textTheme,
     ColorScheme colorScheme,
   ) {
-    // Build timeline items based on actual booking data
-    List<Map<String, String>> timelineItems = [];
+    // We store raw DateTime for sorting later
+    List<Map<String, dynamic>> timelineItems = [];
 
-    // Always show booking creation
+    // Created
     if (booking.createdAt != null) {
       timelineItems.add({
         'title': AppLocalizations.of(context)!.createdAt,
@@ -657,10 +657,11 @@ class BookingInfo extends StatelessWidget {
           context,
         )!.customerSubmittedBookingRequest,
         'status': 'completed',
+        'date': booking.createdAt!.toDate(),
       });
     }
 
-    // Show acceptance if exists
+    // Accepted
     if (booking.acceptedAt != null) {
       timelineItems.add({
         'title': AppLocalizations.of(context)!.acceptedAt,
@@ -669,10 +670,11 @@ class BookingInfo extends StatelessWidget {
           context,
         )!.serviceProviderConfirmedAppointment,
         'status': 'completed',
+        'date': booking.acceptedAt!.toDate(),
       });
     }
 
-    // Show tracking started if exists
+    // Tracking started
     if (booking.trackingStartedAt != null) {
       timelineItems.add({
         'title': AppLocalizations.of(context)!.trackingStartedAt,
@@ -682,10 +684,11 @@ class BookingInfo extends StatelessWidget {
         ),
         'description': AppLocalizations.of(context)!.serviceTrackingInitiated,
         'status': 'completed',
+        'date': booking.trackingStartedAt!.toDate(),
       });
     }
 
-    // Show completion if exists
+    // Completed
     if (booking.completedAt != null) {
       timelineItems.add({
         'title': AppLocalizations.of(context)!.completedAt,
@@ -694,10 +697,11 @@ class BookingInfo extends StatelessWidget {
           context,
         )!.serviceHasBeenSuccessfullyCompleted,
         'status': 'completed',
+        'date': booking.completedAt!.toDate(),
       });
     }
 
-    // Show rejection if exists
+    // Rejected
     if (booking.rejectedAt != null) {
       timelineItems.add({
         'title': AppLocalizations.of(context)!.rejectedAt,
@@ -706,23 +710,30 @@ class BookingInfo extends StatelessWidget {
           context,
         )!.bookingWasRejectedByServiceProvider,
         'status': 'rejected',
+        'date': booking.rejectedAt!.toDate(),
       });
     }
 
-    // Show cancellation if exists
-    if (booking.cancelledAt != null) {
-      timelineItems.add({
-        'title': AppLocalizations.of(context)!.cancelledAt,
-        'time': _formatDateLocalized(booking.cancelledAt!.toDate(), context),
-        'description': AppLocalizations.of(context)!.bookingWasCancelled,
-        'status': 'cancelled',
-      });
+    // Worker cancellations
+    if (booking.cancelledWorkers.isNotEmpty) {
+      for (var worker in booking.cancelledWorkers) {
+        final workerName = worker.agentName.isNotEmpty
+            ? worker.agentName
+            : AppLocalizations.of(context)!.unknownWorker;
+
+        timelineItems.add({
+          'title': AppLocalizations.of(context)!.workerCancelled,
+          'time': _formatDateLocalized(worker.cancelledAt.toDate(), context),
+          'description':
+              '${AppLocalizations.of(context)!.cancelledByWorker}: $workerName',
+          'status': 'cancelled',
+          'date': worker.cancelledAt.toDate(),
+        });
+      }
     }
 
-    // If no completion/rejection/cancellation, show current status
-    if (booking.completedAt == null &&
-        booking.rejectedAt == null &&
-        booking.cancelledAt == null) {
+    // If no completion/rejection/cancellation, add current status
+    if (booking.completedAt == null && booking.rejectedAt == null) {
       if (booking.trackingStartedAt != null) {
         timelineItems.add({
           'title': AppLocalizations.of(context)!.serviceInProgress,
@@ -731,6 +742,7 @@ class BookingInfo extends StatelessWidget {
             context,
           )!.serviceIsCurrentlyBeingPerformed,
           'status': 'current',
+          'date': DateTime.now(),
         });
       } else if (booking.acceptedAt != null) {
         timelineItems.add({
@@ -740,6 +752,7 @@ class BookingInfo extends StatelessWidget {
             context,
           )!.waitingForTechnicianToStartService,
           'status': 'current',
+          'date': DateTime.now(),
         });
       } else {
         timelineItems.add({
@@ -749,9 +762,15 @@ class BookingInfo extends StatelessWidget {
             context,
           )!.waitingForServiceProviderResponse,
           'status': 'current',
+          'date': DateTime.now(),
         });
       }
     }
+
+    // Sort events by actual date
+    timelineItems.sort(
+      (a, b) => (a['date'] as DateTime).compareTo(b['date'] as DateTime),
+    );
 
     return Container(
       width: double.infinity,
@@ -775,7 +794,7 @@ class BookingInfo extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with icon
+            // Header
             Row(
               children: [
                 Container(
@@ -803,7 +822,7 @@ class BookingInfo extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Timeline Items
+            // Render timeline
             ...timelineItems.asMap().entries.map((entry) {
               final index = entry.key;
               final item = entry.value;
@@ -914,13 +933,6 @@ class BookingInfo extends StatelessWidget {
                             : colorScheme.onSurface,
                       ),
                     ),
-                    Text(
-                      time,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: colorScheme.onSurface.withOpacity(0.5),
-                      ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -931,6 +943,13 @@ class BookingInfo extends StatelessWidget {
                     color: status == 'pending'
                         ? colorScheme.onSurface.withOpacity(0.4)
                         : colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                ),
+                Text(
+                  time,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: colorScheme.onSurface.withOpacity(0.5),
                   ),
                 ),
               ],

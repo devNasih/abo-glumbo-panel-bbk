@@ -59,6 +59,11 @@ exports.notifyAdminsOnNewBooking = onDocumentCreated(
                   ? "مرحبًا Admin، لقد تم تقديم طلب حجز جديد!"
                   : "Hey Admin, a new booking request just came in!",
             },
+            data: {
+              targetRole: "admin",
+              category: "booking",
+              bookingId: event.params.bookingId,
+            },
             token: token,
           };
 
@@ -78,127 +83,196 @@ exports.notifyAdminsOnNewBooking = onDocumentCreated(
 exports.notifyAgentOnAssignment = onDocumentWritten(
   "bookings/{bookingId}",
   async (event) => {
-    const beforeData = event.data?.before?.data();
-    const afterData = event.data?.after?.data();
+    const bookingId = event.params.bookingId;
+    const beforeData = event.data?.before?.data() || {};
+    const afterData = event.data?.after?.data() || {};
 
     if (!afterData) {
-      console.log("Document deleted, skipping...");
+      console.log(`[${bookingId}] Document deleted, skipping...`);
       return;
     }
 
-    const statusChangedToAssigned =
-      beforeData?.bookingStatusCode !== "A" &&
-      afterData.bookingStatusCode === "A";
+    const serviceName = afterData?.service?.name || "";
 
-    if (!statusChangedToAssigned) {
-      console.log("Booking was not newly assigned, skipping...");
-      return;
-    }
-
-    const agent = afterData.agent;
-    if (!agent) {
-      console.log("No agent assigned.");
-      return;
-    }
-
-    const agentId = agent.uid;
-    if (!agentId) {
-      console.log("No agent UID found.");
-      return;
-    }
-    let agentLanCode = "en";
-    let agentFcmToken;
+    // --- Fetch admin users once ---
+    let adminTokens = [];
     try {
-      const agentDoc = await admin
-        .firestore()
-        .collection("users")
-        .doc(agentId)
-        .get();
-      if (agentDoc.exists) {
-        const agentData = agentDoc.data();
-        agentLanCode = agentData.lanCode;
-        agentFcmToken = agentData.fcmToken;
-      }
-    } catch (error) {
-      console.error("Error fetching agent lanCode:", error.message);
-    }
-
-    if (!agentFcmToken || agentFcmToken.trim() === "") {
-      console.log("Agent has no valid FCM token.");
-      return;
-    }
-
-    const service = afterData.service;
-    const serviceName = service?.name;
-
-    const title =
-      agentLanCode === "ar" ? "تم تعيين حجز جديد لك" : "New Booking Assigned";
-    const body =
-      agentLanCode === "ar"
-        ? `تم تعيين حجز جديد لخدمة "${serviceName}"`
-        : `You have been assigned a new booking for "${serviceName}"`;
-
-    const message = {
-      notification: {
-        title,
-        body,
-      },
-      token: agentFcmToken,
-    };
-
-    try {
-      await admin.messaging().send(message);
-    } catch (error) {
-      console.error("Error sending notification to agent:", error.message);
-    }
-
-    try {
-      const adminUsersSnapshot = await admin
+      const adminSnapshot = await admin
         .firestore()
         .collection("users")
         .where("isAdmin", "==", true)
         .get();
 
-      const tokensWithLanguage = [];
-      adminUsersSnapshot.forEach((doc) => {
-        const user = doc.data();
-        if (user.fcmToken && user.fcmToken.trim() !== "") {
-          tokensWithLanguage.push({
-            token: user.fcmToken,
-            lanCode: user.lanCode || "en",
-          });
+      adminTokens = adminSnapshot.docs
+        .map((doc) => {
+          const data = doc.data();
+          return data.fcmToken && data.fcmToken.trim() !== ""
+            ? { token: data.fcmToken, lanCode: data.lanCode || "en" }
+            : null;
+        })
+        .filter(Boolean);
+
+      if (adminTokens.length === 0) {
+        console.log(`[${bookingId}] No admin FCM tokens found`);
+      }
+    } catch (error) {
+      console.error(`[${bookingId}] Error fetching admin users:`, error);
+    }
+
+    // ==============================
+    // 1. New Assignment Notification
+    // ==============================
+    const statusChangedToAssigned =
+      beforeData?.bookingStatusCode !== "A" &&
+      afterData.bookingStatusCode === "A";
+
+    if (statusChangedToAssigned) {
+      const agent = afterData.agent;
+      if (!agent?.uid) {
+        console.log(
+          `[${bookingId}] No agent assigned, skipping assignment notification`
+        );
+      } else {
+        try {
+          const agentDoc = await admin
+            .firestore()
+            .collection("users")
+            .doc(agent.uid)
+            .get();
+
+          if (!agentDoc.exists) {
+            console.log(`[${bookingId}] Agent user not found`);
+          } else {
+            const agentData = agentDoc.data();
+            const agentLanCode = agentData.lanCode || "en";
+            const agentFcmToken = agentData.fcmToken;
+
+            if (agentFcmToken && agentFcmToken.trim() !== "") {
+              const title =
+                agentLanCode === "ar"
+                  ? "تم تعيين حجز جديد لك"
+                  : "New Booking Assigned";
+              const body =
+                agentLanCode === "ar"
+                  ? `تم تعيين حجز جديد لخدمة "${serviceName}"`
+                  : `You have been assigned a new booking for "${serviceName}"`;
+
+              await admin.messaging().send({
+                notification: { title, body },
+                data: {
+                  targetRole: "worker",
+                  category: "booking",
+                  bookingId,
+                  serviceName,
+                },
+                token: agentFcmToken,
+              });
+
+              console.log(
+                `[${bookingId}] Notification sent to assigned worker`
+              );
+            }
+          }
+        } catch (error) {
+          console.error(
+            `[${bookingId}] Error sending worker assignment notification:`,
+            error
+          );
         }
-      });
-
-      const adminMessages = tokensWithLanguage.map((admin) => {
-        const title =
-          admin.lanCode === "ar"
-            ? "تم تعيين عامل جديد لحجز"
-            : "New Agent Assigned";
-
-        const body =
-          admin.lanCode === "ar"
-            ? `تم تعيين العامل لحجز جديد لخدمة "${serviceName}".`
-            : `An agent has been assigned to a new booking for "${serviceName}".`;
-
-        return {
-          notification: { title, body },
-          token: admin.token,
-          data: {
-            bookingId: bookingId,
-            serviceName: serviceName,
-            lanCode: admin.lanCode,
-          },
-        };
-      });
-
-      for (const message of adminMessages) {
-        await admin.messaging().send(message);
       }
 
-      console.log("Admins notified of new agent assignment.");
+      // Notify admins about assignment
+      if (adminTokens.length > 0) {
+        const adminMessages = adminTokens.map(({ token, lanCode }) => ({
+          notification: {
+            title:
+              lanCode === "ar"
+                ? "تم تعيين عامل جديد لحجز"
+                : "New Agent Assigned",
+            body:
+              lanCode === "ar"
+                ? `تم تعيين العامل لحجز جديد لخدمة "${serviceName}".`
+                : `An agent has been assigned to a new booking for "${serviceName}".`,
+          },
+          token,
+          data: {
+            targetRole: "admin",
+            category: "booking",
+            bookingId,
+            serviceName,
+            lanCode,
+          },
+        }));
+
+        try {
+          await Promise.all(
+            adminMessages.map((msg) => admin.messaging().send(msg))
+          );
+          console.log(`[${bookingId}] Admins notified of assignment`);
+        } catch (error) {
+          console.error(
+            `[${bookingId}] Error notifying admins of assignment:`,
+            error
+          );
+        }
+      }
+    }
+
+    // ==============================
+    // 2. Worker Cancellation Notification
+    // ==============================
+    try {
+      const beforeCancelledWorkers = beforeData.cancelledWorkers || [];
+      const afterCancelledWorkers = afterData.cancelledWorkers || [];
+
+      // Find new worker(s) who cancelled
+      const newCancellations = afterCancelledWorkers.filter(
+        (worker) =>
+          !beforeCancelledWorkers.some(
+            (w) =>
+              w.uid === worker.uid &&
+              w.cancelledAt?.toMillis?.() === worker.cancelledAt?.toMillis?.()
+          )
+      );
+
+      if (newCancellations.length > 0) {
+        const latestCancelled = newCancellations[newCancellations.length - 1];
+        const workerName = latestCancelled?.agentName || "Unknown Worker";
+        const workerId = latestCancelled?.uid || "";
+
+        if (adminTokens.length > 0) {
+          const cancelMessages = adminTokens.map(({ token, lanCode }) => ({
+            notification: {
+              title:
+                lanCode === "ar"
+                  ? "إلغاء حجز من قبل عامل"
+                  : "Booking Cancelled by Worker",
+              body:
+                lanCode === "ar"
+                  ? `تم إلغاء الحجز من قبل العامل ${workerName}.`
+                  : `The booking has been cancelled by worker ${workerName}.`,
+            },
+            token,
+            data: {
+              targetRole: "admin",
+              category: "booking",
+              bookingId,
+              workerId,
+              workerName,
+            },
+          }));
+
+          await Promise.all(
+            cancelMessages.map((msg) => admin.messaging().send(msg))
+          );
+          console.log(`[${bookingId}] Admins notified of worker cancellation`);
+        }
+      }
     } catch (error) {
-      console.error("Error notifying admins:", error);
+      console.error(
+        `[${bookingId}] Error notifying admins of cancellation:`,
+        error
+      );
     }
 
     return null;

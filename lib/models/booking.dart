@@ -52,13 +52,13 @@ class BookingModel {
 
   UserModel? agent;
   bool? isStartTracking;
+  List<CancelledWorkers> cancelledWorkers;
 
   Timestamp? createdAt;
   Timestamp? updatedAt;
   Timestamp? acceptedAt;
   Timestamp? rejectedAt;
   Timestamp? completedAt;
-  Timestamp? cancelledAt;
   Timestamp? trackingStartedAt;
 
   BookingModel({
@@ -66,6 +66,7 @@ class BookingModel {
     required this.service,
     required this.bookingDateTime,
     required this.bookingStatusCode,
+    this.cancelledWorkers = const [],
     required this.notes,
     required this.issueImage,
     required this.issueVideo,
@@ -79,35 +80,39 @@ class BookingModel {
     this.acceptedAt,
     this.rejectedAt,
     this.completedAt,
-    this.cancelledAt,
     this.trackingStartedAt,
   });
 
   BookingModel.fromMap(Map<String, dynamic> data)
-      : service = ServiceModel.fromJson(data['service']),
-        bookingDateTime = data['bookingDateTime'],
-        bookingStatusCode = data['bookingStatusCode'],
-        isStartTracking = data['isStarted'] ?? false,
-        notes = data['notes'],
-        id = data['id'] ?? '',
-        issueImage = data['issueImage'],
-        issueVideo = data['issueVideo'],
-        customer = CustomerModel.fromJson(data['customer']),
-        paymentModeCode = data['paymentModeCode'],
-        review =
-            data['review'] != null ? ReviewModel.fromMap(data['review']) : null,
-        agent =
-            data['agent'] != null ? UserModel.fromJson(data['agent']) : null,
-        createdAt = data['createdAt'],
-        updatedAt = data['updatedAt'],
-        acceptedAt = data['acceptedAt'],
-        rejectedAt = data['rejectedAt'],
-        completedAt = data['completedAt'],
-        cancelledAt = data['cancelledAt'],
-        trackingStartedAt = data['trackingStartedAt'];
+    : service = ServiceModel.fromJson(data['service']),
+      bookingDateTime = data['bookingDateTime'],
+      bookingStatusCode = data['bookingStatusCode'],
+      cancelledWorkers = data['cancelledWorkers'] != null
+          ? (data['cancelledWorkers'] as List)
+                .map((e) => CancelledWorkers.fromMap(e))
+                .toList()
+          : [],
+      isStartTracking = data['isStarted'] ?? false,
+      notes = data['notes'],
+      id = data['id'] ?? '',
+      issueImage = data['issueImage'],
+      issueVideo = data['issueVideo'],
+      customer = CustomerModel.fromJson(data['customer']),
+      paymentModeCode = data['paymentModeCode'],
+      review = data['review'] != null
+          ? ReviewModel.fromMap(data['review'])
+          : null,
+      agent = data['agent'] != null ? UserModel.fromJson(data['agent']) : null,
+      createdAt = data['createdAt'],
+      updatedAt = data['updatedAt'],
+      acceptedAt = data['acceptedAt'],
+      rejectedAt = data['rejectedAt'],
+      completedAt = data['completedAt'],
+      trackingStartedAt = data['trackingStartedAt'];
 
   factory BookingModel.fromQueryDocumentSnapshot(
-      QueryDocumentSnapshot snapshot) {
+    QueryDocumentSnapshot snapshot,
+  ) {
     Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
     return BookingModel.fromMap(data);
   }
@@ -125,6 +130,8 @@ class BookingModel {
       'notes': notes,
       'issueImage': issueImage,
       'customer': customer.toJson(),
+      'issueVideo': issueVideo,
+      'cancelledWorkers': cancelledWorkers.map((e) => e.toJson()).toList(),
       'paymentModeCode': paymentModeCode,
       'isStarted': isStartTracking ?? false,
       'createdAt': createdAt,
@@ -132,7 +139,6 @@ class BookingModel {
       'acceptedAt': acceptedAt,
       'rejectedAt': rejectedAt,
       'completedAt': completedAt,
-      'cancelledAt': cancelledAt,
       'trackingStartedAt': trackingStartedAt,
     };
 
@@ -165,10 +171,30 @@ class ReviewModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'rating': rating,
-      'review': review,
-      'createdAt': createdAt,
-    };
+    return {'rating': rating, 'review': review, 'createdAt': createdAt};
+  }
+}
+
+class CancelledWorkers {
+  String uid;
+  String agentName;
+  Timestamp cancelledAt;
+
+  CancelledWorkers({
+    required this.uid,
+    required this.agentName,
+    required this.cancelledAt,
+  });
+
+  factory CancelledWorkers.fromMap(Map<String, dynamic> data) {
+    return CancelledWorkers(
+      uid: data['uid'],
+      agentName: data['agentName'],
+      cancelledAt: data['cancelledAt'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'uid': uid, 'agentName': agentName, 'cancelledAt': cancelledAt};
   }
 }

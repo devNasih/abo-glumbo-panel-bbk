@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 
@@ -32,10 +33,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
     super.didChangeDependencies();
     final newLanguage = AppLocalizations.of(context)?.localeName ?? 'en';
     if (newLanguage != _currentLanguage) {
+      final oldLanguage = _currentLanguage;
       _currentLanguage = newLanguage;
 
-      _translationCache.clear();
-      if (notifications.isNotEmpty) {
+      // Only reload notifications if language actually changed and we have notifications
+      if (oldLanguage != newLanguage && notifications.isNotEmpty) {
         _loadNotifications();
       }
     }
@@ -52,14 +54,15 @@ class _NotificationsPageState extends State<NotificationsPage> {
         limit: 50,
       );
 
-      final basicNotifications = _processNotificationsBasic(notificationsList);
+      // Wait for translations to complete before showing UI
+      final translatedNotifications = await _translateNotifications(
+        notificationsList,
+      );
 
       setState(() {
-        notifications = basicNotifications;
+        notifications = translatedNotifications;
         isLoading = false;
       });
-
-      _translateNotificationsInBackground(notificationsList);
     } catch (e) {
       setState(() => isLoading = false);
       if (mounted) {
@@ -70,18 +73,15 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
-  List<Map<String, dynamic>> _processNotificationsBasic(
-    List<Map<String, dynamic>> notificationsList,
-  ) {
-    return notificationsList.map((notification) {
-      return Map<String, dynamic>.from(notification);
-    }).toList();
-  }
-
-  Future<void> _translateNotificationsInBackground(
+  Future<List<Map<String, dynamic>>> _translateNotifications(
     List<Map<String, dynamic>> notificationsList,
   ) async {
-    if (notificationsList.isEmpty) return;
+    if (notificationsList.isEmpty) return notificationsList;
+
+    // First, create basic processed notifications
+    final processedNotifications = notificationsList.map((notification) {
+      return Map<String, dynamic>.from(notification);
+    }).toList();
 
     try {
       List<String> textsToTranslate = [];
@@ -102,7 +102,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
         if (title.isNotEmpty) {
           final cacheKey = '${title}_$_currentLanguage';
-          if (!_translationCache.containsKey(cacheKey)) {
+          if (_translationCache.containsKey(cacheKey)) {
+            // Use cached translation
+            processedNotifications[i]['title'] = _translationCache[cacheKey];
+          } else {
             bool shouldTranslate = false;
             if (_currentLanguage == 'ar') {
               shouldTranslate = _isPrimaryEnglish(title);
@@ -119,7 +122,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
         if (body.isNotEmpty) {
           final cacheKey = '${body}_$_currentLanguage';
-          if (!_translationCache.containsKey(cacheKey)) {
+          if (_translationCache.containsKey(cacheKey)) {
+            // Use cached translation
+            processedNotifications[i]['body'] = _translationCache[cacheKey];
+          } else {
             bool shouldTranslate = false;
             if (_currentLanguage == 'ar') {
               shouldTranslate = _isPrimaryEnglish(body);
@@ -149,44 +155,40 @@ class _NotificationsPageState extends State<NotificationsPage> {
         log('Translation completed, got ${translatedTexts.length} results');
       }
 
-      if (mounted && translatedTexts.isNotEmpty) {
-        setState(() {
-          for (int i = 0; i < translationMap.length; i++) {
-            final item = translationMap[i];
-            final notificationIndex = item['notificationIndex'] as int;
+      // Apply translations to the processed notifications
+      if (translatedTexts.isNotEmpty) {
+        for (int i = 0; i < translationMap.length; i++) {
+          final item = translationMap[i];
+          final notificationIndex = item['notificationIndex'] as int;
 
-            if (notificationIndex < notifications.length) {
-              final titleIndex = item['titleIndex'] as int;
-              if (titleIndex != -1) {
-                final translatedTitle = translatedTexts[titleIndex];
-                notifications[notificationIndex]['title'] = translatedTitle;
+          if (notificationIndex < processedNotifications.length) {
+            final titleIndex = item['titleIndex'] as int;
+            if (titleIndex != -1 && titleIndex < translatedTexts.length) {
+              final translatedTitle = translatedTexts[titleIndex];
+              processedNotifications[notificationIndex]['title'] =
+                  translatedTitle;
 
-                _translationCache['${item['originalTitle']}_$_currentLanguage'] =
-                    translatedTitle;
-              } else if ((item['originalTitle'] as String).isNotEmpty) {
-                final cacheKey = '${item['originalTitle']}_$_currentLanguage';
-                notifications[notificationIndex]['title'] =
-                    _translationCache[cacheKey] ?? item['originalTitle'];
-              }
+              _translationCache['${item['originalTitle']}_$_currentLanguage'] =
+                  translatedTitle;
+            }
 
-              final bodyIndex = item['bodyIndex'] as int;
-              if (bodyIndex != -1) {
-                final translatedBody = translatedTexts[bodyIndex];
-                notifications[notificationIndex]['body'] = translatedBody;
+            final bodyIndex = item['bodyIndex'] as int;
+            if (bodyIndex != -1 && bodyIndex < translatedTexts.length) {
+              final translatedBody = translatedTexts[bodyIndex];
+              processedNotifications[notificationIndex]['body'] =
+                  translatedBody;
 
-                _translationCache['${item['originalBody']}_$_currentLanguage'] =
-                    translatedBody;
-              } else if ((item['originalBody'] as String).isNotEmpty) {
-                final cacheKey = '${item['originalBody']}_$_currentLanguage';
-                notifications[notificationIndex]['body'] =
-                    _translationCache[cacheKey] ?? item['originalBody'];
-              }
+              _translationCache['${item['originalBody']}_$_currentLanguage'] =
+                  translatedBody;
             }
           }
-        });
+        }
       }
+
+      return processedNotifications;
     } catch (e) {
-      log('Error in background translation: $e');
+      log('Error in translation: $e');
+      return processedNotifications; // Return unprocessed notifications on error
     }
   }
 
@@ -255,23 +257,46 @@ class _NotificationsPageState extends State<NotificationsPage> {
           ),
         ],
       ),
-      body: isLoading
-          ? _buildLoadingState(currentLang)
-          : notifications.isEmpty
-          ? _buildEmptyState()
-          : RefreshIndicator(
-              onRefresh: _loadNotifications,
-              child: ListView.builder(
-                itemCount: notifications.length,
-                itemBuilder: (context, index) {
-                  return _buildNotificationCard(
-                    notifications[index],
-                    isRTL,
-                    currentLang,
+      body: Column(
+        children: [
+          // Debug info (only in development)
+          if (kDebugMode)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(8.0),
+              color: Colors.blue.shade50,
+              child: FutureBuilder<String>(
+                future: AppServices.getCurrentUserRole(),
+                builder: (context, snapshot) {
+                  return Text(
+                    'Debug: User Role = ${snapshot.data ?? 'Loading...'} | Notifications: ${notifications.length}',
+                    style: const TextStyle(fontSize: 12, color: Colors.blue),
+                    textAlign: TextAlign.center,
                   );
                 },
               ),
             ),
+          Expanded(
+            child: isLoading
+                ? _buildLoadingState(currentLang)
+                : notifications.isEmpty
+                ? _buildEmptyState()
+                : RefreshIndicator(
+                    onRefresh: _loadNotifications,
+                    child: ListView.builder(
+                      itemCount: notifications.length,
+                      itemBuilder: (context, index) {
+                        return _buildNotificationCard(
+                          notifications[index],
+                          isRTL,
+                          currentLang,
+                        );
+                      },
+                    ),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 

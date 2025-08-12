@@ -9,10 +9,13 @@ import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/edit_profile.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
+import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/services/biometric_service.dart';
+import 'package:aboglumbo_bbk_panel/services/notification.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -36,7 +39,7 @@ class _AccountPageState extends State<AccountPage> {
   @override
   void initState() {
     super.initState();
-    // Try to get the most recent user data from cache if available
+
     final cachedUser = LocalStore.getCachedUserData();
     currentWorkerData = cachedUser ?? widget.workerData;
     _loadBiometricSettings();
@@ -241,7 +244,7 @@ class _AccountPageState extends State<AccountPage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
-                    'Version 1.0.7',
+                    'Version 1.0.13',
                     style: GoogleFonts.dmSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -344,9 +347,60 @@ class _AccountPageState extends State<AccountPage> {
                 ListTile(
                   onTap: () => AccountActionDialogs.showLogoutConfirmation(
                     context,
-                    onConfirm: () {
-                      LocalStore.putlogoutStatus(true);
-                      LocalStore.clearCachedUserData(); // Clear cached user data on logout
+                    onConfirm: () async {
+                      try {
+                        await AppServices.clearFCMToken();
+                        await NotificationServices.deleteFCMToken();
+                      } catch (e) {
+                        if (kDebugMode) {
+                          print(
+                            '❌ Error clearing FCM tokens during logout: $e',
+                          );
+                        }
+                      }
+
+                      await LocalStore.putlogoutStatus(true);
+                      await LocalStore.clearCachedUserData();
+                      await LocalStore.clearUID();
+
+                      // Handle remember me functionality correctly:
+                      // If remember me is enabled, preserve the email but clear password
+                      // If remember me is disabled, clear both email and password
+                      bool rememberMeEnabled = LocalStore.getRememberMe();
+                      if (rememberMeEnabled) {
+                        // Keep the remember me preference and email, but clear password for security
+                        String? savedEmail = LocalStore.getRememberedEmail();
+                        await LocalStore.clearRememberedCredentials();
+                        if (savedEmail != null) {
+                          await LocalStore.rememberEmailAndPassword(
+                            savedEmail,
+                            '',
+                          );
+                        }
+                        if (kDebugMode) {
+                          print(
+                            'Logout: Remember me enabled - preserved email, cleared password',
+                          );
+                        }
+                      } else {
+                        // User doesn't want to be remembered, clear everything
+                        await LocalStore.putRememberMe(false);
+                        await LocalStore.clearRememberedCredentials();
+                        if (kDebugMode) {
+                          print(
+                            'Logout: Remember me disabled - cleared all credentials',
+                          );
+                        }
+                      }
+
+                      try {
+                        await FirebaseAuth.instance.signOut();
+                      } catch (e) {
+                        if (kDebugMode) {
+                          print('❌ Error signing out from Firebase Auth: $e');
+                        }
+                      }
+
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(builder: (context) => LoginPage()),
@@ -455,6 +509,15 @@ class _AccountPageState extends State<AccountPage> {
 
       await user.reauthenticateWithCredential(credential);
 
+      try {
+        await AppServices.clearFCMToken();
+        await NotificationServices.deleteFCMToken();
+      } catch (e) {
+        if (kDebugMode) {
+          print('❌ Error clearing FCM tokens during account deletion: $e');
+        }
+      }
+
       await AppFirestore.usersCollectionRef.doc(user.uid).delete();
 
       await user.delete();
@@ -463,7 +526,7 @@ class _AccountPageState extends State<AccountPage> {
       await LocalStore.putRememberMe(false);
       await LocalStore.clearRememberedCredentials();
       await LocalStore.clearUID();
-      await LocalStore.clearCachedUserData(); // Clear cached user data on account deletion
+      await LocalStore.clearCachedUserData();
 
       if (context.mounted) {
         Navigator.of(context, rootNavigator: true).pop();

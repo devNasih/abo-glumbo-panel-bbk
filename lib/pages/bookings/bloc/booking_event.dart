@@ -9,11 +9,17 @@ sealed class BookingEvent extends Equatable {
 
 class CancelBooking extends BookingEvent {
   final String bookingId;
+  final String agentUid;
+  final String agentName;
 
-  const CancelBooking({required this.bookingId});
+  const CancelBooking({
+    required this.bookingId,
+    required this.agentUid,
+    required this.agentName,
+  });
 
   @override
-  List<Object> get props => [bookingId];
+  List<Object> get props => [bookingId, agentUid, agentName];
 }
 
 class CompleteBooking extends BookingEvent {

@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/address.dart';
@@ -18,6 +19,14 @@ class BookingCards extends StatelessWidget {
   });
 
   Color _getStatusColor() {
+    final bool bookingCancelled = booking.cancelledWorkers.any(
+      (worker) => worker.uid == LocalStore.getUID(),
+    );
+
+    if (bookingCancelled) {
+      return Colors.red;
+    }
+
     switch (booking.bookingStatusCode) {
       case "X":
         return Colors.red;
@@ -38,11 +47,19 @@ class BookingCards extends StatelessWidget {
         ? addresses.firstWhere((a) => a.isSelected == true)
         : null;
 
+    final bool bookingCancelled = booking.cancelledWorkers.any(
+      (worker) => worker.uid == LocalStore.getUID(),
+    );
+
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => BookingInfo(booking: booking)),
-      ),
+      onTap: bookingCancelled
+          ? null
+          : () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => BookingInfo(booking: booking),
+              ),
+            ),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(

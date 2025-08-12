@@ -3,10 +3,11 @@ import 'package:aboglumbo_bbk_panel/common_widget/login_carousel.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/helpers/regex.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
-import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/register.dart';
+import 'package:aboglumbo_bbk_panel/pages/login/widgets/location_selector.dart';
+import 'package:aboglumbo_bbk_panel/services/notification.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -17,7 +18,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:local_auth/error_codes.dart' as local_auth_error;
 import 'package:local_auth/local_auth.dart';
 
-// Language model for the dropdown
 class Language {
   final String name;
   final String code;
@@ -43,23 +43,22 @@ class _LoginPageState extends State<LoginPage> {
   String? customerLastUid;
   bool isUserLogout = false;
 
-  // Language selection variables
   String currentLanguageCode = 'en';
-  final List<Language> availableLanguages = [
-    Language(name: 'English', code: 'en', flag: '🇺🇸'),
-    Language(name: 'العربية', code: 'ar', flag: '🇸🇦'),
-  ];
 
   @override
   void initState() {
     super.initState();
     customerLastUid = LocalStore.getUID();
+
+    // Check biometric setting using current UID or last valid UID
+    String uidForBiometric =
+        customerLastUid ?? LocalStore.getLastValidUID() ?? '';
     isCheckUserEnableTwoStepVerification = LocalStore.getBiometricAuthEnabled(
-      customerLastUid ?? '',
+      uidForBiometric,
     );
+
     isUserLogout = LocalStore.getLogoutStatus();
 
-    // Load current language from local storage
     currentLanguageCode = LocalStore.getUserlanguage();
 
     // Load remember me state from local storage
@@ -75,14 +74,24 @@ class _LoginPageState extends State<LoginPage> {
 
       if (savedEmail != null) {
         emailController.text = savedEmail;
+        if (kDebugMode) {
+          print('Restored email from local storage');
+        }
       }
-      if (savedPassword != null) {
+      if (savedPassword != null && savedPassword.isNotEmpty) {
         passwordController.text = savedPassword;
+        if (kDebugMode) {
+          print('Restored password from local storage');
+        }
+      } else if (kDebugMode) {
+        print(
+          'Password not restored (empty or null) - user will need to re-enter',
+        );
       }
 
       if (kDebugMode) {
         print(
-          'Loaded credentials - Email: ${savedEmail != null ? 'Yes' : 'No'}, Password: ${savedPassword != null ? 'Yes' : 'No'}',
+          'Loaded credentials - Email: ${savedEmail != null ? 'Yes' : 'No'}, Password: ${savedPassword != null && savedPassword.isNotEmpty ? 'Yes' : 'No'}',
         );
       }
     } else {
@@ -94,15 +103,14 @@ class _LoginPageState extends State<LoginPage> {
       }
     }
 
-    // Add listeners to save credentials when user types and remember me is enabled
     emailController.addListener(_saveCredentialsIfRememberMe);
     passwordController.addListener(_saveCredentialsIfRememberMe);
 
     if (kDebugMode) {
       // emailController.text = "adnanyousufpangat@gmail.com";
       // passwordController.text = "qwertyuiop";
-      // emailController.text = "admin@abogalambo.app";
-      // passwordController.text = "testPassword";
+      emailController.text = "admin@abogalambo.app";
+      passwordController.text = "testPassword";
     }
   }
 
@@ -118,117 +126,6 @@ class _LoginPageState extends State<LoginPage> {
         print('Auto-saved credentials due to text change');
       }
     }
-  }
-
-  void _showLanguageSelector() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(top: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)?.selectLanguage ??
-                          'Select Language',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    ...availableLanguages.map((language) {
-                      final isSelected = currentLanguageCode == language.code;
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isSelected
-                                ? AppColors.primary
-                                : Colors.grey[300]!,
-                            width: isSelected ? 2 : 1,
-                          ),
-                          color: isSelected
-                              ? AppColors.primary.withOpacity(0.1)
-                              : Colors.transparent,
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 4,
-                          ),
-                          leading: Text(
-                            language.flag,
-                            style: const TextStyle(fontSize: 24),
-                          ),
-                          title: Text(
-                            language.name,
-                            style: GoogleFonts.dmSans(
-                              fontSize: 16,
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.w500,
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : Colors.black87,
-                            ),
-                          ),
-                          trailing: isSelected
-                              ? Icon(
-                                  Icons.check_circle,
-                                  color: AppColors.primary,
-                                  size: 24,
-                                )
-                              : null,
-                          onTap: () {
-                            if (currentLanguageCode != language.code) {
-                              context.read<AccountBloc>().add(
-                                ChangeLanguageEvent(
-                                  language.code.toLowerCase(),
-                                ),
-                              );
-                              setState(() {
-                                currentLanguageCode = language.code;
-                              });
-                            }
-                            Navigator.pop(context);
-                          },
-                        ),
-                      );
-                    }).toList(),
-                    const SizedBox(height: 10),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   @override
@@ -272,10 +169,15 @@ class _LoginPageState extends State<LoginPage> {
         if (FirebaseAuth.instance.currentUser == null) {
           await FirebaseAuth.instance.signInAnonymously();
         }
+
+        await _refreshFCMTokenForNewUser();
+
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (context) => Home(byPassUid: customerLastUid),
+            builder: (context) => Home(
+              byPassUid: customerLastUid ?? LocalStore.getLastValidUID(),
+            ),
           ),
           (route) => false,
         );
@@ -330,13 +232,22 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> _refreshFCMTokenForNewUser() async {
+    try {
+      if (kDebugMode) {
+        print('🔄 Refreshing FCM token for newly logged in user');
+      }
+      await NotificationServices.refreshFCMToken();
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error refreshing FCM token for new user: $e');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final safePadding = MediaQuery.of(context).padding;
-    final currentLanguage = availableLanguages.firstWhere(
-      (lang) => lang.code == currentLanguageCode,
-      orElse: () => availableLanguages.first,
-    );
 
     return Scaffold(
       backgroundColor: AppColors.primary,
@@ -345,49 +256,10 @@ class _LoginPageState extends State<LoginPage> {
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: _showLanguageSelector,
-            icon: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withOpacity(0.3)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    currentLanguage.flag,
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    currentLanguage.code.toUpperCase(),
-                    style: GoogleFonts.dmSans(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(
-                    Icons.keyboard_arrow_down,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       body: BlocConsumer<LoginBloc, LoginState>(
         listener: (context, state) {
           if (state is LoginSuccess) {
-            // Handle remember me on successful login using the current checkbox state
             if (rememberMe) {
               LocalStore.putRememberMe(true);
               LocalStore.rememberEmailAndPassword(
@@ -395,10 +267,11 @@ class _LoginPageState extends State<LoginPage> {
                 passwordController.text.trim(),
               );
             } else {
-              // Clear remember me if unchecked
               LocalStore.putRememberMe(false);
               LocalStore.clearRememberedCredentials();
             }
+
+            _refreshFCMTokenForNewUser();
 
             Navigator.pushAndRemoveUntil(
               context,
@@ -406,7 +279,6 @@ class _LoginPageState extends State<LoginPage> {
               (route) => false,
             );
           } else if (state is LoginRememberMeToggled) {
-            // Update local state when remember me is toggled
             if (kDebugMode) {
               print('LoginRememberMeToggled received: ${state.value}');
             }
@@ -414,7 +286,6 @@ class _LoginPageState extends State<LoginPage> {
               rememberMe = state.value;
             });
 
-            // If remember me was just enabled and we have credentials, save them
             if (state.value &&
                 emailController.text.trim().isNotEmpty &&
                 passwordController.text.trim().isNotEmpty) {
@@ -504,6 +375,8 @@ class _LoginPageState extends State<LoginPage> {
               ),
               children: [
                 LoginCarouselWidget(),
+                const SizedBox(height: 25),
+                LanguageSelectorCard(),
                 const SizedBox(height: 25),
                 TextFormField(
                   validator: (value) {
@@ -651,42 +524,15 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ],
                 ),
-                if (isCheckUserEnableTwoStepVerification &&
-                    isUserLogout &&
-                    customerLastUid != null)
+                if (isCheckUserEnableTwoStepVerification && isUserLogout)
                   Center(
                     child: GestureDetector(
                       onTap: () => _byPassUsingBioAuth(context),
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(vertical: 16),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.3),
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Image.asset(
-                              'assets/images/fingerPrint.png',
-                              color: Colors.white,
-                              width: 54,
-                              height: 54,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              AppLocalizations.of(context)?.useBiometric ??
-                                  'Use Biometric',
-                              style: GoogleFonts.dmSans(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
+                      child: Image.asset(
+                        'assets/images/fingerPrint.png',
+                        color: Colors.white,
+                        width: 54,
+                        height: 54,
                       ),
                     ),
                   ),

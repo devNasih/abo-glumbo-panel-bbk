@@ -42,7 +42,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rejectOrder => 'رفض الطلب';
 
   @override
-  String get areYouSureYouWantToRejectThisOrder => 'هل أنت متأكد أنك تريد رفض هذا الطلب؟';
+  String get areYouSureYouWantToRejectThisOrder =>
+      'هل أنت متأكد أنك تريد رفض هذا الطلب؟';
+
+  @override
+  String get checkingAvailability => 'فحص توفر الوكلاء...';
+
+  @override
+  String get loadingAgents => 'جاري تحميل الوكلاء...';
 
   @override
   String get reject => 'رفض';
@@ -63,7 +70,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get completeOrder => 'إكمال الطلب';
 
   @override
-  String get areYouSureYouWantToCompleteThisOrder => 'هل أنت متأكد أنك تريد إكمال هذا الطلب؟';
+  String get areYouSureYouWantToCompleteThisOrder =>
+      'هل أنت متأكد أنك تريد إكمال هذا الطلب؟';
 
   @override
   String get complete => 'إكمال';
@@ -75,7 +83,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToCompleteOrder => 'فشل في إكمال الطلب';
 
   @override
-  String get yourAccountHasBeenDeactivatedByAdmin => 'تم إلغاء تنشيط حسابك من قبل المسؤول';
+  String get yourAccountHasBeenDeactivatedByAdmin =>
+      'تم إلغاء تنشيط حسابك من قبل المسؤول';
 
   @override
   String get assignTo => 'تعيين إلى';
@@ -138,7 +147,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get showInPrimaryBanner => 'إظهار في البانر الرئيسي';
 
   @override
-  String get ifDisabledItWillShowInSecondaryBanner => 'إذا تم تعطيله، فسيظهر في البانر الثانوي';
+  String get ifDisabledItWillShowInSecondaryBanner =>
+      'إذا تم تعطيله، فسيظهر في البانر الثانوي';
 
   @override
   String get pickImage => 'اختر صورة';
@@ -168,7 +178,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToUpdateService => 'فشل في تحديث الخدمة';
 
   @override
-  String get pleaseVerifyYourIqama => 'يرجى التحقق من الإقامة الخاصة بك من خلال تحديد مربع التأكيد';
+  String get pleaseVerifyYourIqama =>
+      'يرجى التحقق من الإقامة الخاصة بك من خلال تحديد مربع التأكيد';
 
   @override
   String get uploadYourIqama => 'رفع الإقامة الخاصة بك';
@@ -177,7 +188,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get locationPermissionsAreDenied => 'تم رفض أذونات الموقع';
 
   @override
-  String get locationPermissionsArePermanentlyDenied => 'تم رفض أذونات الموقع نهائياً';
+  String get locationPermissionsArePermanentlyDenied =>
+      'تم رفض أذونات الموقع نهائياً';
 
   @override
   String get errorDetectingLocation => 'خطأ في تحديد الموقع';
@@ -189,7 +201,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pleaseSelectYourIdDocument => 'يرجى تحديد وثيقة الهوية الخاصة بك';
 
   @override
-  String get pleaseSelectAtLeastOneJobRole => 'يرجى تحديد دور وظيفي واحد على الأقل';
+  String get pleaseSelectAtLeastOneJobRole =>
+      'يرجى تحديد دور وظيفي واحد على الأقل';
 
   @override
   String get unknown => 'غير معروف';
@@ -204,7 +217,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get otpSent => 'تم إرسال رمز التحقق';
 
   @override
-  String get anErrorOccurredPleaseTryAgainLater => 'حدث خطأ، يرجى المحاولة مرة أخرى لاحقًا';
+  String get anErrorOccurredPleaseTryAgainLater =>
+      'حدث خطأ، يرجى المحاولة مرة أخرى لاحقًا';
 
   @override
   String get pleaseEnterAValidPhoneNumber => 'يرجى إدخال رقم الهاتف الصالح';
@@ -351,7 +365,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToCreateAccount => 'فشل في إنشاء الحساب';
 
   @override
-  String get pleaseFillTheInputBelowHereToContinue => 'يرجى ملء المعلومات أدناه للمتابعة';
+  String get pleaseFillTheInputBelowHereToContinue =>
+      'يرجى ملء المعلومات أدناه للمتابعة';
 
   @override
   String get createAccount => 'إنشاء حساب';
@@ -369,7 +384,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get jobCategories => 'فئات الوظائف';
 
   @override
-  String get failedToLoadDataPleaseTryAgainLater => 'فشل في تحميل البيانات. يرجى المحاولة مرة أخرى لاحقًا.';
+  String get failedToLoadDataPleaseTryAgainLater =>
+      'فشل في تحميل البيانات. يرجى المحاولة مرة أخرى لاحقًا.';
 
   @override
   String get noBookingsFound => 'لم يتم العثور على حجوزات.';
@@ -378,7 +394,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get searchServices => 'ابحث عن الخدمات';
 
   @override
-  String get noServicesInYourWishlist => 'لا توجد خدمات في قائمة الرغبات الخاصة بك';
+  String get noServicesInYourWishlist =>
+      'لا توجد خدمات في قائمة الرغبات الخاصة بك';
 
   @override
   String get failedToSaveBooking => 'فشل في حفظ الحجز';
@@ -465,7 +482,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToCancelBooking => 'فشل في إلغاء الحجز';
 
   @override
-  String get areYouSureToWantCancelBooking => 'هل أنت متأكد أنك تريد إلغاء الحجز؟';
+  String get areYouSureToWantCancelBooking =>
+      'هل أنت متأكد أنك تريد إلغاء الحجز؟';
 
   @override
   String get youWillBeRefundedTheFullAmount => 'سيتم استرداد المبلغ بالكامل';
@@ -591,7 +609,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get manageAgents => 'ادارة الوكلاء';
 
   @override
-  String get pleaseEnterYourEmailToResetPassword => 'الرجاء ادخال بريدك الالكتروني لاستعادة كلمة المرور';
+  String get pleaseEnterYourEmailToResetPassword =>
+      'الرجاء ادخال بريدك الالكتروني لاستعادة كلمة المرور';
 
   @override
   String get passwordResetEmailSent => 'تم ارسال بريد استعادة كلمة المرور';
@@ -615,10 +634,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get deleteAccount => 'حذف الحساب';
 
   @override
-  String get areYouSureYouWantToApproveAgent => 'هل انت متاكد انك تريد الموافقة على الوكيل';
+  String get areYouSureYouWantToApproveAgent =>
+      'هل انت متاكد انك تريد الموافقة على الوكيل';
 
   @override
-  String get areYouSureYouWantToDisapproveAgent => 'هل انت متاكد انك تريد الغاء الموافقة على الوكيل';
+  String get areYouSureYouWantToDisapproveAgent =>
+      'هل انت متاكد انك تريد الغاء الموافقة على الوكيل';
 
   @override
   String get yesText => 'نعم';
@@ -684,7 +705,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get deletingAccount => 'جاري حذف الحساب...';
 
   @override
-  String get requiresRecentLogin => 'تتطلب هذه العملية مصادقة حديثة. يرجى تسجيل الخروج وتسجيل الدخول مرة أخرى.';
+  String get requiresRecentLogin =>
+      'تتطلب هذه العملية مصادقة حديثة. يرجى تسجيل الخروج وتسجيل الدخول مرة أخرى.';
 
   @override
   String get resetPasswordError => 'خطأ في استعادة كلمة المرور';
@@ -702,7 +724,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loginError => 'خطأ في تسجيل الدخول';
 
   @override
-  String get passwordMustBeAtleast6Characters => 'يجب ان تكون كلمة المرور على الاقل 6 احرف';
+  String get passwordMustBeAtleast6Characters =>
+      'يجب ان تكون كلمة المرور على الاقل 6 احرف';
 
   @override
   String get pending => 'قيد الانتظار';
@@ -732,7 +755,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rejectedAt => 'مرفوض في';
 
   @override
-  String get cancelledAt => 'ملغي في';
+  String get cancelledAt => 'تم الإلغاء في';
 
   @override
   String get completedAt => 'مكتمل في';
@@ -774,7 +797,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pleaseEnterADescription => 'الرجاء ادخال الوصف';
 
   @override
-  String get pleaseEnterDescriptionInArabic => 'الرجاء ادخال الوصف باللغة العربية';
+  String get pleaseEnterDescriptionInArabic =>
+      'الرجاء ادخال الوصف باللغة العربية';
 
   @override
   String get descriptionMustBeInArabic => 'يجب ان يكون الوصف باللغة العربية';
@@ -786,10 +810,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pleaseSelectACategory => 'الرجاء اختيار قسم';
 
   @override
-  String get highlightedServiceAddedSuccessfully => 'تم اضافة الخدمة المميزة بنجاح';
+  String get highlightedServiceAddedSuccessfully =>
+      'تم اضافة الخدمة المميزة بنجاح';
 
   @override
-  String get highlightedServiceUpdatedSuccessfully => 'تم تحديث الخدمة المميزة بنجاح';
+  String get highlightedServiceUpdatedSuccessfully =>
+      'تم تحديث الخدمة المميزة بنجاح';
 
   @override
   String get selectServices => 'اختر الخدمات';
@@ -804,7 +830,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pleaseEnterATitle => 'الرجاء ادخال العنوان';
 
   @override
-  String get pleaseEnterTheTitleInArabic => 'الرجاء ادخال العنوان باللغة العربية';
+  String get pleaseEnterTheTitleInArabic =>
+      'الرجاء ادخال العنوان باللغة العربية';
 
   @override
   String get addBanner => 'اضافة بانر';
@@ -852,7 +879,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToDeleteAccount => 'فشل حذف الحساب';
 
   @override
-  String get pleaseConfirmYourPassword => 'الرجاء التاكيد من كلمة المرور الخاصة بك';
+  String get pleaseConfirmYourPassword =>
+      'الرجاء التاكيد من كلمة المرور الخاصة بك';
 
   @override
   String get passwordsDoNotMatch => 'كلمات المرور لا تتطابق';
@@ -882,7 +910,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToGetLocation => 'فشل الحصول على الموقع';
 
   @override
-  String get cannotCompleteTasksScheduledForTheFuture => 'لا يمكن اكمال المهام المجدولة للمستقبل';
+  String get cannotCompleteTasksScheduledForTheFuture =>
+      'لا يمكن اكمال المهام المجدولة للمستقبل';
 
   @override
   String get orders => 'طلبات';
@@ -891,7 +920,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToLoadUserData => 'فشل تحميل بيانات المستخدم';
 
   @override
-  String get areYouSureYouWantToDeleteYourAccountThisActionCannotBeUndone => 'هل تريد حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه';
+  String get areYouSureYouWantToDeleteYourAccountThisActionCannotBeUndone =>
+      'هل تريد حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه';
 
   @override
   String get completed => 'مُكتمل';
@@ -909,13 +939,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get bookingAccepted => 'تم قبول الحجز';
 
   @override
-  String get yourBookingRequestHasBeenAccepted => 'تم قبول طلب الحجز الخاص بك! سيتواصل معك فريقنا قريباً.';
+  String get yourBookingRequestHasBeenAccepted =>
+      'تم قبول طلب الحجز الخاص بك! سيتواصل معك فريقنا قريباً.';
 
   @override
   String get bookingRejected => 'تم رفض الحجز';
 
   @override
-  String get yourBookingRequestHasBeenRejected => 'للأسف، تم رفض طلب الحجز الخاص بك. يرجى المحاولة مرة أخرى أو الاتصال بالدعم.';
+  String get yourBookingRequestHasBeenRejected =>
+      'للأسف، تم رفض طلب الحجز الخاص بك. يرجى المحاولة مرة أخرى أو الاتصال بالدعم.';
 
   @override
   String get sendingNotification => 'إرسال الإشعار للعميل';
@@ -933,7 +965,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notifications => 'الاشعارات';
 
   @override
-  String get pleaseWaitAccountVerification => 'الحساب يتم التحقق به من قبل الادارة، يرجى التحقق من حالة الحساب الخاص بك';
+  String get pleaseWaitAccountVerification =>
+      'الحساب يتم التحقق به من قبل الادارة، يرجى التحقق من حالة الحساب الخاص بك';
 
   @override
   String get goBack => 'العودة';
@@ -954,7 +987,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get keep => 'حفظ';
 
   @override
-  String get pleaseSelectAtLeastOneService => 'الرجاء اختيار على الاقل خدمة واحدة';
+  String get pleaseSelectAtLeastOneService =>
+      'الرجاء اختيار على الاقل خدمة واحدة';
 
   @override
   String get deleteBannerConfirmation => 'هل تريد حذف هذا البانر؟';
@@ -978,7 +1012,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noLocationsFound => 'لم يتم العثور على مواقع';
 
   @override
-  String get accountVerificationPending => 'يتم التحقق من حسابك من قبل المشرف، يرجى العودة لاحقًا';
+  String get accountVerificationPending =>
+      'يتم التحقق من حسابك من قبل المشرف، يرجى العودة لاحقًا';
 
   @override
   String get saving => 'جاري الحفظ...';
@@ -1077,7 +1112,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get clearWallet => 'إزالة المحفظة';
 
   @override
-  String get clearWalletWarning => 'هذا الإجراء لا يمكن التراجع عنه. سيتم استلام جميع المبلغ في محفظتك وسيتم تعيينها إلى صفر.';
+  String get clearWalletWarning =>
+      'هذا الإجراء لا يمكن التراجع عنه. سيتم استلام جميع المبلغ في محفظتك وسيتم تعيينها إلى صفر.';
 
   @override
   String get areYouSureYouWantToSend => 'هل أنت متأكد أنك تريد إرسال';
@@ -1113,7 +1149,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get locationPermissionDenied => 'تم رفض إذن الموقع';
 
   @override
-  String get bioMetricAuthentication => 'التحقق بواسطة البيوميتريك';
+  String get bioMetricAuthentication => 'تفعيل البصمة';
 
   @override
   String get confirmDeletion => 'تأكيد الحذف';
@@ -1131,13 +1167,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get youHaveActiveBooking => 'لديك حجز مفعل';
 
   @override
-  String get areYouSureYouWantToStartTracking => 'هل أنت متأكد أنك تريد بدء التتبع لهذا الحجز؟ هذا سيتم تفعيل تتبع الموقع.';
+  String get areYouSureYouWantToStartTracking =>
+      'هل أنت متأكد أنك تريد بدء التتبع لهذا الحجز؟ هذا سيتم تفعيل تتبع الموقع.';
 
   @override
   String get start => 'بدء';
 
   @override
-  String get areYouSureYouWantToStopTracking => 'هل أنت متأكد أنك تريد إيقاف التتبع لهذا الحجز؟ تتبع الموقع سيتم تعطيله.';
+  String get areYouSureYouWantToStopTracking =>
+      'هل أنت متأكد أنك تريد إيقاف التتبع لهذا الحجز؟ تتبع الموقع سيتم تعطيله.';
 
   @override
   String get stop => 'إيقاف';
@@ -1155,7 +1193,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings => 'الإعدادات';
 
   @override
-  String get trackingNote => 'ملاحظة: إذا كنت تبدأ العمل، يُرجى النقر على زر بدء التتبع. في حال انقطاع الزر أو تغيّره، يُرجى النقر عليه مجددًا.';
+  String get trackingNote =>
+      'ملاحظة: إذا كنت تبدأ العمل، يُرجى النقر على زر بدء التتبع. في حال انقطاع الزر أو تغيّره، يُرجى النقر عليه مجددًا.';
 
   @override
   String get filterByLocation => 'تصفية حسب الموقع';
@@ -1179,13 +1218,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get filteredBy => 'تصفية بواسطة';
 
   @override
-  String get showAllAgents => 'اظهار جميع الوكلاء';
+  String get showAllAgents => 'إظهار جميع الوكلاء';
 
   @override
   String get notificationLanguage => 'لغة الاشعارات';
 
   @override
-  String get areYouSureYouWantToCancelThisBooking => 'هل أنت متأكد أنك تريد إلغاء هذا الحجز؟';
+  String get areYouSureYouWantToCancelThisBooking =>
+      'هل أنت متأكد أنك تريد إلغاء هذا الحجز؟';
 
   @override
   String get bookingTimeline => 'خط الحجز';
@@ -1227,7 +1267,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enterPasswordToConfirm => 'أدخل كلمة المرور للتأكيد';
 
   @override
-  String get deleteAccountWarning => 'هل أنت متأكد أنك تريد حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه';
+  String get deleteAccountWarning =>
+      'هل أنت متأكد أنك تريد حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه';
 
   @override
   String get logoutConfirmation => 'هل أنت متأكد أنك تريد تسجيل الخروج؟';
@@ -1347,7 +1388,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get serviceHasBeenSuccessfullyCompleted => 'تم إنجاز الخدمة بنجاح';
 
   @override
-  String get bookingWasRejectedByServiceProvider => 'تم رفض الحجز من قبل وكيل الخدمة';
+  String get bookingWasRejectedByServiceProvider =>
+      'تم رفض الحجز من قبل وكيل الخدمة';
 
   @override
   String get bookingWasCancelled => 'تم إلغاء الحجز';
@@ -1365,7 +1407,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get waitingForServiceProvider => 'انتظار وكيل الخدمة';
 
   @override
-  String get waitingForTechnicianToStartService => 'انتظار وكيل الخدمة لبدء الخدمة';
+  String get waitingForTechnicianToStartService =>
+      'انتظار وكيل الخدمة لبدء الخدمة';
 
   @override
   String get waitingForAcceptance => 'انتظار الموافقة';
@@ -1395,13 +1438,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get workMarkedAsComplete => 'تم تعيين العمل كمكتمل';
 
   @override
-  String get areYouSureYouWantToStartTrackingThisBooking => 'هل أنت متأكد أنك تريد بدء تتبع هذا الحجز؟';
+  String get areYouSureYouWantToStartTrackingThisBooking =>
+      'هل أنت متأكد أنك تريد بدء تتبع هذا الحجز؟';
 
   @override
-  String get areYouSureYouWantToStopTrackingThisBooking => 'هل أنت متأكد أنك تريد إيقاف تتبع هذا الحجز؟';
+  String get areYouSureYouWantToStopTrackingThisBooking =>
+      'هل أنت متأكد أنك تريد إيقاف تتبع هذا الحجز؟';
 
   @override
-  String get areYouSureYouWantToCompleteThisWork => 'هل أنت متأكد أنك تريد إنجاز هذا العمل؟';
+  String get areYouSureYouWantToCompleteThisWork =>
+      'هل أنت متأكد أنك تريد إنجاز هذا العمل؟';
 
   @override
   String get useBiometric => 'استخدام البيوميتريك';
@@ -1419,67 +1465,84 @@ class AppLocalizationsAr extends AppLocalizations {
   String get stopTrackingBookingSuccessfully => 'إيقاف تتبع الحجز بنجاح';
 
   @override
-  String get cards => 'Cards';
+  String get cards => 'البطاقات';
 
   @override
-  String get goToLogin => 'الذهاب إلى تسجيل الدخول';
+  String get goToLogin => 'الذهاب إلى تسجيل الدخول';
 
   @override
   String get failedToSendNotification => 'فشل في إرسال الإشعار إلى العميل';
 
   @override
-  String get locationPermissionErrorIOS => 'حدث خطأ في إذن الموقع على نظام iOS. يرجى الذهاب إلى الإعدادات > الخصوصية والأمان > خدمات الموقع > Abo Glumbo Worker واختيار \'دائمًا\' لتمكين التتبع في الخلفية.';
+  String get locationPermissionErrorIOS =>
+      'حدث خطأ في إذن الموقع على نظام iOS. يرجى الذهاب إلى الإعدادات > الخصوصية والأمان > خدمات الموقع > Abo Glumbo Worker واختيار \'دائمًا\' لتمكين التتبع في الخلفية.';
 
   @override
   String get youHaveAnActiveBookingAlready => 'لديك حجز نشط بالفعل.';
 
   @override
-  String get locationServicesDisabledPleaseEnable => 'تم تعطيل خدمات الموقع. يرجى تمكين خدمات الموقع.';
+  String get locationServicesDisabledPleaseEnable =>
+      'تم تعطيل خدمات الموقع. يرجى تمكين خدمات الموقع.';
 
   @override
-  String get backgroundLocationPermissionRequired => 'مطلوب إذن الموقع في الخلفية. يرجى اختيار \'السماح طوال الوقت\' للوصول إلى الموقع.';
+  String get backgroundLocationPermissionRequired =>
+      'مطلوب إذن الموقع في الخلفية. يرجى اختيار \'السماح طوال الوقت\' للوصول إلى الموقع.';
 
   @override
-  String get locationPermissionDeniedPleaseGrant => 'تم رفض إذن الموقع. يرجى منح إذن الموقع للمتابعة.';
+  String get locationPermissionDeniedPleaseGrant =>
+      'تم رفض إذن الموقع. يرجى منح إذن الموقع للمتابعة.';
 
   @override
-  String get areYouSureYouWantToCompleteThisBooking => 'هل أنت متأكد أنك تريد إنجاز هذا الحجز؟';
+  String get areYouSureYouWantToCompleteThisBooking =>
+      'هل أنت متأكد أنك تريد إنجاز هذا الحجز؟';
 
   @override
-  String get locationPermissionPermanentlyDeniedPleaseEnable => 'تم رفض إذن الموقع بشكل دائم. يرجى تمكين الوصول إلى الموقع من الإعدادات.';
+  String get locationPermissionPermanentlyDeniedPleaseEnable =>
+      'تم رفض إذن الموقع بشكل دائم. يرجى تمكين الوصول إلى الموقع من الإعدادات.';
 
   @override
-  String get locationServicesDisabledCannotRestoreTracking => 'تم تعطيل خدمات الموقع، لا يمكن استعادة التتبع';
+  String get locationServicesDisabledCannotRestoreTracking =>
+      'تم تعطيل خدمات الموقع، لا يمكن استعادة التتبع';
 
   @override
-  String get locationPermissionDeniedCannotRestoreTracking => 'تم رفض إذن الموقع، لا يمكن استعادة التتبع';
+  String get locationPermissionDeniedCannotRestoreTracking =>
+      'تم رفض إذن الموقع، لا يمكن استعادة التتبع';
 
   @override
-  String get iosLocationPermissionErrorDuringRestore => 'خطأ في إذن الموقع على iOS أثناء الاستعادة - قد تحتاج إذن \"دائماً\"';
+  String get iosLocationPermissionErrorDuringRestore =>
+      'خطأ في إذن الموقع على iOS أثناء الاستعادة - قد تحتاج إذن \"دائماً\"';
 
   @override
-  String get locationTrackingRestoredSuccessfully => 'تم استعادة تتبع الموقع بنجاح';
+  String get locationTrackingRestoredSuccessfully =>
+      'تم استعادة تتبع الموقع بنجاح';
 
   @override
-  String get iosLocationPermissionIssueDuringRestore => 'مشكلة في إذن الموقع على iOS أثناء الاستعادة';
+  String get iosLocationPermissionIssueDuringRestore =>
+      'مشكلة في إذن الموقع على iOS أثناء الاستعادة';
 
   @override
-  String get iosOnlyWhenInUsePermissionGranted => 'iOS: تم منح إذن \"عند الاستخدام\" فقط. التتبع في الخلفية سيكون محدوداً.';
+  String get iosOnlyWhenInUsePermissionGranted =>
+      'iOS: تم منح إذن \"عند الاستخدام\" فقط. التتبع في الخلفية سيكون محدوداً.';
 
   @override
-  String get iosAlwaysPermissionGranted => 'iOS: تم منح إذن \"دائماً\". التتبع الكامل في الخلفية متاح.';
+  String get iosAlwaysPermissionGranted =>
+      'iOS: تم منح إذن \"دائماً\". التتبع الكامل في الخلفية متاح.';
 
   @override
-  String get iosErrorRequestingAlwaysPermission => 'iOS: خطأ في طلب إذن \"دائماً\"';
+  String get iosErrorRequestingAlwaysPermission =>
+      'iOS: خطأ في طلب إذن \"دائماً\"';
 
   @override
-  String get iosContinuingWithWhenInUsePermissionOnly => 'iOS: المتابعة مع إذن \"عند الاستخدام\" فقط.';
+  String get iosContinuingWithWhenInUsePermissionOnly =>
+      'iOS: المتابعة مع إذن \"عند الاستخدام\" فقط.';
 
   @override
-  String get batteryOptimizationEnabledMayAffectTracking => 'تحسين البطارية مفعل، قد يؤثر على تتبع الموقع في الخلفية';
+  String get batteryOptimizationEnabledMayAffectTracking =>
+      'تحسين البطارية مفعل، قد يؤثر على تتبع الموقع في الخلفية';
 
   @override
-  String get trackingYourLocationForServiceDelivery => 'تتبع موقعك لتسليم الخدمة';
+  String get trackingYourLocationForServiceDelivery =>
+      'تتبع موقعك لتسليم الخدمة';
 
   @override
   String get aboGlumboLocationTracking => 'أبو جلمبو - تتبع الموقع';
@@ -1488,7 +1551,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backgroundLocationUpdated => 'تم تحديث الموقع في الخلفية';
 
   @override
-  String get errorUpdatingBackgroundLocation => 'خطأ في تحديث الموقع في الخلفية';
+  String get errorUpdatingBackgroundLocation =>
+      'خطأ في تحديث الموقع في الخلفية';
 
   @override
   String get backgroundFetchTriggered => 'تم تشغيل الجلب في الخلفية';
@@ -1497,13 +1561,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backgroundFetchTimeout => 'انتهت مهلة الجلب في الخلفية';
 
   @override
-  String get locationStreamErrorDuringRestore => 'خطأ في تدفق الموقع أثناء الاستعادة';
+  String get locationStreamErrorDuringRestore =>
+      'خطأ في تدفق الموقع أثناء الاستعادة';
 
   @override
   String get errorRestoringLocationTracking => 'خطأ في استعادة تتبع الموقع';
 
   @override
-  String get backgroundFetchConfiguredAndStarted => 'تم تكوين وبدء الجلب في الخلفية';
+  String get backgroundFetchConfiguredAndStarted =>
+      'تم تكوين وبدء الجلب في الخلفية';
 
   @override
   String get errorConfiguringBackgroundFetch => 'خطأ في تكوين الجلب في الخلفية';
@@ -1512,7 +1578,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get locationUpdated => 'تم تحديث الموقع';
 
   @override
-  String get errorUpdatingLocationToFirestore => 'خطأ في تحديث الموقع إلى Firestore';
+  String get errorUpdatingLocationToFirestore =>
+      'خطأ في تحديث الموقع إلى Firestore';
 
   @override
   String get errorStoppingBackgroundFetch => 'خطأ في إيقاف الجلب في الخلفية';
@@ -1524,5 +1591,125 @@ class AppLocalizationsAr extends AppLocalizations {
   String get locationTrackingStopped => 'تم إيقاف تتبع الموقع';
 
   @override
+  String get deleteItemConfirmation =>
+      'هل أنت متأكد أنك تريد حذف هذا العنصر؟';
+
+  @override
+  String get agentUnavailable => 'الوكيل غير متاح';
+
+  @override
+  String get timeConflictDetected => 'تم تنسيق الوقت';
+
+  @override
+  String get cannotAssignWorkTo => 'لا يمكن تعيين العمل ل';
+
+  @override
+  String get alreadyAssignedAtExactSameTime => 'تم تعيينه بالفعل في نفس الوقت';
+
+  @override
+  String get currentBookingTime => 'وقت الحجز الحالي';
+
+  @override
+  String get workerCannotBeAssignedMultipleTimes =>
+      'لا يمكن تعيين العامل لأكثر من حجز في نفس الوقت. يرجى اختيار وقت مختلف أو اختيار عامل آخر.';
+
+  @override
+  String get unknownWorker => 'عامل غير معروف';
+
+  @override
+  String get workerCancelled => 'تم إلغاء العامل';
+
+  @override
+  String get cancelledByWorker => 'تم الغاء من قبل العامل';
+
+  @override
+  String get workerPreviouslyCancelled => 'العامل ألغى سابقاً';
+
+  @override
+  String get agentCancelledAtTimeSlot => 'الوكيل ألغى في هذا الوقت من قبل';
+
+  @override
+  String get previouslyCancelledAt => 'تم الإلغاء سابقاً في';
+
+  @override
+  String get chooseDifferentAgent => 'اختر وكيل مختلف';
+
+  @override
+  String get assignAnyway => 'تعيين على أي حال';
+
+  @override
+  String get workerCancelledAtTime =>
+      'هذا الوكيل ألغى حجزاً سابقاً في نفس هذا التوقيت. فكر في تعيين وكيل مختلف للحصول على موثوقية أفضل.';
+
+  @override
   String get errorCheckingBatteryOptimization => 'خطأ في فحص تحسين البطارية';
+
+  @override
+  String get workerRestrictedTitle => 'العامل محظور';
+
+  @override
+  String get cannotAssignCancelledWorker => 'لا يمكن تعيين عامل ألغى من قبل';
+
+  @override
+  String get lastCancellationOn => 'آخر إلغاء في';
+
+  @override
+  String get workerCancelledRestrictionMessage =>
+      'هذا الوكيل ألغى حجزاً سابقاً وهو الآن محظور من التكليفات الجديدة. يرجى اختيار وكيل مختلف.';
+
+  @override
+  String get understood => 'فهمت';
+
+  @override
+  String get cancelledThisBooking => 'ألغى هذا الحجز';
+
+  @override
+  String get alreadyBookedAt => 'محجوز بالفعل في';
+
+  @override
+  String get bookingAssignedTo => 'تم تعيين الحجز إلى';
+
+  @override
+  String get bookingAssignmentSuccessful => 'تم تعيين الحجز بنجاح';
+
+  @override
+  String get anotherAssignmentInProgress =>
+      'يوجد تعيين آخر قيد التقدم. يرجى الانتظار...';
+
+  @override
+  String get assignmentInProgress => 'التعيين قيد التقدم. يرجى الانتظار...';
+
+  @override
+  String get checkingAvailabilityAndAssigning => 'فحص التوفر والتعيين...';
+
+  @override
+  String get thisBookingAlreadyAssignedToAnotherAgent =>
+      'تم بالفعل تعيين هذا الحجز لوكيل آخر.';
+
+  @override
+  String get failedToAssignAgent =>
+      'فشل في تعيين الوكيل. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get thisAgentCancelledSameBookingBefore =>
+      'هذا الوكيل ألغى نفس هذا الحجز من قبل';
+
+  @override
+  String get gotIt => 'فهمت';
+
+  @override
+  String get availableInSelectedLocation => 'متاحين في الموقع المحدد';
+
+  @override
+  String get cancelledThisBookingOn => 'ألغى هذا الحجز في';
+
+  @override
+  String get previouslyCancelledAgent => 'وكيل ألغى سابقاً';
+
+  @override
+  String get agentPreviouslyCancelledWarning =>
+      'هذا الوكيل ألغى نفس طلب الحجز هذا سابقاً. يمكنك لا تزال تعيينه، لكن فكر في اختيار وكيل أكثر موثوقية.';
+
+  @override
+  String get busyAt => 'مشغول في';
 }
