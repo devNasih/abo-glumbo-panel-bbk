@@ -170,12 +170,6 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to reject this order?'**
   String get areYouSureYouWantToRejectThisOrder;
 
-  /// No description provided for @checkingAvailability.
-  ///
-  /// In en, this message translates to:
-  /// **'Checking agent availability...'**
-  String get checkingAvailability;
-
   /// No description provided for @loadingAgents.
   ///
   /// In en, this message translates to:
@@ -1556,12 +1550,6 @@ abstract class AppLocalizations {
   /// **'Rejected At'**
   String get rejectedAt;
 
-  /// No description provided for @cancelledAt.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancelled at'**
-  String get cancelledAt;
-
   /// No description provided for @completedAt.
   ///
   /// In en, this message translates to:
@@ -2450,12 +2438,6 @@ abstract class AppLocalizations {
   /// **'Filtered by'**
   String get filteredBy;
 
-  /// No description provided for @showAllAgents.
-  ///
-  /// In en, this message translates to:
-  /// **'Show All Agents'**
-  String get showAllAgents;
-
   /// No description provided for @notificationLanguage.
   ///
   /// In en, this message translates to:
@@ -3230,6 +3212,12 @@ abstract class AppLocalizations {
   /// **'Assign Anyway'**
   String get assignAnyway;
 
+  /// No description provided for @cancelledAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled at'**
+  String get cancelledAt;
+
   /// No description provided for @workerCancelledAtTime.
   ///
   /// In en, this message translates to:
@@ -3338,6 +3326,12 @@ abstract class AppLocalizations {
   /// **'Got it'**
   String get gotIt;
 
+  /// No description provided for @showAllAgents.
+  ///
+  /// In en, this message translates to:
+  /// **'Show All Agents'**
+  String get showAllAgents;
+
   /// No description provided for @availableInSelectedLocation.
   ///
   /// In en, this message translates to:
@@ -3367,6 +3361,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Busy at'**
   String get busyAt;
+
+  /// No description provided for @managefaq.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage FAQ'**
+  String get managefaq;
+
+  /// No description provided for @addFaq.
+  ///
+  /// In en, this message translates to:
+  /// **'Add FAQ'**
+  String get addFaq;
+
+  /// No description provided for @noFaqEntriesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No FAQ entries found'**
+  String get noFaqEntriesFound;
+
+  /// No description provided for @manageFaqs.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage FAQs'**
+  String get manageFaqs;
+
+  /// No description provided for @english.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get english;
+
+  /// No description provided for @arabic.
+  ///
+  /// In en, this message translates to:
+  /// **'Arabic'**
+  String get arabic;
+
+  /// No description provided for @question.
+  ///
+  /// In en, this message translates to:
+  /// **'Question'**
+  String get question;
+
+  /// No description provided for @answer.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer'**
+  String get answer;
+
+  /// No description provided for @questionIsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Question is required'**
+  String get questionIsRequired;
+
+  /// No description provided for @answerIsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer is required'**
+  String get answerIsRequired;
+
+  /// No description provided for @faqAddedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'FAQ added successfully'**
+  String get faqAddedSuccessfully;
+
+  /// No description provided for @addEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Entry'**
+  String get addEntry;
+
+  /// No description provided for @addFaqEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Add FAQ Entry'**
+  String get addFaqEntry;
+
+  /// No description provided for @questionMustBeInArabic.
+  ///
+  /// In en, this message translates to:
+  /// **'Question must be in Arabic'**
+  String get questionMustBeInArabic;
+
+  /// No description provided for @answerMustBeInArabic.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer must be in Arabic'**
+  String get answerMustBeInArabic;
+
+  /// No description provided for @faqEntryDeletedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'FAQ entry deleted successfully'**
+  String get faqEntryDeletedSuccessfully;
+
+  /// No description provided for @checkingAvailability.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking agent availability...'**
+  String get checkingAvailability;
 }
 
 class _AppLocalizationsDelegate

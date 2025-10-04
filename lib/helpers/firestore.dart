@@ -40,6 +40,8 @@ class AppFirestore {
       .collection('notifications');
   static CollectionReference tippingCollectionRef = FirebaseFirestore.instance
       .collection('tipping');
+  static CollectionReference faqCollectionRef = FirebaseFirestore.instance
+      .collection('faq');
 }
 
 class AppFireStorage {

@@ -116,9 +116,46 @@ final class CategoryUpdated extends ManageAppState {
   @override
   List<Object> get props => [isUpdated];
 }
+
 final class CategoryUpdateError extends ManageAppState {
   final String error;
   const CategoryUpdateError(this.error);
+
+  @override
+  List<Object> get props => [error];
+}
+
+final class AddFaq extends ManageAppState {}
+final class AddingFaq extends ManageAppState {}
+
+final class FaqAdded extends ManageAppState {
+  final bool isAdded;
+  const FaqAdded(this.isAdded);
+
+  @override
+  List<Object> get props => [isAdded];
+}
+final class FaqAddError extends ManageAppState {
+  final String error;
+  const FaqAddError(this.error);
+
+  @override
+  List<Object> get props => [error];
+}
+final class DeleteFaq extends ManageAppState {}
+final class DeletingFaq extends ManageAppState {}
+
+final class FaqDeleted extends ManageAppState {
+  final bool isDeleted;
+  const FaqDeleted(this.isDeleted);
+
+  @override
+  List<Object> get props => [isDeleted];
+}
+
+final class FaqDeleteError extends ManageAppState {
+  final String error;
+  const FaqDeleteError(this.error); 
 
   @override
   List<Object> get props => [error];

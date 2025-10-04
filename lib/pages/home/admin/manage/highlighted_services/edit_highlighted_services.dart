@@ -80,7 +80,9 @@ class _AddHighlightedServicesState extends State<AddHighlightedServices> {
           if (doc.exists) {
             cachedServices[serviceId] = ServiceModel.fromDocumentSnapshot(doc);
           }
-        } catch (e) {}
+        } catch (e) {
+          debugPrint(e.toString());
+        }
       }
     }
     if (mounted) {

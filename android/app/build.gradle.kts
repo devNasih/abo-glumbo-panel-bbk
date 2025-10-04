@@ -14,8 +14,8 @@ if (keystorePropertiesFile.exists()) {
 val kotlin_version: String by project
 android {
     namespace = "com.aboglumbo.cPanel"
-    compileSdk = 35
-    ndkVersion = "27.0.12077973"
+    compileSdk = 36
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -33,30 +33,65 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
-        signingConfigs {
+       signingConfigs {
+    // Avoid creating a signingConfig with the same name twice (some Gradle setups
+    // may already supply a 'debug' SigningConfig). Check first, then create only
+    // if it doesn't exist.
+    if (findByName("debug") == null) {
+        create("debug") {
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storeFile = file(keystoreProperties["storeFile"] as String)
+            storePassword = keystoreProperties["storePassword"] as String
+        }
+    } else {
+        // If a debug config already exists, optionally configure it with values
+        // from key.properties so debug builds use the provided keystore when
+        // available.
+        val cfg = getByName("debug")
+        cfg.keyAlias = keystoreProperties["keyAlias"] as String
+        cfg.keyPassword = keystoreProperties["keyPassword"] as String
+        cfg.storeFile = file(keystoreProperties["storeFile"] as String)
+        cfg.storePassword = keystoreProperties["storePassword"] as String
+    }
+
+    if (findByName("release") == null) {
         create("release") {
             keyAlias = keystoreProperties["keyAlias"] as String
             keyPassword = keystoreProperties["keyPassword"] as String
             storeFile = file(keystoreProperties["storeFile"] as String)
             storePassword = keystoreProperties["storePassword"] as String
         }
+    } else {
+        val cfg = getByName("release")
+        cfg.keyAlias = keystoreProperties["keyAlias"] as String
+        cfg.keyPassword = keystoreProperties["keyPassword"] as String
+        cfg.storeFile = file(keystoreProperties["storeFile"] as String)
+        cfg.storePassword = keystoreProperties["storePassword"] as String
     }
-        buildTypes {
-        getByName("release") {
-            signingConfig = signingConfigs.getByName("release")
-            isMinifyEnabled = false
-            isShrinkResources = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
+}
+
+buildTypes {
+    getByName("debug") {
+        signingConfig = signingConfigs.getByName("debug")
+        isDebuggable = true
     }
+    getByName("release") {
+        signingConfig = signingConfigs.getByName("release")
+        isMinifyEnabled = false
+        isShrinkResources = false
+        proguardFiles(
+            getDefaultProguardFile("proguard-android-optimize.txt"),
+            "proguard-rules.pro"
+        )
+    }
+}
+
 }
 
 flutter {

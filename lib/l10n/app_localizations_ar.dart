@@ -46,9 +46,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'هل أنت متأكد أنك تريد رفض هذا الطلب؟';
 
   @override
-  String get checkingAvailability => 'فحص توفر الوكلاء...';
-
-  @override
   String get loadingAgents => 'جاري تحميل الوكلاء...';
 
   @override
@@ -755,9 +752,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rejectedAt => 'مرفوض في';
 
   @override
-  String get cancelledAt => 'تم الإلغاء في';
-
-  @override
   String get completedAt => 'مكتمل في';
 
   @override
@@ -1218,9 +1212,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get filteredBy => 'تصفية بواسطة';
 
   @override
-  String get showAllAgents => 'إظهار جميع الوكلاء';
-
-  @override
   String get notificationLanguage => 'لغة الاشعارات';
 
   @override
@@ -1471,7 +1462,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get goToLogin => 'الذهاب إلى تسجيل الدخول';
 
   @override
-  String get failedToSendNotification => 'فشل في إرسال الإشعار إلى العميل';
+  String get failedToSendNotification => 'فشل في إرسال الإشعار للعميل';
 
   @override
   String get locationPermissionErrorIOS =>
@@ -1638,6 +1629,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get assignAnyway => 'تعيين على أي حال';
 
   @override
+  String get cancelledAt => 'تم الإلغاء في';
+
+  @override
   String get workerCancelledAtTime =>
       'هذا الوكيل ألغى حجزاً سابقاً في نفس هذا التوقيت. فكر في تعيين وكيل مختلف للحصول على موثوقية أفضل.';
 
@@ -1698,6 +1692,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gotIt => 'فهمت';
 
   @override
+  String get showAllAgents => 'إظهار جميع الوكلاء';
+
+  @override
   String get availableInSelectedLocation => 'متاحين في الموقع المحدد';
 
   @override
@@ -1712,4 +1709,55 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get busyAt => 'مشغول في';
+
+  @override
+  String get managefaq => 'Manage FAQ';
+
+  @override
+  String get addFaq => 'إضافة سؤال شائع';
+
+  @override
+  String get noFaqEntriesFound => 'لم يتم العثور على أي أسئلة شائعة';
+
+  @override
+  String get manageFaqs => 'إدارة الأسئلة الشائعة';
+
+  @override
+  String get english => 'الإنجليزية';
+
+  @override
+  String get arabic => 'العربية';
+
+  @override
+  String get question => 'السؤال';
+
+  @override
+  String get answer => 'الإجابة';
+
+  @override
+  String get questionIsRequired => 'السؤال مطلوب';
+
+  @override
+  String get answerIsRequired => 'الإجابة مطلوبة';
+
+  @override
+  String get faqAddedSuccessfully => 'سؤال شائع مضاف بنجاح';
+
+  @override
+  String get addEntry => 'Add Entry';
+
+  @override
+  String get addFaqEntry => 'إضافة سؤال شائع';
+
+  @override
+  String get questionMustBeInArabic => 'يجب أن يكون السؤال باللغة العربية';
+
+  @override
+  String get answerMustBeInArabic => 'يجب أن تكون الإجابة باللغة العربية';
+
+  @override
+  String get faqEntryDeletedSuccessfully => 'سؤال شائع محذف بنجاح';
+
+  @override
+  String get checkingAvailability => 'فحص توفر الوكلاء...';
 }

@@ -69,3 +69,19 @@ class UpdateCategoryEvent extends ManageAppEvent {
   @override
   List<Object> get props => [category, imageFile ?? ''];
 }
+
+class AddFaqEvent extends ManageAppEvent {
+  final FaqModel faqEntry;
+  const AddFaqEvent(this.faqEntry);
+
+  @override
+  List<Object> get props => [faqEntry];
+}
+
+class DeleteFaqEvent extends ManageAppEvent {
+  final String faqId;
+  const DeleteFaqEvent(this.faqId);
+
+  @override
+  List<Object> get props => [faqId];
+}

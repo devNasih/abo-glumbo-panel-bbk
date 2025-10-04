@@ -47,9 +47,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to reject this order?';
 
   @override
-  String get checkingAvailability => 'Checking agent availability...';
-
-  @override
   String get loadingAgents => 'Loading agents...';
 
   @override
@@ -760,9 +757,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rejectedAt => 'Rejected At';
 
   @override
-  String get cancelledAt => 'Cancelled at';
-
-  @override
   String get completedAt => 'Completed At';
 
   @override
@@ -1225,9 +1219,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filteredBy => 'Filtered by';
 
   @override
-  String get showAllAgents => 'Show All Agents';
-
-  @override
   String get notificationLanguage => 'Notification Language';
 
   @override
@@ -1658,6 +1649,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get assignAnyway => 'Assign Anyway';
 
   @override
+  String get cancelledAt => 'Cancelled at';
+
+  @override
   String get workerCancelledAtTime =>
       'This agent previously cancelled a booking at this exact time slot. Consider assigning to a different agent for better reliability.';
 
@@ -1719,6 +1713,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gotIt => 'Got it';
 
   @override
+  String get showAllAgents => 'Show All Agents';
+
+  @override
   String get availableInSelectedLocation => 'available in selected location';
 
   @override
@@ -1733,4 +1730,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get busyAt => 'Busy at';
+
+  @override
+  String get managefaq => 'Manage FAQ';
+
+  @override
+  String get addFaq => 'Add FAQ';
+
+  @override
+  String get noFaqEntriesFound => 'No FAQ entries found';
+
+  @override
+  String get manageFaqs => 'Manage FAQs';
+
+  @override
+  String get english => 'English';
+
+  @override
+  String get arabic => 'Arabic';
+
+  @override
+  String get question => 'Question';
+
+  @override
+  String get answer => 'Answer';
+
+  @override
+  String get questionIsRequired => 'Question is required';
+
+  @override
+  String get answerIsRequired => 'Answer is required';
+
+  @override
+  String get faqAddedSuccessfully => 'FAQ added successfully';
+
+  @override
+  String get addEntry => 'Add Entry';
+
+  @override
+  String get addFaqEntry => 'Add FAQ Entry';
+
+  @override
+  String get questionMustBeInArabic => 'Question must be in Arabic';
+
+  @override
+  String get answerMustBeInArabic => 'Answer must be in Arabic';
+
+  @override
+  String get faqEntryDeletedSuccessfully => 'FAQ entry deleted successfully';
+
+  @override
+  String get checkingAvailability => 'Checking agent availability...';
 }

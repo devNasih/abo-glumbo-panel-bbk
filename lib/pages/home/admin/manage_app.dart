@@ -2,6 +2,7 @@ import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/agents/manage_agents.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/banners/banners.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/categories/manage_categories.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/faq/manage_faq.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/highlighted_services/highlighted_services.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/services/manage_services.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/tips/tips.dart';
@@ -15,7 +16,7 @@ class ManageApp extends StatefulWidget {
 }
 
 class _ManageAppState extends State<ManageApp> {
-  late final List<_TileInfo> tiles;
+  late List<_TileInfo> tiles;
 
   @override
   void didChangeDependencies() {
@@ -66,6 +67,13 @@ class _ManageAppState extends State<ManageApp> {
         icon: Icons.lightbulb,
         onTap: () => _navigateToPage('Manage Tips'),
       ),
+      _TileInfo(
+        key: 'manage_faq',
+        labelFallback:
+            AppLocalizations.of(context)?.manageFaqs ?? "Manage FAQs",
+        icon: Icons.help,
+        onTap: () => _navigateToPage('Manage FAQ'),
+      ),
     ];
   }
 
@@ -87,6 +95,8 @@ class _ManageAppState extends State<ManageApp> {
               return const ManageAgents();
             case 'Manage Tips':
               return const ManageTips();
+            case 'Manage FAQ':
+              return const ManageFaq();
             default:
               return const Placeholder();
           }

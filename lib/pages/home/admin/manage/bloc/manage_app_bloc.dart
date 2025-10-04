@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/models/banner.dart';
 import 'package:aboglumbo_bbk_panel/models/categories.dart';
+import 'package:aboglumbo_bbk_panel/models/faq.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -22,6 +23,8 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
     // Categories
     on<AddCategoryEvent>(_addCategory);
     on<UpdateCategoryEvent>(_updateCategory);
+    on<AddFaqEvent>(_addFaq);
+    on<DeleteFaqEvent>(_deleteFaq);
   }
 
   Future<void> _clearTipWallet(
@@ -198,6 +201,28 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
       emit(CategoryUpdated(true));
     } catch (e) {
       emit(CategoryUpdateError(e.toString()));
+    }
+  }
+
+  Future<void> _addFaq(AddFaqEvent event, Emitter<ManageAppState> emit) async {
+    emit(AddingFaq());
+    try {
+      await AppServices.addFaq(event.faqEntry);
+      emit(FaqAdded(true));
+    } catch (e) {
+      emit(FaqAddError(e.toString()));
+    }
+  }
+  Future<void> _deleteFaq(
+    DeleteFaqEvent event,
+    Emitter<ManageAppState> emit,
+  ) async {
+    emit(DeletingFaq());
+    try {
+      await AppServices.deleteFaq(event.faqId);
+      emit(FaqDeleted(true));
+    } catch (e) {
+      emit(FaqDeleteError(e.toString()));
     }
   }
 }

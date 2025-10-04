@@ -3,6 +3,7 @@ import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/models/banner.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
 import 'package:aboglumbo_bbk_panel/models/categories.dart';
+import 'package:aboglumbo_bbk_panel/models/faq.dart';
 import 'package:aboglumbo_bbk_panel/models/highlighted_services.dart';
 import 'package:aboglumbo_bbk_panel/models/location.dart';
 import 'package:aboglumbo_bbk_panel/models/service.dart';
@@ -538,6 +539,52 @@ class AppServices {
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error completing booking: $e');
+      }
+      return false;
+    }
+  }
+
+  static Future<void> addFaq(FaqModel faqEntry) async {
+    try {
+      final newFaqId = AppFirestore.faqCollectionRef.doc().id;
+      final faqToSave = FaqModel(
+        faqEntry.stand,
+        id: newFaqId,
+        questionEn: faqEntry.questionEn,
+        questionAr: faqEntry.questionAr,
+        answerEn: faqEntry.answerEn,
+        answerAr: faqEntry.answerAr,
+      );
+
+      // Use .doc(newFaqId).set(...) so the Firestore document ID matches the model id
+      await AppFirestore.faqCollectionRef.doc(newFaqId).set(faqToSave.toMap());
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error adding faq: $e');
+      }
+    }
+  }
+
+  static Stream<List<FaqModel>> getFaqStream() {
+    return AppFirestore.faqCollectionRef
+        .orderBy('stand', descending: false)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map(
+                (doc) => FaqModel.fromMap(doc.data() as Map<String, dynamic>),
+              )
+              .toList();
+        });
+  }
+
+  static Future<bool> deleteFaq(String faqId) async {
+    try {
+      await AppFirestore.faqCollectionRef.doc(faqId).delete();
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error deleting FAQ: $e');
       }
       return false;
     }
