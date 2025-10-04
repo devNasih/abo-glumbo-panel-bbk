@@ -16,6 +16,8 @@ class ManageFaq extends StatefulWidget {
 }
 
 class _ManageFaqState extends State<ManageFaq> {
+  // Tracks whether the delete confirmation/loading dialog is currently shown.
+  bool _isDeletingDialogShowing = false;
   @override
   Widget build(BuildContext context) {
     bool isEnglish = Directionality.of(context) == TextDirection.ltr;
@@ -23,17 +25,24 @@ class _ManageFaqState extends State<ManageFaq> {
       appBar: AppBar(title: Text(AppLocalizations.of(context)!.manageFaqs)),
       body: BlocListener<ManageAppBloc, ManageAppState>(
         listener: (context, state) {
+          // Show the loading dialog only when deleting and it's not shown.
           if (state is DeletingFaq) {
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) => Center(child: Loader()),
-            );
+            if (!_isDeletingDialogShowing) {
+              _isDeletingDialogShowing = true;
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => Center(child: Loader()),
+              ).then((_) => _isDeletingDialogShowing = false);
+            }
           } else {
-            Navigator.of(
-              context,
-              rootNavigator: true,
-            ).pop(); // Close the dialog
+            // Only pop the root navigator if the delete dialog was shown.
+            if (_isDeletingDialogShowing) {
+              try {
+                Navigator.of(context, rootNavigator: true).pop();
+              } catch (_) {}
+              _isDeletingDialogShowing = false;
+            }
           }
 
           if (state is FaqDeleted) {
@@ -46,7 +55,9 @@ class _ManageFaqState extends State<ManageFaq> {
                 backgroundColor: Colors.green,
               ),
             );
-          } else if (state is FaqDeleteError) {
+          }
+
+          if (state is FaqDeleteError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -100,27 +111,41 @@ class _ManageFaqState extends State<ManageFaq> {
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Row(
+                      spacing: 5,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                overflow: TextOverflow.ellipsis,
-                                isEnglish ? entry.questionEn : entry.questionAr,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                              Flexible(
+                                child: Text(
+                                  isEnglish
+                                      ? entry.questionEn
+                                      : entry.questionAr,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Flexible(
+                                child: Text(
+                                  isEnglish ? entry.answerEn : entry.answerAr,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.black87,
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                overflow: TextOverflow.ellipsis,
-                                isEnglish ? entry.answerEn : entry.answerAr,
+                                '${AppLocalizations.of(context)!.position}: ${entry.stand}',
                                 style: const TextStyle(
-                                  fontSize: 15,
-                                  color: Colors.black87,
+                                  fontSize: 12,
+                                  color: Colors.grey,
                                 ),
                               ),
                             ],

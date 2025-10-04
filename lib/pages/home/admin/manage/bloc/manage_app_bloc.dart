@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:aboglumbo_bbk_panel/helpers/custom_exception.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/models/banner.dart';
 import 'package:aboglumbo_bbk_panel/models/categories.dart';
@@ -208,11 +209,14 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
     emit(AddingFaq());
     try {
       await AppServices.addFaq(event.faqEntry);
-      emit(FaqAdded(true));
+      emit(FaqAdded());
+    } on DuplicateStandException catch (e) {
+      emit(FaqAddError(e.message)); // emit error state with duplicate message
     } catch (e) {
       emit(FaqAddError(e.toString()));
     }
   }
+
   Future<void> _deleteFaq(
     DeleteFaqEvent event,
     Emitter<ManageAppState> emit,

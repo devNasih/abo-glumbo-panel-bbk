@@ -560,5 +560,7 @@
   "answerMustBeInArabic": "يجب أن تكون الإجابة باللغة العربية",
   "questionMustBeInArabic": "يجب أن يكون السؤال باللغة العربية",
   "faqEntryDeletedSuccessfully": "سؤال شائع محذف بنجاح",
+  "position": "الموضع",
+  "entryAlreadyExists": "المُدخل موجود بالفعل",
   "checkingAvailability": "فحص توفر الوكلاء..."
 }

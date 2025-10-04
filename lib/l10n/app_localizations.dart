@@ -3458,6 +3458,18 @@ abstract class AppLocalizations {
   /// **'FAQ entry deleted successfully'**
   String get faqEntryDeletedSuccessfully;
 
+  /// No description provided for @position.
+  ///
+  /// In en, this message translates to:
+  /// **'Position'**
+  String get position;
+
+  /// No description provided for @entryAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry exists in the entered position'**
+  String get entryAlreadyExists;
+
   /// No description provided for @checkingAvailability.
   ///
   /// In en, this message translates to:

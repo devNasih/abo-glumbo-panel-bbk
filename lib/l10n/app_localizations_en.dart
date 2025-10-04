@@ -1780,5 +1780,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get faqEntryDeletedSuccessfully => 'FAQ entry deleted successfully';
 
   @override
+  String get position => 'Position';
+
+  @override
+  String get entryAlreadyExists => 'Entry exists in the entered position';
+
+  @override
   String get checkingAvailability => 'Checking agent availability...';
 }

@@ -126,15 +126,11 @@ final class CategoryUpdateError extends ManageAppState {
 }
 
 final class AddFaq extends ManageAppState {}
+
 final class AddingFaq extends ManageAppState {}
 
-final class FaqAdded extends ManageAppState {
-  final bool isAdded;
-  const FaqAdded(this.isAdded);
+final class FaqAdded extends ManageAppState {}
 
-  @override
-  List<Object> get props => [isAdded];
-}
 final class FaqAddError extends ManageAppState {
   final String error;
   const FaqAddError(this.error);
@@ -142,7 +138,9 @@ final class FaqAddError extends ManageAppState {
   @override
   List<Object> get props => [error];
 }
+
 final class DeleteFaq extends ManageAppState {}
+
 final class DeletingFaq extends ManageAppState {}
 
 final class FaqDeleted extends ManageAppState {
@@ -155,7 +153,7 @@ final class FaqDeleted extends ManageAppState {
 
 final class FaqDeleteError extends ManageAppState {
   final String error;
-  const FaqDeleteError(this.error); 
+  const FaqDeleteError(this.error);
 
   @override
   List<Object> get props => [error];

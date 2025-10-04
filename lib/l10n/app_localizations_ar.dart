@@ -1759,5 +1759,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get faqEntryDeletedSuccessfully => 'سؤال شائع محذف بنجاح';
 
   @override
+  String get position => 'الموضع';
+
+  @override
+  String get entryAlreadyExists => 'المُدخل موجود بالفعل';
+
+  @override
   String get checkingAvailability => 'فحص توفر الوكلاء...';
 }

@@ -16,7 +16,10 @@ class AddFaqPage extends StatefulWidget {
 class _AddFaqPageState extends State<AddFaqPage> {
   final _formKey = GlobalKey<FormState>();
   int? stand = 0;
-  
+
+  // Tracks whether the modal loading dialog is currently visible so we don't
+  // accidentally pop the navigator when it's not shown.
+  bool _isDialogShowing = false;
 
   final TextEditingController _questionEnController = TextEditingController();
   final TextEditingController _answerEnController = TextEditingController();
@@ -41,7 +44,6 @@ class _AddFaqPageState extends State<AddFaqPage> {
         title: Text(AppLocalizations.of(context)!.addFaqEntry),
         actions: [
           BlocBuilder<ManageAppBloc, ManageAppState>(
-            bloc: context.read<ManageAppBloc>(),
             builder: (context, state) {
               return IconButton(
                 icon: const Icon(Icons.save),
@@ -64,36 +66,70 @@ class _AddFaqPageState extends State<AddFaqPage> {
         ],
       ),
       body: BlocListener<ManageAppBloc, ManageAppState>(
-        listener: (context, state) {
+        listener: (context, state) async {
+          // Track whether the loader dialog is currently shown so we don't
+          // accidentally pop the page navigator when no dialog exists.
+          // Using a state variable on the State object.
           if (state is AddingFaq) {
-            // Show loading indicator
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) => Center(child: Loader()),
-            );
-          } else {
-            Navigator.pop(context); // Dismiss loading indicator if shown
+            if (!_isDialogShowing) {
+              _isDialogShowing = true;
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                useRootNavigator: true,
+                builder: (context) => Center(child: Loader()),
+              ).then((_) {
+                // Dialog dismissed
+                _isDialogShowing = false;
+              });
+            }
+            return;
           }
-          if (state is FaqAddError) {
-            Navigator.pop(context); // Dismiss loading indicator
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  '${AppLocalizations.of(context)!.error}: ${state.error}',
-                ),
-              ),
-            );
+
+          // If we reach here and the dialog is showing, dismiss it.
+          if (_isDialogShowing) {
+            try {
+              Navigator.of(context, rootNavigator: true).pop();
+            } catch (_) {}
+            _isDialogShowing = false;
           }
+
           if (state is FaqAdded) {
-            Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
+            // Show a yellow (amber) snackbar and then close this page after
+            // the SnackBar has been dismissed so the user sees the message.
+            final controller = ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
+                backgroundColor: Colors.amber,
                 content: Text(
                   AppLocalizations.of(context)!.faqAddedSuccessfully,
                 ),
               ),
             );
+            try {
+              await controller.closed;
+            } catch (_) {}
+            if (mounted) Navigator.of(context).pop();
+            return;
+          }
+
+          if (state is FaqAddError) {
+            state.error.contains('already exists')
+                ? ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: Colors.amber,
+                      content: Text(
+                        AppLocalizations.of(context)!.entryAlreadyExists,
+                      ),
+                    ),
+                  )
+                : ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: Colors.amber,
+                      content: Text(
+                        '${AppLocalizations.of(context)!.error}: ${state.error}',
+                      ),
+                    ),
+                  );
           }
         },
         child: Padding(

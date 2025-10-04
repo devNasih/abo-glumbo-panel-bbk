@@ -559,5 +559,7 @@
   "questionMustBeInArabic": "Question must be in Arabic",
   "answerMustBeInArabic": "Answer must be in Arabic",
   "faqEntryDeletedSuccessfully": "FAQ entry deleted successfully",
+  "position": "Position",
+  "entryAlreadyExists": "Entry exists in the entered position",
   "checkingAvailability": "Checking agent availability..."
 }

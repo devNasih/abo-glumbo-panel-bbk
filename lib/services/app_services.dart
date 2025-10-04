@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/helpers/custom_exception.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/models/banner.dart';
@@ -544,26 +545,32 @@ class AppServices {
     }
   }
 
-  static Future<void> addFaq(FaqModel faqEntry) async {
-    try {
-      final newFaqId = AppFirestore.faqCollectionRef.doc().id;
-      final faqToSave = FaqModel(
-        faqEntry.stand,
-        id: newFaqId,
-        questionEn: faqEntry.questionEn,
-        questionAr: faqEntry.questionAr,
-        answerEn: faqEntry.answerEn,
-        answerAr: faqEntry.answerAr,
-      );
+ static Future<void> addFaq(FaqModel faqEntry) async {
+  try {
+    final querySnapshot = await AppFirestore.faqCollectionRef
+        .where('stand', isEqualTo: faqEntry.stand)
+        .get();
 
-      // Use .doc(newFaqId).set(...) so the Firestore document ID matches the model id
-      await AppFirestore.faqCollectionRef.doc(newFaqId).set(faqToSave.toMap());
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error adding faq: $e');
-      }
+    if (querySnapshot.docs.isNotEmpty) {
+      throw DuplicateStandException('FAQ with the same stand already exists.');
     }
+
+    final newFaqId = AppFirestore.faqCollectionRef.doc().id;
+    final faqToSave = FaqModel(
+      faqEntry.stand,
+      id: newFaqId,
+      questionEn: faqEntry.questionEn,
+      questionAr: faqEntry.questionAr,
+      answerEn: faqEntry.answerEn,
+      answerAr: faqEntry.answerAr,
+    );
+
+    await AppFirestore.faqCollectionRef.doc(newFaqId).set(faqToSave.toMap());
+  } catch (e) {
+    rethrow;
   }
+}
+
 
   static Stream<List<FaqModel>> getFaqStream() {
     return AppFirestore.faqCollectionRef
@@ -590,3 +597,4 @@ class AppServices {
     }
   }
 }
+
