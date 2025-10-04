@@ -4,6 +4,7 @@ import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/models/banner.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
 import 'package:aboglumbo_bbk_panel/models/categories.dart';
+import 'package:aboglumbo_bbk_panel/models/customer.dart';
 import 'package:aboglumbo_bbk_panel/models/faq.dart';
 import 'package:aboglumbo_bbk_panel/models/highlighted_services.dart';
 import 'package:aboglumbo_bbk_panel/models/location.dart';
@@ -545,32 +546,33 @@ class AppServices {
     }
   }
 
- static Future<void> addFaq(FaqModel faqEntry) async {
-  try {
-    final querySnapshot = await AppFirestore.faqCollectionRef
-        .where('stand', isEqualTo: faqEntry.stand)
-        .get();
+  static Future<void> addFaq(FaqModel faqEntry) async {
+    try {
+      final querySnapshot = await AppFirestore.faqCollectionRef
+          .where('stand', isEqualTo: faqEntry.stand)
+          .get();
 
-    if (querySnapshot.docs.isNotEmpty) {
-      throw DuplicateStandException('FAQ with the same stand already exists.');
+      if (querySnapshot.docs.isNotEmpty) {
+        throw DuplicateStandException(
+          'FAQ with the same stand already exists.',
+        );
+      }
+
+      final newFaqId = AppFirestore.faqCollectionRef.doc().id;
+      final faqToSave = FaqModel(
+        faqEntry.stand,
+        id: newFaqId,
+        questionEn: faqEntry.questionEn,
+        questionAr: faqEntry.questionAr,
+        answerEn: faqEntry.answerEn,
+        answerAr: faqEntry.answerAr,
+      );
+
+      await AppFirestore.faqCollectionRef.doc(newFaqId).set(faqToSave.toMap());
+    } catch (e) {
+      rethrow;
     }
-
-    final newFaqId = AppFirestore.faqCollectionRef.doc().id;
-    final faqToSave = FaqModel(
-      faqEntry.stand,
-      id: newFaqId,
-      questionEn: faqEntry.questionEn,
-      questionAr: faqEntry.questionAr,
-      answerEn: faqEntry.answerEn,
-      answerAr: faqEntry.answerAr,
-    );
-
-    await AppFirestore.faqCollectionRef.doc(newFaqId).set(faqToSave.toMap());
-  } catch (e) {
-    rethrow;
   }
-}
-
 
   static Stream<List<FaqModel>> getFaqStream() {
     return AppFirestore.faqCollectionRef
@@ -596,5 +598,36 @@ class AppServices {
       return false;
     }
   }
-}
 
+  static Stream<List<CustomerModel>> getAllCustomersStream() {
+    return AppFirestore.customersCollectionRef
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map(
+                (doc) =>
+                    CustomerModel.fromJson(doc.data() as Map<String, dynamic>),
+              )
+              .toList();
+        });
+  }
+
+  static Future<bool> blockUnblockCustomer(
+    String customerId,
+    bool isBlocked,
+  ) async {
+    try {
+      await AppFirestore.customersCollectionRef.doc(customerId).update({
+        'isBlocked': isBlocked,
+        'updatedAt': Timestamp.now(),
+      });
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error approving/rejecting agent: $e');
+      }
+      return false;
+    }
+  }
+}

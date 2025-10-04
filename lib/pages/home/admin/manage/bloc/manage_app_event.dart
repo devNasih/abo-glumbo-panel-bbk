@@ -85,3 +85,12 @@ class DeleteFaqEvent extends ManageAppEvent {
   @override
   List<Object> get props => [faqId];
 }
+
+class CustomerBlockUnblockEvent extends ManageAppEvent {
+  final String customerId;
+  final bool isBlocked;
+  const CustomerBlockUnblockEvent(this.customerId, this.isBlocked);
+
+  @override
+  List<Object> get props => [customerId, isBlocked];
+}

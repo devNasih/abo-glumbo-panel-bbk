@@ -3470,6 +3470,66 @@ abstract class AppLocalizations {
   /// **'Entry exists in the entered position'**
   String get entryAlreadyExists;
 
+  /// No description provided for @manageCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Customers'**
+  String get manageCustomers;
+
+  /// No description provided for @areYouSureYouWantToUnBlockThisCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to un-block this customer?'**
+  String get areYouSureYouWantToUnBlockThisCustomer;
+
+  /// No description provided for @areYouSureYouWantToBlockThisCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to block this customer?'**
+  String get areYouSureYouWantToBlockThisCustomer;
+
+  /// No description provided for @customer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get customer;
+
+  /// No description provided for @blocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked'**
+  String get blocked;
+
+  /// No description provided for @customerUnblockedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer unblocked successfully'**
+  String get customerUnblockedSuccessfully;
+
+  /// No description provided for @customerBlockedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer blocked successfully'**
+  String get customerBlockedSuccessfully;
+
+  /// No description provided for @noCustomersFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers found'**
+  String get noCustomersFound;
+
+  /// No description provided for @blockCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Block Customer'**
+  String get blockCustomer;
+
+  /// No description provided for @unBlockCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Un-block Customer'**
+  String get unBlockCustomer;
+
   /// No description provided for @checkingAvailability.
   ///
   /// In en, this message translates to:

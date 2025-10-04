@@ -158,3 +158,23 @@ final class FaqDeleteError extends ManageAppState {
   @override
   List<Object> get props => [error];
 }
+
+
+final class CustomerBlockUnblocking extends ManageAppState {}
+
+final class BlockUnblockCustomer extends ManageAppState {
+  final bool isBlocked;
+  const BlockUnblockCustomer(this.isBlocked);
+
+  @override
+  List<Object> get props => [isBlocked];
+}
+
+
+final class BlockUnblockCustomerError extends ManageAppState {
+  final String error;
+  const BlockUnblockCustomerError(this.error);
+
+  @override
+  List<Object> get props => [error];
+}

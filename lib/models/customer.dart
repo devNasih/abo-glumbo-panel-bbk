@@ -21,6 +21,7 @@ class CustomerModel {
   final String? districtName;
   final String? cityName;
   final String? postcode;
+  final bool? isBlocked;
   final String? extensionNumber;
 
   CustomerModel({
@@ -41,6 +42,7 @@ class CustomerModel {
     this.streetName,
     this.districtName,
     this.cityName,
+    this.isBlocked,
     this.postcode,
     this.extensionNumber,
   });
@@ -57,11 +59,13 @@ class CustomerModel {
       location: json['location'] != null
           ? LocationModel.fromJson(json['location'] as Map<String, dynamic>)
           : null,
-      addresses: (json['addresses'] as List<dynamic>?)
+      addresses:
+          (json['addresses'] as List<dynamic>?)
               ?.map((e) => AddressModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      favourites: (json['favourites'] as List<dynamic>?)
+      favourites:
+          (json['favourites'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [],
@@ -74,6 +78,7 @@ class CustomerModel {
       cityName: json['cityName'],
       postcode: json['postcode'],
       extensionNumber: json['extensionNumber'],
+      isBlocked: json['isBlocked'],
     );
   }
 
@@ -97,6 +102,7 @@ class CustomerModel {
       'districtName': districtName,
       'cityName': cityName,
       'postcode': postcode,
+      'isBlocked': isBlocked,
       'extensionNumber': extensionNumber,
     };
   }
@@ -118,6 +124,7 @@ class CustomerModel {
     String? buildingNumber,
     String? streetName,
     String? districtName,
+    bool? isBlocked,
     String? cityName,
     String? postcode,
     String? extensionNumber,
@@ -141,6 +148,7 @@ class CustomerModel {
       districtName: districtName ?? this.districtName,
       cityName: cityName ?? this.cityName,
       postcode: postcode ?? this.postcode,
+      isBlocked: isBlocked ?? this.isBlocked,
       extensionNumber: extensionNumber ?? this.extensionNumber,
     );
   }
@@ -163,8 +171,11 @@ class CustomerModel {
     checkAndSet('lanCode', lanCode, previous.lanCode);
     checkAndSet('country', country, previous.country);
     checkAndSet('location', location?.toJson(), previous.location?.toJson());
-    checkAndSet('addresses', addresses.map((e) => e.toJson()).toList(),
-        previous.addresses.map((e) => e.toJson()).toList());
+    checkAndSet(
+      'addresses',
+      addresses.map((e) => e.toJson()).toList(),
+      previous.addresses.map((e) => e.toJson()).toList(),
+    );
     checkAndSet('favourites', favourites, previous.favourites);
     checkAndSet('createdAt', createdAt, previous.createdAt);
     checkAndSet('isAdmin', isAdmin, previous.isAdmin);
@@ -173,6 +184,7 @@ class CustomerModel {
     checkAndSet('districtName', districtName, previous.districtName);
     checkAndSet('cityName', cityName, previous.cityName);
     checkAndSet('postcode', postcode, previous.postcode);
+    checkAndSet('isBlocked', isBlocked, previous.isBlocked);
     checkAndSet('extensionNumber', extensionNumber, previous.extensionNumber);
 
     return json;

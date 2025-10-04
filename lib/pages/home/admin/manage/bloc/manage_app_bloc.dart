@@ -26,6 +26,7 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
     on<UpdateCategoryEvent>(_updateCategory);
     on<AddFaqEvent>(_addFaq);
     on<DeleteFaqEvent>(_deleteFaq);
+    on<CustomerBlockUnblockEvent>(_blockUnblockCustomer);
   }
 
   Future<void> _clearTipWallet(
@@ -227,6 +228,19 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
       emit(FaqDeleted(true));
     } catch (e) {
       emit(FaqDeleteError(e.toString()));
+    }
+  }
+
+  Future<void> _blockUnblockCustomer(
+    CustomerBlockUnblockEvent event,
+    Emitter<ManageAppState> emit,
+  ) async {
+    emit(CustomerBlockUnblocking());
+    try {
+      await AppServices.blockUnblockCustomer(event.customerId, event.isBlocked);
+      emit(BlockUnblockCustomer(event.isBlocked));
+    } catch (e) {
+      emit(BlockUnblockCustomerError(e.toString()));
     }
   }
 }

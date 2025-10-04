@@ -561,5 +561,15 @@
   "faqEntryDeletedSuccessfully": "FAQ entry deleted successfully",
   "position": "Position",
   "entryAlreadyExists": "Entry exists in the entered position",
+  "manageCustomers": "Manage Customers",
+  "areYouSureYouWantToUnBlockThisCustomer": "Are you sure you want to un-block this customer?",
+  "areYouSureYouWantToBlockThisCustomer": "Are you sure you want to block this customer?",
+  "customer": "Customer",
+  "blocked": "Blocked",
+  "customerUnblockedSuccessfully": "Customer unblocked successfully",
+  "customerBlockedSuccessfully": "Customer blocked successfully",
+  "noCustomersFound": "No customers found",
+  "blockCustomer": "Block Customer",
+  "unBlockCustomer": "Un-block Customer",
   "checkingAvailability": "Checking agent availability..."
 }

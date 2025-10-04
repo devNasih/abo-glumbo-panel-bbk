@@ -1786,5 +1786,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entryAlreadyExists => 'Entry exists in the entered position';
 
   @override
+  String get manageCustomers => 'Manage Customers';
+
+  @override
+  String get areYouSureYouWantToUnBlockThisCustomer =>
+      'Are you sure you want to un-block this customer?';
+
+  @override
+  String get areYouSureYouWantToBlockThisCustomer =>
+      'Are you sure you want to block this customer?';
+
+  @override
+  String get customer => 'Customer';
+
+  @override
+  String get blocked => 'Blocked';
+
+  @override
+  String get customerUnblockedSuccessfully => 'Customer unblocked successfully';
+
+  @override
+  String get customerBlockedSuccessfully => 'Customer blocked successfully';
+
+  @override
+  String get noCustomersFound => 'No customers found';
+
+  @override
+  String get blockCustomer => 'Block Customer';
+
+  @override
+  String get unBlockCustomer => 'Un-block Customer';
+
+  @override
   String get checkingAvailability => 'Checking agent availability...';
 }

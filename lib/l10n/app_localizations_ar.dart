@@ -1765,5 +1765,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get entryAlreadyExists => 'المُدخل موجود بالفعل';
 
   @override
+  String get manageCustomers => 'ادارة العملاء';
+
+  @override
+  String get areYouSureYouWantToUnBlockThisCustomer =>
+      'هل انت متاكد انك تريد فك الحظر عن هذا العميل؟';
+
+  @override
+  String get areYouSureYouWantToBlockThisCustomer =>
+      'هل انت متاكد انك تريد حظر هذا العميل؟';
+
+  @override
+  String get customer => 'العميل';
+
+  @override
+  String get blocked => 'محظور';
+
+  @override
+  String get customerUnblockedSuccessfully => 'تم فك حظر العميل بنجاح';
+
+  @override
+  String get customerBlockedSuccessfully => 'تم حظر العميل بنجاح';
+
+  @override
+  String get noCustomersFound => 'لم يتم العثور على عملاء';
+
+  @override
+  String get blockCustomer => 'حظر العميل';
+
+  @override
+  String get unBlockCustomer => 'فك حظر العميل';
+
+  @override
   String get checkingAvailability => 'فحص توفر الوكلاء...';
 }

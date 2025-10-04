@@ -562,5 +562,15 @@
   "faqEntryDeletedSuccessfully": "سؤال شائع محذف بنجاح",
   "position": "الموضع",
   "entryAlreadyExists": "المُدخل موجود بالفعل",
+  "manageCustomers": "ادارة العملاء",
+  "areYouSureYouWantToUnBlockThisCustomer": "هل انت متاكد انك تريد فك الحظر عن هذا العميل؟",
+  "areYouSureYouWantToBlockThisCustomer": "هل انت متاكد انك تريد حظر هذا العميل؟",
+  "customer": "العميل",
+  "blocked": "محظور",
+  "customerUnblockedSuccessfully": "تم فك حظر العميل بنجاح",
+  "customerBlockedSuccessfully": "تم حظر العميل بنجاح",
+  "noCustomersFound": "لم يتم العثور على عملاء",
+  "blockCustomer": "حظر العميل",
+  "unBlockCustomer": "فك حظر العميل",
   "checkingAvailability": "فحص توفر الوكلاء..."
 }

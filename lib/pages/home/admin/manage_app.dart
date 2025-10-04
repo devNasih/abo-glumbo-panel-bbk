@@ -2,6 +2,7 @@ import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/agents/manage_agents.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/banners/banners.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/categories/manage_categories.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/customers/manage_customers.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/faq/manage_faq.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/highlighted_services/highlighted_services.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/services/manage_services.dart';
@@ -28,7 +29,7 @@ class _ManageAppState extends State<ManageApp> {
         labelFallback:
             AppLocalizations.of(context)?.manageCategories ??
             "Manage Categories",
-        icon: Icons.people,
+        icon: Icons.category,
         onTap: () => _navigateToPage('Manage Categories'),
       ),
       _TileInfo(
@@ -59,6 +60,13 @@ class _ManageAppState extends State<ManageApp> {
             AppLocalizations.of(context)?.manageAgents ?? "Manage Agents",
         icon: Icons.support_agent,
         onTap: () => _navigateToPage('Manage Agents'),
+      ),
+      _TileInfo(
+        key: 'manage_customers',
+        labelFallback:
+            AppLocalizations.of(context)?.manageCustomers ?? "Manage Customers",
+        icon: Icons.group,
+        onTap: () => _navigateToPage('Manage Customers'),
       ),
       _TileInfo(
         key: 'manage_tips',
@@ -93,6 +101,8 @@ class _ManageAppState extends State<ManageApp> {
               return const ManageBanners();
             case 'Manage Agents':
               return const ManageAgents();
+            case 'Manage Customers':
+              return const ManageCustomersPage();
             case 'Manage Tips':
               return const ManageTips();
             case 'Manage FAQ':
