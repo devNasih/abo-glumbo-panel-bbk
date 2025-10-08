@@ -3535,6 +3535,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Checking agent availability...'**
   String get checkingAvailability;
+
+  /// No description provided for @rewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewards'**
+  String get rewards;
 }
 
 class _AppLocalizationsDelegate

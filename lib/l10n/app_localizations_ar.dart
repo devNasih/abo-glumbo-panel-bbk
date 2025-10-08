@@ -1798,4 +1798,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get checkingAvailability => 'فحص توفر الوكلاء...';
+
+  @override
+  String get rewards => 'الجوائز';
 }

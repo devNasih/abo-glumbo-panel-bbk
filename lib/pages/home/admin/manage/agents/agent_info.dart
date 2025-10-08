@@ -1,5 +1,6 @@
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -30,7 +31,9 @@ class AgentInfo extends StatelessWidget {
         throw 'Could not launch $launchUri';
       }
     } catch (e) {
-      print('Error launching phone call: $e');
+      if (kDebugMode) {
+        print('Error launching phone call: $e');
+      }
     }
   }
 

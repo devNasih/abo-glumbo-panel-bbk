@@ -19,6 +19,7 @@ class UserModel {
   String? docUrl;
   String? profileUrl;
   String? fcmToken;
+  double? rating;
 
   UserModel({
     this.uid,
@@ -38,6 +39,7 @@ class UserModel {
     this.docUrl,
     this.profileUrl,
     this.fcmToken,
+    this.rating,
   });
 
   UserModel copyWith({
@@ -59,6 +61,7 @@ class UserModel {
     String? docUrl,
     String? profileUrl,
     String? fcmToken,
+    double? rating,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -78,6 +81,7 @@ class UserModel {
       docUrl: docUrl ?? this.docUrl,
       profileUrl: profileUrl ?? this.profileUrl,
       fcmToken: fcmToken ?? this.fcmToken,
+      rating: rating ?? this.rating,
     );
   }
 
@@ -106,6 +110,7 @@ class UserModel {
       docUrl: json['docUrl'],
       profileUrl: json['profileUrl'],
       fcmToken: json['fcmToken'],
+      rating: json['rating'],
     );
   }
 
@@ -144,6 +149,7 @@ class UserModel {
       docUrl: data?['docUrl'],
       profileUrl: data?['profileUrl'],
       fcmToken: data?['fcmToken'],
+      rating: data?['rating'],
     );
   }
 
@@ -166,6 +172,7 @@ class UserModel {
       'docUrl': docUrl,
       'profileUrl': profileUrl,
       'fcmToken': fcmToken,
+      'rating': rating,
     };
   }
 
@@ -187,6 +194,7 @@ class UserModel {
       'docUrl': docUrl,
       'profileUrl': profileUrl,
       'fcmToken': fcmToken,
+      'rating': rating,
     };
   }
 
@@ -235,6 +243,9 @@ class UserModel {
     }
     if (fcmToken != previous.fcmToken && fcmToken != null) {
       json['fcmToken'] = fcmToken;
+    }
+    if (rating != previous.rating && rating != null) {
+      json['rating'] = rating;
     }
     return json;
   }

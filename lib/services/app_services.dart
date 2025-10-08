@@ -630,4 +630,18 @@ class AppServices {
       return false;
     }
   }
+   static Future<String?> getCategoryIdByJobRoleOnce(String jobRole) async {
+    QuerySnapshot snapshot = await AppFirestore.categoriesCollectionRef
+        .where('name', isEqualTo: jobRole)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      return snapshot
+          .docs
+          .first
+          .id; // Or use data()['id'] if stored in document
+    } else {
+      return null;
+    }
+  }
 }

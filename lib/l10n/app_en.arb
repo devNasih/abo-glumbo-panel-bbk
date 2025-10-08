@@ -571,5 +571,6 @@
   "noCustomersFound": "No customers found",
   "blockCustomer": "Block Customer",
   "unBlockCustomer": "Un-block Customer",
-  "checkingAvailability": "Checking agent availability..."
+  "checkingAvailability": "Checking agent availability...",
+  "rewards": "Rewards"
 }

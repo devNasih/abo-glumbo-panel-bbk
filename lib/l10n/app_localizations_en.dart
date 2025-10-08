@@ -1819,4 +1819,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get checkingAvailability => 'Checking agent availability...';
+
+  @override
+  String get rewards => 'Rewards';
 }

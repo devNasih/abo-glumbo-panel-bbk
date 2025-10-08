@@ -572,5 +572,6 @@
   "noCustomersFound": "لم يتم العثور على عملاء",
   "blockCustomer": "حظر العميل",
   "unBlockCustomer": "فك حظر العميل",
-  "checkingAvailability": "فحص توفر الوكلاء..."
+  "checkingAvailability": "فحص توفر الوكلاء...",
+  "rewards": "الجوائز"
 }

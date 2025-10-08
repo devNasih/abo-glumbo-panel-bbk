@@ -4,6 +4,7 @@ import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/account.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/admin_home.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage_app.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/worker/rewards_page.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/worker/worker_home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
@@ -149,6 +150,7 @@ class _HomeState extends State<Home> {
 
         List<Widget> workerPages = [
           WorkerHome(),
+          RewardsPage(workerData: userData),
           AccountPage(workerData: userData),
         ];
         final currentPages = userData.isAdmin == true
@@ -183,7 +185,7 @@ class _HomeState extends State<Home> {
                 ),
                 label: locale?.home ?? '',
               ),
-              if (userData.isAdmin == true)
+              if (userData.isAdmin == true) ...{
                 NavigationDestination(
                   icon: Icon(Icons.settings_rounded, color: AppColors.grey),
                   selectedIcon: Icon(
@@ -192,6 +194,20 @@ class _HomeState extends State<Home> {
                   ),
                   label: AppLocalizations.of(context)?.manage ?? 'Manage',
                 ),
+              } else ...{
+                NavigationDestination(
+                  selectedIcon: Icon(
+                    Icons.workspace_premium_rounded,
+                    color: AppColors.secondary,
+                  ),
+                  icon: Icon(
+                    Icons.workspace_premium_rounded,
+                    color: AppColors.grey,
+                  ),
+                  label: AppLocalizations.of(context)?.rewards ?? 'Rewards',
+                ),
+              },
+
               NavigationDestination(
                 icon: SvgPicture.asset(
                   AppIcons.profileNav,
