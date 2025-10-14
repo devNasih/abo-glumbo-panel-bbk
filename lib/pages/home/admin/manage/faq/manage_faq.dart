@@ -56,6 +56,9 @@ class _ManageFaqState extends State<ManageFaq> {
                 backgroundColor: Colors.green,
               ),
             );
+            if (mounted) {
+              Navigator.pop(context);
+            }
           }
 
           if (state is FaqDeleteError) {
@@ -68,6 +71,9 @@ class _ManageFaqState extends State<ManageFaq> {
                 backgroundColor: Colors.red,
               ),
             );
+            if (mounted) {
+              Navigator.pop(context);
+            }
           }
         },
         child: StreamBuilder<List<FaqModel>>(

@@ -3704,6 +3704,90 @@ abstract class AppLocalizations {
   /// **'Primary'**
   String get primary;
 
+  /// No description provided for @search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get search;
+
+  /// No description provided for @all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get all;
+
+  /// No description provided for @disapproveAgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Disapprove Agent'**
+  String get disapproveAgent;
+
+  /// No description provided for @approveAgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve Agent'**
+  String get approveAgent;
+
+  /// No description provided for @areYouSureYouWantToDisapproveThisAgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to disapprove this agent?'**
+  String get areYouSureYouWantToDisapproveThisAgent;
+
+  /// No description provided for @areYouSureYouWantToApproveThisAgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to approve this agent?'**
+  String get areYouSureYouWantToApproveThisAgent;
+
+  /// No description provided for @tryAdjustingYourSearchCriteria.
+  ///
+  /// In en, this message translates to:
+  /// **'Try adjusting your search or filters.'**
+  String get tryAdjustingYourSearchCriteria;
+
+  /// No description provided for @noWorkersMatchYourFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'No workers match your search'**
+  String get noWorkersMatchYourFilters;
+
+  /// No description provided for @unblockCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock Customer'**
+  String get unblockCustomer;
+
+  /// No description provided for @areYouSureYouWantToUnblockThisCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to unblock this customer?'**
+  String get areYouSureYouWantToUnblockThisCustomer;
+
+  /// No description provided for @noCustomersMatchYourSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers match your search'**
+  String get noCustomersMatchYourSearch;
+
+  /// No description provided for @block.
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get block;
+
+  /// No description provided for @unblock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get unblock;
+
+  /// No description provided for @whatsappNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp Number'**
+  String get whatsappNumber;
+
   /// No description provided for @whatsappCondition.
   ///
   /// In en, this message translates to:

@@ -1886,6 +1886,54 @@ class AppLocalizationsAr extends AppLocalizations {
   String get primary => 'ابري';
 
   @override
+  String get search => 'بحث';
+
+  @override
+  String get all => 'الكل';
+
+  @override
+  String get disapproveAgent => 'رفض الوكيل';
+
+  @override
+  String get approveAgent => 'قبول الوكيل';
+
+  @override
+  String get areYouSureYouWantToDisapproveThisAgent =>
+      'هل انت متاكد انك تريد رفض هذا الوكيل؟';
+
+  @override
+  String get areYouSureYouWantToApproveThisAgent =>
+      'هل انت متاكد انك تريد قبول هذا الوكيل؟';
+
+  @override
+  String get tryAdjustingYourSearchCriteria =>
+      'حاول تعديل معايير البحث الخاصة بك';
+
+  @override
+  String get noWorkersMatchYourFilters =>
+      'لا يوجد وكلاء يطابقون معايير البحث الخاصة بك';
+
+  @override
+  String get unblockCustomer => 'فك حظر العميل';
+
+  @override
+  String get areYouSureYouWantToUnblockThisCustomer =>
+      'هل انت متاكد انك تريد فك حظر هذا العميل؟';
+
+  @override
+  String get noCustomersMatchYourSearch =>
+      'لا يوجد عملاء يطابقون معايير البحث الخاصة بك';
+
+  @override
+  String get block => 'حظر';
+
+  @override
+  String get unblock => 'فك الحظر';
+
+  @override
+  String get whatsappNumber => 'رقم واتساب';
+
+  @override
   String get whatsappCondition =>
       'يرجى تأكيد رقم الهاتف الذي ادخلته بشكل صحيح. هذا النمط مطلوب لتعريف رقم الواتساب بشكل صحيح.';
 

@@ -34,7 +34,6 @@ class _AddFaqPageState extends State<AddFaqPage> {
   int? stand = 0;
   String? id;
 
-
   bool _isDialogShowing = false;
 
   final TextEditingController _questionEnController = TextEditingController();
@@ -144,7 +143,6 @@ class _AddFaqPageState extends State<AddFaqPage> {
                 ),
               );
               if (mounted) Navigator.of(context).pop();
-              return;
             }
             if (state is AddingFaq) {
               if (!_isDialogShowing) {
@@ -165,7 +163,7 @@ class _AddFaqPageState extends State<AddFaqPage> {
             if (state is FaqAdded) {
               // Show a yellow (amber) snackbar and then close this page after
               // the SnackBar has been dismissed so the user sees the message.
-              final controller = ScaffoldMessenger.of(context).showSnackBar(
+              ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   backgroundColor: Colors.green,
                   content: Text(
@@ -173,9 +171,6 @@ class _AddFaqPageState extends State<AddFaqPage> {
                   ),
                 ),
               );
-              try {
-                await controller.closed;
-              } catch (_) {}
               if (mounted) Navigator.of(context).pop();
               return;
             }

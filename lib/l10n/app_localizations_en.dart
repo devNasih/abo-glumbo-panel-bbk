@@ -1910,6 +1910,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String get primary => 'Primary';
 
   @override
+  String get search => 'Search';
+
+  @override
+  String get all => 'All';
+
+  @override
+  String get disapproveAgent => 'Disapprove Agent';
+
+  @override
+  String get approveAgent => 'Approve Agent';
+
+  @override
+  String get areYouSureYouWantToDisapproveThisAgent =>
+      'Are you sure you want to disapprove this agent?';
+
+  @override
+  String get areYouSureYouWantToApproveThisAgent =>
+      'Are you sure you want to approve this agent?';
+
+  @override
+  String get tryAdjustingYourSearchCriteria =>
+      'Try adjusting your search or filters.';
+
+  @override
+  String get noWorkersMatchYourFilters => 'No workers match your search';
+
+  @override
+  String get unblockCustomer => 'Unblock Customer';
+
+  @override
+  String get areYouSureYouWantToUnblockThisCustomer =>
+      'Are you sure you want to unblock this customer?';
+
+  @override
+  String get noCustomersMatchYourSearch => 'No customers match your search';
+
+  @override
+  String get block => 'Block';
+
+  @override
+  String get unblock => 'Unblock';
+
+  @override
+  String get whatsappNumber => 'WhatsApp Number';
+
+  @override
   String get whatsappCondition =>
       'Please ensure the phone number you enter includes the country code at the beginning with a plus sign. This format is required for WhatsApp to recognize the number correctly.';
 
