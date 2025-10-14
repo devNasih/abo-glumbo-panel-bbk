@@ -86,6 +86,14 @@ class DeleteFaqEvent extends ManageAppEvent {
   List<Object> get props => [faqId];
 }
 
+class UpdateFaqEvent extends ManageAppEvent {
+  final FaqModel faqEntry;
+  const UpdateFaqEvent(this.faqEntry);
+
+  @override
+  List<Object> get props => [faqEntry];
+}
+
 class CustomerBlockUnblockEvent extends ManageAppEvent {
   final String customerId;
   final bool isBlocked;
@@ -93,4 +101,40 @@ class CustomerBlockUnblockEvent extends ManageAppEvent {
 
   @override
   List<Object> get props => [customerId, isBlocked];
+}
+
+class AddCustomerServiceContactEvent extends ManageAppEvent {
+  final CustomerSupportModel contact;
+  const AddCustomerServiceContactEvent(this.contact);
+
+  @override
+  List<Object> get props => [contact];
+}
+
+class UpdateCustomerServiceContactEvent extends ManageAppEvent {
+  final CustomerSupportModel contact;
+  const UpdateCustomerServiceContactEvent(this.contact);
+
+  @override
+  List<Object> get props => [contact];
+}
+
+class DeleteCustomerServiceContactEvent extends ManageAppEvent {
+  final String contactId;
+  const DeleteCustomerServiceContactEvent(this.contactId);
+
+  @override
+  List<Object> get props => [contactId];
+}
+class SetPrimaryCustomerServiceContactEvent extends ManageAppEvent {
+  final CustomerSupportModel selectedContact;
+  final List<CustomerSupportModel> allContactsOfType;
+
+  const SetPrimaryCustomerServiceContactEvent(
+    this.selectedContact,
+    this.allContactsOfType,
+  );
+
+  @override
+  List<Object> get props => [selectedContact, allContactsOfType]; // Changed from List<Object?>
 }

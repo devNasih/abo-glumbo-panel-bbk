@@ -139,6 +139,26 @@ final class FaqAddError extends ManageAppState {
   List<Object> get props => [error];
 }
 
+final class UpdateFaq extends ManageAppState {}
+
+final class UpdatingFaq extends ManageAppState {}
+
+final class FaqUpdated extends ManageAppState {
+  final bool isUpdated;
+  const FaqUpdated(this.isUpdated);
+
+  @override
+  List<Object> get props => [isUpdated];
+}
+
+final class FaqUpdateError extends ManageAppState {
+  final String error;
+  const FaqUpdateError(this.error);
+
+  @override
+  List<Object> get props => [error];
+}
+
 final class DeleteFaq extends ManageAppState {}
 
 final class DeletingFaq extends ManageAppState {}
@@ -159,7 +179,6 @@ final class FaqDeleteError extends ManageAppState {
   List<Object> get props => [error];
 }
 
-
 final class CustomerBlockUnblocking extends ManageAppState {}
 
 final class BlockUnblockCustomer extends ManageAppState {
@@ -170,7 +189,6 @@ final class BlockUnblockCustomer extends ManageAppState {
   List<Object> get props => [isBlocked];
 }
 
-
 final class BlockUnblockCustomerError extends ManageAppState {
   final String error;
   const BlockUnblockCustomerError(this.error);
@@ -178,3 +196,68 @@ final class BlockUnblockCustomerError extends ManageAppState {
   @override
   List<Object> get props => [error];
 }
+
+final class AddCustomerSupport extends ManageAppState {}
+
+final class AddingCustomerSupport extends ManageAppState {}
+
+final class CustomerSupportAdded extends ManageAppState {
+  final bool isAdded;
+  const CustomerSupportAdded(this.isAdded);
+
+  @override
+  List<Object> get props => [isAdded];
+}
+
+final class UpdateCustomerSupport extends ManageAppState {}
+
+final class UpdatingCustomerSupport extends ManageAppState {}
+
+final class CustomerSupportUpdated extends ManageAppState {
+  final bool isUpdated;
+  const CustomerSupportUpdated(this.isUpdated);
+
+  @override
+  List<Object> get props => [isUpdated];
+}
+
+final class CustomerSupportUpdateError extends ManageAppState {
+  final String error;
+  const CustomerSupportUpdateError(this.error);
+
+  @override
+  List<Object> get props => [error];
+}
+
+final class DeleteCustomerSupport extends ManageAppState {}
+
+final class DeletingCustomerSupport extends ManageAppState {}
+
+final class CustomerSupportDeleted extends ManageAppState {
+  final bool isDeleted;
+  const CustomerSupportDeleted(this.isDeleted);
+
+  @override
+  List<Object> get props => [isDeleted];
+}
+
+final class CustomerSupportDeleteError extends ManageAppState {
+  final String error;
+  const CustomerSupportDeleteError(this.error);
+
+  @override
+  List<Object> get props => [error];
+}
+
+final class CustomerSupportAddError extends ManageAppState {
+  final String error;
+  const CustomerSupportAddError(this.error);
+
+  @override
+  List<Object> get props => [error];
+}
+final class SettingPrimaryCustomerSupport extends ManageAppState {
+  @override
+  List<Object> get props => []; // Changed from List<Object?>
+}
+

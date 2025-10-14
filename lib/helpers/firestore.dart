@@ -42,6 +42,10 @@ class AppFirestore {
       .collection('tipping');
   static CollectionReference faqCollectionRef = FirebaseFirestore.instance
       .collection('faq');
+
+  static CollectionReference customerServiceCollectionRef = FirebaseFirestore
+      .instance
+      .collection('customer_service_contacts');
 }
 
 class AppFireStorage {

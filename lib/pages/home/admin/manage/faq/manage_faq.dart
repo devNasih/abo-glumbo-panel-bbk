@@ -4,6 +4,7 @@ import 'package:aboglumbo_bbk_panel/models/faq.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/bloc/manage_app_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/faq/edit_faq.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
+import 'package:aboglumbo_bbk_panel/styles/color.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -142,7 +143,7 @@ class _ManageFaqState extends State<ManageFaq> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                '${AppLocalizations.of(context)!.position}: ${entry.stand}',
+                                '${AppLocalizations.of(context)!.positionText}: ${entry.stand}',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey,
@@ -151,27 +152,60 @@ class _ManageFaqState extends State<ManageFaq> {
                             ],
                           ),
                         ),
-                        BlocBuilder<ManageAppBloc, ManageAppState>(
-                          builder: (context, state) {
-                            return IconButton(
+                        Column(
+                          children: [
+                            IconButton(
                               style: ButtonStyle(
+                                backgroundColor: WidgetStatePropertyAll(
+                                  AppColors.primary,
+                                ),
                                 shape: WidgetStatePropertyAll(
                                   RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
                               ),
-                              onPressed: () {
-                                context.read<ManageAppBloc>().add(
-                                  DeleteFaqEvent(entry.id),
+                              onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      AddFaqPage(faq: entry, isEdit: true),
+                                ),
+                              ),
+                              icon: Icon(
+                                Icons.edit,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+
+                            BlocBuilder<ManageAppBloc, ManageAppState>(
+                              builder: (context, state) {
+                                return IconButton(
+                                  style: ButtonStyle(
+                                    backgroundColor: WidgetStatePropertyAll(
+                                      Colors.red,
+                                    ),
+                                    shape: WidgetStatePropertyAll(
+                                      RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) =>
+                                          confirmDeleteDialog(entry),
+                                    );
+                                  },
+                                  icon: const Icon(
+                                    Icons.delete_forever,
+                                    color: Colors.white,
+                                  ),
                                 );
                               },
-                              icon: const Icon(
-                                Icons.delete_forever,
-                                color: Colors.red,
-                              ),
-                            );
-                          },
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -185,13 +219,43 @@ class _ManageFaqState extends State<ManageFaq> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // Navigate to AddFaqPage (to be implemented)
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (context) => const AddFaqPage()));
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const AddFaqPage(isEdit: false),
+            ),
+          );
         },
         tooltip: AppLocalizations.of(context)!.addFaq,
         child: const Icon(Icons.add),
       ),
+    );
+  }
+
+  Widget confirmDeleteDialog(FaqModel entry) {
+    return AlertDialog(
+      title: Text(AppLocalizations.of(context)!.deleteFaqEntry),
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            AppLocalizations.of(context)!.areYouSureYouWantToDeleteThisFaqEntry,
+          ),
+          Text(AppLocalizations.of(context)!.thisActionCannotBeUndone),
+        ],
+      ),
+      actions: [
+        TextButton(
+          child: Text(AppLocalizations.of(context)!.cancel),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        TextButton(
+          child: Text(AppLocalizations.of(context)!.delete),
+          onPressed: () {
+            context.read<ManageAppBloc>().add(DeleteFaqEvent(entry.id));
+          },
+        ),
+      ],
     );
   }
 }

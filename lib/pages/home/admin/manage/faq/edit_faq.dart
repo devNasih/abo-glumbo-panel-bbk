@@ -7,18 +7,34 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AddFaqPage extends StatefulWidget {
-  const AddFaqPage({super.key});
+  final bool isEdit;
+  final FaqModel? faq;
+  const AddFaqPage({super.key, required this.isEdit, this.faq});
 
   @override
   State<AddFaqPage> createState() => _AddFaqPageState();
 }
 
 class _AddFaqPageState extends State<AddFaqPage> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isEdit && widget.faq != null) {
+      id = widget.faq!.id;
+      _questionEnController.text = widget.faq!.questionEn;
+      _answerEnController.text = widget.faq!.answerEn;
+      _questionOtherController.text = widget.faq!.questionAr;
+      _answerOtherController.text = widget.faq!.answerAr;
+      standController.text = widget.faq!.stand.toString();
+      stand = widget.faq!.stand;
+    }
+  }
+
   final _formKey = GlobalKey<FormState>();
   int? stand = 0;
+  String? id;
 
-  // Tracks whether the modal loading dialog is currently visible so we don't
-  // accidentally pop the navigator when it's not shown.
+
   bool _isDialogShowing = false;
 
   final TextEditingController _questionEnController = TextEditingController();
@@ -39,194 +55,264 @@ class _AddFaqPageState extends State<AddFaqPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.addFaqEntry),
-        actions: [
-          BlocBuilder<ManageAppBloc, ManageAppState>(
-            builder: (context, state) {
-              return IconButton(
-                icon: const Icon(Icons.save),
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    final faqEntry = FaqModel(
-                      id: "",
-                      stand,
-                      questionEn: _questionEnController.text.trim(),
-                      questionAr: _questionOtherController.text.trim(),
-                      answerEn: _answerEnController.text.trim(),
-                      answerAr: _answerOtherController.text.trim(),
-                    );
-                    context.read<ManageAppBloc>().add(AddFaqEvent(faqEntry));
-                  }
-                },
-              );
-            },
-          ),
-        ],
-      ),
-      body: BlocListener<ManageAppBloc, ManageAppState>(
-        listener: (context, state) async {
-          // Track whether the loader dialog is currently shown so we don't
-          // accidentally pop the page navigator when no dialog exists.
-          // Using a state variable on the State object.
-          if (state is AddingFaq) {
-            if (!_isDialogShowing) {
-              _isDialogShowing = true;
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                useRootNavigator: true,
-                builder: (context) => Center(child: Loader()),
-              ).then((_) {
-                // Dialog dismissed
-                _isDialogShowing = false;
-              });
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(AppLocalizations.of(context)!.addFaqEntry),
+          actions: [
+            BlocBuilder<ManageAppBloc, ManageAppState>(
+              builder: (context, state) {
+                return IconButton(
+                  icon: const Icon(Icons.save),
+                  onPressed: () {
+                    if (widget.isEdit) {
+                      if (_formKey.currentState!.validate()) {
+                        final faqEntry = FaqModel(
+                          id: widget.faq!.id,
+                          widget.faq!.stand,
+                          questionEn: _questionEnController.text.trim(),
+                          questionAr: _questionOtherController.text.trim(),
+                          answerEn: _answerEnController.text.trim(),
+                          answerAr: _answerOtherController.text.trim(),
+                        );
+                        context.read<ManageAppBloc>().add(
+                          UpdateFaqEvent(faqEntry),
+                        );
+                      }
+                    } else {
+                      if (_formKey.currentState!.validate()) {
+                        final faqEntry = FaqModel(
+                          id: "",
+                          stand,
+                          questionEn: _questionEnController.text.trim(),
+                          questionAr: _questionOtherController.text.trim(),
+                          answerEn: _answerEnController.text.trim(),
+                          answerAr: _answerOtherController.text.trim(),
+                        );
+                        context.read<ManageAppBloc>().add(
+                          AddFaqEvent(faqEntry),
+                        );
+                      }
+                    }
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+        body: BlocListener<ManageAppBloc, ManageAppState>(
+          listener: (context, state) async {
+            if (_isDialogShowing) {
+              try {
+                Navigator.of(context, rootNavigator: true).pop();
+              } catch (_) {}
+              _isDialogShowing = false;
             }
-            return;
-          }
-
-          // If we reach here and the dialog is showing, dismiss it.
-          if (_isDialogShowing) {
-            try {
-              Navigator.of(context, rootNavigator: true).pop();
-            } catch (_) {}
-            _isDialogShowing = false;
-          }
-
-          if (state is FaqAdded) {
-            // Show a yellow (amber) snackbar and then close this page after
-            // the SnackBar has been dismissed so the user sees the message.
-            final controller = ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: Colors.amber,
-                content: Text(
-                  AppLocalizations.of(context)!.faqAddedSuccessfully,
+            if (state is UpdatingFaq) {
+              if (!_isDialogShowing) {
+                _isDialogShowing = true;
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  useRootNavigator: true,
+                  builder: (context) => Center(child: Loader()),
+                ).then((_) {
+                  // Dialog
+                  _isDialogShowing = false;
+                });
+              }
+              return;
+            }
+            if (state is FaqUpdateError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.amber,
+                  content: Text(
+                    '${AppLocalizations.of(context)!.error}: ${state.error}',
+                  ),
                 ),
+              );
+            }
+            if (state is FaqUpdated) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.green,
+                  content: Text(
+                    AppLocalizations.of(context)!.faqUpdatedSuccessfully,
+                  ),
+                ),
+              );
+              if (mounted) Navigator.of(context).pop();
+              return;
+            }
+            if (state is AddingFaq) {
+              if (!_isDialogShowing) {
+                _isDialogShowing = true;
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  useRootNavigator: true,
+                  builder: (context) => Center(child: Loader()),
+                ).then((_) {
+                  // Dialog
+                  _isDialogShowing = false;
+                });
+              }
+              return;
+            }
+
+            if (state is FaqAdded) {
+              // Show a yellow (amber) snackbar and then close this page after
+              // the SnackBar has been dismissed so the user sees the message.
+              final controller = ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.green,
+                  content: Text(
+                    AppLocalizations.of(context)!.faqAddedSuccessfully,
+                  ),
+                ),
+              );
+              try {
+                await controller.closed;
+              } catch (_) {}
+              if (mounted) Navigator.of(context).pop();
+              return;
+            }
+
+            if (state is FaqAddError) {
+              state.error.contains('already exists')
+                  ? ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: Colors.amber,
+                        content: Text(
+                          AppLocalizations.of(context)!.entryAlreadyExists,
+                        ),
+                      ),
+                    )
+                  : ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: Colors.amber,
+                        content: Text(
+                          '${AppLocalizations.of(context)!.error}: ${state.error}',
+                        ),
+                      ),
+                    );
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                children: [
+                  IgnorePointer(
+                    ignoring: widget.isEdit,
+                    child: TextFormField(
+                      controller: standController,
+                      decoration: InputDecoration(
+                        counterText: "",
+                        labelText:
+                            AppLocalizations.of(context)?.positionText ??
+                            'Position',
+                      ),
+                      keyboardType: TextInputType.number,
+                      maxLength: 3,
+
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      onChanged: (value) {
+                        int? parsedValue = int.tryParse(value);
+                        if (parsedValue != null) {
+                          setState(() {
+                            stand = parsedValue;
+                          });
+                        }
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return AppLocalizations.of(
+                                context,
+                              )?.pleaseEnterSortOrder ??
+                              'Please enter sort order';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    AppLocalizations.of(context)!.english,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _questionEnController,
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.question,
+                    ),
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
+                    maxLines: null,
+                    validator: (value) => value == null || value.isEmpty
+                        ? AppLocalizations.of(context)!.questionIsRequired
+                        : null,
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _answerEnController,
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.answer,
+                    ),
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
+
+                    validator: (value) => value == null || value.isEmpty
+                        ? AppLocalizations.of(context)!.answerIsRequired
+                        : null,
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    AppLocalizations.of(context)!.arabic,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _questionOtherController,
+
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.question,
+                    ),
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return AppLocalizations.of(context)!.questionIsRequired;
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _answerOtherController,
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.answer,
+                    ),
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
+
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return AppLocalizations.of(context)!.answerIsRequired;
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                ],
               ),
-            );
-            try {
-              await controller.closed;
-            } catch (_) {}
-            if (mounted) Navigator.of(context).pop();
-            return;
-          }
-
-          if (state is FaqAddError) {
-            state.error.contains('already exists')
-                ? ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      backgroundColor: Colors.amber,
-                      content: Text(
-                        AppLocalizations.of(context)!.entryAlreadyExists,
-                      ),
-                    ),
-                  )
-                : ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      backgroundColor: Colors.amber,
-                      content: Text(
-                        '${AppLocalizations.of(context)!.error}: ${state.error}',
-                      ),
-                    ),
-                  );
-          }
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: ListView(
-              children: [
-                TextFormField(
-                  controller: standController,
-                  decoration: InputDecoration(
-                    labelText:
-                        AppLocalizations.of(context)?.sortOrder ?? 'Sort Order',
-                  ),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  onChanged: (value) {
-                    int? parsedValue = int.tryParse(value);
-                    if (parsedValue != null) {
-                      setState(() {
-                        stand = parsedValue;
-                      });
-                    }
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return AppLocalizations.of(
-                            context,
-                          )?.pleaseEnterSortOrder ??
-                          'Please enter sort order';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 16),
-                Text(
-                  AppLocalizations.of(context)!.english,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _questionEnController,
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.question,
-                  ),
-                  validator: (value) => value == null || value.isEmpty
-                      ? AppLocalizations.of(context)!.questionIsRequired
-                      : null,
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _answerEnController,
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.answer,
-                  ),
-
-                  validator: (value) => value == null || value.isEmpty
-                      ? AppLocalizations.of(context)!.answerIsRequired
-                      : null,
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  AppLocalizations.of(context)!.arabic,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _questionOtherController,
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.question,
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return AppLocalizations.of(context)!.questionIsRequired;
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _answerOtherController,
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.answer,
-                  ),
-
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return AppLocalizations.of(context)!.answerIsRequired;
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 8),
-              ],
             ),
           ),
         ),

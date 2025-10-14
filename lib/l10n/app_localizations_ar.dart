@@ -1800,5 +1800,85 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checkingAvailability => 'فحص توفر الوكلاء...';
 
   @override
+  String get positionText => 'ترتيب';
+
+  @override
+  String get faqUpdatedSuccessfully => 'سؤال شائع محدث بنجاح';
+
+  @override
+  String get deleteFaqEntry => 'حذف سؤال شائع';
+
+  @override
+  String get manageWorkers => 'ادارة الوكلاء';
+
+  @override
+  String get manageCustomerSupport => 'ادارة خدمة العملاء';
+
+  @override
+  String get customerSupport => 'خدمة العملاء';
+
+  @override
+  String get whatsapp => 'واتساب';
+
+  @override
+  String get addNewEmail => 'اضافة بريد جديد';
+
+  @override
+  String get add => 'اضافة';
+
+  @override
+  String get areYouSureYouWantToDeleteThisFaqEntry =>
+      'هل انت متاكد انك تريد حذف هذا سؤال شائع؟';
+
+  @override
+  String get thisActionCannotBeUndone => 'لا يمكن تراجع هذا الاجراء';
+
+  @override
+  String get supportContactDeletedSuccessfully => 'تم حذف جهة الدعم بنجاح';
+
+  @override
+  String get supportContactUpdatedSuccessfully => 'تم تحديث جهة الدعم بنجاح';
+
+  @override
+  String get supportContactAddedSuccessfully => 'تم اضافة جهة الدعم بنجاح';
+
+  @override
+  String get noDataAvailable => 'لا يوجد بيانات متاحة';
+
+  @override
+  String get deleteConfirmation => 'تاكيد الحذف';
+
+  @override
+  String get areYouSureYouWantToDeleteThisSupportContact =>
+      'هل انت متاكد انك تريد حذف هذا جهة الدعم؟';
+
+  @override
+  String get supportContact => 'Support Contact';
+
+  @override
+  String get phoneIsRequired => 'الهاتف مطلوب';
+
+  @override
+  String get whatsappNumberIsRequired => 'رقم واتساب مطلوب';
+
+  @override
+  String get editEmail => 'تحرير البريد';
+
+  @override
+  String get addNewWhatsapp => 'اضافة واتساب جديد';
+
+  @override
+  String get addNewPhone => 'اضافة هاتف جديد';
+
+  @override
+  String get editWhatsapp => 'تحرير واتساب';
+
+  @override
+  String get editPhone => 'تحرير الهاتف';
+
+  @override
+  String get edit => 'تحرير';
+
+  @override
   String get rewards => 'الجوائز';
 }

@@ -4,6 +4,7 @@ import 'package:aboglumbo_bbk_panel/helpers/custom_exception.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/models/banner.dart';
 import 'package:aboglumbo_bbk_panel/models/categories.dart';
+import 'package:aboglumbo_bbk_panel/models/customer_support.dart';
 import 'package:aboglumbo_bbk_panel/models/faq.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:bloc/bloc.dart';
@@ -26,7 +27,14 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
     on<UpdateCategoryEvent>(_updateCategory);
     on<AddFaqEvent>(_addFaq);
     on<DeleteFaqEvent>(_deleteFaq);
+    on<UpdateFaqEvent>(_updateFaq);
     on<CustomerBlockUnblockEvent>(_blockUnblockCustomer);
+    on<AddCustomerServiceContactEvent>(_addCustomerServiceDetails);
+    on<DeleteCustomerServiceContactEvent>(_deleteCustomerServiceDetails);
+    on<UpdateCustomerServiceContactEvent>(_updateCustomerServiceDetails);
+    on<SetPrimaryCustomerServiceContactEvent>(
+      _setPrimaryCustomerServiceContact,
+    );
   }
 
   Future<void> _clearTipWallet(
@@ -218,6 +226,19 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
     }
   }
 
+  Future<void> _updateFaq(
+    UpdateFaqEvent event,
+    Emitter<ManageAppState> emit,
+  ) async {
+    emit(UpdatingFaq());
+    try {
+      await AppServices.updateFaq(event.faqEntry);
+      emit(FaqUpdated(true));
+    } catch (e) {
+      emit(FaqUpdateError(e.toString()));
+    }
+  }
+
   Future<void> _deleteFaq(
     DeleteFaqEvent event,
     Emitter<ManageAppState> emit,
@@ -241,6 +262,85 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
       emit(BlockUnblockCustomer(event.isBlocked));
     } catch (e) {
       emit(BlockUnblockCustomerError(e.toString()));
+    }
+  }
+
+  Future<void> _addCustomerServiceDetails(
+    AddCustomerServiceContactEvent event,
+    Emitter<ManageAppState> emit,
+  ) async {
+    emit(AddingCustomerSupport());
+    try {
+      await AppServices.addCustomerServiceDetails(event.contact);
+      emit(CustomerSupportAdded(true));
+    } catch (e) {
+      emit(CustomerSupportAddError(e.toString()));
+    }
+  }
+
+  Future<void> _updateCustomerServiceDetails(
+    UpdateCustomerServiceContactEvent event,
+    Emitter<ManageAppState> emit,
+  ) async {
+    emit(UpdatingCustomerSupport());
+    try {
+      await AppServices.updateCustomerService(event.contact);
+      emit(CustomerSupportUpdated(true));
+    } catch (e) {
+      emit(CustomerSupportUpdateError(e.toString()));
+    }
+  }
+
+  Future<void> _deleteCustomerServiceDetails(
+    DeleteCustomerServiceContactEvent event,
+    Emitter<ManageAppState> emit,
+  ) async {
+    emit(DeletingCustomerSupport());
+    try {
+      await AppServices.deleteCustomerService(event.contactId);
+      emit(CustomerSupportDeleted(true));
+    } catch (e) {
+      emit(CustomerSupportDeleteError(e.toString()));
+    }
+  }
+
+  Future<void> _setPrimaryCustomerServiceContact(
+    SetPrimaryCustomerServiceContactEvent
+    event, // Changed from SettingPrimaryCustomerSupport
+    Emitter<ManageAppState> emit,
+  ) async {
+    emit(SettingPrimaryCustomerSupport());
+
+    try {
+      // Use Firestore batch to update multiple documents atomically
+      final batch = FirebaseFirestore.instance.batch();
+
+      // Set all contacts of this type to isActive: false
+      for (var contact in event.allContactsOfType) {
+        if (contact.id != null) {
+          final docRef = AppFirestore.customerServiceCollectionRef.doc(
+            contact.id,
+          );
+          batch.update(docRef, {'isActive': false});
+        }
+      }
+
+      // Set the selected contact to isActive: true
+      if (event.selectedContact.id != null) {
+        final selectedDocRef = AppFirestore.customerServiceCollectionRef.doc(
+          event.selectedContact.id,
+        );
+        batch.update(selectedDocRef, {'isActive': true});
+      }
+
+      // Commit all updates atomically
+      await batch.commit();
+
+      emit(
+        CustomerSupportUpdated(true),
+      ); // Added true parameter to match your other emissions
+    } catch (e) {
+      emit(CustomerSupportUpdateError(e.toString()));
     }
   }
 }

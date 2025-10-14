@@ -29,7 +29,7 @@ class ManageAgents extends StatelessWidget {
         }
       },
       child: Scaffold(
-        appBar: AppBar(title: Text(AppLocalizations.of(context)!.manageAgents)),
+        appBar: AppBar(title: Text(AppLocalizations.of(context)!.manageWorkers)),
         body: StreamBuilder(
           stream: AppServices.getAllAgentsStream(),
           builder: (context, snapshot) {

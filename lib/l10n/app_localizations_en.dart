@@ -1821,5 +1821,88 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkingAvailability => 'Checking agent availability...';
 
   @override
+  String get positionText => 'Position';
+
+  @override
+  String get faqUpdatedSuccessfully => 'FAQ updated successfully';
+
+  @override
+  String get deleteFaqEntry => 'Delete FAQ Entry';
+
+  @override
+  String get manageWorkers => 'Manage Workers';
+
+  @override
+  String get manageCustomerSupport => 'Manage Customer Support';
+
+  @override
+  String get customerSupport => 'Customer Support';
+
+  @override
+  String get whatsapp => 'WhatsApp';
+
+  @override
+  String get addNewEmail => 'Add New Email';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get areYouSureYouWantToDeleteThisFaqEntry =>
+      'Are you sure you want to delete this FAQ entry?';
+
+  @override
+  String get thisActionCannotBeUndone => 'This action cannot be undone';
+
+  @override
+  String get supportContactDeletedSuccessfully =>
+      'Support contact deleted successfully';
+
+  @override
+  String get supportContactUpdatedSuccessfully =>
+      'Support contact updated successfully';
+
+  @override
+  String get supportContactAddedSuccessfully =>
+      'Support contact added successfully';
+
+  @override
+  String get noDataAvailable => 'No data available';
+
+  @override
+  String get deleteConfirmation => 'Delete Confirmation';
+
+  @override
+  String get areYouSureYouWantToDeleteThisSupportContact =>
+      'Are you sure you want to delete this support contact?';
+
+  @override
+  String get supportContact => 'Support Contact';
+
+  @override
+  String get phoneIsRequired => 'Phone is required';
+
+  @override
+  String get whatsappNumberIsRequired => 'WhatsApp number is required';
+
+  @override
+  String get editEmail => 'Edit Email';
+
+  @override
+  String get addNewWhatsapp => 'Add New WhatsApp';
+
+  @override
+  String get addNewPhone => 'Add New Phone';
+
+  @override
+  String get editWhatsapp => 'Edit WhatsApp';
+
+  @override
+  String get editPhone => 'Edit Phone';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
   String get rewards => 'Rewards';
 }

@@ -2,6 +2,7 @@ import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/agents/manage_agents.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/banners/banners.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/categories/manage_categories.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/customer_support/manage_customer_support.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/customers/manage_customers.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/faq/manage_faq.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/highlighted_services/highlighted_services.dart';
@@ -57,9 +58,9 @@ class _ManageAppState extends State<ManageApp> {
       _TileInfo(
         key: 'manage_agents',
         labelFallback:
-            AppLocalizations.of(context)?.manageAgents ?? "Manage Agents",
-        icon: Icons.support_agent,
-        onTap: () => _navigateToPage('Manage Agents'),
+            AppLocalizations.of(context)?.manageWorkers ?? "Manage Workers",
+        icon: Icons.engineering_outlined,
+        onTap: () => _navigateToPage('Manage Workers'),
       ),
       _TileInfo(
         key: 'manage_customers',
@@ -82,6 +83,14 @@ class _ManageAppState extends State<ManageApp> {
         icon: Icons.help,
         onTap: () => _navigateToPage('Manage FAQ'),
       ),
+      _TileInfo(
+        key: 'manage_customer_support',
+        labelFallback:
+            AppLocalizations.of(context)?.manageCustomerSupport ??
+            "Manage Customer Support",
+        icon: Icons.support_agent_outlined,
+        onTap: () => _navigateToPage('Manage Customer Support'),
+      ),
     ];
   }
 
@@ -99,7 +108,7 @@ class _ManageAppState extends State<ManageApp> {
               return const HighlightedServices();
             case 'Manage Banners':
               return const ManageBanners();
-            case 'Manage Agents':
+            case 'Manage Workers':
               return const ManageAgents();
             case 'Manage Customers':
               return const ManageCustomersPage();
@@ -107,6 +116,8 @@ class _ManageAppState extends State<ManageApp> {
               return const ManageTips();
             case 'Manage FAQ':
               return const ManageFaq();
+            case 'Manage Customer Support':
+              return const ManageCustomerSupport();
             default:
               return const Placeholder();
           }

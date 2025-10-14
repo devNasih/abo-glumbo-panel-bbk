@@ -3536,6 +3536,162 @@ abstract class AppLocalizations {
   /// **'Checking agent availability...'**
   String get checkingAvailability;
 
+  /// No description provided for @positionText.
+  ///
+  /// In en, this message translates to:
+  /// **'Position'**
+  String get positionText;
+
+  /// No description provided for @faqUpdatedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'FAQ updated successfully'**
+  String get faqUpdatedSuccessfully;
+
+  /// No description provided for @deleteFaqEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete FAQ Entry'**
+  String get deleteFaqEntry;
+
+  /// No description provided for @manageWorkers.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Workers'**
+  String get manageWorkers;
+
+  /// No description provided for @manageCustomerSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Customer Support'**
+  String get manageCustomerSupport;
+
+  /// No description provided for @customerSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Support'**
+  String get customerSupport;
+
+  /// No description provided for @whatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get whatsapp;
+
+  /// No description provided for @addNewEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Email'**
+  String get addNewEmail;
+
+  /// No description provided for @add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
+
+  /// No description provided for @areYouSureYouWantToDeleteThisFaqEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this FAQ entry?'**
+  String get areYouSureYouWantToDeleteThisFaqEntry;
+
+  /// No description provided for @thisActionCannotBeUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone'**
+  String get thisActionCannotBeUndone;
+
+  /// No description provided for @supportContactDeletedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Support contact deleted successfully'**
+  String get supportContactDeletedSuccessfully;
+
+  /// No description provided for @supportContactUpdatedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Support contact updated successfully'**
+  String get supportContactUpdatedSuccessfully;
+
+  /// No description provided for @supportContactAddedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Support contact added successfully'**
+  String get supportContactAddedSuccessfully;
+
+  /// No description provided for @noDataAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No data available'**
+  String get noDataAvailable;
+
+  /// No description provided for @deleteConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Confirmation'**
+  String get deleteConfirmation;
+
+  /// No description provided for @areYouSureYouWantToDeleteThisSupportContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this support contact?'**
+  String get areYouSureYouWantToDeleteThisSupportContact;
+
+  /// No description provided for @supportContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Support Contact'**
+  String get supportContact;
+
+  /// No description provided for @phoneIsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone is required'**
+  String get phoneIsRequired;
+
+  /// No description provided for @whatsappNumberIsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp number is required'**
+  String get whatsappNumberIsRequired;
+
+  /// No description provided for @editEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Email'**
+  String get editEmail;
+
+  /// No description provided for @addNewWhatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New WhatsApp'**
+  String get addNewWhatsapp;
+
+  /// No description provided for @addNewPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Phone'**
+  String get addNewPhone;
+
+  /// No description provided for @editWhatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit WhatsApp'**
+  String get editWhatsapp;
+
+  /// No description provided for @editPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Phone'**
+  String get editPhone;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
   /// No description provided for @rewards.
   ///
   /// In en, this message translates to:

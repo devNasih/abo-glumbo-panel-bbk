@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:aboglumbo_bbk_panel/helpers/custom_exception.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
@@ -5,6 +7,7 @@ import 'package:aboglumbo_bbk_panel/models/banner.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
 import 'package:aboglumbo_bbk_panel/models/categories.dart';
 import 'package:aboglumbo_bbk_panel/models/customer.dart';
+import 'package:aboglumbo_bbk_panel/models/customer_support.dart';
 import 'package:aboglumbo_bbk_panel/models/faq.dart';
 import 'package:aboglumbo_bbk_panel/models/highlighted_services.dart';
 import 'package:aboglumbo_bbk_panel/models/location.dart';
@@ -574,6 +577,16 @@ class AppServices {
     }
   }
 
+  static Future<void> updateFaq(FaqModel faqEntry) async {
+    try {
+      await AppFirestore.faqCollectionRef
+          .doc(faqEntry.id)
+          .update(faqEntry.toMap());
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   static Stream<List<FaqModel>> getFaqStream() {
     return AppFirestore.faqCollectionRef
         .orderBy('stand', descending: false)
@@ -630,7 +643,8 @@ class AppServices {
       return false;
     }
   }
-   static Future<String?> getCategoryIdByJobRoleOnce(String jobRole) async {
+
+  static Future<String?> getCategoryIdByJobRoleOnce(String jobRole) async {
     QuerySnapshot snapshot = await AppFirestore.categoriesCollectionRef
         .where('name', isEqualTo: jobRole)
         .get();
@@ -642,6 +656,64 @@ class AppServices {
           .id; // Or use data()['id'] if stored in document
     } else {
       return null;
+    }
+  }
+
+  static Future addCustomerServiceDetails(CustomerSupportModel contact) async {
+    final uid = AppFirestore.customerServiceCollectionRef.doc().id;
+
+    // Create a new contact model with the generated ID
+    final contactWithId = contact.copyWith(id: uid);
+
+    // Save the document with the ID included in the data
+    await AppFirestore.customerServiceCollectionRef
+        .doc(uid)
+        .set(contactWithId.toJson());
+  }
+
+  static Stream<List<CustomerSupportModel>> getCustomerServiceStreamByType(
+    String type,
+  ) {
+    return AppFirestore.customerServiceCollectionRef
+        .where('type', isEqualTo: type)
+        .snapshots()
+        .map((snapshot) {
+          log(snapshot.docs.toString());
+          return snapshot.docs
+              .map(
+                (doc) => CustomerSupportModel.fromJson(
+                  doc.data() as Map<String, dynamic>,
+                ),
+              )
+              .toList();
+        });
+  }
+
+  static Future<bool> deleteCustomerService(String id) async {
+    try {
+      await AppFirestore.customerServiceCollectionRef.doc(id).delete();
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error deleting customer service: $e');
+      }
+      return false;
+    }
+  }
+
+  static Future<bool> updateCustomerService(
+    CustomerSupportModel contact,
+  ) async {
+    try {
+      await AppFirestore.customerServiceCollectionRef
+          .doc(contact.id)
+          .update(contact.toJson());
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error updating customer service: $e');
+      }
+      return false;
     }
   }
 }
