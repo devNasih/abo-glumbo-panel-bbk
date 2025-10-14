@@ -1711,7 +1711,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get busyAt => 'مشغول في';
 
   @override
-  String get managefaq => 'Manage FAQ';
+  String get managefaq => 'ادارة السؤالات الشائعة';
 
   @override
   String get addFaq => 'إضافة سؤال شائع';
@@ -1744,7 +1744,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get faqAddedSuccessfully => 'سؤال شائع مضاف بنجاح';
 
   @override
-  String get addEntry => 'Add Entry';
+  String get addEntry => 'اضافة سؤال شائع';
 
   @override
   String get addFaqEntry => 'إضافة سؤال شائع';
@@ -1853,7 +1853,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'هل انت متاكد انك تريد حذف هذا جهة الدعم؟';
 
   @override
-  String get supportContact => 'Support Contact';
+  String get supportContact => 'جهة الدعم';
 
   @override
   String get phoneIsRequired => 'الهاتف مطلوب';
@@ -1878,6 +1878,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get edit => 'تحرير';
+
+  @override
+  String get setAsPrimary => 'ضبط كابري';
+
+  @override
+  String get primary => 'ابري';
+
+  @override
+  String get whatsappCondition =>
+      'يرجى تأكيد رقم الهاتف الذي ادخلته بشكل صحيح. هذا النمط مطلوب لتعريف رقم الواتساب بشكل صحيح.';
 
   @override
   String get rewards => 'الجوائز';

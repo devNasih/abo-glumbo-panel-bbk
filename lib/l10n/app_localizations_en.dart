@@ -1904,5 +1904,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get edit => 'Edit';
 
   @override
+  String get setAsPrimary => 'Set as Primary';
+
+  @override
+  String get primary => 'Primary';
+
+  @override
+  String get whatsappCondition =>
+      'Please ensure the phone number you enter includes the country code at the beginning with a plus sign. This format is required for WhatsApp to recognize the number correctly.';
+
+  @override
   String get rewards => 'Rewards';
 }

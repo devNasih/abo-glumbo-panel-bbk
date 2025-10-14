@@ -184,7 +184,9 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
                                             ),
                                           ),
                                           child: Text(
-                                            "Primary",
+                                            AppLocalizations.of(
+                                              context,
+                                            )!.primary,
                                             style: GoogleFonts.dmSans(
                                               fontSize: 10,
                                               fontWeight: FontWeight.w600,
@@ -272,9 +274,7 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
                                 );
                               },
                               icon: Icon(Icons.edit_outlined, size: 18),
-                              label: Text(
-                                AppLocalizations.of(context)!.edit,
-                              ),
+                              label: Text(AppLocalizations.of(context)!.edit),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
                                 foregroundColor: Colors.white,
@@ -303,10 +303,10 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
   }
 
   getAppBarTitles() => [
-        AppLocalizations.of(context)!.email,
-        AppLocalizations.of(context)!.phone,
-        AppLocalizations.of(context)!.whatsapp,
-      ];
+    AppLocalizations.of(context)!.email,
+    AppLocalizations.of(context)!.phone,
+    AppLocalizations.of(context)!.whatsapp,
+  ];
 
   void _showDeleteConfirmation(
     BuildContext context,
@@ -330,8 +330,8 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
             onPressed: () {
               Navigator.of(dialogContext).pop();
               context.read<ManageAppBloc>().add(
-                    DeleteCustomerServiceContactEvent(contact.id ?? ''),
-                  );
+                DeleteCustomerServiceContactEvent(contact.id ?? ''),
+              );
             },
             child: Text(
               AppLocalizations.of(context)!.delete,
@@ -387,7 +387,9 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return AppLocalizations.of(context)!.nameIsRequired;
+                              return AppLocalizations.of(
+                                context,
+                              )!.nameIsRequired;
                             }
                             return null;
                           },
@@ -418,13 +420,44 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
                               ? TextInputType.emailAddress
                               : TextInputType.phone,
                         ),
+                        if (widget.index == 2) ...[
+                          const SizedBox(height: 8),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Column(
+                                children: [
+                                  SizedBox(height: 1),
+                                  Icon(
+                                    Icons.info_outline,
+                                    size: 16,
+                                    color: AppColors.secondary,
+                                  ),
+                                ],
+                              ),
+                              SizedBox(width: 2),
+                              Flexible(
+                                child: Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.whatsappCondition,
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 12,
+                                    color: AppColors.secondary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                         if (isEdit) ...[
                           SizedBox(height: 16),
                           Row(
                             children: [
                               Expanded(
                                 child: Text(
-                                  "Set as Primary",
+                                  AppLocalizations.of(context)!.setAsPrimary,
                                   style: GoogleFonts.dmSans(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
@@ -478,25 +511,25 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
                                       contact?.isActive != true) {
                                     // Setting as new primary
                                     context.read<ManageAppBloc>().add(
-                                          SetPrimaryCustomerServiceContactEvent(
-                                            customerSupport,
-                                            allContacts ?? [],
-                                          ),
-                                        );
+                                      SetPrimaryCustomerServiceContactEvent(
+                                        customerSupport,
+                                        allContacts ?? [],
+                                      ),
+                                    );
                                   } else {
                                     // Regular update
                                     context.read<ManageAppBloc>().add(
-                                          UpdateCustomerServiceContactEvent(
-                                            customerSupport,
-                                          ),
-                                        );
+                                      UpdateCustomerServiceContactEvent(
+                                        customerSupport,
+                                      ),
+                                    );
                                   }
                                 } else {
                                   context.read<ManageAppBloc>().add(
-                                        AddCustomerServiceContactEvent(
-                                          customerSupport,
-                                        ),
-                                      );
+                                    AddCustomerServiceContactEvent(
+                                      customerSupport,
+                                    ),
+                                  );
                                 }
                               }
                             },

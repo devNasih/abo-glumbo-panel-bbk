@@ -3692,6 +3692,24 @@ abstract class AppLocalizations {
   /// **'Edit'**
   String get edit;
 
+  /// No description provided for @setAsPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as Primary'**
+  String get setAsPrimary;
+
+  /// No description provided for @primary.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary'**
+  String get primary;
+
+  /// No description provided for @whatsappCondition.
+  ///
+  /// In en, this message translates to:
+  /// **'Please ensure the phone number you enter includes the country code at the beginning with a plus sign. This format is required for WhatsApp to recognize the number correctly.'**
+  String get whatsappCondition;
+
   /// No description provided for @rewards.
   ///
   /// In en, this message translates to:
