@@ -120,12 +120,20 @@ class UpdateCustomerServiceContactEvent extends ManageAppEvent {
 }
 
 class DeleteCustomerServiceContactEvent extends ManageAppEvent {
+  final BuildContext context;
   final String contactId;
-  const DeleteCustomerServiceContactEvent(this.contactId);
+  final String type;
+
+  const DeleteCustomerServiceContactEvent(
+    this.contactId,
+    this.type,
+    this.context,
+  );
 
   @override
-  List<Object> get props => [contactId];
+  List<Object> get props => [contactId, type, context];
 }
+
 class SetPrimaryCustomerServiceContactEvent extends ManageAppEvent {
   final CustomerSupportModel selectedContact;
   final List<CustomerSupportModel> allContactsOfType;

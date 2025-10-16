@@ -615,5 +615,18 @@
   "unblock": "Unblock",
   "whatsappNumber": "WhatsApp Number",
   "whatsappCondition": "Please ensure the phone number you enter includes the country code at the beginning with a plus sign. This format is required for WhatsApp to recognize the number correctly.",
-  "rewards": "Rewards"
+  "rewards": "Rewards",
+  "contactNotFound": "Contact not found",
+  "atleastOneContactIsrequired": "At least one contact is required",
+  "cannotRemovePrimaryStatusFromTheOnlyContact":"Cannot remove primary status from the only contact",
+   "cannotDeleteLastContact": "Cannot delete the last {contactType} contact. At least one contact is required.",
+  "@cannotDeleteLastContact": {
+    "description": "Error message when trying to delete the last contact of a specific type",
+    "placeholders": {
+      "contactType": {
+        "type": "String",
+        "example": "email"
+      }
+    }
+  }
 }

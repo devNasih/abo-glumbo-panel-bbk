@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:aboglumbo_bbk_panel/helpers/custom_exception.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
+import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/banner.dart';
 import 'package:aboglumbo_bbk_panel/models/categories.dart';
 import 'package:aboglumbo_bbk_panel/models/customer_support.dart';
@@ -10,6 +11,7 @@ import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 part 'manage_app_event.dart';
@@ -297,7 +299,43 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
   ) async {
     emit(DeletingCustomerSupport());
     try {
-      await AppServices.deleteCustomerService(event.contactId);
+     // Get the contact to delete
+    final contact = await AppServices.getCustomerServiceById(event.contactId);
+    
+    if (contact == null) {
+      emit(CustomerSupportDeleteError(AppLocalizations.of(event.context)!.contactNotFound));
+      return;
+    }
+    
+    // Get all contacts of the same type
+    final allContacts = await AppServices.getCustomerServiceByType(
+      contact.type,
+    );
+    
+    // Prevent deletion if only one contact exists
+    if (allContacts.length <= 1) {
+      emit(CustomerSupportDeleteError(
+        AppLocalizations.of(event.context)!.cannotDeleteLastContact(contact.type),
+      ));
+      return;
+    }
+    
+    // If deleting primary contact, set another one as primary
+    if (contact.isActive == true) {
+      final newPrimary = allContacts.firstWhere((c) => c.id != event.contactId);
+      await AppServices.updateCustomerService(
+        CustomerSupportModel(
+          id: newPrimary.id,
+          name: newPrimary.name,
+          detail: newPrimary.detail,
+          type: newPrimary.type,
+          isActive: true,
+        ),
+      );
+    }
+    
+    await AppServices.deleteCustomerService(event.contactId);
+    
       emit(CustomerSupportDeleted(true));
     } catch (e) {
       emit(CustomerSupportDeleteError(e.toString()));

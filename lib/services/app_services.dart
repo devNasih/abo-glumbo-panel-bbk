@@ -716,4 +716,43 @@ class AppServices {
       return false;
     }
   }
+
+  // In app_services.dart
+  static Future<List<CustomerSupportModel>> getCustomerServiceByType(
+    String type,
+  ) async {
+    try {
+      final querySnapshot = await AppFirestore.customerServiceCollectionRef
+          .where('type', isEqualTo: type)
+          .get();
+
+      return querySnapshot.docs
+          .map(
+            (doc) => CustomerSupportModel.fromJson(
+              doc.data() as Map<String, dynamic>,
+            ),
+          )
+          .toList();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Method to get a single contact by ID
+  static Future<CustomerSupportModel?> getCustomerServiceById(String id) async {
+    try {
+      final docSnapshot = await AppFirestore.customerServiceCollectionRef
+          .doc(id)
+          .get();
+
+      if (docSnapshot.exists) {
+        return CustomerSupportModel.fromJson(
+          docSnapshot.data() as Map<String, dynamic>,
+        );
+      }
+      return null;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

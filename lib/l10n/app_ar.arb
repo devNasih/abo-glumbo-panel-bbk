@@ -616,7 +616,11 @@
   "disapproveAgent": "رفض الوكيل",
   "approveAgent": "قبول الوكيل",
   "unblockCustomer": "فك حظر العميل",
+  "contactNotFound": "جهة الاتصال غير موجودة",
+  "atleastOneContactIsrequired": "مطلوب على الاقل جهة اتصال واحدة",
+  "cannotRemovePrimaryStatusFromTheOnlyContact":"لا يمكن حذف حالة الابري من جهة الاتصال الوحيدة",
   "whatsappNumber": "رقم واتساب",
   "whatsappCondition": "يرجى تأكيد رقم الهاتف الذي ادخلته بشكل صحيح. هذا النمط مطلوب لتعريف رقم الواتساب بشكل صحيح.",
-  "rewards": "الجوائز"
+  "rewards": "الجوائز",
+  "cannotDeleteLastContact": "لا يمكن حذف آخر جهة اتصال {contactType}. مطلوب جهة اتصال واحدة على الأقل."
 }

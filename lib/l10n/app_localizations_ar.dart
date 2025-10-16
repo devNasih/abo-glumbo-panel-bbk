@@ -1939,4 +1939,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rewards => 'الجوائز';
+
+  @override
+  String get contactNotFound => 'جهة الاتصال غير موجودة';
+
+  @override
+  String get atleastOneContactIsrequired => 'مطلوب على الاقل جهة اتصال واحدة';
+
+  @override
+  String get cannotRemovePrimaryStatusFromTheOnlyContact =>
+      'لا يمكن حذف حالة الابري من جهة الاتصال الوحيدة';
+
+  @override
+  String cannotDeleteLastContact(String contactType) {
+    return 'لا يمكن حذف آخر جهة اتصال $contactType. مطلوب جهة اتصال واحدة على الأقل.';
+  }
 }

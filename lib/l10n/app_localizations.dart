@@ -3799,6 +3799,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rewards'**
   String get rewards;
+
+  /// No description provided for @contactNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact not found'**
+  String get contactNotFound;
+
+  /// No description provided for @atleastOneContactIsrequired.
+  ///
+  /// In en, this message translates to:
+  /// **'At least one contact is required'**
+  String get atleastOneContactIsrequired;
+
+  /// No description provided for @cannotRemovePrimaryStatusFromTheOnlyContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot remove primary status from the only contact'**
+  String get cannotRemovePrimaryStatusFromTheOnlyContact;
+
+  /// Error message when trying to delete the last contact of a specific type
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete the last {contactType} contact. At least one contact is required.'**
+  String cannotDeleteLastContact(String contactType);
 }
 
 class _AppLocalizationsDelegate

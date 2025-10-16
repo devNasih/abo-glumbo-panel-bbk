@@ -1961,4 +1961,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rewards => 'Rewards';
+
+  @override
+  String get contactNotFound => 'Contact not found';
+
+  @override
+  String get atleastOneContactIsrequired => 'At least one contact is required';
+
+  @override
+  String get cannotRemovePrimaryStatusFromTheOnlyContact =>
+      'Cannot remove primary status from the only contact';
+
+  @override
+  String cannotDeleteLastContact(String contactType) {
+    return 'Cannot delete the last $contactType contact. At least one contact is required.';
+  }
 }
