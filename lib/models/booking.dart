@@ -60,6 +60,7 @@ class BookingModel {
   Timestamp? rejectedAt;
   Timestamp? completedAt;
   Timestamp? trackingStartedAt;
+  Timestamp? cancelledAt;
 
   BookingModel({
     required this.id,
@@ -81,6 +82,7 @@ class BookingModel {
     this.rejectedAt,
     this.completedAt,
     this.trackingStartedAt,
+    this.cancelledAt,
   });
 
   BookingModel.fromMap(Map<String, dynamic> data)
@@ -108,7 +110,8 @@ class BookingModel {
       acceptedAt = data['acceptedAt'],
       rejectedAt = data['rejectedAt'],
       completedAt = data['completedAt'],
-      trackingStartedAt = data['trackingStartedAt'];
+      trackingStartedAt = data['trackingStartedAt'],
+      cancelledAt = data['cancelledAt'];
 
   factory BookingModel.fromQueryDocumentSnapshot(
     QueryDocumentSnapshot snapshot,
@@ -140,6 +143,7 @@ class BookingModel {
       'rejectedAt': rejectedAt,
       'completedAt': completedAt,
       'trackingStartedAt': trackingStartedAt,
+      'cancelledAt': cancelledAt,
     };
 
     map['id'] = id;

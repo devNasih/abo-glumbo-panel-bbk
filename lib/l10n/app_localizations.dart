@@ -3806,6 +3806,60 @@ abstract class AppLocalizations {
   /// **'Contact not found'**
   String get contactNotFound;
 
+  /// No description provided for @keepBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep Booking'**
+  String get keepBooking;
+
+  /// No description provided for @orderCancelledSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Order cancelled successfully'**
+  String get orderCancelledSuccessfully;
+
+  /// No description provided for @failedToCancelOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to cancel order'**
+  String get failedToCancelOrder;
+
+  /// No description provided for @cancelledBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled By'**
+  String get cancelledBy;
+
+  /// No description provided for @cancelledByAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled by Admin'**
+  String get cancelledByAdmin;
+
+  /// No description provided for @cancelledByCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled by Customer'**
+  String get cancelledByCustomer;
+
+  /// No description provided for @bookingDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking Details'**
+  String get bookingDetails;
+
+  /// No description provided for @confirmCancellation.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Cancellation'**
+  String get confirmCancellation;
+
+  /// No description provided for @adminCancelWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel this booking? The customer will be notified. Cancelling this booking will not refund the customer automatically. Please ensure to process any necessary refunds manually.'**
+  String get adminCancelWarning;
+
   /// No description provided for @atleastOneContactIsrequired.
   ///
   /// In en, this message translates to:

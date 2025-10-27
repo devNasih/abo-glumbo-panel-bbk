@@ -732,6 +732,18 @@ class BookingInfo extends StatelessWidget {
       }
     }
 
+    // Admin cancellation
+    if (booking.bookingStatusCode.toLowerCase() == 'xx') {
+      timelineItems.add({
+        'title': AppLocalizations.of(context)!.cancelledByAdmin,
+        'time': _formatDateLocalized((booking.cancelledAt!.toDate()), context),
+        'description':
+            '${AppLocalizations.of(context)!.cancelledBy}: ${AppLocalizations.of(context)!.admin}',
+        'status': 'rejected',
+        'date': booking.cancelledAt!.toDate(),
+      });
+    }
+
     // If no completion/rejection/cancellation, add current status
     if (booking.completedAt == null && booking.rejectedAt == null) {
       if (booking.trackingStartedAt != null) {
@@ -755,15 +767,18 @@ class BookingInfo extends StatelessWidget {
           'date': DateTime.now(),
         });
       } else {
-        timelineItems.add({
-          'title': AppLocalizations.of(context)!.waitingForAcceptance,
-          'time': AppLocalizations.of(context)!.pending,
-          'description': AppLocalizations.of(
-            context,
-          )!.waitingForServiceProviderResponse,
-          'status': 'current',
-          'date': DateTime.now(),
-        });
+        if (booking.bookingStatusCode.toLowerCase() != 'xx') {
+          // Only show if not cancelled by admin
+          timelineItems.add({
+            'title': AppLocalizations.of(context)!.waitingForAcceptance,
+            'time': AppLocalizations.of(context)!.pending,
+            'description': AppLocalizations.of(
+              context,
+            )!.waitingForServiceProviderResponse,
+            'status': 'current',
+            'date': DateTime.now(),
+          });
+        }
       }
     }
 
@@ -836,7 +851,7 @@ class BookingInfo extends StatelessWidget {
                 isLast: isLast,
                 colorScheme: colorScheme,
               );
-            }).toList(),
+            }),
           ],
         ),
       ),

@@ -48,3 +48,21 @@ final class OrderRejectionError extends AdminState {
   @override
   List<Object> get props => [error];
 }
+
+final class CancellingOrder extends AdminState {}
+
+final class OrderCancelled extends AdminState {
+  final bool isCancelled;
+  const OrderCancelled(this.isCancelled);
+
+  @override
+  List<Object> get props => [isCancelled];
+}
+
+final class OrderCancellationError extends AdminState {
+  final String error;
+  const OrderCancellationError(this.error);
+
+  @override
+  List<Object> get props => [error];
+}

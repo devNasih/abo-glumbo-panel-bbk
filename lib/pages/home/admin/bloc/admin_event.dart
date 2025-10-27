@@ -25,3 +25,13 @@ class RejectOrderEvent extends AdminEvent {
   @override
   List<Object> get props => [booking];
 }
+class AdminCancelOrderEvent extends AdminEvent {
+  final BookingModel booking;
+  const AdminCancelOrderEvent({required this.booking});
+
+  @override
+  List<Object> get props => [booking];
+}
+
+
+

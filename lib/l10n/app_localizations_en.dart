@@ -1966,6 +1966,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get contactNotFound => 'Contact not found';
 
   @override
+  String get keepBooking => 'Keep Booking';
+
+  @override
+  String get orderCancelledSuccessfully => 'Order cancelled successfully';
+
+  @override
+  String get failedToCancelOrder => 'Failed to cancel order';
+
+  @override
+  String get cancelledBy => 'Cancelled By';
+
+  @override
+  String get cancelledByAdmin => 'Cancelled by Admin';
+
+  @override
+  String get cancelledByCustomer => 'Cancelled by Customer';
+
+  @override
+  String get bookingDetails => 'Booking Details';
+
+  @override
+  String get confirmCancellation => 'Confirm Cancellation';
+
+  @override
+  String get adminCancelWarning =>
+      'Are you sure you want to cancel this booking? The customer will be notified. Cancelling this booking will not refund the customer automatically. Please ensure to process any necessary refunds manually.';
+
+  @override
   String get atleastOneContactIsrequired => 'At least one contact is required';
 
   @override

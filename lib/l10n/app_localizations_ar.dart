@@ -1944,6 +1944,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get contactNotFound => 'جهة الاتصال غير موجودة';
 
   @override
+  String get keepBooking => 'استمرار الحجز';
+
+  @override
+  String get orderCancelledSuccessfully => 'تم إلغاء الطلب بنجاح';
+
+  @override
+  String get failedToCancelOrder => 'فشل في إلغاء الطلب';
+
+  @override
+  String get cancelledBy => 'تم الإلغاء بواسطة';
+
+  @override
+  String get cancelledByAdmin => 'تم الإلغاء بواسطة المسؤول';
+
+  @override
+  String get cancelledByCustomer => 'تم الإلغاء بواسطة العميل';
+
+  @override
+  String get bookingDetails => 'تفاصيل الحجز';
+
+  @override
+  String get confirmCancellation => 'تأكيد الإلغاء';
+
+  @override
+  String get adminCancelWarning =>
+      'هل أنت متأكد أنك تريد إلغاء هذا الحجز؟ سيتم إخطار العميل. إلغاء هذا الحجز لن يقوم تلقائيًا برد المبلغ للعميل. يرجى التأكد من معالجة أي ردود أموال ضرورية يدويًا.';
+
+  @override
   String get atleastOneContactIsrequired => 'مطلوب على الاقل جهة اتصال واحدة';
 
   @override
