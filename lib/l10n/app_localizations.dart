@@ -4388,6 +4388,144 @@ abstract class AppLocalizations {
   /// **'No payout accounts added'**
   String get noPayoutAccountsAdded;
 
+  /// No description provided for @managePayouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Payouts'**
+  String get managePayouts;
+
+  /// No description provided for @requestedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested on'**
+  String get requestedOn;
+
+  /// No description provided for @workerInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Worker Information'**
+  String get workerInformation;
+
+  /// No description provided for @payoutAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout Amount'**
+  String get payoutAmount;
+
+  /// No description provided for @bankAccountDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Account Details'**
+  String get bankAccountDetails;
+
+  /// No description provided for @approve.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get approve;
+
+  /// No description provided for @rejectPayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject Payout'**
+  String get rejectPayout;
+
+  /// No description provided for @payoutApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout Approved'**
+  String get payoutApproved;
+
+  /// No description provided for @approvePayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve Payout'**
+  String get approvePayout;
+
+  /// No description provided for @fileRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'File is required'**
+  String get fileRequired;
+
+  /// No description provided for @transactionNumberRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction number is required'**
+  String get transactionNumberRequired;
+
+  /// No description provided for @supportedFormats.
+  ///
+  /// In en, this message translates to:
+  /// **'Supported formats:'**
+  String get supportedFormats;
+
+  /// No description provided for @pleaseProvideTransactionDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Please provide transaction details to approve this payout request.'**
+  String get pleaseProvideTransactionDetails;
+
+  /// No description provided for @pdfImageOrDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF, Image, or Document'**
+  String get pdfImageOrDocument;
+
+  /// No description provided for @tapToSelectFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to select file'**
+  String get tapToSelectFile;
+
+  /// No description provided for @uploadProof.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Proof'**
+  String get uploadProof;
+
+  /// No description provided for @transactionNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction Number'**
+  String get transactionNumber;
+
+  /// No description provided for @enterTransactionNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Transaction Number'**
+  String get enterTransactionNumber;
+
+  /// No description provided for @payoutRejectedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout rejected successfully'**
+  String get payoutRejectedSuccessfully;
+
+  /// No description provided for @payoutRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout Rejected'**
+  String get payoutRejected;
+
+  /// No description provided for @rejectConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to reject this payout request?'**
+  String get rejectConfirmation;
+
+  /// No description provided for @reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get reason;
+
+  /// No description provided for @enterTheReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the reason for rejecting this payout request'**
+  String get enterTheReason;
+
   /// No description provided for @payoutRequests.
   ///
   /// In en, this message translates to:

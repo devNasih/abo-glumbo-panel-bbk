@@ -2270,6 +2270,78 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPayoutAccountsAdded => 'No payout accounts added';
 
   @override
+  String get managePayouts => 'Manage Payouts';
+
+  @override
+  String get requestedOn => 'Requested on';
+
+  @override
+  String get workerInformation => 'Worker Information';
+
+  @override
+  String get payoutAmount => 'Payout Amount';
+
+  @override
+  String get bankAccountDetails => 'Bank Account Details';
+
+  @override
+  String get approve => 'Approve';
+
+  @override
+  String get rejectPayout => 'Reject Payout';
+
+  @override
+  String get payoutApproved => 'Payout Approved';
+
+  @override
+  String get approvePayout => 'Approve Payout';
+
+  @override
+  String get fileRequired => 'File is required';
+
+  @override
+  String get transactionNumberRequired => 'Transaction number is required';
+
+  @override
+  String get supportedFormats => 'Supported formats:';
+
+  @override
+  String get pleaseProvideTransactionDetails =>
+      'Please provide transaction details to approve this payout request.';
+
+  @override
+  String get pdfImageOrDocument => 'PDF, Image, or Document';
+
+  @override
+  String get tapToSelectFile => 'Tap to select file';
+
+  @override
+  String get uploadProof => 'Upload Proof';
+
+  @override
+  String get transactionNumber => 'Transaction Number';
+
+  @override
+  String get enterTransactionNumber => 'Enter Transaction Number';
+
+  @override
+  String get payoutRejectedSuccessfully => 'Payout rejected successfully';
+
+  @override
+  String get payoutRejected => 'Payout Rejected';
+
+  @override
+  String get rejectConfirmation =>
+      'Are you sure you want to reject this payout request?';
+
+  @override
+  String get reason => 'Reason';
+
+  @override
+  String get enterTheReason =>
+      'Enter the reason for rejecting this payout request';
+
+  @override
   String get payoutRequests => 'Payout Requests';
 
   @override

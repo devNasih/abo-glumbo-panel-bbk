@@ -6,6 +6,7 @@ import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/customer_support/man
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/customers/manage_customers.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/faq/manage_faq.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/highlighted_services/highlighted_services.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/payouts/manage_payouts.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/services/manage_services.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/tips/tips.dart';
 import 'package:flutter/material.dart';
@@ -77,6 +78,13 @@ class _ManageAppState extends State<ManageApp> {
         onTap: () => _navigateToPage('Manage Tips'),
       ),
       _TileInfo(
+        key: 'manage_payouts',
+        labelFallback:
+            AppLocalizations.of(context)?.managePayouts ?? "Manage Payouts",
+        icon: Icons.wallet,
+        onTap: () => _navigateToPage('Manage Payouts'),
+      ),
+      _TileInfo(
         key: 'manage_faq',
         labelFallback:
             AppLocalizations.of(context)?.manageFaqs ?? "Manage FAQs",
@@ -116,6 +124,8 @@ class _ManageAppState extends State<ManageApp> {
               return const ManageTips();
             case 'Manage FAQ':
               return const ManageFaq();
+            case 'Manage Payouts':
+              return const ManagePayouts();
             case 'Manage Customer Support':
               return const ManageCustomerSupport();
             default:

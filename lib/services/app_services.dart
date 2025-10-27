@@ -1111,5 +1111,14 @@ class AppServices {
     await AppFirestore.payoutCollectionRef.doc(payoutRequestId).delete();
   }
 
- 
+  static Stream<List<PayoutRequestModel>> getAllPayoutRequests() {
+    return AppFirestore.payoutCollectionRef.snapshots().map((snapshot) {
+      return snapshot.docs
+          .map(
+            (doc) =>
+                PayoutRequestModel.fromJson(doc.data() as Map<String, dynamic>),
+          )
+          .toList();
+    });
+  }
 }
