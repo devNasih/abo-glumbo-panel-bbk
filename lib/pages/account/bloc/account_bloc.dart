@@ -21,6 +21,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     on<UpdateWorkerNotificationLanguageEvent>(
       _updateWorkerNotificationLanguage,
     );
+    on<RequestPayoutEvent>(_onPayoutRequest);
   }
   static Locale getSavedLocale() {
     String languageCode = LocalStore.getUserlanguage();
@@ -180,6 +181,23 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
           locale: state.locale,
         ),
       );
+    }
+  }
+
+  Future _onPayoutRequest(
+    RequestPayoutEvent event,
+    Emitter<AccountState> emit,
+  ) async {
+   
+
+    emit(RequestPayoutLoading(locale: state.locale));
+   
+
+    try {
+      await AppServices.requestPayout(event.amount, event.user);
+      emit(RequestPayoutSuccess(locale: state.locale));
+    } catch (e) {
+      emit(RequestPayoutFailure(error: e.toString(), locale: state.locale));
     }
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rxdart/rxdart.dart';
@@ -44,11 +46,21 @@ class StatServices {
   ) async {
     try {
       // Fetch agent rating once
-      final userDoc = await AppFirestore.usersCollectionRef.doc(agentUid).get();
-      final userData = userDoc.data() as Map<String, dynamic>?;
-      final double rating = (userData != null && userData['rating'] != null)
-          ? (userData['rating'] as num).toDouble()
-          : 0.0;
+
+      final bookings = await AppFirestore.bookingsCollectionRef
+          .where('bookingStatusCode', isEqualTo: 'C')
+          .where('agent.uid', isEqualTo: agentUid)
+          .where('service.category', isEqualTo: category)
+          .where("review", isNull: false)
+          .get();
+      log(bookings.docs.length.toString());
+
+      final reviews = bookings.docs.map((doc) => doc['review']).toList();
+
+      final ratings = reviews.map((review) => review['rating']).toList();
+      final rating = ratings.isNotEmpty
+          ? ratings.reduce((a, b) => a + b) / ratings.length
+          : 0;
 
       final now = DateTime.now();
       final firstDayOfMonth = DateTime(now.year, now.month, 1);
@@ -61,11 +73,11 @@ class StatServices {
           .where('agent.uid', isEqualTo: agentUid)
           .where('service.category', isEqualTo: category)
           .where(
-            'agent.completedAt',
+            'completedAt',
             isGreaterThanOrEqualTo: Timestamp.fromDate(firstDayOfMonth),
           )
           .where(
-            'agent.completedAt',
+            'completedAt',
             isLessThan: Timestamp.fromDate(firstDayOfNextMonth),
           )
           .get();

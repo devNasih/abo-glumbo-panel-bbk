@@ -184,7 +184,7 @@ class _AssignWorkerState extends State<AssignWorker> {
                                   style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                               );
-                            }).toList(),
+                            }),
                           ],
                           onChanged: (String? newValue) {
                             setState(() {

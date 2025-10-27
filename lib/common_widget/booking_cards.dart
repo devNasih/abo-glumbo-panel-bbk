@@ -1,10 +1,12 @@
+import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/address.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
+import 'package:aboglumbo_bbk_panel/pages/bookings/bloc/booking_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/bookings/booking_info.dart';
-import 'package:aboglumbo_bbk_panel/pages/home/admin/bloc/admin_bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -12,14 +14,12 @@ class BookingCards extends StatelessWidget {
   final BookingModel booking;
   final bool isAdmin;
   final VoidCallback? onAssign;
-  final VoidCallback? onCancel;
 
   const BookingCards({
     super.key,
     required this.booking,
     this.isAdmin = false,
     this.onAssign,
-    this.onCancel,
   });
 
   Color _getStatusColor() {
@@ -33,7 +33,7 @@ class BookingCards extends StatelessWidget {
 
     switch (booking.bookingStatusCode) {
       case "X":
-      case "XX":
+      case "R":
         return Colors.red;
       case "C":
         return Colors.green;
@@ -107,30 +107,33 @@ class BookingCards extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  if (!isAdmin && booking.bookingStatusCode == 'P') ...[
+                    IconButton(
+                      onPressed: () {
+                        showAcceptBookingDialog(context, booking);
+                      },
+                      icon: Icon(Icons.check_circle, color: Colors.green),
+                    ),
+
+                    IconButton(
+                      onPressed: () {
+                        showRejectBookingDialog(context, booking);
+                      },
+                      icon: Icon(Icons.cancel, color: Colors.red),
+                    ),
+                  ],
                   if (isAdmin &&
                       onAssign != null &&
                       booking.bookingStatusCode == 'P')
-                    Row(
-                      children: [
-                        OutlinedButton(
-                          onPressed: onAssign,
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(60, 28),
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                          ),
-                          child: Text(
-                            AppLocalizations.of(context)?.assign ?? 'Assign',
-                          ),
-                        ),
-
-                        IconButton(
-                          onPressed: onCancel,
-                          icon: const Icon(Icons.cancel, color: Colors.red),
-                          tooltip:
-                              AppLocalizations.of(context)?.cancelBooking ??
-                              'Cancel Booking',
-                        ),
-                      ],
+                    OutlinedButton(
+                      onPressed: onAssign,
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(60, 28),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)?.assign ?? 'Assign',
+                      ),
                     ),
                 ],
               ),
@@ -188,7 +191,7 @@ class BookingCards extends StatelessWidget {
                   ),
 
                   // Agent row (if exists)
-                  if (booking.agent != null) ...[
+                  if (isAdmin && booking.agent != null) ...[
                     const SizedBox(height: 12),
                     Row(
                       children: [
@@ -263,6 +266,74 @@ class BookingCards extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void showAcceptBookingDialog(BuildContext context, BookingModel booking) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(AppLocalizations.of(context)!.acceptBooking),
+          content: Text(
+            AppLocalizations.of(context)!.areYouSureYouWantToAcceptThisBooking,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(AppLocalizations.of(context)!.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                AppFirestore.bookingsCollectionRef.doc(booking.id).update({
+                  'bookingStatusCode': 'A',
+                  'acceptedAt': FieldValue.serverTimestamp(),
+                  'updatedAt': FieldValue.serverTimestamp(),
+                });
+                Navigator.of(context).pop();
+              },
+              child: Text(AppLocalizations.of(context)!.accept),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showRejectBookingDialog(BuildContext context, BookingModel booking) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(AppLocalizations.of(context)!.rejectBooking),
+          content: Text(
+            AppLocalizations.of(context)!.areYouSureYouWantToRejectThisBooking,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(AppLocalizations.of(context)!.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                context.read<BookingBloc>().add(
+                  CancelBooking(
+                    bookingId: booking.id,
+                    agentUid: booking.agent?.uid ?? '',
+                    agentName: booking.agent?.name ?? '',
+                  ),
+                );
+                Navigator.of(context).pop();
+              },
+              child: Text(AppLocalizations.of(context)!.reject),
+            ),
+          ],
+        );
+      },
     );
   }
 }

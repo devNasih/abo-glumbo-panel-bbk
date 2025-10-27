@@ -4,7 +4,7 @@ import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/account.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/admin_home.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage_app.dart';
-import 'package:aboglumbo_bbk_panel/pages/home/worker/rewards_page.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/worker/dashboard.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/worker/worker_home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
@@ -17,7 +17,9 @@ import 'package:flutter_svg/svg.dart';
 
 class Home extends StatefulWidget {
   final String? byPassUid;
-  const Home({super.key, this.byPassUid});
+  final int? newIndex;
+  final String? selectedFilter;
+  const Home({super.key, this.byPassUid, this.newIndex, this.selectedFilter});
 
   @override
   State<Home> createState() => _HomeState();
@@ -28,6 +30,7 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
+    currentIndex = widget.newIndex ?? 0;
     NotificationServices.initializeFCM();
     if (widget.byPassUid != null && widget.byPassUid!.isNotEmpty) {
       _handleBypassLogin();
@@ -45,23 +48,55 @@ class _HomeState extends State<Home> {
     return BlocBuilder<LoginBloc, LoginState>(
       builder: (context, state) {
         if (state is LoginLoadWorkerDataFailure) {
-          return Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('${locale?.error}: ${state.error}'),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        '/',
-                        (route) => false,
-                      );
-                    },
-                    child: const Text('Retry'),
+          return PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, result) {
+              if (didPop) return;
+              if (currentIndex == 0) {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(locale?.exitAppTitle ?? 'Exit App'),
+                    content: Text(
+                      locale?.exitAppMessage ??
+                          'Are you sure you want to exit the app?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(locale?.cancel ?? 'Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: Text(locale?.exit ?? 'Exit'),
+                      ),
+                    ],
                   ),
-                ],
+                );
+              } else {
+                setState(() {
+                  currentIndex = 0;
+                });
+              }
+            },
+            child: Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('${locale?.error}: ${state.error}'),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/',
+                          (route) => false,
+                        );
+                      },
+                      child: Text(AppLocalizations.of(context)!.retry),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -78,65 +113,128 @@ class _HomeState extends State<Home> {
           );
         }
         if (userData.isVerified != true) {
-          return Scaffold(
-            appBar: AppBar(
-              title: Text(locale?.account ?? ''),
-              centerTitle: true,
-            ),
-            body: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.hourglass_empty,
-                      size: 80,
-                      color: AppColors.secondary,
+          return PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, result) {
+              if (didPop) return;
+              if (currentIndex == 0) {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(locale?.exitAppTitle ?? 'Exit App'),
+                    content: Text(
+                      locale?.exitAppMessage ??
+                          'Are you sure you want to exit the app?',
                     ),
-                    const SizedBox(height: 24),
-                    Text(
-                      AppLocalizations.of(
-                            context,
-                          )?.pleaseWaitAccountVerification ??
-                          'Please wait for account verification',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      AppLocalizations.of(
-                            context,
-                          )?.accountVerificationPending ??
-                          'Your account is pending verification. You will be notified once it is approved.',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 32),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LoginPage(),
-                          ),
-                          (route) => false,
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.secondary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 12,
-                        ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(locale?.cancel ?? 'Cancel'),
                       ),
-                      child: Text(locale?.goToLogin ?? 'Go to Login'),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: Text(locale?.exit ?? 'Exit'),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                setState(() {
+                  currentIndex = 0;
+                });
+              }
+            },
+            child: PopScope(
+              canPop: false,
+              onPopInvokedWithResult: (didPop, result) {
+                if (didPop) return;
+                if (currentIndex == 0) {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(locale?.exitAppTitle ?? 'Exit App'),
+                      content: Text(
+                        locale?.exitAppMessage ??
+                            'Are you sure you want to exit the app?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(locale?.cancel ?? 'Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: Text(locale?.exit ?? 'Exit'),
+                        ),
+                      ],
                     ),
-                  ],
+                  );
+                } else {
+                  setState(() {
+                    currentIndex = 0;
+                  });
+                }
+              },
+              child: Scaffold(
+                appBar: AppBar(
+                  title: Text(locale?.account ?? ''),
+                  centerTitle: true,
+                ),
+                body: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.hourglass_empty,
+                          size: 80,
+                          color: AppColors.secondary,
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          AppLocalizations.of(
+                                context,
+                              )?.pleaseWaitAccountVerification ??
+                              'Please wait for account verification',
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          AppLocalizations.of(
+                                context,
+                              )?.accountVerificationPending ??
+                              'Your account is pending verification. You will be notified once it is approved.',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: Colors.grey[600]),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 32),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LoginPage(),
+                              ),
+                              (route) => false,
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.secondary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 12,
+                            ),
+                          ),
+                          child: Text(locale?.goToLogin ?? 'Go to Login'),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -149,83 +247,118 @@ class _HomeState extends State<Home> {
         ];
 
         List<Widget> workerPages = [
-          WorkerHome(),
-          RewardsPage(workerData: userData),
+          DashboardScreen(workerData: userData),
+          WorkerHome(
+            selectedIndex: widget.selectedFilter,
+          ), //swap with dashboard
+
           AccountPage(workerData: userData),
         ];
         final currentPages = userData.isAdmin == true
             ? adminPages
             : workerPages;
-        return Scaffold(
-          extendBodyBehindAppBar: true,
-          body: currentPages[currentIndex],
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: currentIndex,
-            onDestinationSelected: (index) {
-              if (index < currentPages.length) {
-                setState(() => currentIndex = index);
-              }
-            },
-            height: 70,
-            destinations: [
-              NavigationDestination(
-                icon: SvgPicture.asset(
-                  AppIcons.homeNav,
-                  colorFilter: ColorFilter.mode(
-                    AppColors.grey,
-                    BlendMode.srcIn,
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
+            if (currentIndex == 0) {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text(locale?.exitAppTitle ?? 'Exit App'),
+                  content: Text(
+                    locale?.exitAppMessage ??
+                        'Are you sure you want to exit the app?',
                   ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(locale?.cancel ?? 'Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: Text(locale?.exit ?? 'Exit'),
+                    ),
+                  ],
                 ),
-                selectedIcon: SvgPicture.asset(
-                  AppIcons.homeNav,
-                  colorFilter: ColorFilter.mode(
-                    AppColors.secondary,
-                    BlendMode.srcIn,
-                  ),
-                ),
-                label: locale?.home ?? '',
-              ),
-              if (userData.isAdmin == true) ...{
-                NavigationDestination(
-                  icon: Icon(Icons.settings_rounded, color: AppColors.grey),
-                  selectedIcon: Icon(
-                    Icons.settings_rounded,
-                    color: AppColors.secondary,
-                  ),
-                  label: AppLocalizations.of(context)?.manage ?? 'Manage',
-                ),
-              } else ...{
-                NavigationDestination(
-                  selectedIcon: Icon(
-                    Icons.workspace_premium_rounded,
-                    color: AppColors.secondary,
-                  ),
-                  icon: Icon(
-                    Icons.workspace_premium_rounded,
-                    color: AppColors.grey,
-                  ),
-                  label: AppLocalizations.of(context)?.rewards ?? 'Rewards',
-                ),
+              );
+            } else {
+              setState(() {
+                currentIndex = 0;
+              });
+            }
+          },
+          child: Scaffold(
+            extendBodyBehindAppBar: true,
+            body: currentPages[currentIndex],
+            bottomNavigationBar: NavigationBar(
+              selectedIndex: currentIndex,
+              onDestinationSelected: (index) {
+                if (index < currentPages.length) {
+                  setState(() => currentIndex = index);
+                }
               },
+              height: 70,
+              destinations: [
+                NavigationDestination(
+                  icon: SvgPicture.asset(
+                    AppIcons.homeNav,
+                    colorFilter: ColorFilter.mode(
+                      AppColors.grey,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  selectedIcon: SvgPicture.asset(
+                    AppIcons.homeNav,
+                    colorFilter: ColorFilter.mode(
+                      AppColors.secondary,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  label: locale?.home ?? '',
+                ),
+                if (userData.isAdmin == true) ...{
+                  NavigationDestination(
+                    icon: Icon(Icons.settings_rounded, color: AppColors.grey),
+                    selectedIcon: Icon(
+                      Icons.settings_rounded,
+                      color: AppColors.secondary,
+                    ),
+                    label: AppLocalizations.of(context)?.manage ?? 'Manage',
+                  ),
+                } else ...{
+                  NavigationDestination(
+                    selectedIcon: Icon(
+                      Icons.format_list_bulleted,
+                      color: AppColors.secondary,
+                    ),
+                    icon: Icon(
+                      Icons.format_list_bulleted,
+                      color: AppColors.grey,
+                    ),
+                    label: AppLocalizations.of(context)?.orders ?? 'Orders',
+                  ),
+                },
 
-              NavigationDestination(
-                icon: SvgPicture.asset(
-                  AppIcons.profileNav,
-                  colorFilter: ColorFilter.mode(
-                    AppColors.grey,
-                    BlendMode.srcIn,
+                NavigationDestination(
+                  icon: SvgPicture.asset(
+                    AppIcons.profileNav,
+                    colorFilter: ColorFilter.mode(
+                      AppColors.grey,
+                      BlendMode.srcIn,
+                    ),
                   ),
-                ),
-                selectedIcon: SvgPicture.asset(
-                  AppIcons.profileNav,
-                  colorFilter: ColorFilter.mode(
-                    AppColors.secondary,
-                    BlendMode.srcIn,
+                  selectedIcon: SvgPicture.asset(
+                    AppIcons.profileNav,
+                    colorFilter: ColorFilter.mode(
+                      AppColors.secondary,
+                      BlendMode.srcIn,
+                    ),
                   ),
+                  label: locale?.account ?? '',
                 ),
-                label: locale?.account ?? '',
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

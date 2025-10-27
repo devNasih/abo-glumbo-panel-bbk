@@ -556,7 +556,7 @@ class _SignupState extends State<Signup> {
                                   });
                                 },
                               );
-                            }).toList(),
+                            }),
                             const SizedBox(height: 16),
                             Padding(
                               padding: const EdgeInsets.symmetric(

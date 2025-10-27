@@ -8,6 +8,7 @@ import 'package:aboglumbo_bbk_panel/models/language.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/edit_profile.dart';
+import 'package:aboglumbo_bbk_panel/pages/account/payout_accounts.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/services/biometric_service.dart';
@@ -270,7 +271,7 @@ class _AccountPageState extends State<AccountPage> {
                       ),
                     ),
                   ),
-                  if (currentWorkerData?.isAdmin != true)
+                  if (currentWorkerData?.isAdmin != true) ...[
                     ListTile(
                       onTap: () async {
                         final updatedUser = await Navigator.push<UserModel>(
@@ -299,6 +300,24 @@ class _AccountPageState extends State<AccountPage> {
                         size: 15,
                       ),
                     ),
+                    ListTile(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const PayoutAccountsPage(),
+                      )),
+                      title: Text(
+                        AppLocalizations.of(context)?.payoutAccounts ?? '',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 16,
+                          color: AppColors.black1,
+                        ),
+                      ),
+                      trailing: const Icon(
+                        Icons.arrow_forward_ios_sharp,
+                        size: 15,
+                      ),
+                    ),
+                  ],
                 ],
                 ListTile(
                   onTap: () => _showLanguageDialog(false),

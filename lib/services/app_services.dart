@@ -1,5 +1,7 @@
 import 'dart:developer';
-
+import 'package:aboglumbo_bbk_panel/models/payout_request.dart';
+import 'package:aboglumbo_bbk_panel/models/transaction.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:aboglumbo_bbk_panel/helpers/custom_exception.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
@@ -17,6 +19,7 @@ import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
 
 class AppServices {
   static Future<void> updateFCMToken(String token) async {
@@ -755,4 +758,358 @@ class AppServices {
       rethrow;
     }
   }
+
+  static Stream<List<CustomerSupportModel>> getCustomerSupportdata() {
+    return AppFirestore.customerServiceCollectionRef
+        .where('isActive', isEqualTo: true)
+        .snapshots()
+        .map((snapshot) {
+          List<CustomerSupportModel> customerSupportList = snapshot.docs
+              .map(
+                (doc) => CustomerSupportModel.fromJson(
+                  doc.data() as Map<String, dynamic>,
+                ),
+              )
+              .toList();
+          return customerSupportList;
+        });
+  }
+
+  static Stream<Map<String, dynamic>> getallstats(String uid) {
+    final completed = AppFirestore.bookingsCollectionRef
+        .where('agent.uid', isEqualTo: uid)
+        .where('bookingStatusCode', isEqualTo: 'C')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+
+    final latest = AppFirestore.bookingsCollectionRef
+        .where('agent.uid', isEqualTo: uid)
+        .where('bookingStatusCode', isEqualTo: 'P')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+
+    final accepted = AppFirestore.bookingsCollectionRef
+        .where('agent.uid', isEqualTo: uid)
+        .where('bookingStatusCode', isEqualTo: 'A')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+
+    final Stream<double> rating = AppFirestore.bookingsCollectionRef
+        .where('bookingStatusCode', isEqualTo: 'C')
+        .where('agent.uid', isEqualTo: uid)
+        .where('review', isNull: false)
+        .snapshots()
+        .map((snapshot) {
+          final reviews = snapshot.docs
+              .where((doc) => doc['review'] != null)
+              .map((doc) => doc['review'])
+              .toList();
+
+          if (reviews.isEmpty) return 0.0;
+
+          final ratings = reviews.map((review) => review['rating']).toList();
+          return ratings.reduce((a, b) => a + b) / ratings.length;
+        });
+
+    return Rx.combineLatest4<int, int, int, double, Map<String, dynamic>>(
+      completed,
+      latest,
+      accepted,
+      rating,
+      (
+        int completedCount,
+        int latestCount,
+        int acceptedCount,
+        double avgRating,
+      ) => {
+        'completed': completedCount,
+        'latest': latestCount,
+        'accepted': acceptedCount,
+        'rating': avgRating,
+      },
+    );
+  }
+
+  static Future<TippingModel> getWorkerTippingData(String workerId) async {
+    final snapshot = await AppFirestore.tippingCollectionRef
+        .where('agentId', isEqualTo: workerId)
+        .get();
+    return TippingModel.fromJson(
+      snapshot.docs.first.data() as Map<String, dynamic>,
+    );
+  }
+
+  static Future<List<TransactionModel>> getWorkerTransactions(
+    String workerId,
+  ) async {
+    final snapshot = await AppFirestore.transactionsCollectionRef
+        .where('workerId', isEqualTo: workerId)
+        .get();
+    return snapshot.docs
+        .map(
+          (doc) =>
+              TransactionModel.fromJson(doc.data() as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  static Stream<List<PayoutAccountModel>> getPayoutAccount(String userId) {
+    return AppFirestore.usersCollectionRef.doc(userId).snapshots().map((
+      snapshot,
+    ) {
+      if (!snapshot.exists) return <PayoutAccountModel>[];
+
+      final data = snapshot.data() as Map<String, dynamic>?;
+      if (data == null || data['payoutAccounts'] == null) {
+        return <PayoutAccountModel>[];
+      }
+
+      return List<PayoutAccountModel>.from(
+        data['payoutAccounts'].map((x) => PayoutAccountModel.fromJson(x)),
+      );
+    });
+  }
+
+  // Add a new payout account
+  static Future<void> addPayoutAccount({
+    required String userId,
+    required String accountHolderName,
+    required String accountNumber,
+    required String bankName,
+    required String ifscCode,
+    required String accountType,
+    required bool isPrimary,
+  }) async {
+    // Get current user document
+    final userDoc = await AppFirestore.usersCollectionRef.doc(userId).get();
+    final userData = userDoc.data() as Map<String, dynamic>?;
+
+    List<PayoutAccountModel> currentAccounts = [];
+    if (userData != null && userData['payoutAccounts'] != null) {
+      currentAccounts = List<PayoutAccountModel>.from(
+        userData['payoutAccounts'].map((x) => PayoutAccountModel.fromJson(x)),
+      );
+    }
+
+    // If setting as primary, remove primary status from all other accounts
+    if (isPrimary) {
+      currentAccounts = currentAccounts.map((account) {
+        return account.copyWith(isPrimary: false);
+      }).toList();
+    }
+
+    // Create new account with unique ID
+    final newAccount = PayoutAccountModel(
+      id: const Uuid().v4(),
+      accountHolderName: accountHolderName,
+      accountNumber: accountNumber,
+      bankName: bankName,
+      ifscCode: ifscCode.toUpperCase(),
+      accountType: accountType,
+      isPrimary: isPrimary,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    );
+
+    // Add new account to the list
+    currentAccounts.add(newAccount);
+
+    // Update the user document
+    await AppFirestore.usersCollectionRef.doc(userId).update({
+      'payoutAccounts': currentAccounts.map((a) => a.toJson()).toList(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // Update an existing payout account
+  static Future<void> updatePayoutAccount({
+    required String userId,
+    required String accountId,
+    required String accountHolderName,
+    required String accountNumber,
+    required String bankName,
+    required String ifscCode,
+    required String accountType,
+    required bool isPrimary,
+  }) async {
+    // Get current user document
+    final userDoc = await AppFirestore.usersCollectionRef.doc(userId).get();
+    final userData = userDoc.data() as Map<String, dynamic>?;
+
+    if (userData == null || userData['payoutAccounts'] == null) {
+      throw Exception('No payout accounts found');
+    }
+
+    List<PayoutAccountModel> currentAccounts = List<PayoutAccountModel>.from(
+      userData['payoutAccounts'].map((x) => PayoutAccountModel.fromJson(x)),
+    );
+
+    // Find the account to update
+    final accountIndex = currentAccounts.indexWhere((a) => a.id == accountId);
+    if (accountIndex == -1) {
+      throw Exception('Account not found');
+    }
+
+    // If setting as primary, remove primary status from all other accounts
+    if (isPrimary) {
+      currentAccounts = currentAccounts.map((account) {
+        return account.copyWith(isPrimary: false);
+      }).toList();
+    }
+
+    // Update the account
+    currentAccounts[accountIndex] = currentAccounts[accountIndex].copyWith(
+      accountHolderName: accountHolderName,
+      accountNumber: accountNumber,
+      bankName: bankName,
+      ifscCode: ifscCode.toUpperCase(),
+      accountType: accountType,
+      isPrimary: isPrimary,
+      updatedAt: Timestamp.now(),
+    );
+
+    // Update the user document
+    await AppFirestore.usersCollectionRef.doc(userId).update({
+      'payoutAccounts': currentAccounts.map((a) => a.toJson()).toList(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // Set a payout account as primary
+  static Future<void> setPrimaryPayoutAccount({
+    required String userId,
+    required String accountId,
+  }) async {
+    // Get current user document
+    final userDoc = await AppFirestore.usersCollectionRef.doc(userId).get();
+    final userData = userDoc.data() as Map<String, dynamic>?;
+
+    if (userData == null || userData['payoutAccounts'] == null) {
+      throw Exception('No payout accounts found');
+    }
+
+    List<PayoutAccountModel> currentAccounts = List<PayoutAccountModel>.from(
+      userData['payoutAccounts'].map((x) => PayoutAccountModel.fromJson(x)),
+    );
+
+    // Update all accounts - set all to non-primary, then set the target as primary
+    currentAccounts = currentAccounts.map((account) {
+      if (account.id == accountId) {
+        return account.copyWith(isPrimary: true, updatedAt: Timestamp.now());
+      } else {
+        return account.copyWith(isPrimary: false);
+      }
+    }).toList();
+
+    // Update the user document
+    await AppFirestore.usersCollectionRef.doc(userId).update({
+      'payoutAccounts': currentAccounts.map((a) => a.toJson()).toList(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // Delete a payout account
+  static Future<void> deletePayoutAccount({
+    required String userId,
+    required String accountId,
+  }) async {
+    // Get current user document
+    final userDoc = await AppFirestore.usersCollectionRef.doc(userId).get();
+    final userData = userDoc.data() as Map<String, dynamic>?;
+
+    if (userData == null || userData['payoutAccounts'] == null) {
+      throw Exception('No payout accounts found');
+    }
+
+    List<PayoutAccountModel> currentAccounts = List<PayoutAccountModel>.from(
+      userData['payoutAccounts'].map((x) => PayoutAccountModel.fromJson(x)),
+    );
+
+    // Remove the account
+    currentAccounts.removeWhere((account) => account.id == accountId);
+
+    // Update the user document
+    await AppFirestore.usersCollectionRef.doc(userId).update({
+      'payoutAccounts': currentAccounts.map((a) => a.toJson()).toList(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // Get primary payout account
+  static Future<PayoutAccountModel?> getPrimaryPayoutAccount(
+    String userId,
+  ) async {
+    final userDoc = await AppFirestore.usersCollectionRef.doc(userId).get();
+    final userData = userDoc.data() as Map<String, dynamic>?;
+
+    if (userData == null || userData['payoutAccounts'] == null) {
+      return null;
+    }
+
+    List<PayoutAccountModel> accounts = List<PayoutAccountModel>.from(
+      userData['payoutAccounts'].map((x) => PayoutAccountModel.fromJson(x)),
+    );
+
+    try {
+      return accounts.firstWhere((account) => account.isPrimary);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Get all payout accounts (not as stream)
+  static Future<List<PayoutAccountModel>> getPayoutAccountsList(
+    String userId,
+  ) async {
+    final userDoc = await AppFirestore.usersCollectionRef.doc(userId).get();
+    final userData = userDoc.data() as Map<String, dynamic>?;
+
+    if (userData == null || userData['payoutAccounts'] == null) {
+      return <PayoutAccountModel>[];
+    }
+
+    return List<PayoutAccountModel>.from(
+      userData['payoutAccounts'].map((x) => PayoutAccountModel.fromJson(x)),
+    );
+  }
+
+  static Future<void> requestPayout(String amount, String? userId) async {
+    final newId = AppFirestore.payoutCollectionRef.doc().id;
+
+    userId ??= LocalStore.getUID() ?? '';
+
+    final primaryBankAcount = await getPrimaryPayoutAccount(userId);
+
+    log("primaryBankAcount: $primaryBankAcount");
+    await AppFirestore.payoutCollectionRef.doc(newId).set({
+      'id': newId,
+      'amount': amount,
+      'userId': userId,
+      'status': 'P',
+      'payoutAccount': primaryBankAcount
+          ?.toJson(), // Convert to JSON before saving
+      'createdAt': Timestamp.now(),
+    });
+  }
+
+  static Stream<List<PayoutRequestModel>> getPayoutRequestsById(String userId) {
+    return AppFirestore.payoutCollectionRef
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map(
+                (doc) => PayoutRequestModel.fromJson(
+                  doc.data() as Map<String, dynamic>,
+                ),
+              )
+              .toList();
+        });
+  }
+
+  static Future<void> deletePayoutRequest(String payoutRequestId) async {
+    await AppFirestore.payoutCollectionRef.doc(payoutRequestId).delete();
+  }
+
+ 
 }

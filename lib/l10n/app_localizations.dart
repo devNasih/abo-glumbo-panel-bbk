@@ -2264,6 +2264,12 @@ abstract class AppLocalizations {
   /// **'and clear their wallet'**
   String get andClearTheirWallet;
 
+  /// No description provided for @invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid'**
+  String get invalid;
+
   /// No description provided for @locationPermissionDeniedForever.
   ///
   /// In en, this message translates to:
@@ -2276,11 +2282,383 @@ abstract class AppLocalizations {
   /// **'Tracking'**
   String get tracking;
 
+  /// No description provided for @uploadImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Image'**
+  String get uploadImage;
+
+  /// No description provided for @pleaseUploadAnImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please upload an image'**
+  String get pleaseUploadAnImage;
+
+  /// No description provided for @item.
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get item;
+
+  /// No description provided for @paymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Method'**
+  String get paymentMethod;
+
   /// No description provided for @completeWork.
   ///
   /// In en, this message translates to:
   /// **'Complete Work'**
   String get completeWork;
+
+  /// No description provided for @gallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get gallery;
+
+  /// No description provided for @qty.
+  ///
+  /// In en, this message translates to:
+  /// **'Qty'**
+  String get qty;
+
+  /// No description provided for @serviceCompletedDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Work was done and service provided'**
+  String get serviceCompletedDescription;
+
+  /// No description provided for @inspectionOnlyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Only inspection done, no service provided'**
+  String get inspectionOnlyDescription;
+
+  /// No description provided for @required.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get required;
+
+  /// No description provided for @requests.
+  ///
+  /// In en, this message translates to:
+  /// **'Requests'**
+  String get requests;
+
+  /// No description provided for @newtext.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get newtext;
+
+  /// No description provided for @totalCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Cost'**
+  String get totalCost;
+
+  /// No description provided for @inspectionOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection Only'**
+  String get inspectionOnly;
+
+  /// No description provided for @support.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get support;
+
+  /// No description provided for @getHelpAnytime.
+  ///
+  /// In en, this message translates to:
+  /// **'Get help anytime'**
+  String get getHelpAnytime;
+
+  /// No description provided for @tierSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Tier System'**
+  String get tierSystem;
+
+  /// No description provided for @bronze.
+  ///
+  /// In en, this message translates to:
+  /// **'Bronze'**
+  String get bronze;
+
+  /// No description provided for @silver.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver'**
+  String get silver;
+
+  /// No description provided for @gold.
+  ///
+  /// In en, this message translates to:
+  /// **'Gold'**
+  String get gold;
+
+  /// No description provided for @platinum.
+  ///
+  /// In en, this message translates to:
+  /// **'Platinum'**
+  String get platinum;
+
+  /// No description provided for @nobonus.
+  ///
+  /// In en, this message translates to:
+  /// **'No bonus'**
+  String get nobonus;
+
+  /// No description provided for @fivepercentBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'5% Bonus'**
+  String get fivepercentBonus;
+
+  /// No description provided for @tenpercentBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'10% Bonus'**
+  String get tenpercentBonus;
+
+  /// No description provided for @fifteenpercentBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'15% Bonus + Badge'**
+  String get fifteenpercentBonus;
+
+  /// No description provided for @greaterThan3dot5rating.
+  ///
+  /// In en, this message translates to:
+  /// **'≥ 3.5 rating'**
+  String get greaterThan3dot5rating;
+
+  /// No description provided for @greaterThan4dot0rating.
+  ///
+  /// In en, this message translates to:
+  /// **'≥ 4.0 rating'**
+  String get greaterThan4dot0rating;
+
+  /// No description provided for @greaterThan4dot5rating.
+  ///
+  /// In en, this message translates to:
+  /// **'≥ 4.5 rating'**
+  String get greaterThan4dot5rating;
+
+  /// No description provided for @greaterThan4dot8rating.
+  ///
+  /// In en, this message translates to:
+  /// **'≥ 4.8 rating'**
+  String get greaterThan4dot8rating;
+
+  /// No description provided for @bonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus'**
+  String get bonus;
+
+  /// No description provided for @jobs.
+  ///
+  /// In en, this message translates to:
+  /// **'Jobs'**
+  String get jobs;
+
+  /// No description provided for @earnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Earnings'**
+  String get earnings;
+
+  /// No description provided for @exitAppTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit App'**
+  String get exitAppTitle;
+
+  /// No description provided for @recentTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Transactions'**
+  String get recentTransactions;
+
+  /// No description provided for @noTransactionsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions yet'**
+  String get noTransactionsYet;
+
+  /// No description provided for @id.
+  ///
+  /// In en, this message translates to:
+  /// **'ID'**
+  String get id;
+
+  /// No description provided for @exitAppMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to exit the app?'**
+  String get exitAppMessage;
+
+  /// No description provided for @exit.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit'**
+  String get exit;
+
+  /// No description provided for @nextTierProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Next tier progress'**
+  String get nextTierProgress;
+
+  /// No description provided for @greaterThan20jobsPerMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'≥ 20 jobs/month'**
+  String get greaterThan20jobsPerMonth;
+
+  /// No description provided for @orderId.
+  ///
+  /// In en, this message translates to:
+  /// **'Order ID'**
+  String get orderId;
+
+  /// No description provided for @greaterThan40jobsPerMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'≥ 40 jobs/month'**
+  String get greaterThan40jobsPerMonth;
+
+  /// No description provided for @greaterThan60jobsPerMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'≥ 60 jobs/month'**
+  String get greaterThan60jobsPerMonth;
+
+  /// No description provided for @progressResetsMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress resets monthly, Maintain high ratings and complete more jobs to unlock better rewards.'**
+  String get progressResetsMonthly;
+
+  /// No description provided for @viewYourRewards.
+  ///
+  /// In en, this message translates to:
+  /// **'View your rewards'**
+  String get viewYourRewards;
+
+  /// No description provided for @noSupportAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No support available'**
+  String get noSupportAvailable;
+
+  /// No description provided for @contactSupportOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact support options'**
+  String get contactSupportOptions;
+
+  /// No description provided for @contactByEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact by email'**
+  String get contactByEmail;
+
+  /// No description provided for @contactByPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact by phone'**
+  String get contactByPhone;
+
+  /// No description provided for @contactByWhatsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact by WhatsApp'**
+  String get contactByWhatsApp;
+
+  /// No description provided for @serviceCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Completed'**
+  String get serviceCompleted;
+
+  /// No description provided for @dashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get dashboard;
+
+  /// No description provided for @serviceItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Items'**
+  String get serviceItems;
+
+  /// No description provided for @enterServiceCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter service cost'**
+  String get enterServiceCost;
+
+  /// No description provided for @serviceCostMustBeGreaterThanZero.
+  ///
+  /// In en, this message translates to:
+  /// **'Service cost must be greater than 0'**
+  String get serviceCostMustBeGreaterThanZero;
+
+  /// No description provided for @pleaseEnterValidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid number'**
+  String get pleaseEnterValidNumber;
+
+  /// No description provided for @pleaseEnterServiceCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter service cost'**
+  String get pleaseEnterServiceCost;
+
+  /// No description provided for @tapToUploadImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to upload image'**
+  String get tapToUploadImage;
+
+  /// No description provided for @serviceCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Cost'**
+  String get serviceCost;
+
+  /// No description provided for @addItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Item'**
+  String get addItem;
+
+  /// No description provided for @camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get camera;
+
+  /// No description provided for @pleaseAddAtleastOneServiceItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Please add at least one service item.'**
+  String get pleaseAddAtleastOneServiceItem;
+
+  /// No description provided for @pleaseFillAllServiceItemFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill all service item fields.'**
+  String get pleaseFillAllServiceItemFields;
 
   /// No description provided for @locationServiceRequired.
   ///
@@ -3824,17 +4202,137 @@ abstract class AppLocalizations {
   /// **'Failed to cancel order'**
   String get failedToCancelOrder;
 
+  /// No description provided for @accept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get accept;
+
+  /// No description provided for @inspectionFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection Fee'**
+  String get inspectionFee;
+
   /// No description provided for @cancelledBy.
   ///
   /// In en, this message translates to:
   /// **'Cancelled By'**
   String get cancelledBy;
 
+  /// No description provided for @rejectBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject Booking'**
+  String get rejectBooking;
+
+  /// No description provided for @areYouSureYouWantToRejectThisBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to reject this booking?'**
+  String get areYouSureYouWantToRejectThisBooking;
+
   /// No description provided for @cancelledByAdmin.
   ///
   /// In en, this message translates to:
   /// **'Cancelled by Admin'**
   String get cancelledByAdmin;
+
+  /// No description provided for @acceptBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept Booking'**
+  String get acceptBooking;
+
+  /// No description provided for @requestPayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Payout'**
+  String get requestPayout;
+
+  /// No description provided for @lastTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Tip'**
+  String get lastTip;
+
+  /// No description provided for @paymentBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Breakdown'**
+  String get paymentBreakdown;
+
+  /// No description provided for @cashPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Payments'**
+  String get cashPayments;
+
+  /// No description provided for @cardPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Card Payments'**
+  String get cardPayments;
+
+  /// No description provided for @asOf.
+  ///
+  /// In en, this message translates to:
+  /// **'As of'**
+  String get asOf;
+
+  /// No description provided for @totalEarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Earnings'**
+  String get totalEarnings;
+
+  /// No description provided for @pleaseEnterAValidAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid amount'**
+  String get pleaseEnterAValidAmount;
+
+  /// No description provided for @amountExceedsAvailableBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount exceeds available balance'**
+  String get amountExceedsAvailableBalance;
+
+  /// No description provided for @cashPaymentsAreAlreadyWithYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash payments are already with you'**
+  String get cashPaymentsAreAlreadyWithYou;
+
+  /// No description provided for @amount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get amount;
+
+  /// No description provided for @availableForPayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Available for Payout'**
+  String get availableForPayout;
+
+  /// No description provided for @theAdminWillProcessYourRequestWithin2to3days.
+  ///
+  /// In en, this message translates to:
+  /// **'The admin will process your request within 2 - 3 business days.'**
+  String get theAdminWillProcessYourRequestWithin2to3days;
+
+  /// No description provided for @availableBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Balance'**
+  String get availableBalance;
+
+  /// No description provided for @areYouSureYouWantToAcceptThisBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to accept this booking?'**
+  String get areYouSureYouWantToAcceptThisBooking;
 
   /// No description provided for @cancelledByCustomer.
   ///
@@ -3871,6 +4369,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cannot remove primary status from the only contact'**
   String get cannotRemovePrimaryStatusFromTheOnlyContact;
+
+  /// No description provided for @submitRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Request'**
+  String get submitRequest;
+
+  /// No description provided for @payoutAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout Accounts'**
+  String get payoutAccounts;
+
+  /// No description provided for @noPayoutAccountsAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'No payout accounts added'**
+  String get noPayoutAccountsAdded;
+
+  /// No description provided for @payoutRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout Requests'**
+  String get payoutRequests;
+
+  /// No description provided for @status.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get status;
+
+  /// No description provided for @noPayoutRequestsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No payout requests found'**
+  String get noPayoutRequestsFound;
+
+  /// No description provided for @payoutRequestCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout request cancelled'**
+  String get payoutRequestCancelled;
+
+  /// No description provided for @areYouSureYouWantToCancelThisPayoutRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel this payout request?'**
+  String get areYouSureYouWantToCancelThisPayoutRequest;
+
+  /// No description provided for @addAnAccountToReceivePayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an account to receive payments'**
+  String get addAnAccountToReceivePayments;
+
+  /// No description provided for @addAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Account'**
+  String get addAccount;
+
+  /// No description provided for @accountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Number'**
+  String get accountNumber;
+
+  /// No description provided for @ifscCode.
+  ///
+  /// In en, this message translates to:
+  /// **'IFSC Code'**
+  String get ifscCode;
+
+  /// No description provided for @addFirstAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first account'**
+  String get addFirstAccount;
+
+  /// No description provided for @enterAccountDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Account Details'**
+  String get enterAccountDetails;
+
+  /// No description provided for @manageBankAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Bank Accounts'**
+  String get manageBankAccounts;
+
+  /// No description provided for @addAndManageYourPayoutAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Add and manage your payout accounts'**
+  String get addAndManageYourPayoutAccounts;
+
+  /// No description provided for @updateAccountDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Account Details'**
+  String get updateAccountDetails;
+
+  /// No description provided for @accountType.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Type'**
+  String get accountType;
+
+  /// No description provided for @primaryAccountUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary account updated'**
+  String get primaryAccountUpdated;
+
+  /// No description provided for @deleteAccountConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this account?'**
+  String get deleteAccountConfirmation;
+
+  /// No description provided for @accountDeletedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted successfully'**
+  String get accountDeletedSuccessfully;
+
+  /// No description provided for @editAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Account'**
+  String get editAccount;
+
+  /// No description provided for @pleaseEnterAccountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter account number'**
+  String get pleaseEnterAccountNumber;
+
+  /// No description provided for @accountHolderName.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Holder Name'**
+  String get accountHolderName;
+
+  /// No description provided for @nameMustBeAtLeast3Chars.
+  ///
+  /// In en, this message translates to:
+  /// **'Name must be at least 3 characters'**
+  String get nameMustBeAtLeast3Chars;
+
+  /// No description provided for @pleaseEnterAccountHolderName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter account holder name'**
+  String get pleaseEnterAccountHolderName;
+
+  /// No description provided for @bankName.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Name'**
+  String get bankName;
+
+  /// No description provided for @updateAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Account'**
+  String get updateAccount;
+
+  /// No description provided for @setPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Primary'**
+  String get setPrimary;
+
+  /// No description provided for @accountAddedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Account added successfully'**
+  String get accountAddedSuccessfully;
+
+  /// No description provided for @accountUpdatedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Account updated successfully'**
+  String get accountUpdatedSuccessfully;
+
+  /// No description provided for @savings.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings'**
+  String get savings;
+
+  /// No description provided for @enterAccountHolderName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Account Holder Name'**
+  String get enterAccountHolderName;
+
+  /// No description provided for @enterifscCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter IFSC Code'**
+  String get enterifscCode;
+
+  /// No description provided for @enterBankName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Bank Name'**
+  String get enterBankName;
+
+  /// No description provided for @enterAccountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Account Number'**
+  String get enterAccountNumber;
+
+  /// No description provided for @setAsPrimaryAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as Primary Account'**
+  String get setAsPrimaryAccount;
+
+  /// No description provided for @pleaseEnterBankName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter bank name'**
+  String get pleaseEnterBankName;
+
+  /// No description provided for @pleaseEnterIfscCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter IFSC code'**
+  String get pleaseEnterIfscCode;
+
+  /// No description provided for @processing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing'**
+  String get processing;
+
+  /// No description provided for @payoutRequestSuccessful.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout request successful'**
+  String get payoutRequestSuccessful;
+
+  /// No description provided for @invalidAccountNumberLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid account number length'**
+  String get invalidAccountNumberLength;
+
+  /// Message indicating payout request is successful
+  ///
+  /// In en, this message translates to:
+  /// **'\'Payout request for SAR \${amount} submitted\','**
+  String payoutRequestSuccessfulMessage(String amount);
+
+  /// Message indicating cash payments are with the user
+  ///
+  /// In en, this message translates to:
+  /// **'Cash payments (SAR \${amount}) are already with you'**
+  String cashPaymentsMessage(String amount);
 
   /// Error message when trying to delete the last contact of a specific type
   ///

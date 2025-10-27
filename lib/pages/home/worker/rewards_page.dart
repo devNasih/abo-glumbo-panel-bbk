@@ -1,13 +1,13 @@
 import 'dart:developer';
 
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
-import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/services/stat_services.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:aboglumbo_bbk_panel/styles/color.dart';
+
 import 'package:flutter/material.dart';
 
 class RewardsPage extends StatefulWidget {
@@ -19,23 +19,14 @@ class RewardsPage extends StatefulWidget {
 }
 
 class _RewardsPageState extends State<RewardsPage> {
-  final Map<String, dynamic> workerStats = {
-    'Electrician': {'jobs': 25, 'rating': 4.2, 'earnings': 500.0},
-    'Flooring': {'jobs': 10, 'rating': 4.5, 'earnings': 120.0},
-    'Plumber': {'jobs': 15, 'rating': 4.1, 'earnings': 300.0},
-    'A/C': {'jobs': 15, 'rating': 4.1, 'earnings': 300.0},
-  };
   List<String> categoryIds = [];
   List<String> categories = [];
-
-  // Cache for stats per categoryId
   Map<String, Map<String, dynamic>> statsCache = {};
 
   @override
   void initState() {
     super.initState();
     categories = widget.workerData.jobRoles ?? [];
-    // Fetch all category IDs for the worker's job roles on init
     _fetchCategoryIds(widget.workerData.jobRoles ?? []);
   }
 
@@ -51,7 +42,6 @@ class _RewardsPageState extends State<RewardsPage> {
       categoryIds = ids;
     });
 
-    // After fetching categoryIds, fetch stats once for each
     await _fetchAllStats();
   }
 
@@ -60,12 +50,9 @@ class _RewardsPageState extends State<RewardsPage> {
     Map<String, Map<String, dynamic>> cache = {};
     for (String catId in categoryIds) {
       try {
-        // Get stats once as a snapshot (statServices may need a method for one-time fetch)
-        // Using a single get instead of stream for caching
         var snapshot = await StatServices.getStatsOnce(uid, catId);
-        if (snapshot != null) {
+        if (snapshot.isNotEmpty) {
           cache[catId] = snapshot;
-          log('Fetched stats for $catId: $snapshot');
         }
       } catch (e) {
         log('Error fetching stats for $catId: $e');
@@ -78,249 +65,340 @@ class _RewardsPageState extends State<RewardsPage> {
 
   @override
   Widget build(BuildContext context) {
+    bool isArabic = Directionality.of(context) == TextDirection.rtl;
+
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 16,
-        title: Text(AppLocalizations.of(context)!.rewards),
+        elevation: 0,
+
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          AppLocalizations.of(context)!.rewards,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
-      body: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildTierInfoRow('Bronze', 'Rating ≥ 3.5', 'No bonus'),
-                _buildTierInfoRow(
-                  'Silver',
-                  '≥ 20 jobs/month & Rating ≥ 4.0',
-                  '5% bonus',
-                ),
-                _buildTierInfoRow(
-                  'Gold',
-                  '≥ 40 jobs/month & Rating ≥ 4.5',
-                  '10% bonus',
-                ),
-                _buildTierInfoRow(
-                  'Platinum',
-                  '≥ 60 jobs/month & Rating ≥ 4.8',
-                  '15% bonus + Special badge',
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Progress resets monthly. Maintain high ratings and complete more jobs to unlock bigger rewards.',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black54,
-                    fontStyle: FontStyle.italic,
+      body: categoryIds.isEmpty || statsCache.isEmpty
+          ? Center(child: Loader())
+          : CustomScrollView(
+              slivers: [
+                // Tier Information Section
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: ExpansionTile(
+                      collapsedBackgroundColor: Colors.white,
+                      collapsedShape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      iconColor: AppColors.primary,
+                      collapsedIconColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      title: Text(
+                        AppLocalizations.of(context)!.tierSystem,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade900,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      backgroundColor: Colors.white,
+                      tilePadding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 8,
+                      ),
+                      childrenPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      expandedAlignment: isArabic
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      children: [
+                        _buildMinimalTierRow(
+                          AppLocalizations.of(context)!.bronze,
+                          AppLocalizations.of(context)!.greaterThan3dot5rating,
+                          AppLocalizations.of(context)!.nobonus,
+                        ),
+                        _buildDivider(),
+                        _buildMinimalTierRow(
+                          AppLocalizations.of(context)!.silver,
+                          '${AppLocalizations.of(context)!.greaterThan20jobsPerMonth}, ${AppLocalizations.of(context)!.greaterThan4dot0rating}',
+                          AppLocalizations.of(context)!.fivepercentBonus,
+                        ),
+                        _buildDivider(),
+                        _buildMinimalTierRow(
+                          AppLocalizations.of(context)!.gold,
+                          '${AppLocalizations.of(context)!.greaterThan40jobsPerMonth}, ${AppLocalizations.of(context)!.greaterThan4dot5rating}',
+                          AppLocalizations.of(context)!.tenpercentBonus,
+                        ),
+                        _buildDivider(),
+                        _buildMinimalTierRow(
+                          AppLocalizations.of(context)!.silver,
+                          '${AppLocalizations.of(context)!.greaterThan60jobsPerMonth}, ${AppLocalizations.of(context)!.greaterThan4dot8rating}',
+                          AppLocalizations.of(context)!.fifteenpercentBonus,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          AppLocalizations.of(context)!.progressResetsMonthly,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade600,
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ],
-            ),
-          ),
-          // List of cards
-          Expanded(
-            child: categoryIds.isEmpty
-                ? Center(child: Loader())
-                : statsCache.isEmpty
-                ? Center(child: Loader())
-                : ListView.builder(
-                    itemCount: categoryIds.length,
-                    itemBuilder: (context, index) {
+
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
                       String categoryId = categoryIds[index];
                       Map<String, dynamic>? data = statsCache[categoryId];
 
                       if (data == null) {
-                        return Center(child: Text('No data for this category'));
+                        return const SizedBox.shrink();
                       }
 
                       final rating = data['rating'] ?? 0.0;
                       final jobs = data['jobs'] ?? 0;
 
-                      log('Rating: $rating, Jobs: $jobs');
-                      log('Category: $categoryId');
-
                       String tier;
                       double progress;
-                      String description;
+                      String benefit;
 
-                      if (rating >= 4.5 && jobs >= 60) {
+                      if (rating >= 4.8 && jobs >= 60) {
                         tier = 'Platinum';
                         progress = 1.0;
-                        description = '15% bonus + Special badge';
-                      } else if (rating >= 4.0 && rating < 4.5 && jobs >= 40) {
+                        benefit = '15% bonus + Special badge';
+                      } else if (rating >= 4.5 && jobs >= 40) {
                         tier = 'Gold';
                         progress = jobs / 60.0;
-                        description = '10% bonus + Priority access to jobs';
-                      } else if (rating >= 3.5 && rating < 4.0 && jobs >= 20) {
+                        benefit = '10% bonus on earnings';
+                      } else if (rating >= 4.0 && jobs >= 20) {
                         tier = 'Silver';
                         progress = jobs / 40.0;
-                        description = '5% bonus';
+                        benefit = '5% bonus on earnings';
                       } else {
-                        // Below 3.5 rating is Bronze tier, no job condition needed
                         tier = 'Bronze';
                         progress = jobs / 20.0;
-                        description = 'No bonus';
+                        benefit = 'No Bonus';
                       }
                       progress = progress.clamp(0.0, 1.0);
 
                       return Container(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 18,
-                          vertical: 10,
-                        ),
+                        margin: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                              color: _getTierShadow(tier),
-                              offset: const Offset(0, 5),
-                              blurRadius: 12,
-                            ),
-                          ],
-                          border: Border.all(
-                            color: _getTierColor(tier).withOpacity(0.6),
-                            width: 1.5,
-                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade200),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      widget.workerData.jobRoles?[index] ?? "",
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: _getTierTextColor(tier),
-                                      ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Header
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    widget.workerData.jobRoles?[index] ?? "",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey.shade900,
+                                      letterSpacing: -0.2,
                                     ),
                                   ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 5,
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: _getMinimalTierColor(tier),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    tier.toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: _getTierTextColor(tier),
+                                      letterSpacing: 0.5,
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: _getTierColor(
-                                        tier,
-                                      ).withOpacity(0.85),
-                                      borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Stats Grid
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildStatColumn(
+                                    AppLocalizations.of(context)!.jobs,
+                                    jobs.toString(),
+                                  ),
+                                ),
+                                Container(
+                                  width: 1,
+                                  height: 40,
+                                  color: Colors.grey.shade200,
+                                ),
+                                Expanded(
+                                  child: _buildStatColumn(
+                                    AppLocalizations.of(context)!.rating,
+                                    rating.toStringAsFixed(1),
+                                  ),
+                                ),
+                                Container(
+                                  width: 1,
+                                  height: 40,
+                                  color: Colors.grey.shade200,
+                                ),
+                                Expanded(
+                                  child: _buildStatColumn(
+                                    AppLocalizations.of(context)!.bonus,
+                                    '0',
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            // Progress Bar
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.nextTierProgress,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade600,
+                                      ),
                                     ),
+                                    Text(
+                                      '${(progress * 100).toInt()}%',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey.shade700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(2),
+                                  child: LinearProgressIndicator(
+                                    value: progress,
+                                    minHeight: 6,
+                                    backgroundColor: Colors.grey.shade100,
+                                    color: _getTierProgressColor(tier),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // Benefit
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade50,
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: Colors.grey.shade100),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.check_circle_outline,
+                                    size: 16,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
                                     child: Text(
-                                      tier,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                        fontSize: 14,
+                                      benefit,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey.shade700,
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 14),
-                              _buildStatRow(
-                                'Jobs done (this month):',
-                                jobs.toString(),
-                              ),
-                              _buildStatRow(
-                                'Rating:',
-                                rating.toStringAsFixed(1),
-                              ),
-                              _buildStatRow(
-                                'Earnings:',
-                                '₹500',
-                              ), // Optionally make this dynamic
-                              const SizedBox(height: 15),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: LinearProgressIndicator(
-                                  value: progress,
-                                  minHeight: 10,
-                                  backgroundColor: Colors.grey.shade200,
-                                  color: _getTierColor(tier),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Progress towards next tier',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey.shade600,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                description,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: _getTierColor(tier),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       );
-                    },
+                    }, childCount: categoryIds.length),
                   ),
-          ),
-        ],
-      ),
+                ),
+              ],
+            ),
     );
   }
 
-  Color _getTierColor(String tier) {
-    switch (tier) {
-      case 'Platinum':
-        return const Color(0xFFCCAFFF); // luxury purple/blue highlight
-      case 'Gold':
-        return const Color(0xFFFFD700); // true gold
-      case 'Silver':
-        return const Color(0xFFC0C0C0); // true silver
-      case 'Bronze':
-        return const Color(0xFFCD7F32); // true bronze
-      default:
-        return Colors.grey.shade600; // fallback for Basic tier
-    }
-  }
-
-  Widget _buildStatRow(String label, String value) {
+  Widget _buildMinimalTierRow(String tierName, String criteria, String reward) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
+          SizedBox(
+            width: 80,
             child: Text(
-              label,
-              style: TextStyle(color: Colors.black87, fontSize: 15),
+              tierName,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade900,
+              ),
             ),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              color: Colors.black87,
-              fontWeight: FontWeight.w600,
-              fontSize: 15,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  criteria,
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  reward,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -328,79 +406,76 @@ class _RewardsPageState extends State<RewardsPage> {
     );
   }
 
-  Color _getTierShadow(String tier) {
+  Widget _buildDivider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Divider(color: Colors.grey.shade100, height: 1),
+    );
+  }
+
+  Widget _buildStatColumn(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade900,
+            letterSpacing: -0.5,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        ),
+      ],
+    );
+  }
+
+  Color _getMinimalTierColor(String tier) {
     switch (tier) {
       case 'Platinum':
-        return const Color(0xFFBCC5F6).withOpacity(0.2);
+        return const Color(0xFFF5F3FF);
       case 'Gold':
-        return const Color(0xFFE3C86A).withOpacity(0.23);
+        return const Color(0xFFFFFBEB);
       case 'Silver':
-        return Colors.grey.shade400.withOpacity(0.21);
+        return const Color(0xFFF8F9FA);
       case 'Bronze':
-        return const Color(0xFFB97A57).withOpacity(0.18);
+        return const Color(0xFFFEF3EC);
       default:
-        return Colors.grey.shade400.withOpacity(0.14);
+        return Colors.grey.shade50;
     }
   }
 
   Color _getTierTextColor(String tier) {
     switch (tier) {
-      case 'Gold':
-        return const Color(0xFF776300);
       case 'Platinum':
-        return const Color(0xFF4C3990);
+        return const Color(0xFF6366F1);
+      case 'Gold':
+        return const Color(0xFFD97706);
       case 'Silver':
-        return const Color(0xFF707275);
+        return const Color(0xFF64748B);
       case 'Bronze':
-        return const Color(0xFF834202);
+        return const Color(0xFF9A6038);
       default:
-        return Colors.black87;
+        return Colors.grey.shade700;
     }
   }
 
-  Widget _buildTierInfoRow(String tierName, String criteria, String reward) {
-    final Color tierColor = _getTierColor(tierName);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: tierColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Text(
-              tierName,
-              style: TextStyle(
-                color: tierColor,
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: RichText(
-              text: TextSpan(
-                style: TextStyle(fontSize: 14, color: Colors.black87),
-                children: [
-                  TextSpan(text: '$criteria → '),
-                  TextSpan(
-                    text: reward,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: tierColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  Color _getTierProgressColor(String tier) {
+    switch (tier) {
+      case 'Platinum':
+        return const Color(0xFF6366F1);
+      case 'Gold':
+        return const Color(0xFFD97706);
+      case 'Silver':
+        return const Color(0xFF64748B);
+      case 'Bronze':
+        return const Color(0xFF9A6038);
+      default:
+        return Colors.grey.shade400;
+    }
   }
 }

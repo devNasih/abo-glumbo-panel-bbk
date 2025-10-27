@@ -1122,13 +1122,208 @@ class AppLocalizationsAr extends AppLocalizations {
   String get andClearTheirWallet => 'وإزالة محفظتهم';
 
   @override
+  String get invalid => 'Invalid';
+
+  @override
   String get locationPermissionDeniedForever => 'تم رفض إذن الموقع بشكل دائم';
 
   @override
   String get tracking => 'تتبع';
 
   @override
+  String get uploadImage => 'Upload Image';
+
+  @override
+  String get pleaseUploadAnImage => 'Please upload an image';
+
+  @override
+  String get item => 'Item';
+
+  @override
+  String get paymentMethod => 'Payment Method';
+
+  @override
   String get completeWork => 'إكمال العمل';
+
+  @override
+  String get gallery => 'معرض الصور';
+
+  @override
+  String get qty => 'الكمية';
+
+  @override
+  String get serviceCompletedDescription =>
+      'Work was done and service provided';
+
+  @override
+  String get inspectionOnlyDescription =>
+      'Only inspection done, no service provided';
+
+  @override
+  String get required => 'Required';
+
+  @override
+  String get requests => 'Requests';
+
+  @override
+  String get newtext => 'New';
+
+  @override
+  String get totalCost => 'Total Cost';
+
+  @override
+  String get inspectionOnly => 'Inspection Only';
+
+  @override
+  String get support => 'Support';
+
+  @override
+  String get getHelpAnytime => 'Get help anytime';
+
+  @override
+  String get tierSystem => 'Tier System';
+
+  @override
+  String get bronze => 'Bronze';
+
+  @override
+  String get silver => 'Silver';
+
+  @override
+  String get gold => 'Gold';
+
+  @override
+  String get platinum => 'Platinum';
+
+  @override
+  String get nobonus => 'No bonus';
+
+  @override
+  String get fivepercentBonus => '5% Bonus';
+
+  @override
+  String get tenpercentBonus => '10% Bonus';
+
+  @override
+  String get fifteenpercentBonus => '15% Bonus + Badge';
+
+  @override
+  String get greaterThan3dot5rating => '≥ 3.5 rating';
+
+  @override
+  String get greaterThan4dot0rating => '≥ 4.0 rating';
+
+  @override
+  String get greaterThan4dot5rating => '≥ 4.5 rating';
+
+  @override
+  String get greaterThan4dot8rating => '≥ 4.8 rating';
+
+  @override
+  String get bonus => 'Bonus';
+
+  @override
+  String get jobs => 'Jobs';
+
+  @override
+  String get earnings => 'Earnings';
+
+  @override
+  String get exitAppTitle => 'Exit App';
+
+  @override
+  String get recentTransactions => 'Recent Transactions';
+
+  @override
+  String get noTransactionsYet => 'No transactions yet';
+
+  @override
+  String get id => 'ID';
+
+  @override
+  String get exitAppMessage => 'Are you sure you want to exit the app?';
+
+  @override
+  String get exit => 'Exit';
+
+  @override
+  String get nextTierProgress => 'Next tier progress';
+
+  @override
+  String get greaterThan20jobsPerMonth => '≥ 20 jobs/month';
+
+  @override
+  String get orderId => 'Order ID';
+
+  @override
+  String get greaterThan40jobsPerMonth => '≥ 40 jobs/month';
+
+  @override
+  String get greaterThan60jobsPerMonth => '≥ 60 jobs/month';
+
+  @override
+  String get progressResetsMonthly =>
+      'Progress resets monthly, Maintain high ratings and complete more jobs to unlock better rewards.';
+
+  @override
+  String get viewYourRewards => 'View your rewards';
+
+  @override
+  String get noSupportAvailable => 'No support available';
+
+  @override
+  String get contactSupportOptions => 'Contact support options';
+
+  @override
+  String get contactByEmail => 'Contact by email';
+
+  @override
+  String get contactByPhone => 'Contact by phone';
+
+  @override
+  String get contactByWhatsApp => 'Contact by WhatsApp';
+
+  @override
+  String get serviceCompleted => 'Service Completed';
+
+  @override
+  String get dashboard => 'Dashboard';
+
+  @override
+  String get serviceItems => 'Service Items';
+
+  @override
+  String get enterServiceCost => 'Enter service cost';
+
+  @override
+  String get serviceCostMustBeGreaterThanZero =>
+      'Service cost must be greater than 0';
+
+  @override
+  String get pleaseEnterValidNumber => 'Please enter a valid number';
+
+  @override
+  String get pleaseEnterServiceCost => 'Please enter service cost';
+
+  @override
+  String get tapToUploadImage => 'Tap to upload image';
+
+  @override
+  String get serviceCost => 'Service Cost';
+
+  @override
+  String get addItem => 'Add Item';
+
+  @override
+  String get camera => 'الكاميرا';
+
+  @override
+  String get pleaseAddAtleastOneServiceItem =>
+      'Please add at least one service item.';
+
+  @override
+  String get pleaseFillAllServiceItemFields =>
+      'Please fill all service item fields.';
 
   @override
   String get locationServiceRequired => 'الرجاء تفعيل خدمة الموقع';
@@ -1953,10 +2148,75 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToCancelOrder => 'فشل في إلغاء الطلب';
 
   @override
+  String get accept => 'قبول';
+
+  @override
+  String get inspectionFee => 'رسوم الفحص';
+
+  @override
   String get cancelledBy => 'تم الإلغاء بواسطة';
 
   @override
+  String get rejectBooking => 'رفض الحجز';
+
+  @override
+  String get areYouSureYouWantToRejectThisBooking =>
+      'هل أنت متأكد أنك تريد رفض هذا الحجز؟';
+
+  @override
   String get cancelledByAdmin => 'تم الإلغاء بواسطة المسؤول';
+
+  @override
+  String get acceptBooking => 'قبول الحجز';
+
+  @override
+  String get requestPayout => 'Request Payout';
+
+  @override
+  String get lastTip => 'Last Tip';
+
+  @override
+  String get paymentBreakdown => 'Payment Breakdown';
+
+  @override
+  String get cashPayments => 'Cash Payments';
+
+  @override
+  String get cardPayments => 'Card Payments';
+
+  @override
+  String get asOf => 'As of';
+
+  @override
+  String get totalEarnings => 'Total Earnings';
+
+  @override
+  String get pleaseEnterAValidAmount => 'Please enter a valid amount';
+
+  @override
+  String get amountExceedsAvailableBalance =>
+      'Amount exceeds available balance';
+
+  @override
+  String get cashPaymentsAreAlreadyWithYou =>
+      'Cash payments are already with you';
+
+  @override
+  String get amount => 'Amount';
+
+  @override
+  String get availableForPayout => 'Available for Payout';
+
+  @override
+  String get theAdminWillProcessYourRequestWithin2to3days =>
+      'The admin will process your request within 2 - 3 business days.';
+
+  @override
+  String get availableBalance => 'Available Balance';
+
+  @override
+  String get areYouSureYouWantToAcceptThisBooking =>
+      'هل أنت متأكد أنك تريد قبول هذا الحجز؟';
 
   @override
   String get cancelledByCustomer => 'تم الإلغاء بواسطة العميل';
@@ -1977,6 +2237,146 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get cannotRemovePrimaryStatusFromTheOnlyContact =>
       'لا يمكن حذف حالة الابري من جهة الاتصال الوحيدة';
+
+  @override
+  String get submitRequest => 'Submit Request';
+
+  @override
+  String get payoutAccounts => 'Payout Accounts';
+
+  @override
+  String get noPayoutAccountsAdded => 'No payout accounts added';
+
+  @override
+  String get payoutRequests => 'Payout Requests';
+
+  @override
+  String get status => 'Status';
+
+  @override
+  String get noPayoutRequestsFound => 'No payout requests found';
+
+  @override
+  String get payoutRequestCancelled => 'Payout request cancelled';
+
+  @override
+  String get areYouSureYouWantToCancelThisPayoutRequest =>
+      'Are you sure you want to cancel this payout request?';
+
+  @override
+  String get addAnAccountToReceivePayments =>
+      'Add an account to receive payments';
+
+  @override
+  String get addAccount => 'Add Account';
+
+  @override
+  String get accountNumber => 'Account Number';
+
+  @override
+  String get ifscCode => 'IFSC Code';
+
+  @override
+  String get addFirstAccount => 'Add your first account';
+
+  @override
+  String get enterAccountDetails => 'Enter Account Details';
+
+  @override
+  String get manageBankAccounts => 'Manage Bank Accounts';
+
+  @override
+  String get addAndManageYourPayoutAccounts =>
+      'Add and manage your payout accounts';
+
+  @override
+  String get updateAccountDetails => 'Update Account Details';
+
+  @override
+  String get accountType => 'Account Type';
+
+  @override
+  String get primaryAccountUpdated => 'Primary account updated';
+
+  @override
+  String get deleteAccountConfirmation =>
+      'Are you sure you want to delete this account?';
+
+  @override
+  String get accountDeletedSuccessfully => 'Account deleted successfully';
+
+  @override
+  String get editAccount => 'Edit Account';
+
+  @override
+  String get pleaseEnterAccountNumber => 'Please enter account number';
+
+  @override
+  String get accountHolderName => 'Account Holder Name';
+
+  @override
+  String get nameMustBeAtLeast3Chars => 'Name must be at least 3 characters';
+
+  @override
+  String get pleaseEnterAccountHolderName => 'Please enter account holder name';
+
+  @override
+  String get bankName => 'Bank Name';
+
+  @override
+  String get updateAccount => 'Update Account';
+
+  @override
+  String get setPrimary => 'Set Primary';
+
+  @override
+  String get accountAddedSuccessfully => 'Account added successfully';
+
+  @override
+  String get accountUpdatedSuccessfully => 'Account updated successfully';
+
+  @override
+  String get savings => 'Savings';
+
+  @override
+  String get enterAccountHolderName => 'Enter Account Holder Name';
+
+  @override
+  String get enterifscCode => 'Enter IFSC Code';
+
+  @override
+  String get enterBankName => 'Enter Bank Name';
+
+  @override
+  String get enterAccountNumber => 'Enter Account Number';
+
+  @override
+  String get setAsPrimaryAccount => 'Set as Primary Account';
+
+  @override
+  String get pleaseEnterBankName => 'Please enter bank name';
+
+  @override
+  String get pleaseEnterIfscCode => 'Please enter IFSC code';
+
+  @override
+  String get processing => 'Processing';
+
+  @override
+  String get payoutRequestSuccessful => 'Payout request successful';
+
+  @override
+  String get invalidAccountNumberLength => 'Invalid account number length';
+
+  @override
+  String payoutRequestSuccessfulMessage(String amount) {
+    return '[translate:طلب الدفع ($amount ر.س) مقدم بنجاح]';
+  }
+
+  @override
+  String cashPaymentsMessage(String amount) {
+    return '[translate:المدفوعات النقدية ($amount ر.س) معك بالفعل]';
+  }
 
   @override
   String cannotDeleteLastContact(String contactType) {

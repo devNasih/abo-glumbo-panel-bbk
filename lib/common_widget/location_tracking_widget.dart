@@ -39,7 +39,7 @@ class _LocationTrackingWidgetState extends State<LocationTrackingWidget> {
         _batteryOptimizationChecked = isDisabled;
       });
     } catch (e) {
-      print('Error checking battery optimization: $e');
+      debugPrint('Error checking battery optimization: $e');
     }
   }
 

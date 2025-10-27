@@ -68,3 +68,16 @@ final class UpdateWorkerNotificationLanguageFailure extends AccountState {
     required super.locale,
   });
 }
+
+final class RequestPayoutLoading extends AccountState {
+  const RequestPayoutLoading({required super.locale});
+}
+
+final class RequestPayoutSuccess extends AccountState {
+  const RequestPayoutSuccess({required super.locale});
+}
+
+final class RequestPayoutFailure extends AccountState {
+  final String error;
+  const RequestPayoutFailure({required this.error, required super.locale});
+}

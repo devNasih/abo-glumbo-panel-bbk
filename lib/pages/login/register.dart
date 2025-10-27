@@ -158,8 +158,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         onPressed: state is RegistrationLoading
                             ? () {}
                             : () {
-                                if (_formKey.currentState?.validate() != true)
+                                if (_formKey.currentState?.validate() != true) {
                                   return;
+                                }
                                 context.read<LoginBloc>().add(
                                   RegisterButtonPressed(
                                     email: emailController.text,

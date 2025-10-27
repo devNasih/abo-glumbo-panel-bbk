@@ -23,12 +23,34 @@ class CancelBooking extends BookingEvent {
 }
 
 class CompleteBooking extends BookingEvent {
+  final int mode;
   final String bookingId;
+  final File selectedImage;
+  final double serviceCost;
+  final List<BookingServiceItem> serviceItems; // Changed to BookingServiceItem
+  final String selectedPaymentMethod;
+  final double totalCost;
 
-  const CompleteBooking({required this.bookingId});
+  const CompleteBooking({
+    required this.mode,
+    required this.selectedImage,
+    required this.serviceCost,
+    required this.serviceItems,
+    required this.selectedPaymentMethod,
+    required this.totalCost,
+    required this.bookingId,
+  });
 
   @override
-  List<Object> get props => [bookingId];
+  List<Object> get props => [
+    mode,
+    bookingId,
+    selectedImage,
+    serviceCost,
+    serviceItems,
+    selectedPaymentMethod,
+    totalCost,
+  ];
 }
 
 class StartWorkingOnBooking extends BookingEvent {
@@ -53,4 +75,24 @@ class StopWorkingOnBooking extends BookingEvent {
 
   @override
   List<Object> get props => [bookingId];
+}
+
+// Data class for service items (renamed to avoid conflict)
+class BookingServiceItem extends Equatable {
+  final String name;
+  final double quantity;
+  final double price;
+
+  const BookingServiceItem({
+    required this.name,
+    required this.quantity,
+    required this.price,
+  });
+
+  @override
+  List<Object> get props => [name, quantity, price];
+
+  Map<String, dynamic> toMap() {
+    return {'name': name, 'quantity': quantity, 'price': price};
+  }
 }

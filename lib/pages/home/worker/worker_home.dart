@@ -8,19 +8,27 @@ import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:flutter/material.dart';
 
 class WorkerHome extends StatefulWidget {
-  const WorkerHome({super.key});
+  final String? selectedIndex;
+  const WorkerHome({super.key, this.selectedIndex});
 
   @override
   State<WorkerHome> createState() => _WorkerHomeState();
 }
 
 class _WorkerHomeState extends State<WorkerHome> {
+  @override
+  void initState() {
+    selectedBookingStatus = widget.selectedIndex ?? 'P';
+    super.initState();
+  }
+
   final List<Map<String, String>> bookingStatus = [
-    {'code': 'A', 'name': 'To Do'},
+    {'code': 'P', 'name': 'To Do'},
+    {'code': 'A', 'name': 'Accepted'},
     {'code': 'C', 'name': 'Completed'},
     {'code': 'X', 'name': 'Cancelled'},
   ];
-  String selectedBookingStatus = 'A';
+  String? selectedBookingStatus;
 
   @override
   Widget build(BuildContext context) {

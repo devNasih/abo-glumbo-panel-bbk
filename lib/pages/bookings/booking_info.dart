@@ -138,6 +138,14 @@ class BookingInfo extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
+            _buildInfoRow(
+              context,
+              label: AppLocalizations.of(context)!.orderId,
+              value: booking.id,
+              textTheme: textTheme,
+              colorScheme: colorScheme,
+            ),
+
             // Service Name
             _buildInfoRow(
               context,
@@ -236,7 +244,7 @@ class BookingInfo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          AppLocalizations.of(context)!.price,
+          AppLocalizations.of(context)!.inspectionFee,
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w500,

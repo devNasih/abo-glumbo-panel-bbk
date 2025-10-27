@@ -12,8 +12,8 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
   AdminBloc() : super(AdminInitial()) {
     on<AssignAgentEvent>(_assignAgent);
     on<RejectOrderEvent>(_rejectOrder);
-    on<AdminCancelOrderEvent>(_cancelOrder);
   }
+
 
   Future<void> _assignAgent(
     AssignAgentEvent event,
@@ -52,24 +52,6 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       emit(OrderRejected(true));
     } catch (e) {
       emit(OrderRejectionError(e.toString()));
-    }
-  }
-
-  Future<void> _cancelOrder(
-    AdminCancelOrderEvent event,
-    Emitter<AdminState> emit,
-  ) async {
-    emit(CancellingOrder());
-    try {
-      await AppFirestore.bookingsCollectionRef.doc(event.booking.id).update({
-        'bookingStatusCode': 'XX',
-        'cancelledBy': 'admin',
-        'cancelledAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-      emit(OrderCancelled(true));
-    } catch (e) {
-      emit(OrderCancellationError(e.toString()));
     }
   }
 }

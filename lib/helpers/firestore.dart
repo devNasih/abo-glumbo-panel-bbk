@@ -46,6 +46,12 @@ class AppFirestore {
   static CollectionReference customerServiceCollectionRef = FirebaseFirestore
       .instance
       .collection('customer_service_contacts');
+  static CollectionReference transactionsCollectionRef = FirebaseFirestore
+      .instance
+      .collection('transactions');
+      static CollectionReference payoutCollectionRef = FirebaseFirestore
+      .instance
+      .collection('payouts');
 }
 
 class AppFireStorage {

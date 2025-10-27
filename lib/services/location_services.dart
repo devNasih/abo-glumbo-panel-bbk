@@ -122,11 +122,11 @@ class BookingTrackerService {
         },
       }, SetOptions(merge: true));
 
-      print(
+       debugPrint(
         'Background location updated: ${position.latitude}, ${position.longitude}',
       );
     } catch (e) {
-      print('Error updating background location: $e');
+       debugPrint('Error updating background location: $e');
     }
   }
 
@@ -170,14 +170,14 @@ class BookingTrackerService {
 
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        print('Location services disabled, cannot restore tracking');
+         debugPrint('Location services disabled, cannot restore tracking');
         return;
       }
 
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
-        print('Location permission denied, cannot restore tracking');
+         debugPrint('Location permission denied, cannot restore tracking');
         return;
       }
 
@@ -212,10 +212,10 @@ class BookingTrackerService {
               await _updateLocationToFirestore(position, uid, 'foreground');
             },
             onError: (error) {
-              print('Location stream error during restore: $error');
+               debugPrint('Location stream error during restore: $error');
 
               if (Platform.isIOS && error.toString().contains('1')) {
-                print(
+                 debugPrint(
                   'iOS location permission error during restore - may need "Always" permission',
                 );
               }
@@ -228,12 +228,12 @@ class BookingTrackerService {
             },
           );
 
-      print('Location tracking restored successfully');
+       debugPrint('Location tracking restored successfully');
     } catch (e) {
-      print('Error restoring location tracking: $e');
+       debugPrint('Error restoring location tracking: $e');
 
       if (Platform.isIOS && e.toString().contains('1')) {
-        print('iOS location permission issue during restore');
+         debugPrint('iOS location permission issue during restore');
       }
     }
   }
@@ -373,19 +373,19 @@ class BookingTrackerService {
           permission = await Geolocator.requestPermission();
 
           if (permission == LocationPermission.whileInUse) {
-            print(
+             debugPrint(
               "iOS: Only 'When In Use' permission granted. Background tracking will be limited.",
             );
           } else if (permission == LocationPermission.always) {
-            print(
+             debugPrint(
               "iOS: 'Always' permission granted. Full background tracking available.",
             );
           }
         } catch (e) {
-          print("iOS: Error requesting always permission: $e");
+           debugPrint("iOS: Error requesting always permission: $e");
 
           if (permission == LocationPermission.whileInUse) {
-            print("iOS: Continuing with 'When In Use' permission only.");
+             debugPrint("iOS: Continuing with 'When In Use' permission only.");
           } else {
             rethrow;
           }
@@ -403,12 +403,12 @@ class BookingTrackerService {
       bool isOptimizationDisabled =
           await BatteryOptimizationService.isBatteryOptimizationDisabled();
       if (!isOptimizationDisabled) {
-        print(
+         debugPrint(
           'Battery optimization is enabled, may affect background location',
         );
       }
     } catch (e) {
-      print('Error checking battery optimization: $e');
+       debugPrint('Error checking battery optimization: $e');
     }
   }
 
@@ -471,11 +471,11 @@ class BookingTrackerService {
         },
       }, SetOptions(merge: true));
 
-      print(
+       debugPrint(
         'Location updated ($source): ${position.latitude}, ${position.longitude}',
       );
     } catch (e) {
-      print('Error updating location to Firestore: $e');
+       debugPrint('Error updating location to Firestore: $e');
     }
   }
 
@@ -484,7 +484,7 @@ class BookingTrackerService {
       if (Platform.isIOS) {
         LocationPermission permission = await Geolocator.checkPermission();
         if (permission != LocationPermission.always) {
-          print('iOS: Skipping background fetch - requires Always permission');
+           debugPrint('iOS: Skipping background fetch - requires Always permission');
           return;
         }
       }
@@ -502,22 +502,22 @@ class BookingTrackerService {
           requiredNetworkType: NetworkType.ANY,
         ),
         (String taskId) async {
-          print('Background fetch triggered: $taskId');
+           debugPrint('Background fetch triggered: $taskId');
           backgroundFetchHeadlessTask(HeadlessTask(taskId, false));
         },
         (String taskId) async {
-          print('Background fetch timeout: $taskId');
+           debugPrint('Background fetch timeout: $taskId');
           backgroundFetchHeadlessTask(HeadlessTask(taskId, true));
         },
       );
 
       await BackgroundFetch.start();
-      print('Background fetch configured and started');
+       debugPrint('Background fetch configured and started');
     } catch (e) {
-      print('Error configuring background fetch: $e');
+       debugPrint('Error configuring background fetch: $e');
 
       if (Platform.isIOS && e.toString().contains('1')) {
-        print(
+         debugPrint(
           'iOS background fetch not available - continuing with foreground tracking only',
         );
       }
@@ -535,7 +535,7 @@ class BookingTrackerService {
     try {
       await BackgroundFetch.stop();
     } catch (e) {
-      print('Error stopping background fetch: $e');
+       debugPrint('Error stopping background fetch: $e');
     }
 
     if (_bookingId != null) {
@@ -546,14 +546,14 @@ class BookingTrackerService {
           'trackingStoppedAt': FieldValue.serverTimestamp(),
         });
       } catch (e) {
-        print('Error updating booking status: $e');
+         debugPrint('Error updating booking status: $e');
       }
     }
 
     LocalStore.setActiveBookingId('');
     _bookingId = null;
 
-    print('Location tracking stopped');
+     debugPrint('Location tracking stopped');
   }
 
   void dispose() {

@@ -20,6 +20,7 @@ class UserModel {
   String? profileUrl;
   String? fcmToken;
   double? rating;
+  List<PayoutAccountModel>? payoutAccounts = <PayoutAccountModel>[];
 
   UserModel({
     this.uid,
@@ -40,6 +41,7 @@ class UserModel {
     this.profileUrl,
     this.fcmToken,
     this.rating,
+    this.payoutAccounts,
   });
 
   UserModel copyWith({
@@ -62,6 +64,7 @@ class UserModel {
     String? profileUrl,
     String? fcmToken,
     double? rating,
+    List<PayoutAccountModel>? payoutAccounts,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -82,6 +85,7 @@ class UserModel {
       profileUrl: profileUrl ?? this.profileUrl,
       fcmToken: fcmToken ?? this.fcmToken,
       rating: rating ?? this.rating,
+      payoutAccounts: payoutAccounts ?? this.payoutAccounts,
     );
   }
 
@@ -111,6 +115,11 @@ class UserModel {
       profileUrl: json['profileUrl'],
       fcmToken: json['fcmToken'],
       rating: json['rating'],
+      payoutAccounts: json['payoutAccounts'] != null
+          ? List<PayoutAccountModel>.from(
+              json['payoutAccounts'].map((x) => PayoutAccountModel.fromJson(x)),
+            )
+          : <PayoutAccountModel>[],
     );
   }
 
@@ -150,6 +159,13 @@ class UserModel {
       profileUrl: data?['profileUrl'],
       fcmToken: data?['fcmToken'],
       rating: data?['rating'],
+      payoutAccounts: data?['payoutAccounts'] != null
+          ? List<PayoutAccountModel>.from(
+              data!['payoutAccounts'].map(
+                (x) => PayoutAccountModel.fromJson(x),
+              ),
+            )
+          : <PayoutAccountModel>[],
     );
   }
 
@@ -173,6 +189,7 @@ class UserModel {
       'profileUrl': profileUrl,
       'fcmToken': fcmToken,
       'rating': rating,
+      'payoutAccounts': payoutAccounts,
     };
   }
 
@@ -195,6 +212,7 @@ class UserModel {
       'profileUrl': profileUrl,
       'fcmToken': fcmToken,
       'rating': rating,
+      'payoutAccounts': payoutAccounts,
     };
   }
 
@@ -247,6 +265,10 @@ class UserModel {
     if (rating != previous.rating && rating != null) {
       json['rating'] = rating;
     }
+    if (payoutAccounts != previous.payoutAccounts && payoutAccounts != null) {
+      json['payoutAccounts'] = payoutAccounts;
+    }
+
     return json;
   }
 }
@@ -266,5 +288,125 @@ class LiveLocation {
   @override
   String toString() {
     return 'LiveLocation(latitude: $latitude, longitude: $longitude)';
+  }
+}
+
+class PayoutAccountModel {
+  String? id;
+  String? accountHolderName;
+  String? accountNumber;
+  String? bankName;
+  String? ifscCode;
+  String? accountType; // 'savings', 'current'
+  bool isPrimary;
+  Timestamp? createdAt;
+  Timestamp? updatedAt;
+
+  PayoutAccountModel({
+    this.id,
+    this.accountHolderName,
+    this.accountNumber,
+    this.bankName,
+    this.ifscCode,
+    this.accountType,
+    this.isPrimary = false,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  PayoutAccountModel copyWith({
+    String? id,
+    String? accountHolderName,
+    String? accountNumber,
+    String? bankName,
+    String? ifscCode,
+    String? accountType,
+    bool? isPrimary,
+    Timestamp? createdAt,
+    Timestamp? updatedAt,
+  }) {
+    return PayoutAccountModel(
+      id: id ?? this.id,
+      accountHolderName: accountHolderName ?? this.accountHolderName,
+      accountNumber: accountNumber ?? this.accountNumber,
+      bankName: bankName ?? this.bankName,
+      ifscCode: ifscCode ?? this.ifscCode,
+      accountType: accountType ?? this.accountType,
+      isPrimary: isPrimary ?? this.isPrimary,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  factory PayoutAccountModel.fromJson(Map<String, dynamic> json) {
+    return PayoutAccountModel(
+      id: json['id'],
+      accountHolderName: json['accountHolderName'],
+      accountNumber: json['accountNumber'],
+      bankName: json['bankName'],
+      ifscCode: json['ifscCode'],
+      accountType: json['accountType'],
+      isPrimary: json['isPrimary'] ?? false,
+      createdAt: json['createdAt'],
+      updatedAt: json['updatedAt'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'accountHolderName': accountHolderName,
+      'accountNumber': accountNumber,
+      'bankName': bankName,
+      'ifscCode': ifscCode,
+      'accountType': accountType,
+      'isPrimary': isPrimary,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+    };
+  }
+
+  factory PayoutAccountModel.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+  ) {
+    final data = snapshot.data();
+    return PayoutAccountModel(
+      id: snapshot.id,
+      accountHolderName: data?['accountHolderName'],
+      accountNumber: data?['accountNumber'],
+      bankName: data?['bankName'],
+      ifscCode: data?['ifscCode'],
+      accountType: data?['accountType'],
+      isPrimary: data?['isPrimary'] ?? false,
+      createdAt: data?['createdAt'],
+      updatedAt: data?['updatedAt'],
+    );
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      'accountHolderName': accountHolderName,
+      'accountNumber': accountNumber,
+      'bankName': bankName,
+      'ifscCode': ifscCode,
+      'accountType': accountType,
+      'isPrimary': isPrimary,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+    };
+  }
+
+  factory PayoutAccountModel.fromMap(Map<String, dynamic> map) {
+    return PayoutAccountModel(
+      id: map['id'],
+      accountHolderName: map['accountHolderName'],
+      accountNumber: map['accountNumber'],
+      bankName: map['bankName'],
+      ifscCode: map['ifscCode'],
+      accountType: map['accountType'],
+      isPrimary: map['isPrimary'] ?? false,
+      createdAt: map['createdAt'],
+      updatedAt: map['updatedAt'],
+    );
   }
 }

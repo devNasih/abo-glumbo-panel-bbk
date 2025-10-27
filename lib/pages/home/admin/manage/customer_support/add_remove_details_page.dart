@@ -456,7 +456,7 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
                             maxLength: widget.index == 1 ? 15 : null,
                             enabled: !isLoading,
                             decoration: InputDecoration(
-                              labelText: getFieldLabel(),
+                              labelText: getFieldLabel(true),
                               counterText: "",
                             ),
                             validator: (value) {
@@ -588,7 +588,7 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
                                     id: isEdit ? contact?.id : null,
                                     name: nameController.text.trim(),
                                     detail: emailController.text.trim(),
-                                    type: getFieldLabel(),
+                                    type: getFieldLabel(false),
                                     isActive: isEdit
                                         ? isPrimaryValue
                                         : shouldBePrimary,
@@ -691,16 +691,16 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
     }
   }
 
-  String getFieldLabel() {
+  String getFieldLabel(bool isToShow) {
     switch (widget.index) {
       case 0:
-        return AppLocalizations.of(context)!.email;
+        return isToShow ? AppLocalizations.of(context)!.email : "Email";
       case 1:
-        return AppLocalizations.of(context)!.phone;
+        return isToShow ? AppLocalizations.of(context)!.phone : "Phone";
       case 2:
-        return AppLocalizations.of(context)!.whatsapp;
+        return isToShow ? AppLocalizations.of(context)!.whatsapp : "WhatsApp";
       default:
-        return AppLocalizations.of(context)!.email;
+        return isToShow ? AppLocalizations.of(context)!.email : "Email";
     }
   }
 

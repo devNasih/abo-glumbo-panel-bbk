@@ -108,7 +108,7 @@ class _EditProfileState extends State<EditProfile> {
       }
     } catch (e) {
       if (mounted) {
-        return null; // Handle error gracefully
+       // Handle error gracefully
       }
     }
   }

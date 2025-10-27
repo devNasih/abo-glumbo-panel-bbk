@@ -40,15 +40,15 @@ class ImagePickerDebugHelper {
     return result;
   }
 
-  /// Print debug information about image picker status
+  
   static Future<void> printDebugInfo() async {
     if (kDebugMode) {
       final status = await checkImagePickerStatus();
-      print('=== IMAGE PICKER DEBUG INFO ===');
+       debugPrint('=== IMAGE PICKER DEBUG INFO ===');
       status.forEach((key, value) {
-        print('$key: $value');
+         debugPrint('$key: $value');
       });
-      print('===============================');
+       debugPrint('===============================');
     }
   }
 

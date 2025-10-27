@@ -61,7 +61,7 @@ class LocalizationHelper {
         return AppLocalizations.of(context)!.rejected;
       case 'C':
         return AppLocalizations.of(context)!.completed;
-      case 'XX':
+      case 'X':
         return AppLocalizations.of(context)!.cancelled;
       default:
         return status;
