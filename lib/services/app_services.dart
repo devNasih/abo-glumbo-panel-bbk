@@ -1,6 +1,9 @@
 import 'dart:developer';
 import 'package:aboglumbo_bbk_panel/models/payout_request.dart';
 import 'package:aboglumbo_bbk_panel/models/transaction.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:aboglumbo_bbk_panel/helpers/custom_exception.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
@@ -59,10 +62,29 @@ class AppServices {
     RemoteMessage message,
   ) async {
     try {
-      String userId = LocalStore.getUID() ?? '';
+      String userId = '';
+      bool isCurrentUserAdmin = false;
 
-      UserModel? currentUser = LocalStore.getCachedUserData();
-      bool isCurrentUserAdmin = currentUser?.isAdmin ?? false;
+      // Check if Hive is available (only in foreground)
+      try {
+        if (Hive.isBoxOpen('myBox')) {
+          userId = LocalStore.getUID() ?? '';
+          UserModel? currentUser = LocalStore.getCachedUserData();
+          isCurrentUserAdmin = currentUser?.isAdmin ?? false;
+        } else {
+          // Background execution - try to get userId from message data
+          userId = message.data['userId']?.toString() ?? '';
+          isCurrentUserAdmin =
+              message.data['isAdmin'] == 'true' ||
+              message.data['targetRole'] == 'admin';
+
+          debugPrint('⚠️ Background notification - Hive not available');
+        }
+      } catch (e) {
+        debugPrint('⚠️ Error accessing LocalStore: $e');
+        // Continue with empty userId if Hive is not available
+        userId = message.data['userId']?.toString() ?? '';
+      }
 
       String title =
           message.notification?.title ??
@@ -95,12 +117,17 @@ class AppServices {
         'platform': message.data['platform']?.toString() ?? 'mobile',
         'targetRole': targetRole,
         'userRole': isCurrentUserAdmin ? 'admin' : 'worker',
+        'isBackgroundReceived': !Hive.isBoxOpen(
+          'myBox',
+        ), // Track if received in background
       };
 
       await AppFirestore.notificationsCollectionRef.add(notificationData);
+
+      debugPrint('✅ Notification stored in Firestore successfully');
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error storing notification: $e');
+        print('❌ Error storing notification in Firestore: $e');
       }
     }
   }
@@ -389,18 +416,112 @@ class AppServices {
     });
   }
 
-  static Future<bool> clearTippingAmount(String agentId) async {
+  static Future<bool> clearTippingAmount(
+    String agentId,
+    String transactionId,
+    XFile? image,
+  ) async {
     try {
+      String? imageUrl;
+      if (image != null) {
+        imageUrl = await _uploadProofImage(agentId, image);
+        if (imageUrl == null) {
+          if (kDebugMode) {
+            print('❌ Failed to upload proof image');
+          }
+          return false;
+        }
+      }
+      final model = AllTipsModel(proofs: [{
+        'transactionId': transactionId,
+        'proofImageUrl': imageUrl,
+      }]);
+      await AppFirestore.tippingCollectionRef
+          .doc(agentId)
+          .collection("total")
+          .doc(agentId)
+          .set(model.toJson());
+
       await AppFirestore.tippingCollectionRef.doc(agentId).update({
         'totalTip': 0.0,
         'lastTipAmount': 0.0,
+        'payoutRequested': false,
+        'updatedAt': Timestamp.now(),
       });
+
       return true;
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error clearing tipping amount: $e');
       }
       return false;
+    }
+  }
+
+  static Future<String?> _uploadProofImage(String agentId, XFile image) async {
+    try {
+      // Read image as bytes
+      final Uint8List imageData = await image.readAsBytes();
+
+      // Create a unique filename with timestamp
+      final String fileName =
+          'payment_proof_${agentId}_${DateTime.now().millisecondsSinceEpoch}.${image.name.split('.').last}';
+
+      // Create Firebase Storage reference
+      final Reference storageRef = AppFireStorage.payoutProofsStorageRef
+          .child('tip_payment_proofs')
+          .child(agentId)
+          .child(fileName);
+
+      // Set metadata for the file
+      final SettableMetadata metadata = SettableMetadata(
+        contentType: _getContentType(image.name),
+        customMetadata: {
+          'uploadedBy': 'admin',
+          'agentId': agentId,
+          'uploadedAt': DateTime.now().toIso8601String(),
+        },
+      );
+
+      // Upload the file
+      final UploadTask uploadTask = storageRef.putData(imageData, metadata);
+
+      // Wait for upload to complete
+      final TaskSnapshot snapshot = await uploadTask;
+
+      // Get the download URL
+      final String downloadUrl = await snapshot.ref.getDownloadURL();
+
+      if (kDebugMode) {
+        print('✅ Image uploaded successfully: $downloadUrl');
+      }
+
+      return downloadUrl;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error uploading image: $e');
+      }
+      return null;
+    }
+  }
+
+  // Helper method to determine content type based on file extension
+  static String _getContentType(String fileName) {
+    final String extension = fileName.split('.').last.toLowerCase();
+    switch (extension) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      case 'pdf':
+        return 'application/pdf';
+      default:
+        return 'application/octet-stream';
     }
   }
 
@@ -470,17 +591,19 @@ class AppServices {
         .get();
     final data = docSnapshot.data() as Map<String, dynamic>?;
     String categoryName = data?['name'] ?? '';
-
+    log("wuerying");
     Query query = AppFirestore.usersCollectionRef
         .where('isVerified', isEqualTo: true)
         .where('isAdmin', isNotEqualTo: true)
         .where('jobRoles', arrayContains: categoryName);
+    log(query.toString());
 
     yield* query.snapshots().map((snapshot) {
       return snapshot.docs
           .map((doc) => UserModel.fromJson(doc.data() as Map<String, dynamic>))
           .toList();
     });
+    log("completed");
   }
 
   static Future<bool> isEmailRegistered(String email) async {
@@ -834,9 +957,20 @@ class AppServices {
     final snapshot = await AppFirestore.tippingCollectionRef
         .where('agentId', isEqualTo: workerId)
         .get();
+    log(snapshot.docs.toString());
     return TippingModel.fromJson(
       snapshot.docs.first.data() as Map<String, dynamic>,
     );
+  }
+
+  static Future<double> getTotalTipping(String workerId) async {
+    final snapshot = await AppFirestore.tippingCollectionRef
+        .doc(workerId)
+        .collection('total')
+        .where('id', isEqualTo: workerId)
+        .get();
+    log(snapshot.docs.toString());
+    return snapshot.docs.first['amount'] ?? 0.0;
   }
 
   static Future<List<TransactionModel>> getWorkerTransactions(
@@ -1120,5 +1254,43 @@ class AppServices {
           )
           .toList();
     });
+  }
+
+  static Future<double> getWorkerAvailableBalance(String workerId) async {
+    final balance = await AppFirestore.usersCollectionRef
+        .doc(workerId)
+        .get()
+        .then(
+          (snapshot) =>
+              (snapshot.data() as Map<String, dynamic>?)?['availableBalance'] ??
+              0.0,
+        );
+    return balance;
+  }
+
+  static Future<double> getWorkerPaidAmounts(String workerId) async {
+    final paidAmounts = await AppFirestore.usersCollectionRef
+        .doc(workerId)
+        .get()
+        .then(
+          (snapshot) =>
+              (snapshot.data() as Map<String, dynamic>?)?['paidAmounts'] ?? 0.0,
+        );
+    return paidAmounts;
+  }
+
+  static Future<UserModel> getWorkerById(String workerId) async {
+    final snapshot = await AppFirestore.usersCollectionRef.doc(workerId).get();
+    return UserModel.fromJson(snapshot.data() as Map<String, dynamic>);
+  }
+
+  static Stream<List<TippingModel>> getTipsPayoutStream() {
+    return AppFirestore.tippingCollectionRef.snapshots().map(
+      (snapshot) => snapshot.docs
+          .map(
+            (doc) => TippingModel.fromJson(doc.data() as Map<String, dynamic>),
+          )
+          .toList(),
+    );
   }
 }

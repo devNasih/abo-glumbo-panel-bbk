@@ -38,6 +38,7 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController descriptionArController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
+
   XFile? selectedImage;
   CategoryModel? selectedCategory;
   List<LocationModel> selectedLocations = []; // Add selected locations
@@ -155,6 +156,9 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
       }
 
       setState(() {}); // Update UI after filling contents
+    }
+    if (widget.service == null) {
+      priceController.text = '0';
     }
   }
 
@@ -449,11 +453,14 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
                   keyboardType: TextInputType.number,
                   controller: priceController,
                   decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)?.price ?? 'Price',
+                    labelText:
+                        AppLocalizations.of(context)?.inspectionFee ?? 'Price',
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty || value == '') {
-                      return AppLocalizations.of(context)?.pleaseEnterAPrice;
+                      return AppLocalizations.of(
+                        context,
+                      )?.pleaseEnterInspectionFeeAmount;
                     }
                     return null;
                   },

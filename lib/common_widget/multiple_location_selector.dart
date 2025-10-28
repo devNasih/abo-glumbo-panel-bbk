@@ -43,6 +43,7 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
   List<LocationModel> filteredLocations = [];
   List<LocationModel> selectedLocations = [];
   bool isArabic = false;
+  bool isAllSelected = false;
 
   @override
   void initState() {
@@ -52,6 +53,18 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
     if (widget.allowMultipleSelection && widget.selectedLocations != null) {
       selectedLocations = List.from(widget.selectedLocations!);
     }
+  }
+
+  void _toggleSelectAll(bool? value) {
+    setState(() {
+      if (value == true) {
+        selectedLocations = List.from(filteredLocations);
+        isAllSelected = true;
+      } else {
+        selectedLocations.clear();
+        isAllSelected = false;
+      }
+    });
   }
 
   @override
@@ -103,6 +116,12 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
           return nameMatch || nameArMatch;
         }).toList();
       }
+      isAllSelected =
+          filteredLocations.isNotEmpty &&
+          selectedLocations.length == filteredLocations.length &&
+          filteredLocations.every(
+            (loc) => selectedLocations.any((sel) => sel.id == loc.id),
+          );
     });
   }
 
@@ -131,6 +150,7 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
         } else {
           selectedLocations.add(location);
         }
+        isAllSelected = selectedLocations.length == filteredLocations.length;
       });
     } else {
       widget.onLocationSelected?.call(location);
@@ -187,7 +207,7 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            '${selectedLocations.length} selected',
+                            '${selectedLocations.length} ${AppLocalizations.of(context)?.selected ?? 'Selected'}',
                             style: GoogleFonts.dmSans(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
@@ -204,6 +224,26 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
                 ],
               ),
             ),
+            // Add Select All option here
+            if (widget.allowMultipleSelection && filteredLocations.isNotEmpty)
+              CheckboxListTile(
+                value: isAllSelected,
+                onChanged: _toggleSelectAll,
+                title: Text(
+                  AppLocalizations.of(context)?.selectAll ?? 'Select All',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.secondary,
+                  ),
+                ),
+                activeColor: AppColors.secondary,
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              ),
+
+            if (widget.allowMultipleSelection && filteredLocations.isNotEmpty)
+              const Divider(),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: TextField(

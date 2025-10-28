@@ -322,7 +322,7 @@ class _LoginPageState extends State<LoginPage> {
                 errorMessage = AppLocalizations.of(context)!.invalidCredentials;
                 break;
               default:
-                errorMessage = AppLocalizations.of(context)!.loginError;
+                errorMessage = state.error;
             }
 
             ScaffoldMessenger.of(context).showSnackBar(

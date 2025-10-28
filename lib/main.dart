@@ -25,10 +25,10 @@ void backgroundFetchHeadlessTask(HeadlessTask task) async {
   String taskId = task.taskId;
   bool timeout = task.timeout;
 
-   debugPrint('Background fetch executing: $taskId, timeout: $timeout');
+  debugPrint('Background fetch executing: $taskId, timeout: $timeout');
 
   if (timeout) {
-     debugPrint('Background fetch timeout for task: $taskId');
+    debugPrint('Background fetch timeout for task: $taskId');
     BackgroundFetch.finish(taskId);
     return;
   }
@@ -38,7 +38,7 @@ void backgroundFetchHeadlessTask(HeadlessTask task) async {
     final String? uid = LocalStore.getUID();
 
     if (bookingId == null || bookingId.isEmpty || uid == null) {
-       debugPrint(
+      debugPrint(
         'No active booking or user ID, skipping background location update',
       );
       BackgroundFetch.finish(taskId);
@@ -48,7 +48,7 @@ void backgroundFetchHeadlessTask(HeadlessTask task) async {
     // Check if location services are available
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-       debugPrint('Location services disabled, skipping background update');
+      debugPrint('Location services disabled, skipping background update');
       BackgroundFetch.finish(taskId);
       return;
     }
@@ -57,7 +57,7 @@ void backgroundFetchHeadlessTask(HeadlessTask task) async {
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
-       debugPrint('Location permission denied, skipping background update');
+      debugPrint('Location permission denied, skipping background update');
       BackgroundFetch.finish(taskId);
       return;
     }
@@ -80,11 +80,11 @@ void backgroundFetchHeadlessTask(HeadlessTask task) async {
       },
     }, SetOptions(merge: true));
 
-     debugPrint(
+    debugPrint(
       'Background location updated successfully: ${position.latitude}, ${position.longitude}',
     );
   } catch (e) {
-     debugPrint('Error in background fetch: $e');
+    debugPrint('Error in background fetch: $e');
   } finally {
     BackgroundFetch.finish(taskId);
   }
@@ -127,18 +127,18 @@ void main() async {
         requiredNetworkType: NetworkType.ANY,
       ),
       (String taskId) async {
-         debugPrint('Foreground background fetch: $taskId');
+        debugPrint('Foreground background fetch: $taskId');
         backgroundFetchHeadlessTask(HeadlessTask(taskId, false));
       },
       (String taskId) async {
-         debugPrint('Background fetch timeout: $taskId');
+        debugPrint('Background fetch timeout: $taskId');
         backgroundFetchHeadlessTask(HeadlessTask(taskId, true));
       },
     );
 
-     debugPrint('Background fetch registration successful');
+    debugPrint('Background fetch registration successful');
   } catch (e) {
-     debugPrint('Background Fetch registration failed: $e');
+    debugPrint('Background Fetch registration failed: $e');
   }
   runApp(MyApp(navigatorKey: navigatorKey));
 }

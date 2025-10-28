@@ -261,3 +261,44 @@ final class SettingPrimaryCustomerSupport extends ManageAppState {
   List<Object> get props => []; // Changed from List<Object?>
 }
 
+// Payout Approval States
+final class ApprovingPayout extends ManageAppState {}
+
+final class PayoutApprovalSuccess extends ManageAppState {
+  final String message;
+  const PayoutApprovalSuccess(this.message);
+
+  @override
+  List<Object> get props => [message];
+}
+
+final class PayoutApprovalError extends ManageAppState {
+  final String error;
+  const PayoutApprovalError(this.error);
+
+  @override
+  List<Object> get props => [error];
+}
+
+// Payout Rejection States
+final class RejectingPayout extends ManageAppState {}
+
+final class PayoutRejectionSuccess extends ManageAppState {
+  final String message;
+  const PayoutRejectionSuccess(this.message);
+
+  @override
+  List<Object> get props => [message];
+}
+
+final class PayoutRejectionError extends ManageAppState {
+  final String error;
+  const PayoutRejectionError(this.error);
+
+  @override
+  List<Object> get props => [error];
+}
+
+
+
+

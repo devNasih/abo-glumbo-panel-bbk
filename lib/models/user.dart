@@ -20,7 +20,15 @@ class UserModel {
   String? profileUrl;
   String? fcmToken;
   double? rating;
+  String? availableBalance;
+  String? paidAmounts;
   List<PayoutAccountModel>? payoutAccounts = <PayoutAccountModel>[];
+
+  // Optional: Tier summary fields (for quick access on dashboard)
+  String? highestTier; // 'Bronze', 'Silver', 'Gold', 'Platinum'
+  double?
+  totalMonthlyBonus; // Total bonus earned this month across all categories
+  Timestamp? lastBonusDate; // Last time bonus was received
 
   UserModel({
     this.uid,
@@ -42,6 +50,11 @@ class UserModel {
     this.fcmToken,
     this.rating,
     this.payoutAccounts,
+    this.availableBalance,
+    this.paidAmounts,
+    this.highestTier,
+    this.totalMonthlyBonus,
+    this.lastBonusDate,
   });
 
   UserModel copyWith({
@@ -65,6 +78,11 @@ class UserModel {
     String? fcmToken,
     double? rating,
     List<PayoutAccountModel>? payoutAccounts,
+    String? availableBalance,
+    String? paidAmounts,
+    String? highestTier,
+    double? totalMonthlyBonus,
+    Timestamp? lastBonusDate,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -85,7 +103,12 @@ class UserModel {
       profileUrl: profileUrl ?? this.profileUrl,
       fcmToken: fcmToken ?? this.fcmToken,
       rating: rating ?? this.rating,
+      availableBalance: availableBalance ?? this.availableBalance,
+      paidAmounts: paidAmounts ?? this.paidAmounts,
       payoutAccounts: payoutAccounts ?? this.payoutAccounts,
+      highestTier: highestTier ?? this.highestTier,
+      totalMonthlyBonus: totalMonthlyBonus ?? this.totalMonthlyBonus,
+      lastBonusDate: lastBonusDate ?? this.lastBonusDate,
     );
   }
 
@@ -114,22 +137,30 @@ class UserModel {
       docUrl: json['docUrl'],
       profileUrl: json['profileUrl'],
       fcmToken: json['fcmToken'],
-      rating: json['rating'],
+      rating: json['rating'] != null
+          ? (json['rating'] as num).toDouble()
+          : null,
       payoutAccounts: json['payoutAccounts'] != null
           ? List<PayoutAccountModel>.from(
               json['payoutAccounts'].map((x) => PayoutAccountModel.fromJson(x)),
             )
           : <PayoutAccountModel>[],
+      // FIX: Convert numeric values to strings
+      availableBalance: json['availableBalance']?.toString(),
+      paidAmounts: json['paidAmounts']?.toString(),
+      highestTier: json['highestTier'],
+      totalMonthlyBonus: json['totalMonthlyBonus'] != null
+          ? (json['totalMonthlyBonus'] as num).toDouble()
+          : null,
+      lastBonusDate: json['lastBonusDate'],
     );
   }
 
-  // from document snapshot
   factory UserModel.fromDocumentSnapshot(DocumentSnapshot snapshot) {
     Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
     return UserModel.fromJson(data).copyWith(uid: snapshot.id);
   }
 
-  // from firestore
   factory UserModel.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
   ) {
@@ -158,7 +189,9 @@ class UserModel {
       docUrl: data?['docUrl'],
       profileUrl: data?['profileUrl'],
       fcmToken: data?['fcmToken'],
-      rating: data?['rating'],
+      rating: data?['rating'] != null
+          ? (data!['rating'] as num).toDouble()
+          : null,
       payoutAccounts: data?['payoutAccounts'] != null
           ? List<PayoutAccountModel>.from(
               data!['payoutAccounts'].map(
@@ -166,10 +199,17 @@ class UserModel {
               ),
             )
           : <PayoutAccountModel>[],
+      // FIX: Convert numeric values to strings
+      availableBalance: data?['availableBalance']?.toString(),
+      paidAmounts: data?['paidAmounts']?.toString(),
+      highestTier: data?['highestTier'],
+      totalMonthlyBonus: data?['totalMonthlyBonus'] != null
+          ? (data!['totalMonthlyBonus'] as num).toDouble()
+          : null,
+      lastBonusDate: data?['lastBonusDate'],
     );
   }
 
-  // to firestore
   Map<String, dynamic> toFirestore() {
     return {
       'name': name,
@@ -190,6 +230,11 @@ class UserModel {
       'fcmToken': fcmToken,
       'rating': rating,
       'payoutAccounts': payoutAccounts,
+      'availableBalance': availableBalance,
+      'paidAmounts': paidAmounts,
+      'highestTier': highestTier,
+      'totalMonthlyBonus': totalMonthlyBonus,
+      'lastBonusDate': lastBonusDate,
     };
   }
 
@@ -213,10 +258,14 @@ class UserModel {
       'fcmToken': fcmToken,
       'rating': rating,
       'payoutAccounts': payoutAccounts,
+      'availableBalance': availableBalance,
+      'paidAmounts': paidAmounts,
+      'highestTier': highestTier,
+      'totalMonthlyBonus': totalMonthlyBonus,
+      'lastBonusDate': lastBonusDate,
     };
   }
 
-  // to edit json
   Map<String, dynamic> toEditJson({required UserModel previous}) {
     Map<String, dynamic> json = {'updatedAt': FieldValue.serverTimestamp()};
 
@@ -268,11 +317,29 @@ class UserModel {
     if (payoutAccounts != previous.payoutAccounts && payoutAccounts != null) {
       json['payoutAccounts'] = payoutAccounts;
     }
+    if (availableBalance != previous.availableBalance &&
+        availableBalance != null) {
+      json['availableBalance'] = availableBalance;
+    }
+    if (paidAmounts != previous.paidAmounts && paidAmounts != null) {
+      json['paidAmounts'] = paidAmounts;
+    }
+    if (highestTier != previous.highestTier && highestTier != null) {
+      json['highestTier'] = highestTier;
+    }
+    if (totalMonthlyBonus != previous.totalMonthlyBonus &&
+        totalMonthlyBonus != null) {
+      json['totalMonthlyBonus'] = totalMonthlyBonus;
+    }
+    if (lastBonusDate != previous.lastBonusDate && lastBonusDate != null) {
+      json['lastBonusDate'] = lastBonusDate;
+    }
 
     return json;
   }
 }
 
+// Keep your existing LiveLocation and PayoutAccountModel classes unchanged
 class LiveLocation {
   double? latitude;
   double? longitude;
@@ -297,7 +364,7 @@ class PayoutAccountModel {
   String? accountNumber;
   String? bankName;
   String? ifscCode;
-  String? accountType; // 'savings', 'current'
+  String? accountType;
   bool isPrimary;
   Timestamp? createdAt;
   Timestamp? updatedAt;

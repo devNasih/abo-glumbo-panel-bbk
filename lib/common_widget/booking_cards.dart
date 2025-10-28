@@ -107,7 +107,11 @@ class BookingCards extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  if (!isAdmin && booking.bookingStatusCode == 'P') ...[
+                  if (!isAdmin &&
+                      booking.bookingStatusCode == 'P' &&
+                      !booking.cancelledWorkers.any(
+                        (worker) => worker.uid == LocalStore.getUID(),
+                      )) ...[
                     IconButton(
                       onPressed: () {
                         showAcceptBookingDialog(context, booking);

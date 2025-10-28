@@ -4208,6 +4208,42 @@ abstract class AppLocalizations {
   /// **'Accept'**
   String get accept;
 
+  /// No description provided for @excellent.
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent'**
+  String get excellent;
+
+  /// No description provided for @good.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get good;
+
+  /// No description provided for @average.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get average;
+
+  /// No description provided for @poor.
+  ///
+  /// In en, this message translates to:
+  /// **'Poor'**
+  String get poor;
+
+  /// No description provided for @selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected'**
+  String get selected;
+
+  /// No description provided for @selectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select All'**
+  String get selectAll;
+
   /// No description provided for @inspectionFee.
   ///
   /// In en, this message translates to:
@@ -4220,11 +4256,35 @@ abstract class AppLocalizations {
   /// **'Cancelled By'**
   String get cancelledBy;
 
+  /// No description provided for @pleaseEnterInspectionFeeAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter inspection fee amount'**
+  String get pleaseEnterInspectionFeeAmount;
+
   /// No description provided for @rejectBooking.
   ///
   /// In en, this message translates to:
   /// **'Reject Booking'**
   String get rejectBooking;
+
+  /// No description provided for @pleaseuploadpaymentproof.
+  ///
+  /// In en, this message translates to:
+  /// **'Please upload payment proof'**
+  String get pleaseuploadpaymentproof;
+
+  /// No description provided for @tapToUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to upload proof image/file'**
+  String get tapToUpload;
+
+  /// No description provided for @selectSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Source'**
+  String get selectSource;
 
   /// No description provided for @areYouSureYouWantToRejectThisBooking.
   ///
@@ -4478,11 +4538,47 @@ abstract class AppLocalizations {
   /// **'Tap to select file'**
   String get tapToSelectFile;
 
+  /// No description provided for @lifetimeEarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifetime Earnings'**
+  String get lifetimeEarnings;
+
   /// No description provided for @uploadProof.
   ///
   /// In en, this message translates to:
   /// **'Upload Proof'**
   String get uploadProof;
+
+  /// No description provided for @notenoughtipstorequestpayoutminSAR10.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough tips to request payout (min SAR 10)'**
+  String get notenoughtipstorequestpayoutminSAR10;
+
+  /// No description provided for @requestTipPayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Tip Payout'**
+  String get requestTipPayout;
+
+  /// No description provided for @errorRequestingPayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Error requesting payout'**
+  String get errorRequestingPayout;
+
+  /// No description provided for @payoutRequestSubmittedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout request submitted successfully'**
+  String get payoutRequestSubmittedSuccessfully;
+
+  /// No description provided for @areYouSureYouWantToRequestAPayoutForTheAccumulatedTips.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to request a payout for the accumulated tips?'**
+  String get areYouSureYouWantToRequestAPayoutForTheAccumulatedTips;
 
   /// No description provided for @transactionNumber.
   ///
@@ -4490,11 +4586,29 @@ abstract class AppLocalizations {
   /// **'Transaction Number'**
   String get transactionNumber;
 
+  /// No description provided for @tipspayoutisdoneseparately.
+  ///
+  /// In en, this message translates to:
+  /// **'Tips payout is done separately'**
+  String get tipspayoutisdoneseparately;
+
+  /// No description provided for @pleaseProvideARejectionReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Please provide a rejection reason'**
+  String get pleaseProvideARejectionReason;
+
   /// No description provided for @enterTransactionNumber.
   ///
   /// In en, this message translates to:
   /// **'Enter Transaction Number'**
   String get enterTransactionNumber;
+
+  /// No description provided for @youHaveNoPayoutAccountsgotoprofilesectionandaddanaccount.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no payout accounts. Go to profile section and add an account.'**
+  String get youHaveNoPayoutAccountsgotoprofilesectionandaddanaccount;
 
   /// No description provided for @payoutRejectedSuccessfully.
   ///

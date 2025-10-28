@@ -11,6 +11,8 @@ import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -37,6 +39,8 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
     on<SetPrimaryCustomerServiceContactEvent>(
       _setPrimaryCustomerServiceContact,
     );
+    on<ApprovePayoutEvent>(_approvePayout);
+    on<RejectPayoutEvent>(_rejectPayout);
   }
 
   Future<void> _clearTipWallet(
@@ -45,7 +49,7 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
   ) async {
     emit(ClearingWallet());
     try {
-      await AppServices.clearTippingAmount(event.agentId);
+      await AppServices.clearTippingAmount(event.agentId, event.transactionId, event.image);
       emit(WalletCleared());
     } catch (e) {
       emit(WalletClearError(e.toString()));
@@ -299,43 +303,53 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
   ) async {
     emit(DeletingCustomerSupport());
     try {
-     // Get the contact to delete
-    final contact = await AppServices.getCustomerServiceById(event.contactId);
-    
-    if (contact == null) {
-      emit(CustomerSupportDeleteError(AppLocalizations.of(event.context)!.contactNotFound));
-      return;
-    }
-    
-    // Get all contacts of the same type
-    final allContacts = await AppServices.getCustomerServiceByType(
-      contact.type,
-    );
-    
-    // Prevent deletion if only one contact exists
-    if (allContacts.length <= 1) {
-      emit(CustomerSupportDeleteError(
-        AppLocalizations.of(event.context)!.cannotDeleteLastContact(contact.type),
-      ));
-      return;
-    }
-    
-    // If deleting primary contact, set another one as primary
-    if (contact.isActive == true) {
-      final newPrimary = allContacts.firstWhere((c) => c.id != event.contactId);
-      await AppServices.updateCustomerService(
-        CustomerSupportModel(
-          id: newPrimary.id,
-          name: newPrimary.name,
-          detail: newPrimary.detail,
-          type: newPrimary.type,
-          isActive: true,
-        ),
+      // Get the contact to delete
+      final contact = await AppServices.getCustomerServiceById(event.contactId);
+
+      if (contact == null) {
+        emit(
+          CustomerSupportDeleteError(
+            AppLocalizations.of(event.context)!.contactNotFound,
+          ),
+        );
+        return;
+      }
+
+      // Get all contacts of the same type
+      final allContacts = await AppServices.getCustomerServiceByType(
+        contact.type,
       );
-    }
-    
-    await AppServices.deleteCustomerService(event.contactId);
-    
+
+      // Prevent deletion if only one contact exists
+      if (allContacts.length <= 1) {
+        emit(
+          CustomerSupportDeleteError(
+            AppLocalizations.of(
+              event.context,
+            )!.cannotDeleteLastContact(contact.type),
+          ),
+        );
+        return;
+      }
+
+      // If deleting primary contact, set another one as primary
+      if (contact.isActive == true) {
+        final newPrimary = allContacts.firstWhere(
+          (c) => c.id != event.contactId,
+        );
+        await AppServices.updateCustomerService(
+          CustomerSupportModel(
+            id: newPrimary.id,
+            name: newPrimary.name,
+            detail: newPrimary.detail,
+            type: newPrimary.type,
+            isActive: true,
+          ),
+        );
+      }
+
+      await AppServices.deleteCustomerService(event.contactId);
+
       emit(CustomerSupportDeleted(true));
     } catch (e) {
       emit(CustomerSupportDeleteError(e.toString()));
@@ -379,6 +393,97 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
       ); // Added true parameter to match your other emissions
     } catch (e) {
       emit(CustomerSupportUpdateError(e.toString()));
+    }
+  }
+
+  Future<void> _approvePayout(
+    ApprovePayoutEvent event,
+    Emitter<ManageAppState> emit,
+  ) async {
+    emit(ApprovingPayout());
+
+    try {
+      // Upload proof file to Firebase Storage
+      final fileName = '${event.payoutRequestId}_${event.proofFile.name}';
+      final storageRef = AppFireStorage.payoutProofsStorageRef
+          .child('payout_proofs')
+          .child(fileName);
+
+      UploadTask uploadTask;
+
+      // Check if running on web or mobile
+      if (event.proofFile.bytes != null) {
+        // Web: Use bytes
+        uploadTask = storageRef.putData(
+          event.proofFile.bytes!,
+          SettableMetadata(
+            contentType: _getContentType(event.proofFile.extension),
+          ),
+        );
+      } else if (event.proofFile.path != null) {
+        // Mobile: Use file path
+        uploadTask = storageRef.putFile(
+          File(event.proofFile.path!),
+          SettableMetadata(
+            contentType: _getContentType(event.proofFile.extension),
+          ),
+        );
+      } else {
+        throw Exception('File path and bytes are both null');
+      }
+
+      final snapshot = await uploadTask;
+      final proofUrl = await snapshot.ref.getDownloadURL();
+
+      // Update Firestore payout request document
+      await AppFirestore.payoutCollectionRef.doc(event.payoutRequestId).update({
+        'status': 'C', // completed
+        'transactionNumber': event.transactionNumber,
+        'proofUrl': proofUrl,
+        'approvedAt': FieldValue.serverTimestamp(),
+      });
+
+      emit(const PayoutApprovalSuccess('Payout approved successfully'));
+    } catch (e) {
+      emit(PayoutApprovalError('Failed to approve payout: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _rejectPayout(
+    RejectPayoutEvent event,
+    Emitter<ManageAppState> emit,
+  ) async {
+    emit(RejectingPayout());
+
+    try {
+      // Update Firestore payout request document
+      await AppFirestore.payoutCollectionRef.doc(event.payoutRequestId).update({
+        'status': 'R', // rejected
+        'rejectionReason': event.reason,
+        'rejectedAt': FieldValue.serverTimestamp(),
+      });
+
+      emit(const PayoutRejectionSuccess('Payout rejected successfully'));
+    } catch (e) {
+      emit(PayoutRejectionError('Failed to reject payout: ${e.toString()}'));
+    }
+  }
+
+  String _getContentType(String? extension) {
+    switch (extension?.toLowerCase()) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'doc':
+        return 'application/msword';
+      case 'docx':
+        return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      default:
+        return 'application/octet-stream';
     }
   }
 }

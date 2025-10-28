@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:aboglumbo_bbk_panel/common_widget/booking_cards.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
@@ -357,9 +359,11 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
 
     // Clean up old assignments from memory
     _cleanupOldAssignments();
-
+    log("loading category");
     _loadCategory();
+    log("loaded category, loading user stream");
     _initializeUsersStream();
+    log("loaded user stream");
     _filteredLocations = widget.locations;
   }
 
@@ -439,19 +443,24 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
           }
         }
       } catch (e) {
-        // Category not found
+        log(e.toString());
       }
     }
   }
 
-  Future<void> _preloadConflictData(List<UserModel> users) async {
+  Future<void> preloadConflictData(List<UserModel> users) async {
+    // Check if widget is still mounted before starting
+    if (!mounted) return;
+
     // Check if cache is stale (older than 2 minutes)
     final now = DateTime.now();
     final cacheStale =
         _cacheTimestamp == null ||
         now.difference(_cacheTimestamp!).inMinutes > 2;
 
-    if (_conflictsLoaded && !cacheStale) return;
+    if (_conflictsLoaded && !cacheStale) {
+      return;
+    }
 
     // Clear cache if it's stale
     if (cacheStale) {
@@ -460,12 +469,17 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
     }
 
     try {
+      log('Starting conflict preload for ${users.length} users');
+
       final bookingScheduledTime = widget.booking.bookingDateTime.toDate();
 
       // Get current booking's cancelled workers in one call
       final currentBookingDoc = await AppFirestore.bookingsCollectionRef
           .doc(widget.booking.id)
           .get();
+
+      // Check mounted after async operation
+      if (!mounted) return;
 
       List<String> cancelledWorkerUids = [];
       Map<String, Map<String, dynamic>> cancelledWorkersDetails = {};
@@ -492,100 +506,153 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
         }
       }
 
-      // Get all active bookings for all users in one query
+      // Get all user IDs
       final userIds = users
           .map((u) => u.uid)
           .where((id) => id != null)
           .cast<String>()
           .toList();
 
-      if (userIds.isNotEmpty) {
-        final existingBookings = await AppFirestore.bookingsCollectionRef
-            .where('assignedTo', whereIn: userIds)
-            .where('bookingStatusCode', whereIn: _activeBookingStatuses)
-            .get(); // Process conflicts for each user
-        for (final user in users) {
-          final userId = user.uid;
-          if (userId == null) continue;
+      if (userIds.isEmpty) {
+        log('No user IDs to check conflicts for');
+        if (mounted) {
+          setState(() {
+            _conflictsLoaded = true;
+            _cacheTimestamp = DateTime.now();
+          });
+        }
+        return;
+      }
 
-          Map<String, dynamic> conflictResult = {'hasConflict': false};
+      log('Checking conflicts for ${userIds.length} users');
 
-          // Check for active booking conflicts
-          for (final doc in existingBookings.docs) {
-            final data = doc.data() as Map<String, dynamic>;
-            final assignedTo = data['assignedTo'] as String?;
-            final existingBookingTime = data['bookingDateTime'] as Timestamp?;
-            final existingBookingId = doc.id;
+      // Query each status separately instead of using whereIn for both fields
+      List<QueryDocumentSnapshot> allExistingBookings = [];
 
-            if (assignedTo != userId ||
-                existingBookingId == widget.booking.id) {
-              continue;
-            }
+      for (final status in _activeBookingStatuses) {
+        // Check mounted before each query batch
+        if (!mounted) return;
 
-            if (existingBookingTime != null) {
-              final existingScheduledDateTime = existingBookingTime.toDate();
+        // Split userIds into batches of 10 (Firestore whereIn limit)
+        for (int i = 0; i < userIds.length; i += 10) {
+          final batch = userIds.sublist(
+            i,
+            i + 10 > userIds.length ? userIds.length : i + 10,
+          );
 
-              if (_isTimeConflict(
-                existingScheduledDateTime,
-                bookingScheduledTime,
-              )) {
-                conflictResult = {
-                  'hasConflict': true,
-                  'conflictType': 'active_booking',
-                  'conflictTime': _timeFormat.format(existingScheduledDateTime),
-                  'conflictDate': _dateFormat.format(existingScheduledDateTime),
-                  'bookingId': existingBookingId,
-                };
-                break;
-              }
-            }
-          }
+          final query = await AppFirestore.bookingsCollectionRef
+              .where('assignedTo', whereIn: batch)
+              .where('bookingStatusCode', isEqualTo: status)
+              .get();
 
-          // Check if worker cancelled this specific booking
-          if (!conflictResult['hasConflict'] &&
-              cancelledWorkerUids.contains(userId)) {
-            final workerDetails = cancelledWorkersDetails[userId];
-            final cancellationTime = workerDetails?['cancelledAt'] != null
-                ? (workerDetails!['cancelledAt'] as Timestamp).toDate()
-                : bookingScheduledTime;
+          // Check mounted after async operation
+          if (!mounted) return;
 
-            conflictResult = {
-              'hasConflict': true,
-              'conflictType': 'worker_cancelled_this_booking',
-              'conflictTime': _timeFormat.format(cancellationTime),
-              'conflictDate': _dateFormat.format(cancellationTime),
-              'bookingId': widget.booking.id,
-              'workerName':
-                  workerDetails?['agentName'] ??
-                  AppLocalizations.of(context)?.unknownWorker ??
-                  'Unknown Worker',
-            };
-          }
-
-          // Check local session conflicts
-          if (!conflictResult['hasConflict']) {
-            final timeKey = _timeKeyFormat.format(bookingScheduledTime);
-            final userRecentAssignments = _recentAssignments[userId] ?? {};
-
-            if (userRecentAssignments.contains(timeKey)) {
-              conflictResult = {
-                'hasConflict': true,
-                'conflictType': 'local_session',
-                'conflictTime': _timeFormat.format(bookingScheduledTime),
-                'conflictDate': _dateFormat.format(bookingScheduledTime),
-                'bookingId': 'local_session_conflict',
-              };
-            }
-          }
-
-          _conflictCache[userId] = conflictResult;
+          allExistingBookings.addAll(query.docs);
         }
       }
 
-      _conflictsLoaded = true;
-      _cacheTimestamp = DateTime.now();
-    } catch (e) {
-      // Handle error silently
+      log('Found ${allExistingBookings.length} existing bookings');
+
+      // Process conflicts for each user
+      for (final user in users) {
+        final userId = user.uid;
+        if (userId == null) continue;
+
+        Map<String, dynamic> conflictResult = {'hasConflict': false};
+
+        // Check for active booking conflicts
+        for (final doc in allExistingBookings) {
+          final data = doc.data() as Map<String, dynamic>;
+          final assignedTo = data['assignedTo'] as String?;
+          final existingBookingTime = data['bookingDateTime'] as Timestamp?;
+          final existingBookingId = doc.id;
+
+          if (assignedTo != userId || existingBookingId == widget.booking.id) {
+            continue;
+          }
+
+          if (existingBookingTime != null) {
+            final existingScheduledDateTime = existingBookingTime.toDate();
+
+            if (_isTimeConflict(
+              existingScheduledDateTime,
+              bookingScheduledTime,
+            )) {
+              conflictResult = {
+                'hasConflict': true,
+                'conflictType': 'activebooking',
+                'conflictTime': _timeFormat.format(existingScheduledDateTime),
+                'conflictDate': _dateFormat.format(existingScheduledDateTime),
+                'bookingId': existingBookingId,
+              };
+              break;
+            }
+          }
+        }
+
+        // Check if worker cancelled this specific booking
+        if (!conflictResult['hasConflict'] &&
+            cancelledWorkerUids.contains(userId)) {
+          final workerDetails = cancelledWorkersDetails[userId];
+          final cancellationTime = workerDetails?['cancelledAt'] != null
+              ? (workerDetails!['cancelledAt'] as Timestamp).toDate()
+              : bookingScheduledTime;
+
+          conflictResult = {
+            'hasConflict': true,
+            'conflictType': 'workercancelledthisbooking',
+            'conflictTime': _timeFormat.format(cancellationTime),
+            'conflictDate': _dateFormat.format(cancellationTime),
+            'bookingId': widget.booking.id,
+            'workerName':
+                workerDetails?['agentName'] ??
+                AppLocalizations.of(context)?.unknownWorker ??
+                'Unknown Worker',
+          };
+        }
+
+        // Check local session conflicts
+        if (!conflictResult['hasConflict']) {
+          final timeKey = _timeKeyFormat.format(bookingScheduledTime);
+          final userRecentAssignments = _recentAssignments[userId] ?? {};
+
+          if (userRecentAssignments.contains(timeKey)) {
+            conflictResult = {
+              'hasConflict': true,
+              'conflictType': 'localsession',
+              'conflictTime': _timeFormat.format(bookingScheduledTime),
+              'conflictDate': _dateFormat.format(bookingScheduledTime),
+              'bookingId': 'localsessionconflict',
+            };
+          }
+        }
+
+        _conflictCache[userId] = conflictResult;
+      }
+
+      log(
+        'Conflict preload completed. ${_conflictCache.length} entries cached',
+      );
+
+      // Final mounted check before setState
+      if (mounted) {
+        setState(() {
+          _conflictsLoaded = true;
+          _cacheTimestamp = DateTime.now();
+        });
+      }
+    } catch (e, stackTrace) {
+      log('Error in preloadConflictData: $e');
+      log('Stack trace: $stackTrace');
+      // Mark as loaded even on error to prevent infinite loading
+      // But only if still mounted
+      if (mounted) {
+        setState(() {
+          _conflictsLoaded = true;
+          _cacheTimestamp = DateTime.now();
+        });
+      }
     }
   }
 
@@ -1885,6 +1952,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
   static Stream<List<UserModel>> getCategoryWiseWorkersStream(
     String categoryId,
   ) async* {
+    log("category wise workers stream started");
     try {
       final docSnapshot = await AppFirestore.categoriesCollectionRef
           .doc(categoryId)
@@ -1915,6 +1983,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
             )
             .toList();
       });
+      log("category wise workers stream completed");
     } catch (e) {
       yield [];
     }
@@ -2234,6 +2303,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    log("build called");
     final textTheme = Theme.of(context).textTheme;
 
     String? categoryName = categoryModel?.name;
@@ -2409,7 +2479,9 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                                       ListTile(
                                         dense: true,
                                         title: Text(
-                                          'No locations found',
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.noLocationsFound,
                                           style: textTheme.bodyMedium?.copyWith(
                                             color: Theme.of(
                                               context,
@@ -2470,6 +2542,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
             child: StreamBuilder<List<UserModel>>(
               stream: getFilteredUsersStream(),
               builder: (context, snapshot) {
+                log("users stream builder");
                 if (snapshot.hasError) {
                   return Center(
                     child: Column(
@@ -2500,22 +2573,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                 }
 
                 // Single loading state for both users and conflicts
-                if (snapshot.connectionState == ConnectionState.waiting ||
-                    !_conflictsLoaded) {
-                  // Preload conflict data when users are loaded but conflicts aren't
-                  if (snapshot.hasData && !_conflictsLoaded) {
-                    final users = snapshot.data ?? [];
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      _preloadConflictData(users).then((_) {
-                        if (mounted) {
-                          setState(
-                            () {},
-                          ); // Refresh UI after conflicts are loaded
-                        }
-                      });
-                    });
-                  }
-
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return Column(
                     children: [
                       Container(
@@ -2539,16 +2597,68 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                snapshot.connectionState ==
-                                        ConnectionState.waiting
-                                    ? (AppLocalizations.of(
-                                            context,
-                                          )?.loadingAgents ??
-                                          'Loading agents...')
-                                    : (AppLocalizations.of(
-                                            context,
-                                          )?.checkingAvailability ??
-                                          'Checking agent availability...'),
+                                AppLocalizations.of(context)?.loadingAgents ??
+                                    'Loading agents...',
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Expanded(
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                    ],
+                  );
+                }
+
+                // Preload conflict data when users are loaded
+                if (snapshot.hasData && !_conflictsLoaded) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    preloadConflictData(snapshot.data ?? []).then((_) {
+                      if (mounted) {
+                        setState(() {
+                          // _conflictsLoaded will be set to true in preloadConflictData
+                        });
+                      }
+                    });
+                  });
+                }
+
+                // Show checking availability message while conflicts are loading
+                if (!_conflictsLoaded) {
+                  return Column(
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.secondaryContainer.withOpacity(0.1),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Theme.of(context).colorScheme.secondary,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                AppLocalizations.of(
+                                      context,
+                                    )?.checkingAvailability ??
+                                    'Checking agent availability...',
                                 style: textTheme.bodySmall?.copyWith(
                                   color: Theme.of(
                                     context,
@@ -2568,6 +2678,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                 }
 
                 final users = snapshot.data ?? [];
+
                 if (users.isEmpty) {
                   return _buildEmptyState(users, textTheme);
                 }

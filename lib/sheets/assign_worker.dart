@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
@@ -78,6 +80,9 @@ class _AssignWorkerState extends State<AssignWorker> {
         );
         categoryName = category?.name;
         categoryNameAr = category?.name_ar;
+        log('categoryName: $categoryName');
+        log('categoryNameAr: $categoryNameAr');
+        log("categoryId: ${widget.booking.service.category}");
       } catch (e) {
         debugPrint(
           '❌ Category not found for ID: ${widget.booking.service.category}',
@@ -297,7 +302,7 @@ class _AssignWorkerState extends State<AssignWorker> {
                           onPressed: () {
                             setState(() {});
                           },
-                          child: const Text('Retry'),
+                          child: Text(AppLocalizations.of(context)!.retry),
                         ),
                       ],
                     ),
@@ -330,7 +335,10 @@ class _AssignWorkerState extends State<AssignWorker> {
                           TextButton.icon(
                             onPressed: clearFilter,
                             icon: const Icon(Icons.clear_all),
-                            label: const Text('Show All Agents'),
+                            label: Text(
+                              AppLocalizations.of(context)?.showAllAgents ??
+                                  'Show All Agents',
+                            ),
                           ),
                         ],
                       ],

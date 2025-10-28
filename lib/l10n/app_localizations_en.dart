@@ -2173,13 +2173,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accept => 'Accept';
 
   @override
+  String get excellent => 'Excellent';
+
+  @override
+  String get good => 'Good';
+
+  @override
+  String get average => 'Average';
+
+  @override
+  String get poor => 'Poor';
+
+  @override
+  String get selected => 'Selected';
+
+  @override
+  String get selectAll => 'Select All';
+
+  @override
   String get inspectionFee => 'Inspection Fee';
 
   @override
   String get cancelledBy => 'Cancelled By';
 
   @override
+  String get pleaseEnterInspectionFeeAmount =>
+      'Please enter inspection fee amount';
+
+  @override
   String get rejectBooking => 'Reject Booking';
+
+  @override
+  String get pleaseuploadpaymentproof => 'Please upload payment proof';
+
+  @override
+  String get tapToUpload => 'Tap to upload proof image/file';
+
+  @override
+  String get selectSource => 'Select Source';
 
   @override
   String get areYouSureYouWantToRejectThisBooking =>
@@ -2316,13 +2347,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tapToSelectFile => 'Tap to select file';
 
   @override
+  String get lifetimeEarnings => 'Lifetime Earnings';
+
+  @override
   String get uploadProof => 'Upload Proof';
+
+  @override
+  String get notenoughtipstorequestpayoutminSAR10 =>
+      'Not enough tips to request payout (min SAR 10)';
+
+  @override
+  String get requestTipPayout => 'Request Tip Payout';
+
+  @override
+  String get errorRequestingPayout => 'Error requesting payout';
+
+  @override
+  String get payoutRequestSubmittedSuccessfully =>
+      'Payout request submitted successfully';
+
+  @override
+  String get areYouSureYouWantToRequestAPayoutForTheAccumulatedTips =>
+      'Are you sure you want to request a payout for the accumulated tips?';
 
   @override
   String get transactionNumber => 'Transaction Number';
 
   @override
+  String get tipspayoutisdoneseparately => 'Tips payout is done separately';
+
+  @override
+  String get pleaseProvideARejectionReason =>
+      'Please provide a rejection reason';
+
+  @override
   String get enterTransactionNumber => 'Enter Transaction Number';
+
+  @override
+  String get youHaveNoPayoutAccountsgotoprofilesectionandaddanaccount =>
+      'You have no payout accounts. Go to profile section and add an account.';
 
   @override
   String get payoutRejectedSuccessfully => 'Payout rejected successfully';

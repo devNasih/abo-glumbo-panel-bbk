@@ -9,7 +9,9 @@ sealed class ManageAppEvent extends Equatable {
 
 class ClearTipWalletEvent extends ManageAppEvent {
   final String agentId;
-  const ClearTipWalletEvent(this.agentId);
+  final String transactionId;
+  final XFile? image;
+  const ClearTipWalletEvent(this.agentId, this.transactionId, this.image);
 
   @override
   List<Object> get props => [agentId];
@@ -144,5 +146,34 @@ class SetPrimaryCustomerServiceContactEvent extends ManageAppEvent {
   );
 
   @override
-  List<Object> get props => [selectedContact, allContactsOfType]; // Changed from List<Object?>
+  List<Object> get props => [selectedContact, allContactsOfType];
+}
+
+
+class ApprovePayoutEvent extends ManageAppEvent {
+  final String payoutRequestId;
+  final String transactionNumber;
+  final PlatformFile proofFile;
+
+  const ApprovePayoutEvent({
+    required this.payoutRequestId,
+    required this.transactionNumber,
+    required this.proofFile,
+  });
+
+  @override
+  List<Object> get props => [payoutRequestId, transactionNumber, proofFile];
+}
+
+class RejectPayoutEvent extends ManageAppEvent {
+  final String payoutRequestId;
+  final String reason;
+
+  const RejectPayoutEvent({
+    required this.payoutRequestId,
+    required this.reason,
+  });
+
+  @override
+  List<Object> get props => [payoutRequestId, reason];
 }

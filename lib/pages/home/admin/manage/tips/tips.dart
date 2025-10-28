@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/bloc/manage_app_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/widgets/tips_tile.dart';
@@ -5,6 +7,7 @@ import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/sheets/tips_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ManageTips extends StatelessWidget {
   const ManageTips({super.key});
@@ -47,21 +50,66 @@ class ManageTips extends StatelessWidget {
               );
             }
             final tips = snapshot.data!;
-            return ListView.builder(
-              itemCount: tips.length,
-              itemBuilder: (context, index) {
-                final tip = tips[index];
-                return TipsTileCompact(
-                  tip: tip,
-                  onTap: () => showTipDetailsBottomSheet(
-                    tip,
-                    context,
-                    onClearWallet: (tip) => context.read<ManageAppBloc>().add(
-                      ClearTipWalletEvent(tip.agentId ?? ''),
-                    ),
+            final tipswithRequest = tips
+                .where((tip) => tip.payoutRequested == true)
+                .toList();
+            return Column(
+              children: [
+                Container(
+                  margin: EdgeInsets.all(16),
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[200]!),
                   ),
-                );
-              },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.payoutRequests,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        '${tipswithRequest.length}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: tips.length,
+                    itemBuilder: (context, index) {
+                      final tip = tips[index];
+                      return TipsTileCompact(
+                        tip: tip,
+                        onTap: () => showTipDetailsBottomSheet(
+                          tip,
+                          context,
+                          onClearWallet: (tip, XFile? image, transactionId) =>
+                              context.read<ManageAppBloc>().add(
+                                ClearTipWalletEvent(
+                                  tip.agentId ?? '',
+                                  transactionId,
+                                  image,
+                                ),
+                              ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             );
           },
         ),

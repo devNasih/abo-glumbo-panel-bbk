@@ -70,4 +70,9 @@ class AppFireStorage {
   static Reference categoryStorageRef = FirebaseStorage.instance.ref(
     'category',
   );
+
+  // payout proofs storage
+  static Reference payoutProofsStorageRef = FirebaseStorage.instance.ref(
+    'payout_proofs',
+  );
 }

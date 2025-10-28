@@ -640,6 +640,7 @@
   "whatsappNumber": "رقم واتساب",
   "whatsappCondition": "يرجى تأكيد رقم الهاتف الذي ادخلته بشكل صحيح. هذا النمط مطلوب لتعريف رقم الواتساب بشكل صحيح.",
   "rewards": "الجوائز",
+  "notenoughtipstorequestpayoutminSAR10": "لا توجد إكرامية كافية لطلب الدفع (الحد الأدنى 10 ر.س)",
   "payoutRequestSuccessfulMessage": "[translate:طلب الدفع ({amount} ر.س) مقدم بنجاح]",
   "cashPaymentsMessage": "[translate:المدفوعات النقدية ({amount} ر.س) معك بالفعل]",
   "cannotDeleteLastContact": "لا يمكن حذف آخر جهة اتصال {contactType}. مطلوب جهة اتصال واحدة على الأقل."

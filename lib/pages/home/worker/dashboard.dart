@@ -1,4 +1,3 @@
-
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/tipping.dart';
 import 'package:aboglumbo_bbk_panel/models/transaction.dart';
@@ -31,6 +30,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   double cardPayments = 0.0;
   double totalEarnings = 0.0;
   double totalTips = 0.0;
+  double availableBalance = 0.0;
+  double paidAmounts = 0.0;
   // Key to track refresh state
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
@@ -45,15 +46,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadEarningsData() async {
     setState(() => isLoading = true);
-
     transactions = await AppServices.getWorkerTransactions(
       widget.workerData.uid ?? "",
     );
-    tippingData = await AppServices.getWorkerTippingData(
+
+    try {
+      tippingData = await AppServices.getWorkerTippingData(
+        widget.workerData.uid ?? "",
+      );
+    } catch (e) {
+      tippingData = TippingModel(totalTip: 0.0);
+    }
+
+    availableBalance = await AppServices.getWorkerAvailableBalance(
+      widget.workerData.uid ?? "",
+    );
+
+    paidAmounts = await AppServices.getWorkerPaidAmounts(
       widget.workerData.uid ?? "",
     );
 
     _calculateEarnings();
+
     setState(() => isLoading = false);
   }
 
@@ -64,16 +78,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     for (var transaction in transactions) {
       if (transaction.paymentStatus.toLowerCase() == 'completed' ||
           transaction.paymentStatus.toLowerCase() == 'paid') {
-        if (transaction.paymentMethod.toLowerCase() == 'cash') {
+        if (transaction.paymentMethod.toLowerCase() == 'cash on hands') {
           cashPayments += transaction.amount;
-        } else if (transaction.paymentMethod.toLowerCase() == 'card') {
+        } else if (transaction.paymentMethod.toLowerCase() == 'cards') {
           cardPayments += transaction.amount;
         }
       }
     }
 
     totalTips = tippingData?.totalTip ?? 0.0;
-    totalEarnings = cashPayments + cardPayments + totalTips;
+
+    totalEarnings = cashPayments + cardPayments + totalTips - paidAmounts;
   }
 
   Future<void> _handleRefresh() async {
@@ -207,7 +222,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               _StatData(
                 onTap: () {},
                 title: AppLocalizations.of(context)!.rating,
-                subtitle: "",
+                subtitle: _getRatingSubtitle(
+                  asyncSnapshot.data!['rating'].toString(),
+                ),
                 value: asyncSnapshot.data!['rating'].toString(),
                 icon: Icons.star_outline,
                 color: const Color.fromRGBO(254, 217, 55, 1),
@@ -243,6 +260,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
         );
       },
     );
+  }
+
+  String _getRatingSubtitle(String rating) {
+    final ratingDouble = double.tryParse(rating) ?? 0.0;
+    if (ratingDouble >= 4.5) {
+      return AppLocalizations.of(context)!.excellent;
+    } else if (ratingDouble >= 3.5) {
+      return AppLocalizations.of(context)!.good;
+    } else if (ratingDouble >= 2.5) {
+      return AppLocalizations.of(context)!.average;
+    } else {
+      return AppLocalizations.of(context)!.poor;
+    }
   }
 
   Widget _buildStatCard(_StatData data) {

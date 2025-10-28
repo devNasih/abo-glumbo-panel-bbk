@@ -1,13 +1,14 @@
 import 'dart:developer';
 
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
+import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/services/stat_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class RewardsPage extends StatefulWidget {
@@ -22,6 +23,7 @@ class _RewardsPageState extends State<RewardsPage> {
   List<String> categoryIds = [];
   List<String> categories = [];
   Map<String, Map<String, dynamic>> statsCache = {};
+  Map<String, Map<String, dynamic>> tierCache = {}; // NEW: Cache for tier data
 
   @override
   void initState() {
@@ -31,36 +33,148 @@ class _RewardsPageState extends State<RewardsPage> {
   }
 
   Future<void> _fetchCategoryIds(List<String> jobRoles) async {
+    // Execute all getCategoryIdByJobRole calls in parallel
+    List<Future<String?>> categoryFutures = jobRoles
+        .map((role) => AppServices.getCategoryIdByJobRoleOnce(role))
+        .toList();
+
+    List<String?> categoryResults = await Future.wait(categoryFutures);
+
     List<String> ids = [];
-    for (String role in jobRoles) {
-      String? catId = await AppServices.getCategoryIdByJobRoleOnce(role);
-      if (catId != null) {
-        ids.add(catId);
+    List<String> syncedRoles = [];
+
+    for (int i = 0; i < jobRoles.length; i++) {
+      if (categoryResults[i] != null) {
+        ids.add(categoryResults[i]!);
+        syncedRoles.add(jobRoles[i]);
+        debugPrint(
+          'JobRole: ${jobRoles[i]} -> CategoryId: ${categoryResults[i]}',
+        );
       }
     }
-    setState(() {
-      categoryIds = ids;
-    });
 
-    await _fetchAllStats();
+    if (mounted) {
+      setState(() {
+        categoryIds = ids;
+        categories = syncedRoles;
+      });
+
+      await _fetchAllStats();
+    }
   }
 
   Future<void> _fetchAllStats() async {
     String uid = LocalStore.getUID() ?? "";
-    Map<String, Map<String, dynamic>> cache = {};
-    for (String catId in categoryIds) {
+
+    // Create all futures upfront
+    List<Future<Map<String, dynamic>>> futures = categoryIds.map((catId) async {
       try {
-        var snapshot = await StatServices.getStatsOnce(uid, catId);
-        if (snapshot.isNotEmpty) {
-          cache[catId] = snapshot;
+        // Fetch stats and tier data in parallel for each category
+        var results = await Future.wait([
+          StatServices.getStatsOnce(uid, catId),
+          AppFirestore.usersCollectionRef
+              .doc(uid)
+              .collection('tiers')
+              .doc(catId)
+              .get(),
+        ]);
+
+        var statsSnapshot = results[0] as Map<String, dynamic>;
+        var tierDoc = results[1] as DocumentSnapshot;
+
+        Map<String, dynamic> tierData;
+        if (tierDoc.exists) {
+          final data = tierDoc.data() as Map<String, dynamic>;
+          tierData = {
+            'tier': data['tier'] ?? 'Bronze',
+            'currentMonthJobs': _toInt(data['currentMonthJobs']),
+            'currentMonthRating': _toDouble(data['currentMonthRating']),
+            'bonusAmount': _toDouble(data['bonusAmount']),
+            'lastResetDate': data['lastResetDate'],
+            'lastBonusDate': data['lastBonusDate'],
+            'lastBonusMonth': data['lastBonusMonth'],
+          };
+        } else {
+          // Initialize tier document if it doesn't exist
+          await _initializeTierDocument(uid, catId);
+          tierData = {
+            'tier': 'Bronze',
+            'currentMonthJobs': 0,
+            'currentMonthRating': 0.0,
+            'bonusAmount': 0.0,
+          };
         }
+
+        return {
+          'categoryId': catId,
+          'stats': statsSnapshot.isNotEmpty ? statsSnapshot : null,
+          'tier': tierData,
+        };
       } catch (e) {
-        log('Error fetching stats for $catId: $e');
+        debugPrint('Error fetching data for $catId: $e');
+        return {'categoryId': catId, 'stats': null, 'tier': null};
+      }
+    }).toList();
+
+    // Execute all category fetches in parallel
+    List<Map<String, dynamic>> results = await Future.wait(futures);
+
+    Map<String, Map<String, dynamic>> sCache = {};
+    Map<String, Map<String, dynamic>> tCache = {};
+
+    for (var result in results) {
+      String catId = result['categoryId'];
+      if (result['stats'] != null) {
+        sCache[catId] = result['stats'];
+      }
+      if (result['tier'] != null) {
+        tCache[catId] = result['tier'];
       }
     }
-    setState(() {
-      statsCache = cache;
-    });
+
+    if (mounted) {
+      setState(() {
+        statsCache = sCache;
+        tierCache = tCache;
+      });
+    }
+  }
+
+  // ADDED: Helper method to safely convert to int
+  int _toInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  // ADDED: Helper method to safely convert to double
+  double _toDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
+  }
+
+  Future<void> _initializeTierDocument(String uid, String categoryId) async {
+    try {
+      await AppFirestore.usersCollectionRef
+          .doc(uid)
+          .collection('tiers')
+          .doc(categoryId)
+          .set({
+            'tier': 'Bronze',
+            'currentMonthJobs': 0,
+            'currentMonthRating': 0.0,
+            'bonusAmount': 0.0,
+            'lastResetDate': FieldValue.serverTimestamp(),
+          });
+      debugPrint('Initialized tier document for category: $categoryId');
+    } catch (e) {
+      debugPrint('Error initializing tier document: $e');
+    }
   }
 
   @override
@@ -70,7 +184,6 @@ class _RewardsPageState extends State<RewardsPage> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
@@ -143,7 +256,7 @@ class _RewardsPageState extends State<RewardsPage> {
                         ),
                         _buildDivider(),
                         _buildMinimalTierRow(
-                          AppLocalizations.of(context)!.silver,
+                          AppLocalizations.of(context)!.platinum,
                           '${AppLocalizations.of(context)!.greaterThan60jobsPerMonth}, ${AppLocalizations.of(context)!.greaterThan4dot8rating}',
                           AppLocalizations.of(context)!.fifteenpercentBonus,
                         ),
@@ -166,37 +279,43 @@ class _RewardsPageState extends State<RewardsPage> {
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate((context, index) {
                       String categoryId = categoryIds[index];
+                      String categoryName = categories[index];
                       Map<String, dynamic>? data = statsCache[categoryId];
+                      Map<String, dynamic>? tierData = tierCache[categoryId];
 
                       if (data == null) {
                         return const SizedBox.shrink();
                       }
 
-                      final rating = data['rating'] ?? 0.0;
-                      final jobs = data['jobs'] ?? 0;
+                      final rating = _toDouble(data['rating']);
+                      final jobs = _toInt(data['jobs']);
 
+                      // Get tier from Firestore (or calculate if tierData is null)
                       String tier;
-                      double progress;
-                      String benefit;
+                      double bonusAmount = 0.0;
 
-                      if (rating >= 4.8 && jobs >= 60) {
-                        tier = 'Platinum';
-                        progress = 1.0;
-                        benefit = '15% bonus + Special badge';
-                      } else if (rating >= 4.5 && jobs >= 40) {
-                        tier = 'Gold';
-                        progress = jobs / 60.0;
-                        benefit = '10% bonus on earnings';
-                      } else if (rating >= 4.0 && jobs >= 20) {
-                        tier = 'Silver';
-                        progress = jobs / 40.0;
-                        benefit = '5% bonus on earnings';
+                      if (tierData != null) {
+                        // Use tier from Firestore
+                        tier = tierData['tier'] ?? 'Bronze';
+                        bonusAmount = _toDouble(
+                          tierData['bonusAmount'],
+                        ); // Already converted above
                       } else {
-                        tier = 'Bronze';
-                        progress = jobs / 20.0;
-                        benefit = 'No Bonus';
+                        // Fallback: Calculate tier locally if not in Firestore yet
+                        if (rating >= 4.8 && jobs >= 60) {
+                          tier = 'Platinum';
+                        } else if (rating >= 4.5 && jobs >= 40) {
+                          tier = 'Gold';
+                        } else if (rating >= 4.0 && jobs >= 20) {
+                          tier = 'Silver';
+                        } else {
+                          tier = 'Bronze';
+                        }
                       }
-                      progress = progress.clamp(0.0, 1.0);
+
+                      // Calculate progress to next tier
+                      double progress = _calculateProgress(tier, jobs, rating);
+                      String benefit = _getTierBenefit(tier);
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 16),
@@ -215,7 +334,7 @@ class _RewardsPageState extends State<RewardsPage> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    widget.workerData.jobRoles?[index] ?? "",
+                                    categoryName,
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
@@ -275,7 +394,7 @@ class _RewardsPageState extends State<RewardsPage> {
                                 Expanded(
                                   child: _buildStatColumn(
                                     AppLocalizations.of(context)!.bonus,
-                                    '0',
+                                    '₹${bonusAmount.toStringAsFixed(2)}',
                                   ),
                                 ),
                               ],
@@ -362,6 +481,42 @@ class _RewardsPageState extends State<RewardsPage> {
               ],
             ),
     );
+  }
+
+  // NEW: Calculate progress to next tier
+  double _calculateProgress(String tier, int jobs, double rating) {
+    switch (tier) {
+      case 'Bronze':
+        // Progress towards Silver (20 jobs, 4.0 rating)
+        if (rating < 4.0) return 0.0;
+        return (jobs / 20.0).clamp(0.0, 1.0);
+      case 'Silver':
+        // Progress towards Gold (40 jobs, 4.5 rating)
+        if (rating < 4.5) return 0.0;
+        return (jobs / 40.0).clamp(0.0, 1.0);
+      case 'Gold':
+        // Progress towards Platinum (60 jobs, 4.8 rating)
+        if (rating < 4.8) return 0.0;
+        return (jobs / 60.0).clamp(0.0, 1.0);
+      case 'Platinum':
+        return 1.0;
+      default:
+        return 0.0;
+    }
+  }
+
+  // NEW: Get benefit text for each tier
+  String _getTierBenefit(String tier) {
+    switch (tier) {
+      case 'Platinum':
+        return '15% bonus + Special badge';
+      case 'Gold':
+        return '10% bonus on earnings';
+      case 'Silver':
+        return '5% bonus on earnings';
+      default:
+        return 'No Bonus';
+    }
   }
 
   Widget _buildMinimalTierRow(String tierName, String criteria, String reward) {

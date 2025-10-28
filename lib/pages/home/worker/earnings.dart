@@ -1,3 +1,8 @@
+import 'dart:developer';
+
+import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
+import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
+import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/tipping.dart';
 import 'package:aboglumbo_bbk_panel/models/transaction.dart';
@@ -26,7 +31,10 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
   double cashPayments = 0.0;
   double cardPayments = 0.0;
   double totalEarnings = 0.0;
+  double paidAmounts = 0.0;
+  double lifetimeEarnings = 0.0;
   double totalTips = 0.0;
+  double total = 0.0; 
 
   @override
   void initState() {
@@ -37,15 +45,43 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
   Future<void> _loadEarningsData() async {
     setState(() => isLoading = true);
 
-    transactions = await AppServices.getWorkerTransactions(widget.workerId);
-    tippingData = await AppServices.getWorkerTippingData(widget.workerId);
-    transactions.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    try {
+      // Execute all independent data fetches in parallel
+      final results = await Future.wait([
+        AppServices.getWorkerTransactions(widget.workerId),
+        AppServices.getWorkerTippingData(widget.workerId).catchError((error) {
+          return TippingModel(); // Return empty TippingModel instead of null
+        }),
+        AppServices.getTotalTipping(widget.workerId),
+        AppServices.getWorkerPaidAmounts(widget.workerId),
+      ]);
 
-    _calculateEarnings();
+      // Assign results
+      transactions = results[0] as List<TransactionModel>;
+      tippingData = results[1] as TippingModel?;
+      total = results[2] as double;
+      paidAmounts = results[3] as double;
 
-    setState(() => isLoading = false);
+      // Sort transactions
+      transactions.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      _calculateEarnings();
+    } catch (e) {
+      debugPrint('Error loading earnings data: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading data: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
   }
-
 
   void _calculateEarnings() {
     cashPayments = 0.0;
@@ -54,19 +90,19 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
     for (var transaction in transactions) {
       if (transaction.paymentStatus.toLowerCase() == 'completed' ||
           transaction.paymentStatus.toLowerCase() == 'paid') {
-        if (transaction.paymentMethod.toLowerCase() == 'cash') {
+        if (transaction.paymentMethod.toLowerCase() == 'cash on hands') {
           cashPayments += transaction.amount;
-        } else if (transaction.paymentMethod.toLowerCase() == 'card') {
+        } else if (transaction.paymentMethod.toLowerCase() == 'cards') {
           cardPayments += transaction.amount;
         }
       }
     }
 
     totalTips = tippingData?.totalTip ?? 0.0;
-    totalEarnings = cashPayments + cardPayments + totalTips;
+    totalEarnings = cashPayments + cardPayments;
+    lifetimeEarnings = cashPayments + cardPayments + totalTips;
   }
 
-  
   @override
   Widget build(BuildContext context) {
     return BlocListener<AccountBloc, AccountState>(
@@ -83,7 +119,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const CircularProgressIndicator(),
+                      Loader(color: AppColors.primary),
                       const SizedBox(height: 16),
                       Text(AppLocalizations.of(context)!.processing),
                     ],
@@ -131,7 +167,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
           foregroundColor: Colors.white,
         ),
         body: isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(child: Loader(color: AppColors.primary))
             : RefreshIndicator(
                 onRefresh: _loadEarningsData,
                 child: SingleChildScrollView(
@@ -179,7 +215,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            AppLocalizations.of(context)!.totalEarnings,
+            AppLocalizations.of(context)!.lifetimeEarnings,
             style: TextStyle(
               color: Colors.white70,
               fontSize: 16,
@@ -188,7 +224,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            '${AppLocalizations.of(context)!.sar} ${totalEarnings.toStringAsFixed(2)}',
+            '${AppLocalizations.of(context)!.sar} ${lifetimeEarnings.toStringAsFixed(2)}',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 36,
@@ -245,11 +281,27 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
         Row(
           children: [
             Expanded(
-              child: _buildPaymentCard(
-                title: AppLocalizations.of(context)!.totalTips,
-                amount: totalTips,
-                icon: Icons.star,
-                color: Colors.orange,
+              child: GestureDetector(
+                onTap: () {
+                  (tippingData?.totalTip ?? 0.0) > 10.0
+                      ? _showTipsDialog(context, tippingData ?? TippingModel())
+                      : ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.notenoughtipstorequestpayoutminSAR10,
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                },
+                child: _buildPaymentCard(
+                  title: AppLocalizations.of(context)!.totalTips,
+                  amount: totalTips,
+                  icon: Icons.star,
+                  color: Colors.orange,
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -307,6 +359,81 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
           ],
         ),
       ],
+    );
+  }
+
+  void _showTipsDialog(BuildContext context, TippingModel tippingData) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(AppLocalizations.of(context)!.requestTipPayout),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 8),
+              Text(
+                'Total Tips: ₹${tippingData.totalTip?.toStringAsFixed(2) ?? "0.00"}',
+              ),
+              const SizedBox(height: 16),
+              Text(
+                AppLocalizations.of(
+                  context,
+                )!.areYouSureYouWantToRequestAPayoutForTheAccumulatedTips,
+                style: TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(AppLocalizations.of(context)!.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                // Update Firestore with payoutRequested = true
+                try {
+                  await AppFirestore
+                      .tippingCollectionRef // Replace with your collection name
+                      .doc(tippingData.agentId)
+                      .update({'payoutRequested': true});
+
+                  Navigator.of(context).pop();
+
+                  // Show success message
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!.payoutRequestSubmittedSuccessfully,
+                      ),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } catch (e) {
+                  Navigator.of(context).pop();
+
+                  // Show error message
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        '${AppLocalizations.of(context)!.errorRequestingPayout}: $e',
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: Text(AppLocalizations.of(context)!.requestPayout),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -419,6 +546,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
             ),
           ),
         ),
+
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(20),
@@ -447,7 +575,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${AppLocalizations.of(context)!.sar} ${(cardPayments + totalTips).toStringAsFixed(2)}',
+                          '${AppLocalizations.of(context)!.sar} ${(cardPayments + totalTips - paidAmounts).toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -463,7 +591,24 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => _showPayoutRequestDialog(),
+                  onPressed: () async {
+                    final user = AppServices.getWorkerById(widget.workerId);
+                    bool hasAtleastOnePayoutAccount = await user.then(
+                      (value) => value.payoutAccounts!.isNotEmpty,
+                    );
+                    hasAtleastOnePayoutAccount
+                        ? _showPayoutRequestDialog()
+                        : ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.youHaveNoPayoutAccountsgotoprofilesectionandaddanaccount,
+                              ),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                  },
                   icon: const Icon(Icons.send),
                   label: Text(AppLocalizations.of(context)!.requestPayout),
                   style: ElevatedButton.styleFrom(
@@ -488,7 +633,29 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                 ),
                 textAlign: TextAlign.center,
               ),
+              Text(
+                AppLocalizations.of(context)!.tipspayoutisdoneseparately,
+
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ],
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.only(top: 24, bottom: 24),
+          child: Text(
+            textAlign: TextAlign.start,
+            AppLocalizations.of(context)!.recentTransactions,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
         ),
       ],
@@ -497,19 +664,21 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
 
   Widget _buildRecentTransactions() {
     if (transactions.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(32),
-        child: Center(
-          child: Column(
-            children: [
-              Icon(Icons.receipt_long, size: 64, color: Colors.grey[300]),
-              const SizedBox(height: 16),
-              Text(
-                AppLocalizations.of(context)!.noTransactionsYet,
-                style: TextStyle(color: Colors.grey[600], fontSize: 16),
-              ),
-            ],
-          ),
+      return SizedBox(
+        width: double.infinity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.receipt_long, size: 64, color: Colors.grey[300]),
+            const SizedBox(height: 16),
+            Text(
+              AppLocalizations.of(context)!.noTransactionsYet,
+              style: TextStyle(color: Colors.grey[600], fontSize: 16),
+            ),
+            SizedBox(height: 32),
+          ],
         ),
       );
     }

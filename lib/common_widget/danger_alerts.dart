@@ -87,8 +87,8 @@ class AccountActionDialogs {
     BuildContext context, {
     required Function(String password) onConfirm,
   }) {
-    final TextEditingController passwordController = TextEditingController();
     bool isPasswordVisible = false;
+    final passwordController = TextEditingController();
 
     return showDialog<void>(
       context: context,
@@ -121,55 +121,61 @@ class AccountActionDialogs {
                   ),
                 ],
               ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppLocalizations.of(context)?.deleteAccountWarning ??
-                        'This action will permanently delete your account and cannot be undone.',
-                    style: TextStyle(color: Colors.grey[700], fontSize: 14),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: passwordController,
-                    obscureText: !isPasswordVisible,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      labelText:
-                          AppLocalizations.of(context)?.password ?? 'Password',
-                      hintText:
-                          AppLocalizations.of(
-                            context,
-                          )?.enterPasswordToConfirm ??
-                          'Enter your password to confirm',
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          isPasswordVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off,
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)?.deleteAccountWarning ??
+                            'This action will permanently delete your account and cannot be undone.',
+                        style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: passwordController,
+                        obscureText: !isPasswordVisible,
+                        autofocus: true,
+                        decoration: InputDecoration(
+                          labelText:
+                              AppLocalizations.of(context)?.password ??
+                              'Password',
+                          hintText:
+                              AppLocalizations.of(
+                                context,
+                              )?.enterPasswordToConfirm ??
+                              'Enter your password to confirm',
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              isPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                isPasswordVisible = !isPasswordVisible;
+                              });
+                            },
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.red[400]!),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.red),
+                          ),
                         ),
-                        onPressed: () {
-                          setState(() {
-                            isPasswordVisible = !isPasswordVisible;
-                          });
-                        },
                       ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.red[400]!),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Colors.red),
-                      ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
               actionsPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
@@ -178,8 +184,8 @@ class AccountActionDialogs {
               actions: [
                 TextButton(
                   onPressed: () {
-                    passwordController.dispose();
                     Navigator.of(context).pop();
+                    Future.microtask(() => passwordController.clear());
                   },
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
@@ -198,10 +204,9 @@ class AccountActionDialogs {
                     final password = passwordController.text.trim();
                     if (password.isNotEmpty) {
                       final passwordValue = password;
-                      passwordController.dispose();
                       Navigator.of(context).pop();
-                      // Add a small delay before calling onConfirm to ensure dialog is closed
-                      Future.delayed(const Duration(milliseconds: 50), () {
+                      Future.microtask(() {
+                        passwordController.clear();
                         onConfirm(passwordValue);
                       });
                     } else {

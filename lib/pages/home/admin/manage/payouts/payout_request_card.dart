@@ -2,7 +2,11 @@ import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/payout_request.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/bloc/manage_app_bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -68,231 +72,327 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
     }
   }
 
+  Future<bool> _updatePaidAmount() async {
+    try {
+      final userDoc = await AppFirestore.usersCollectionRef
+          .doc(widget.payoutRequest.userId)
+          .get();
+      final userData = userDoc.data() as Map<String, dynamic>?;
+
+      if (userData == null) {
+        return false;
+      }
+      if (userData['paidAmounts'] == null) {
+        await AppFirestore.usersCollectionRef
+            .doc(widget.payoutRequest.userId)
+            .update({
+              'paidAmounts':
+                  double.tryParse(widget.payoutRequest.amount ?? "") ?? 0.0,
+            });
+      } else {
+        await AppFirestore.usersCollectionRef
+            .doc(widget.payoutRequest.userId)
+            .update({
+              'paidAmounts': FieldValue.increment(
+                double.tryParse(widget.payoutRequest.amount ?? "") ?? 0.0,
+              ),
+            });
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error approving/rejecting agent: $e');
+      }
+      return false;
+    }
+  }
+
   Future<void> _showApprovalDialog(BuildContext parentContext) async {
     final transactionController = TextEditingController();
     PlatformFile? selectedFile;
-    bool isUploading = false;
 
     await showDialog(
       context: parentContext,
       builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              title: Row(
-                children: [
-                  Icon(Icons.check_circle_outline, color: Colors.green, size: 28),
-                  const SizedBox(width: 12),
-                  Text(
-                    AppLocalizations.of(context)!.approvePayout ?? 'Approve Payout',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)!.pleaseProvideTransactionDetails ?? 
-                      'Please provide transaction details to approve this payout request.',
-                      style: TextStyle(color: Colors.grey[700], fontSize: 14),
-                    ),
-                    const SizedBox(height: 20),
-                    
-                    // Transaction Number Field
-                    TextField(
-                      controller: transactionController,
-                      decoration: InputDecoration(
-                        labelText: AppLocalizations.of(context)!.transactionNumber ?? 
-                                  'Transaction Number *',
-                        hintText: AppLocalizations.of(context)!.enterTransactionNumber ?? 
-                                 'Enter transaction number',
-                        prefixIcon: const Icon(Icons.receipt_long),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[50],
-                      ),
-                      keyboardType: TextInputType.text,
-                    ),
-                    const SizedBox(height: 20),
-                    
-                    // File Upload Section
-                    Text(
-                      AppLocalizations.of(context)!.uploadProof ?? 'Upload Proof *',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    
-                    InkWell(
-                      onTap: () async {
-                        FilePickerResult? result = await FilePicker.platform.pickFiles(
-                          type: FileType.custom,
-                          allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'],
-                        );
+        return BlocProvider.value(
+          value: BlocProvider.of<ManageAppBloc>(parentContext),
+          child: BlocConsumer<ManageAppBloc, ManageAppState>(
+            listener: (context, state) {
+              if (state is PayoutApprovalSuccess) {
+                _updatePaidAmount();
 
-                        if (result != null) {
-                          setDialogState(() {
-                            selectedFile = result.files.first;
-                          });
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: selectedFile != null ? Colors.green : Colors.grey[300]!,
-                            width: 2,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          color: Colors.grey[50],
+                Navigator.of(dialogContext).pop();
+                Navigator.of(parentContext).pop(); // Close bottom sheet
+                ScaffoldMessenger.of(parentContext).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } else if (state is PayoutApprovalError) {
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
+                  SnackBar(
+                    content: Text(state.error),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            builder: (context, state) {
+              final isUploading = state is ApprovingPayout;
+
+              return StatefulBuilder(
+                builder: (context, setDialogState) {
+                  return AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle_outline,
+                          color: Colors.green,
+                          size: 28,
                         ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              selectedFile != null 
-                                  ? Icons.check_circle 
-                                  : Icons.upload_file,
-                              color: selectedFile != null ? Colors.green : Colors.grey[600],
-                              size: 32,
+                        const SizedBox(width: 12),
+                        Text(
+                          AppLocalizations.of(context)!.approvePayout,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    content: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppLocalizations.of(
+                              context,
+                            )!.pleaseProvideTransactionDetails,
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontSize: 14,
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Transaction Number Field
+                          TextField(
+                            controller: transactionController,
+                            enabled: !isUploading,
+                            decoration: InputDecoration(
+                              labelText: AppLocalizations.of(
+                                context,
+                              )!.transactionNumber,
+                              hintText: AppLocalizations.of(
+                                context,
+                              )!.enterTransactionNumber,
+                              prefixIcon: const Icon(Icons.receipt_long),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[50],
+                            ),
+                            keyboardType: TextInputType.text,
+                          ),
+                          const SizedBox(height: 20),
+
+                          // File Upload Section
+                          Text(
+                            AppLocalizations.of(context)!.uploadProof,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          InkWell(
+                            onTap: isUploading
+                                ? null
+                                : () async {
+                                    FilePickerResult? result = await FilePicker
+                                        .platform
+                                        .pickFiles(
+                                          type: FileType.custom,
+                                          allowedExtensions: [
+                                            'jpg',
+                                            'jpeg',
+                                            'png',
+                                            'pdf',
+                                            'doc',
+                                            'docx',
+                                          ],
+                                        );
+
+                                    if (result != null) {
+                                      setDialogState(() {
+                                        selectedFile = result.files.first;
+                                      });
+                                    }
+                                  },
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: selectedFile != null
+                                      ? Colors.green
+                                      : Colors.grey[300]!,
+                                  width: 2,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                color: Colors.grey[50],
+                              ),
+                              child: Row(
                                 children: [
-                                  Text(
+                                  Icon(
                                     selectedFile != null
-                                        ? selectedFile!.name
-                                        : AppLocalizations.of(context)!.tapToSelectFile ?? 
-                                          'Tap to select file',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      color: selectedFile != null 
-                                          ? Colors.black87 
-                                          : Colors.grey[600],
-                                    ),
+                                        ? Icons.check_circle
+                                        : Icons.upload_file,
+                                    color: selectedFile != null
+                                        ? Colors.green
+                                        : Colors.grey[600],
+                                    size: 32,
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    selectedFile != null
-                                        ? '${(selectedFile!.size / 1024).toStringAsFixed(2)} KB'
-                                        : 'PDF, Image, or Document',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[600],
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          selectedFile != null
+                                              ? selectedFile!.name
+                                              : AppLocalizations.of(
+                                                  context,
+                                                )!.tapToSelectFile,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            color: selectedFile != null
+                                                ? Colors.black87
+                                                : Colors.grey[600],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          selectedFile != null
+                                              ? '${(selectedFile!.size / 1024).toStringAsFixed(2)} KB'
+                                              : AppLocalizations.of(
+                                                  context,
+                                                )!.pdfImageOrDocument,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            AppLocalizations.of(context)!.supportedFormats,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      AppLocalizations.of(context)!.supportedFormats ?? 
-                      'Supported: JPG, PNG, PDF, DOC, DOCX',
-                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: isUploading ? null : () => Navigator.of(dialogContext).pop(),
-                  child: Text(
-                    AppLocalizations.of(context)!.cancel ?? 'Cancel',
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: isUploading
-                      ? null
-                      : () async {
-                          if (transactionController.text.trim().isEmpty) {
-                            ScaffoldMessenger.of(parentContext).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  AppLocalizations.of(context)!.transactionNumberRequired ?? 
-                                  'Transaction number is required',
-                                ),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                            return;
-                          }
+                    actions: [
+                      TextButton(
+                        onPressed: isUploading
+                            ? null
+                            : () => Navigator.of(dialogContext).pop(),
+                        child: Text(
+                          AppLocalizations.of(context)!.cancel,
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: isUploading
+                            ? null
+                            : () {
+                                if (transactionController.text.trim().isEmpty) {
+                                  ScaffoldMessenger.of(
+                                    dialogContext,
+                                  ).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.transactionNumberRequired,
+                                      ),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                  return;
+                                }
 
-                          if (selectedFile == null) {
-                            ScaffoldMessenger.of(parentContext).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  AppLocalizations.of(context)!.fileRequired ?? 
-                                  'Please upload a proof document',
-                                ),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                            return;
-                          }
+                                if (selectedFile == null) {
+                                  ScaffoldMessenger.of(
+                                    dialogContext,
+                                  ).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.fileRequired,
+                                      ),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                  return;
+                                }
 
-                          setDialogState(() {
-                            isUploading = true;
-                          });
-
-                          // TODO: Implement your approval logic here
-                          // Upload file to Firebase Storage
-                          // Update Firestore with transaction number and file URL
-                          // Update payout request status to 'c' (completed)
-                          
-                          await Future.delayed(const Duration(seconds: 2)); // Simulated upload
-
-                          if (mounted) {
-                            Navigator.of(dialogContext).pop();
-                            Navigator.of(parentContext).pop(); // Close bottom sheet
-                            ScaffoldMessenger.of(parentContext).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  AppLocalizations.of(context)!.payoutApproved ?? 
-                                  'Payout approved successfully',
-                                ),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  ),
-                  child: isUploading
-                      ? const SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+                                // Dispatch approval event to ManageAppBloc
+                                context.read<ManageAppBloc>().add(
+                                  ApprovePayoutEvent(
+                                    payoutRequestId: widget.payoutRequest.id!,
+                                    transactionNumber: transactionController
+                                        .text
+                                        .trim(),
+                                    proofFile: selectedFile!,
+                                  ),
+                                );
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        )
-                      : Text(AppLocalizations.of(context)!.approve ?? 'Approve'),
-                ),
-              ],
-            );
-          },
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                        ),
+                        child: isUploading
+                            ? const SizedBox(
+                                height: 16,
+                                width: 16,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(AppLocalizations.of(context)!.approve),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
         );
       },
     );
@@ -301,92 +401,144 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
   Future<void> _showRejectDialog(BuildContext parentContext) async {
     final reasonController = TextEditingController();
 
-    final confirmed = await showDialog<bool>(
+    await showDialog(
       context: parentContext,
       builder: (dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Row(
-            children: [
-              Icon(Icons.cancel_outlined, color: Colors.red, size: 28),
-              const SizedBox(width: 12),
-              Text(
-                AppLocalizations.of(dialogContext)!.rejectPayout ?? 'Reject Payout',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                AppLocalizations.of(dialogContext)!.rejectConfirmation ?? 
-                'Are you sure you want to reject this payout request?',
-                style: TextStyle(color: Colors.grey[700]),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: reasonController,
-                decoration: InputDecoration(
-                  labelText: AppLocalizations.of(dialogContext)!.reason ?? 
-                            'Reason (Optional)',
-                  hintText: AppLocalizations.of(dialogContext)!.enterTheReason ?? 
-                           'Enter rejection reason',
-                  prefixIcon: const Icon(Icons.comment_outlined),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+        return BlocProvider.value(
+          value: BlocProvider.of<ManageAppBloc>(parentContext),
+          child: BlocConsumer<ManageAppBloc, ManageAppState>(
+            listener: (context, state) {
+              if (state is PayoutRejectionSuccess) {
+                Navigator.of(dialogContext).pop();
+                Navigator.of(parentContext).pop(); // Close bottom sheet
+                ScaffoldMessenger.of(parentContext).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: Colors.red,
                   ),
-                  filled: true,
-                  fillColor: Colors.grey[50],
-                ),
-                maxLines: 3,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(
-                AppLocalizations.of(dialogContext)!.cancel ?? 'Cancel',
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
+                );
+              } else if (state is PayoutRejectionError) {
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
+                  SnackBar(
+                    content: Text(state.error),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            builder: (context, state) {
+              final isProcessing = state is RejectingPayout;
+
+              return AlertDialog(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-              child: Text(AppLocalizations.of(dialogContext)!.reject ?? 'Reject'),
-            ),
-          ],
+                title: Row(
+                  children: [
+                    Icon(Icons.cancel_outlined, color: Colors.red, size: 28),
+                    const SizedBox(width: 12),
+                    Text(
+                      AppLocalizations.of(dialogContext)!.rejectPayout,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocalizations.of(dialogContext)!.rejectConfirmation,
+                      style: TextStyle(color: Colors.grey[700]),
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: reasonController,
+                      enabled: !isProcessing,
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(dialogContext)!.reason,
+                        hintText: AppLocalizations.of(
+                          dialogContext,
+                        )!.enterTheReason,
+                        prefixIcon: const Icon(Icons.comment_outlined),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[50],
+                      ),
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: isProcessing
+                        ? null
+                        : () => Navigator.of(dialogContext).pop(),
+                    child: Text(
+                      AppLocalizations.of(dialogContext)!.cancel,
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: isProcessing
+                        ? null
+                        : () {
+                            if (reasonController.text.trim().isEmpty) {
+                              ScaffoldMessenger.of(dialogContext).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    AppLocalizations.of(
+                                      dialogContext,
+                                    )!.pleaseProvideARejectionReason,
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
+                            }
+
+                            // Dispatch rejection event to ManageAppBloc
+                            context.read<ManageAppBloc>().add(
+                              RejectPayoutEvent(
+                                payoutRequestId: widget.payoutRequest.id!,
+                                reason: reasonController.text.trim(),
+                              ),
+                            );
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                    ),
+                    child: isProcessing
+                        ? const SizedBox(
+                            height: 16,
+                            width: 16,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(AppLocalizations.of(dialogContext)!.reject),
+                  ),
+                ],
+              );
+            },
+          ),
         );
       },
     );
-
-    if (confirmed == true) {
-      // TODO: Implement your rejection logic here
-      // Update Firestore with rejection reason
-      // Update payout request status to 'r' (rejected)
-      
-      Navigator.of(parentContext).pop(); // Close bottom sheet
-      ScaffoldMessenger.of(parentContext).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(parentContext)!.payoutRejected ?? 
-            'Payout rejected',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
 
   @override
@@ -469,7 +621,9 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
                                       vertical: 10,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: _getStatusColor().withOpacity(0.15),
+                                      color: _getStatusColor().withOpacity(
+                                        0.15,
+                                      ),
                                       borderRadius: BorderRadius.circular(20),
                                       border: Border.all(
                                         color: _getStatusColor(),
@@ -528,32 +682,42 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
                             _buildInfoRow(
                               Icons.account_circle_outlined,
                               AppLocalizations.of(context)!.accountHolderName,
-                              widget.payoutRequest.payoutAccount?.accountHolderName ??
+                              widget
+                                      .payoutRequest
+                                      .payoutAccount
+                                      ?.accountHolderName ??
                                   'N/A',
                             ),
                             const SizedBox(height: 12),
                             _buildInfoRow(
                               Icons.account_balance_outlined,
                               AppLocalizations.of(context)!.bankName,
-                              widget.payoutRequest.payoutAccount?.bankName ?? 'N/A',
+                              widget.payoutRequest.payoutAccount?.bankName ??
+                                  'N/A',
                             ),
                             const SizedBox(height: 12),
                             _buildInfoRow(
                               Icons.numbers_outlined,
                               AppLocalizations.of(context)!.accountNumber,
-                              widget.payoutRequest.payoutAccount?.accountNumber ?? 'N/A',
+                              widget
+                                      .payoutRequest
+                                      .payoutAccount
+                                      ?.accountNumber ??
+                                  'N/A',
                             ),
                             const SizedBox(height: 12),
                             _buildInfoRow(
                               Icons.code_outlined,
                               AppLocalizations.of(context)!.ifscCode,
-                              widget.payoutRequest.payoutAccount?.ifscCode ?? 'N/A',
+                              widget.payoutRequest.payoutAccount?.ifscCode ??
+                                  'N/A',
                             ),
                             const SizedBox(height: 12),
                             _buildInfoRow(
                               Icons.account_balance_wallet_outlined,
                               AppLocalizations.of(context)!.accountType,
-                              widget.payoutRequest.payoutAccount?.accountType ?? 'N/A',
+                              widget.payoutRequest.payoutAccount?.accountType ??
+                                  'N/A',
                             ),
 
                             const SizedBox(height: 24),
@@ -564,11 +728,18 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
+                                Icon(
+                                  Icons.access_time,
+                                  size: 16,
+                                  color: Colors.grey[600],
+                                ),
                                 const SizedBox(width: 8),
                                 Text(
                                   '${AppLocalizations.of(context)!.requestedOn}: ${_formatDate(widget.payoutRequest.createdAt)}',
-                                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[600],
+                                  ),
                                 ),
                               ],
                             ),
@@ -607,11 +778,16 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
                                 ),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: Colors.red,
-                                  side: const BorderSide(color: Colors.red, width: 2),
+                                  side: const BorderSide(
+                                    color: Colors.red,
+                                    width: 2,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
                                 ),
                               ),
                             ),
@@ -633,7 +809,9 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
                                   elevation: 0,
                                 ),
                               ),
@@ -704,11 +882,7 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
                 ),
                 child: Column(
                   children: [
-                    Icon(
-                      _getStatusIcon(),
-                      color: _getStatusColor(),
-                      size: 24,
-                    ),
+                    Icon(_getStatusIcon(), color: _getStatusColor(), size: 24),
                     const SizedBox(height: 4),
                     Text(
                       _getStatusText(context),
