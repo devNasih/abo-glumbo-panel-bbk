@@ -499,6 +499,8 @@ exports.onBookingUpdateToTip = onDocumentWritten(
     const wasTipPaid = before?.review?.isTipPaid || false;
     const isTipPaid = after?.review?.isTipPaid || false;
     const tipAmount = after?.review?.tipAmount || 0;
+    const paymentType = after?.review?.paymentType || "cash"; // Get payment type
+    
     if (isTipPaid && !wasTipPaid && tipAmount > 0) {
       console.log("New tip detected. Processing...");
     } else {
@@ -518,18 +520,28 @@ exports.onBookingUpdateToTip = onDocumentWritten(
     try {
       await db.runTransaction(async (tx) => {
         const tippingDoc = await tx.get(tippingRef);
-        const existingTip = tippingDoc.exists
-          ? tippingDoc.data().totalTip || 0
+        
+        // Get existing tip amounts based on new model structure
+        const existingCashTip = tippingDoc.exists
+          ? tippingDoc.data().cashtip || 0
+          : 0;
+        const existingCardTip = tippingDoc.exists
+          ? tippingDoc.data().cardtip || 0
           : 0;
 
+        // Determine which tip field to update based on payment type
+        const isCardPayment = paymentType.toLowerCase() === "cards" || 
+                              paymentType.toLowerCase() === "card";
+        
         const updateData = {
           walletId: tippingWalletId,
           agentId: agent.uid,
           agentName: agent.name || "",
           agentPhone: agent.phone || "",
-          lastTipAmount: tipAmount,
           lastUpdated: FieldValue.serverTimestamp(),
-          totalTip: existingTip + tipAmount,
+          cashtip: isCardPayment ? existingCashTip : existingCashTip + tipAmount,
+          cardtip: isCardPayment ? existingCardTip + tipAmount : existingCardTip,
+          payoutRequested: false, // Add new field from model
         };
 
         if (!tippingDoc.exists) {
@@ -537,7 +549,7 @@ exports.onBookingUpdateToTip = onDocumentWritten(
           tx.set(tippingRef, updateData);
         } else {
           console.log(
-            `Updating tipping document. Current total: ${existingTip}`
+            `Updating tipping document. Current cash: ${existingCashTip}, card: ${existingCardTip}`
           );
           tx.update(tippingRef, updateData);
         }
@@ -547,10 +559,11 @@ exports.onBookingUpdateToTip = onDocumentWritten(
         const message = {
           notification: {
             title: "New Tip Received",
-            body: `You have received a new tip of ${tipAmount}.`,
+            body: `You have received a new ${isCardPayment ? 'card' : 'cash'} tip of ${tipAmount}.`,
           },
           token: agentFcmToken,
         };
+        
         if (agentFcmToken && agentFcmToken.trim() !== "") {
           try {
             await admin.messaging().send(message);
@@ -571,13 +584,14 @@ exports.onBookingUpdateToTip = onDocumentWritten(
       });
 
       console.log(
-        `Successfully updated tip +${tipAmount} for agent ${agent.name} (${agent.uid})`
+        `Successfully updated ${isCardPayment ? 'card' : 'cash'} tip +${tipAmount} for agent ${agent.name} (${agent.uid})`
       );
     } catch (error) {
       console.error("Error processing tip update:", error);
     }
   }
 );
+
 exports.updateServiceRating = onDocumentWritten(
   "bookings/{bookingId}",
   async (event) => {

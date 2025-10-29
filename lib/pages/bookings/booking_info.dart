@@ -1,4 +1,5 @@
 import 'package:aboglumbo_bbk_panel/common_widget/cached_video_player.dart';
+import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
@@ -176,17 +177,20 @@ class BookingInfo extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Payment Mode
-            _buildInfoRow(
-              context,
-              label: AppLocalizations.of(context)!.paymentMode,
-              value: booking.paymentModeCode.toLowerCase() == 'c'
-                  ? AppLocalizations.of(context)!.card
-                  : booking.paymentModeCode.toLowerCase() == 'a'
-                  ? AppLocalizations.of(context)!.applePay
-                  : AppLocalizations.of(context)!.cashOnHands,
-              textTheme: textTheme,
-              colorScheme: colorScheme,
-            ),
+            if (booking.bookingStatusCode.toLowerCase() == 'c' &&
+                booking.paymentCompleted) ...{
+              _buildInfoRow(
+                context,
+                label: AppLocalizations.of(context)!.paymentMode,
+                value: booking.paymentModeCode.toLowerCase() == 'c'
+                    ? AppLocalizations.of(context)!.card
+                    : booking.paymentModeCode.toLowerCase() == 'a'
+                    ? AppLocalizations.of(context)!.applePay
+                    : AppLocalizations.of(context)!.cashOnHands,
+                textTheme: textTheme,
+                colorScheme: colorScheme,
+              ),
+            },
           ],
         ),
       ),
@@ -330,9 +334,11 @@ class BookingInfo extends StatelessWidget {
             _buildCustomerInfoRow(
               icon: Icons.person,
               label: AppLocalizations.of(context)!.customerName,
-              value: selectedAddress != null
-                  ? (selectedAddress.fullName)
-                  : (booking.customer.name ?? 'N/A'),
+              value:
+                  //  selectedAddress != null
+                  // ? (selectedAddress.fullName)
+                  // :
+                  (booking.customer.name ?? 'N/A'),
               textTheme: textTheme,
               colorScheme: colorScheme,
             ),
@@ -517,7 +523,7 @@ class BookingInfo extends StatelessWidget {
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
                         color: Colors.grey[200],
-                        child: const Center(child: CircularProgressIndicator()),
+                        child: Center(child: Loader(size: 12)),
                       ),
                       errorWidget: (context, url, error) => Container(
                         color: Colors.grey[200],
@@ -1003,23 +1009,22 @@ class BookingInfo extends StatelessWidget {
           body: Center(
             child: InteractiveViewer(
               panEnabled: true,
-              boundaryMargin: const EdgeInsets.all(20),
+              boundaryMargin: EdgeInsets.all(20),
               minScale: 0.5,
               maxScale: 4.0,
               child: CachedNetworkImage(
                 imageUrl: imageUrl,
                 fit: BoxFit.contain,
-                placeholder: (context, url) => const Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                ),
-                errorWidget: (context, url, error) => const Center(
+                placeholder: (context, url) =>
+                    Center(child: Loader(size: 14, color: Colors.white)),
+                errorWidget: (context, url, error) => Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.broken_image, size: 100, color: Colors.white),
                       SizedBox(height: 16),
                       Text(
-                        'Failed to load image',
+                        AppLocalizations.of(context)!.failedToLoadImage,
                         style: TextStyle(color: Colors.white),
                       ),
                     ],

@@ -1,5 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
+import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:dio/dio.dart';
@@ -67,27 +69,29 @@ class _CachedVideoPlayerState extends State<CachedVideoPlayer> {
     final cachedPath = await downloadVideo(url);
     if (cachedPath != null) {
       _videoController = VideoPlayerController.file(File(cachedPath))
-        ..initialize().then((_) {
-          if (mounted) {
-            setState(() {
-              _isLoading = false;
+        ..initialize()
+            .then((_) {
+              if (mounted) {
+                setState(() {
+                  _isLoading = false;
+                });
+
+                _videoController!.setLooping(widget.looping);
+
+                if (widget.autoPlay) {
+                  _videoController!.play();
+                }
+              }
+            })
+            .catchError((error) {
+              if (mounted) {
+                setState(() {
+                  _hasError = true;
+                  _errorMessage = 'Failed to initialize video: $error';
+                  _isLoading = false;
+                });
+              }
             });
-            
-            _videoController!.setLooping(widget.looping);
-            
-            if (widget.autoPlay) {
-              _videoController!.play();
-            }
-          }
-        }).catchError((error) {
-          if (mounted) {
-            setState(() {
-              _hasError = true;
-              _errorMessage = 'Failed to initialize video: $error';
-              _isLoading = false;
-            });
-          }
-        });
     } else {
       if (mounted) {
         setState(() {
@@ -149,7 +153,7 @@ class _CachedVideoPlayerState extends State<CachedVideoPlayer> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Container(
       width: widget.width,
       height: widget.height ?? 200,
@@ -198,14 +202,13 @@ class _CachedVideoPlayerState extends State<CachedVideoPlayer> {
               child: VideoPlayer(_videoController!),
             ),
           ),
-          
+
           // Controls Overlay
           if (widget.showControls && _showControls)
             _buildControlsOverlay(colorScheme),
-          
+
           // Play/Pause Button (always visible when paused)
-          if (!_videoController!.value.isPlaying)
-            _buildPlayButton(colorScheme),
+          if (!_videoController!.value.isPlaying) _buildPlayButton(colorScheme),
         ],
       ),
     );
@@ -217,16 +220,11 @@ class _CachedVideoPlayerState extends State<CachedVideoPlayer> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            color: colorScheme.primary,
-          ),
+          Loader(size: 16, color: colorScheme.primary),
           const SizedBox(height: 16),
           Text(
-            'Loading video...',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-            ),
+            AppLocalizations.of(context)!.loadingVideo,
+            style: TextStyle(color: Colors.white, fontSize: 14),
           ),
         ],
       ),
@@ -240,14 +238,10 @@ class _CachedVideoPlayerState extends State<CachedVideoPlayer> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.error_outline,
-            color: Colors.red,
-            size: 48,
-          ),
+          Icon(Icons.error_outline, color: Colors.red, size: 48),
           const SizedBox(height: 16),
           Text(
-            'Video Error',
+            AppLocalizations.of(context)!.failedToLoadVideo,
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -257,17 +251,14 @@ class _CachedVideoPlayerState extends State<CachedVideoPlayer> {
           const SizedBox(height: 8),
           Text(
             _errorMessage ?? 'Failed to load video',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: Colors.white70, fontSize: 12),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: _initializeVideo,
             icon: const Icon(Icons.refresh),
-            label: const Text('Retry'),
+            label: Text(AppLocalizations.of(context)!.retry),
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.primary,
               foregroundColor: colorScheme.onPrimary,
@@ -308,10 +299,7 @@ class _CachedVideoPlayerState extends State<CachedVideoPlayer> {
           gradient: LinearGradient(
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
-            colors: [
-              Colors.black.withOpacity(0.8),
-              Colors.transparent,
-            ],
+            colors: [Colors.black.withOpacity(0.8), Colors.transparent],
           ),
         ),
         padding: const EdgeInsets.all(16),
@@ -329,7 +317,7 @@ class _CachedVideoPlayerState extends State<CachedVideoPlayer> {
               ),
             ),
             const SizedBox(height: 8),
-            
+
             // Control Buttons Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -337,34 +325,30 @@ class _CachedVideoPlayerState extends State<CachedVideoPlayer> {
                 // Time Display
                 Text(
                   '${_formatDuration(_videoController!.value.position)} / ${_formatDuration(_videoController!.value.duration)}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
                 ),
-                
+
                 // Control Buttons
                 Row(
                   children: [
                     IconButton(
                       onPressed: _togglePlayPause,
                       icon: Icon(
-                        _videoController!.value.isPlaying 
-                            ? Icons.pause 
+                        _videoController!.value.isPlaying
+                            ? Icons.pause
                             : Icons.play_arrow,
                         color: Colors.white,
                       ),
                     ),
                     IconButton(
                       onPressed: () {
-                        final currentPosition = _videoController!.value.position;
-                        final newPosition = currentPosition + const Duration(seconds: 10);
+                        final currentPosition =
+                            _videoController!.value.position;
+                        final newPosition =
+                            currentPosition + const Duration(seconds: 10);
                         _videoController!.seekTo(newPosition);
                       },
-                      icon: const Icon(
-                        Icons.forward_10,
-                        color: Colors.white,
-                      ),
+                      icon: const Icon(Icons.forward_10, color: Colors.white),
                     ),
                   ],
                 ),

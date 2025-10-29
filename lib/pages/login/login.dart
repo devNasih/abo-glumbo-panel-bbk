@@ -376,7 +376,10 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 LoginCarouselWidget(),
                 const SizedBox(height: 25),
-                LanguageSelectorCard(),
+                Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: LanguageSelectorCard(),
+                ),
                 const SizedBox(height: 25),
                 TextFormField(
                   validator: (value) {

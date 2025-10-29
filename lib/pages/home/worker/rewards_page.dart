@@ -1,9 +1,8 @@
-import 'dart:developer';
-
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
+import 'package:aboglumbo_bbk_panel/models/categories.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/services/stat_services.dart';
@@ -22,6 +21,9 @@ class RewardsPage extends StatefulWidget {
 class _RewardsPageState extends State<RewardsPage> {
   List<String> categoryIds = [];
   List<String> categories = [];
+  List<String> categoryNames = [];
+  List<String> categoryNamesAr = [];
+
   Map<String, Map<String, dynamic>> statsCache = {};
   Map<String, Map<String, dynamic>> tierCache = {}; // NEW: Cache for tier data
 
@@ -59,7 +61,53 @@ class _RewardsPageState extends State<RewardsPage> {
         categories = syncedRoles;
       });
 
+      // Fetch category names after we have the IDs
+      await _fetchCategoryNames(ids);
       await _fetchAllStats();
+    }
+  }
+
+  Future<void> _fetchCategoryNames(List<String> categoryIds) async {
+    if (categoryIds.isEmpty) return;
+
+    try {
+      // Use the batch method to fetch all categories at once
+      List<CategoryModel> categoryModels = await AppServices.getCategoriesByIds(
+        categoryIds,
+      );
+
+      // Create a map for quick lookup by ID
+      Map<String, CategoryModel> categoryMap = {
+        for (var category in categoryModels)
+          if (category.id != null) category.id!: category,
+      };
+
+      // Sync names in the same order as categoryIds
+      List<String> names = [];
+      List<String> namesAr = [];
+
+      for (String id in categoryIds) {
+        CategoryModel? category = categoryMap[id];
+        if (category != null) {
+          names.add(category.name ?? '');
+          namesAr.add(category.name_ar ?? category.name ?? '');
+          debugPrint(
+            'CategoryId: $id -> Name: ${category.name}, Name_AR: ${category.name_ar}',
+          );
+        } else {
+          names.add('');
+          namesAr.add('');
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          categoryNames = names;
+          categoryNamesAr = namesAr;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching category names: $e');
     }
   }
 
@@ -279,7 +327,18 @@ class _RewardsPageState extends State<RewardsPage> {
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate((context, index) {
                       String categoryId = categoryIds[index];
-                      String categoryName = categories[index];
+                      bool isArabic =
+                          Directionality.of(context) == TextDirection.rtl;
+                      String categoryName = isArabic
+                          ? (categoryNamesAr.isNotEmpty &&
+                                    index < categoryNamesAr.length
+                                ? categoryNamesAr[index]
+                                : categories[index])
+                          : (categoryNames.isNotEmpty &&
+                                    index < categoryNames.length
+                                ? categoryNames[index]
+                                : categories[index]);
+
                       Map<String, dynamic>? data = statsCache[categoryId];
                       Map<String, dynamic>? tierData = tierCache[categoryId];
 
@@ -296,7 +355,7 @@ class _RewardsPageState extends State<RewardsPage> {
 
                       if (tierData != null) {
                         // Use tier from Firestore
-                        tier = tierData['tier'] ?? 'Bronze';
+                        tier = tierData['tier'];
                         bonusAmount = _toDouble(
                           tierData['bonusAmount'],
                         ); // Already converted above
@@ -353,7 +412,9 @@ class _RewardsPageState extends State<RewardsPage> {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    tier.toUpperCase(),
+                                    _getTierName(
+                                      tierData!['tier'],
+                                    ).toUpperCase(),
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
@@ -394,7 +455,7 @@ class _RewardsPageState extends State<RewardsPage> {
                                 Expanded(
                                   child: _buildStatColumn(
                                     AppLocalizations.of(context)!.bonus,
-                                    '₹${bonusAmount.toStringAsFixed(2)}',
+                                    '${bonusAmount.toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}',
                                   ),
                                 ),
                               ],
@@ -509,13 +570,15 @@ class _RewardsPageState extends State<RewardsPage> {
   String _getTierBenefit(String tier) {
     switch (tier) {
       case 'Platinum':
-        return '15% bonus + Special badge';
+        return AppLocalizations.of(
+          context,
+        )!.fifteenpercentBonusOnEarningsandASpecialBadge;
       case 'Gold':
-        return '10% bonus on earnings';
+        return AppLocalizations.of(context)!.tenpercentBonusOnEarnings;
       case 'Silver':
-        return '5% bonus on earnings';
+        return AppLocalizations.of(context)!.fivepercentBonusOnEarnings;
       default:
-        return 'No Bonus';
+        return AppLocalizations.of(context)!.nobonus;
     }
   }
 
@@ -574,7 +637,7 @@ class _RewardsPageState extends State<RewardsPage> {
         Text(
           value,
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 16,
             fontWeight: FontWeight.w600,
             color: Colors.grey.shade900,
             letterSpacing: -0.5,
@@ -631,6 +694,21 @@ class _RewardsPageState extends State<RewardsPage> {
         return const Color(0xFF9A6038);
       default:
         return Colors.grey.shade400;
+    }
+  }
+
+  String _getTierName(String tier) {
+    switch (tier) {
+      case 'Platinum':
+        return AppLocalizations.of(context)!.platinum;
+      case 'Gold':
+        return AppLocalizations.of(context)!.gold;
+      case 'Silver':
+        return AppLocalizations.of(context)!.silver;
+      case 'Bronze':
+        return AppLocalizations.of(context)!.bronze;
+      default:
+        return AppLocalizations.of(context)!.bronze;
     }
   }
 }

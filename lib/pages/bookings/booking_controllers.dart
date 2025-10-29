@@ -1499,7 +1499,7 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
                       ),
                     ),
                     Text(
-                      '${AppLocalizations.of(context)!.sar} ${_totalCost.toStringAsFixed(2)}',
+                      '${_totalCost.toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,

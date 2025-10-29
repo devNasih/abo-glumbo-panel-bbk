@@ -36,45 +36,40 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     emit(state.copyWith(locale: Locale(event.languageCode)));
   }
 
-  Future<void> _updateProfile(
-    UpdateProfileEvent event,
-    Emitter<AccountState> emit,
-  ) async {
-    emit(UpdateProfileLoading(locale: state.locale));
-    try {
-      String? iqamaImageUrl;
-      if (event.selectedIqamaImage != null) {
-        try {
-          iqamaImageUrl = await UploadToFireStorage().uploadFile(
-            event.selectedIqamaImage!,
-            'agents/documents',
-          );
-        } catch (uploadError) {
-          if (uploadError.toString().contains('corrupted') ||
-              uploadError.toString().contains('unsupported format')) {
-            try {
-              final pngFile = await UploadToFireStorage().compressToPng(
-                event.selectedIqamaImage!,
+ Future<void> _updateProfile(
+  UpdateProfileEvent event,
+  Emitter<AccountState> emit,
+) async {
+  emit(UpdateProfileLoading(locale: state.locale));
+  try {
+    String? iqamaImageUrl;
+    bool docUrlUpdated = false;
+    
+    if (event.selectedIqamaImage != null) {
+      try {
+        iqamaImageUrl = await UploadToFireStorage().uploadFile(
+          event.selectedIqamaImage!,
+          'agents/documents',
+        );
+        docUrlUpdated = true;
+      } catch (uploadError) {
+        if (uploadError.toString().contains('corrupted') ||
+            uploadError.toString().contains('unsupported format')) {
+          try {
+            final pngFile = await UploadToFireStorage().compressToPng(
+              event.selectedIqamaImage!,
+            );
+            if (pngFile != null &&
+                pngFile.path != event.selectedIqamaImage!.path) {
+              iqamaImageUrl = await UploadToFireStorage().uploadFile(
+                pngFile,
+                'agents/documents',
               );
-              if (pngFile != null &&
-                  pngFile.path != event.selectedIqamaImage!.path) {
-                iqamaImageUrl = await UploadToFireStorage().uploadFile(
-                  pngFile,
-                  'agents/documents',
-                );
-              } else {
-                rethrow;
-              }
-            } catch (_) {
-              emit(
-                UpdateProfileFailure(
-                  error: uploadError.toString(),
-                  locale: state.locale,
-                ),
-              );
-              return;
+              docUrlUpdated = true;
+            } else {
+              rethrow;
             }
-          } else {
+          } catch (_) {
             emit(
               UpdateProfileFailure(
                 error: uploadError.toString(),
@@ -83,71 +78,93 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
             );
             return;
           }
-        }
-      }
-      String? profileUrl;
-      if (event.selectedProfileImage != null) {
-        try {
-          profileUrl = await UploadToFireStorage().uploadFile(
-            event.selectedProfileImage!,
-            'agents/profiles',
+        } else {
+          emit(
+            UpdateProfileFailure(
+              error: uploadError.toString(),
+              locale: state.locale,
+            ),
           );
-        } catch (uploadError) {
-          if (uploadError.toString().contains('corrupted') ||
-              uploadError.toString().contains('unsupported format')) {
-            try {
-              final pngFile = await UploadToFireStorage().compressToPng(
-                event.selectedProfileImage!,
-              );
-              if (pngFile != null &&
-                  pngFile.path != event.selectedProfileImage!.path) {
-                profileUrl = await UploadToFireStorage().uploadFile(
-                  pngFile,
-                  'agents/profiles',
-                );
-              } else {
-                rethrow;
-              }
-            } catch (_) {
-              emit(
-                UpdateProfileFailure(
-                  error: uploadError.toString(),
-                  locale: state.locale,
-                ),
-              );
-              return;
-            }
-          } else {
-            emit(
-              UpdateProfileFailure(
-                error: uploadError.toString(),
-                locale: state.locale,
-              ),
-            );
-            return;
-          }
+          return;
         }
       }
-      if (profileUrl != null) {
-        event.user.profileUrl = profileUrl;
-      }
-      if (iqamaImageUrl != null) {
-        event.user.docUrl = iqamaImageUrl;
-      }
-      await AppServices.updateUserProfile(event.user);
-      emit(
-        UpdateProfileSuccess(
-          isUpdated: true,
-          locale: state.locale,
-          updatedUser: event.user,
-        ),
-      );
-    } on Exception catch (e) {
-      emit(UpdateProfileFailure(error: e.toString(), locale: state.locale));
-    } catch (e) {
-      emit(UpdateProfileFailure(error: e.toString(), locale: state.locale));
     }
+    
+    String? profileUrl;
+    bool profileUrlUpdated = false;
+    
+    if (event.selectedProfileImage != null) {
+      try {
+        profileUrl = await UploadToFireStorage().uploadFile(
+          event.selectedProfileImage!,
+          'agents/profiles',
+        );
+        profileUrlUpdated = true;
+      } catch (uploadError) {
+        if (uploadError.toString().contains('corrupted') ||
+            uploadError.toString().contains('unsupported format')) {
+          try {
+            final pngFile = await UploadToFireStorage().compressToPng(
+              event.selectedProfileImage!,
+            );
+            if (pngFile != null &&
+                pngFile.path != event.selectedProfileImage!.path) {
+              profileUrl = await UploadToFireStorage().uploadFile(
+                pngFile,
+                'agents/profiles',
+              );
+              profileUrlUpdated = true;
+            } else {
+              rethrow;
+            }
+          } catch (_) {
+            emit(
+              UpdateProfileFailure(
+                error: uploadError.toString(),
+                locale: state.locale,
+              ),
+            );
+            return;
+          }
+        } else {
+          emit(
+            UpdateProfileFailure(
+              error: uploadError.toString(),
+              locale: state.locale,
+            ),
+          );
+          return;
+        }
+      }
+    }
+    
+    if (profileUrl != null) {
+      event.user.profileUrl = profileUrl;
+    }
+    if (iqamaImageUrl != null) {
+      event.user.docUrl = iqamaImageUrl;
+    }
+    
+    await AppServices.updateUserProfile(
+      event.user,
+      updateProfileUrl: profileUrlUpdated,
+      updateDocUrl: docUrlUpdated,
+    );
+    
+    emit(
+      UpdateProfileSuccess(
+        isUpdated: true,
+        locale: state.locale,
+        updatedUser: event.user,
+      ),
+    );
+  } on Exception catch (e) {
+    emit(UpdateProfileFailure(error: e.toString(), locale: state.locale));
+  } catch (e) {
+    emit(UpdateProfileFailure(error: e.toString(), locale: state.locale));
   }
+}
+
 
   Future<void> _loadDistricts(
     LoadDistrictsEvent event,

@@ -16,7 +16,7 @@ class TipsTileCompact extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasPositiveTip = tip.totalTip != null && tip.totalTip! > 0;
+    final hasPositiveTip = tip.cashtip != null && tip.cardtip! > 0;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -163,6 +163,7 @@ class TipsTileCompact extends StatelessWidget {
   }
 
   Widget _buildTipBadge(bool hasPositiveTip, BuildContext context) {
+    final totalTip = (tip.cashtip ?? 0.0) + (tip.cardtip ?? 0.0);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -207,7 +208,7 @@ class TipsTileCompact extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            "${AppLocalizations.of(context)!.sar} ${tip.totalTip?.toStringAsFixed(2) ?? '0.00'}",
+            "${totalTip.toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}",
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,

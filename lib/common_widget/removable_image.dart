@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
+import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -101,7 +103,7 @@ class RemovableImageWidget extends StatelessWidget {
       height: height,
       width: width,
       color: Colors.grey[300],
-      child: const Center(child: CircularProgressIndicator()),
+      child: Center(child: Loader(size: 16, color: AppColors.primary)),
     );
   }
 
@@ -265,7 +267,7 @@ class RemovableImageWidgetEnhanced extends StatelessWidget {
       height: height,
       width: width,
       color: Colors.grey[300],
-      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      child: Center(child: Loader(size: 16, color: AppColors.primary)),
     );
   }
 

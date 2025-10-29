@@ -20,6 +20,7 @@ class BookingModel {
         return 'Rejected';
       case 'C':
         return 'Completed';
+      case 'XC':
       case 'X':
         return 'Cancelled';
       default:
@@ -31,7 +32,7 @@ class BookingModel {
   late String? issueImage;
   late String? issueVideo;
   late CustomerModel customer;
-
+  CompletionDataModel? completionData;
   late String paymentModeCode;
 
   /// generate payment mode string based on payment mode code
@@ -61,6 +62,8 @@ class BookingModel {
   Timestamp? completedAt;
   Timestamp? trackingStartedAt;
   Timestamp? cancelledAt;
+  String? cancellationReason;
+  bool paymentCompleted = false;
 
   BookingModel({
     required this.id,
@@ -83,6 +86,8 @@ class BookingModel {
     this.completedAt,
     this.trackingStartedAt,
     this.cancelledAt,
+    this.cancellationReason,
+    this.paymentCompleted = false,
   });
 
   BookingModel.fromMap(Map<String, dynamic> data)
@@ -110,6 +115,8 @@ class BookingModel {
       acceptedAt = data['acceptedAt'],
       rejectedAt = data['rejectedAt'],
       completedAt = data['completedAt'],
+      cancellationReason = data['cancellationReason'],
+      paymentCompleted = data['paymentCompleted'] ?? false,
       trackingStartedAt = data['trackingStartedAt'],
       cancelledAt = data['cancelledAt'];
 
@@ -144,6 +151,8 @@ class BookingModel {
       'completedAt': completedAt,
       'trackingStartedAt': trackingStartedAt,
       'cancelledAt': cancelledAt,
+      'cancellationReason': cancellationReason,
+      'paymentCompleted': paymentCompleted,
     };
 
     map['id'] = id;
@@ -161,21 +170,63 @@ class BookingModel {
 class ReviewModel {
   int rating;
   String review;
-
+  double? tipAmount;
+  String? paymentType;
+  bool? isTipPaid;
   Timestamp? createdAt;
-
-  ReviewModel({required this.rating, required this.review, this.createdAt});
+  String? workerId;
+  ReviewModel({
+    required this.rating,
+    required this.review,
+    this.createdAt,
+    this.tipAmount,
+    this.paymentType,
+    this.isTipPaid,
+    this.workerId,
+  });
 
   factory ReviewModel.fromMap(Map<String, dynamic> data) {
     return ReviewModel(
       rating: data['rating'],
       review: data['review'],
+      tipAmount: data['tipAmount'],
+      paymentType: data['paymentType'],
+      isTipPaid: data['isTipPaid'],
       createdAt: data['createdAt'],
+      workerId: data['workerId'],
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {'rating': rating, 'review': review, 'createdAt': createdAt};
+    return {
+      'rating': rating,
+      'review': review,
+      'tipAmount': tipAmount,
+      'paymentType': paymentType,
+      'isTipPaid': isTipPaid,
+      'createdAt': createdAt,
+      'workerId': workerId,
+    };
+  }
+
+  ReviewModel copyWith({
+    int? rating,
+    String? review,
+    double? tipAmount,
+    String? paymentType,
+    bool? isTipPaid,
+    Timestamp? createdAt,
+    String? workerId,
+  }) {
+    return ReviewModel(
+      rating: rating ?? this.rating,
+      review: review ?? this.review,
+      tipAmount: tipAmount ?? this.tipAmount,
+      paymentType: paymentType ?? this.paymentType,
+      isTipPaid: isTipPaid ?? this.isTipPaid,
+      createdAt: createdAt ?? this.createdAt,
+      workerId: workerId ?? this.workerId,
+    );
   }
 }
 
@@ -200,5 +251,69 @@ class CancelledWorkers {
 
   Map<String, dynamic> toJson() {
     return {'uid': uid, 'agentName': agentName, 'cancelledAt': cancelledAt};
+  }
+}
+
+class CompletionDataModel {
+  final String imageUrl;
+  final int mode;
+  final String paymentMethod;
+  final double serviceCost;
+  final double totalCost;
+  final List<BookingServiceItem> serviceItems;
+  CompletionDataModel({
+    required this.imageUrl,
+    required this.mode,
+    required this.paymentMethod,
+    required this.serviceCost,
+    required this.totalCost,
+    required this.serviceItems,
+  });
+  factory CompletionDataModel.fromMap(Map<String, dynamic> data) {
+    return CompletionDataModel(
+      imageUrl: data['imageUrl'],
+      mode: data['mode'],
+      paymentMethod: data['paymentMethod'],
+      serviceCost: data['serviceCost'],
+      totalCost: data['totalCost'],
+      serviceItems: (data['serviceItems'] as List<dynamic>)
+          .map(
+            (item) => BookingServiceItem(
+              name: item['name'],
+              quantity: item['quantity'],
+              price: item['price'],
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'imageUrl': imageUrl,
+      'mode': mode,
+      'paymentMethod': paymentMethod,
+      'serviceCost': serviceCost,
+      'totalCost': totalCost,
+      'serviceItems': serviceItems.map((e) => e.toMap()).toList(),
+    };
+  }
+}
+
+enum BookingStatusType { pending, confirmed, completed, pastBookings }
+
+class BookingServiceItem {
+  final String name;
+  final double quantity;
+  final double price;
+
+  const BookingServiceItem({
+    required this.name,
+    required this.quantity,
+    required this.price,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {'name': name, 'quantity': quantity, 'price': price};
   }
 }

@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
+import 'package:aboglumbo_bbk_panel/models/tipping.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/bloc/manage_app_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/widgets/tips_tile.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
@@ -38,7 +37,7 @@ class ManageTips extends StatelessWidget {
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.manageTipping),
         ),
-        body: StreamBuilder(
+        body: StreamBuilder<List<TippingModel>>(
           stream: AppServices.getTippingStream(),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
@@ -49,7 +48,7 @@ class ManageTips extends StatelessWidget {
                 child: Text(AppLocalizations.of(context)!.noTipsAvailable),
               );
             }
-            final tips = snapshot.data!;
+            final tips = snapshot.data ?? [];
             final tipswithRequest = tips
                 .where((tip) => tip.payoutRequested == true)
                 .toList();
@@ -96,14 +95,16 @@ class ManageTips extends StatelessWidget {
                         onTap: () => showTipDetailsBottomSheet(
                           tip,
                           context,
-                          onClearWallet: (tip, XFile? image, transactionId) =>
-                              context.read<ManageAppBloc>().add(
-                                ClearTipWalletEvent(
-                                  tip.agentId ?? '',
-                                  transactionId,
-                                  image,
-                                ),
+                          onClearWallet: (tip, XFile? image, transactionId) {
+                            context.read<ManageAppBloc>().add(
+                              ClearTipWalletEvent(
+                                tip.agentId ?? '',
+                                transactionId,
+                                image,
+                                tip
                               ),
+                            );
+                          },
                         ),
                       );
                     },

@@ -77,22 +77,4 @@ class StopWorkingOnBooking extends BookingEvent {
   List<Object> get props => [bookingId];
 }
 
-// Data class for service items (renamed to avoid conflict)
-class BookingServiceItem extends Equatable {
-  final String name;
-  final double quantity;
-  final double price;
 
-  const BookingServiceItem({
-    required this.name,
-    required this.quantity,
-    required this.price,
-  });
-
-  @override
-  List<Object> get props => [name, quantity, price];
-
-  Map<String, dynamic> toMap() {
-    return {'name': name, 'quantity': quantity, 'price': price};
-  }
-}

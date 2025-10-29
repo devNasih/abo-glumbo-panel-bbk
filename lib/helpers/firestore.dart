@@ -49,8 +49,7 @@ class AppFirestore {
   static CollectionReference transactionsCollectionRef = FirebaseFirestore
       .instance
       .collection('transactions');
-      static CollectionReference payoutCollectionRef = FirebaseFirestore
-      .instance
+  static CollectionReference payoutCollectionRef = FirebaseFirestore.instance
       .collection('payouts');
 }
 

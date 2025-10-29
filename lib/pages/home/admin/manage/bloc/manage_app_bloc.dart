@@ -7,6 +7,7 @@ import 'package:aboglumbo_bbk_panel/models/banner.dart';
 import 'package:aboglumbo_bbk_panel/models/categories.dart';
 import 'package:aboglumbo_bbk_panel/models/customer_support.dart';
 import 'package:aboglumbo_bbk_panel/models/faq.dart';
+import 'package:aboglumbo_bbk_panel/models/tipping.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -49,7 +50,7 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
   ) async {
     emit(ClearingWallet());
     try {
-      await AppServices.clearTippingAmount(event.agentId, event.transactionId, event.image);
+      await AppServices.clearTippingAmount(event.agentId, event.transactionId, event.image,event.tippingModel);
       emit(WalletCleared());
     } catch (e) {
       emit(WalletClearError(e.toString()));

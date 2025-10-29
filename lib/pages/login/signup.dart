@@ -129,7 +129,6 @@ class _SignupState extends State<Signup> {
               'File is too large. Please select a smaller image (max 20MB).',
             ),
             backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -159,7 +158,6 @@ class _SignupState extends State<Signup> {
                   AppLocalizations.of(context)?.locationPermissionsAreDenied ??
                       'Location permissions are denied.',
                 ),
-                behavior: SnackBarBehavior.floating,
               ),
             );
           }
@@ -178,7 +176,6 @@ class _SignupState extends State<Signup> {
                     )?.locationPermissionsArePermanentlyDenied ??
                     'Location permissions are permanently denied',
               ),
-              behavior: SnackBarBehavior.floating,
             ),
           );
         }
@@ -198,7 +195,6 @@ class _SignupState extends State<Signup> {
             content: Text(
               '${AppLocalizations.of(context)?.failedToDetectLocation ?? 'Failed to detect location'}: ${e.toString()}',
             ),
-            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -236,7 +232,6 @@ class _SignupState extends State<Signup> {
             content: Text(
               '${AppLocalizations.of(context)?.failedToGetAddress ?? 'Failed to get address'}: ${e.toString()}',
             ),
-            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -789,7 +784,6 @@ class _SignupState extends State<Signup> {
                   SnackBar(
                     content: Text(userFriendlyMessage),
                     backgroundColor: Colors.red,
-                    behavior: SnackBarBehavior.floating,
                     duration: const Duration(seconds: 4),
                   ),
                 );
@@ -1045,7 +1039,6 @@ class _SignupState extends State<Signup> {
                                             )?.pleaseSelectYourIdDocument ??
                                             'Please select your ID document',
                                       ),
-                                      behavior: SnackBarBehavior.floating,
                                     ),
                                   );
                                   return;
@@ -1060,7 +1053,6 @@ class _SignupState extends State<Signup> {
                                             )?.pleaseSelectAtLeastOneJobRole ??
                                             'Please select at least one job role',
                                       ),
-                                      behavior: SnackBarBehavior.floating,
                                     ),
                                   );
                                   return;
@@ -1080,7 +1072,6 @@ class _SignupState extends State<Signup> {
                                             )?.phoneNumberAlreadyExists ??
                                             'Phone number already exists',
                                       ),
-                                      behavior: SnackBarBehavior.floating,
                                     ),
                                   );
                                   return;
@@ -1145,7 +1136,6 @@ class _SignupState extends State<Signup> {
                                     SnackBar(
                                       content: Text(userFriendlyMessage),
                                       backgroundColor: Colors.red,
-                                      behavior: SnackBarBehavior.floating,
                                       duration: const Duration(seconds: 4),
                                     ),
                                   );

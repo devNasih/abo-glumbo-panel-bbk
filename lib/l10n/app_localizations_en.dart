@@ -2207,6 +2207,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pleaseuploadpaymentproof => 'Please upload payment proof';
 
   @override
+  String get iban => 'IBAN';
+
+  @override
   String get tapToUpload => 'Tap to upload proof image/file';
 
   @override
@@ -2301,13 +2304,77 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPayoutAccountsAdded => 'No payout accounts added';
 
   @override
+  String get imageIsTooLargePleaseSelectAnImageSmallerThan5MB =>
+      'Image is too large. Please select an image smaller than 5 MB';
+
+  @override
   String get managePayouts => 'Manage Payouts';
 
   @override
   String get requestedOn => 'Requested on';
 
   @override
+  String get selectedFileCouldNotBeFound =>
+      'Selected file could not be found. Please try again.';
+
+  @override
+  String get errorPickingImage => 'Error picking image';
+
+  @override
+  String get errorCroppingImage => 'Error cropping image';
+
+  @override
   String get workerInformation => 'Worker Information';
+
+  @override
+  String get noPayoutRequestsYet => 'No payout requests yet';
+
+  @override
+  String get noRequests => 'No requests';
+
+  @override
+  String get reviews => 'Reviews';
+
+  @override
+  String get payoutRequirement =>
+      'To request a payout, you\'ll need at least 10 SAR in card tips available.';
+
+  @override
+  String get cashTips => 'Cash Tips';
+
+  @override
+  String get cardTips => 'Card Tips';
+
+  @override
+  String get am => 'AM';
+
+  @override
+  String get pm => 'PM';
+
+  @override
+  String get inHand => 'In Hand';
+
+  @override
+  String get errorLoadingReviews => 'Error loading reviews';
+
+  @override
+  String get noReviewsYet => 'No reviews yet';
+
+  @override
+  String get reviewsWillAppearHereAfterCustomersRateYourService =>
+      'Reviews will appear here after customers rate your service';
+
+  @override
+  String get approved => 'Approved';
+
+  @override
+  String get total => 'Total';
+
+  @override
+  String get failedToLoadVideo => 'Failed to load video';
+
+  @override
+  String get loading => 'Loading...';
 
   @override
   String get payoutAmount => 'Payout Amount';
@@ -2431,7 +2498,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountNumber => 'Account Number';
 
   @override
-  String get ifscCode => 'IFSC Code';
+  String get ifscCode => 'IBAN';
 
   @override
   String get addFirstAccount => 'Add your first account';
@@ -2499,7 +2566,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterAccountHolderName => 'Enter Account Holder Name';
 
   @override
-  String get enterifscCode => 'Enter IFSC Code';
+  String get enterifscCode => 'Enter IBAN';
 
   @override
   String get enterBankName => 'Enter Bank Name';
@@ -2514,13 +2581,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pleaseEnterBankName => 'Please enter bank name';
 
   @override
-  String get pleaseEnterIfscCode => 'Please enter IFSC code';
+  String get pleaseEnterIfscCode => 'Please enter IBAN';
+
+  @override
+  String get copyId => 'Copy ID';
+
+  @override
+  String get quickActions => 'Quick Actions';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get refresh => 'Refresh';
+
+  @override
+  String get loadingCustomers => 'Loading customers';
 
   @override
   String get processing => 'Processing';
 
   @override
+  String get allReviews => 'All Reviews';
+
+  @override
+  String get service => 'Service';
+
+  @override
+  String get ratingDistribution => 'Rating Distribution';
+
+  @override
   String get payoutRequestSuccessful => 'Payout request successful';
+
+  @override
+  String get fifteenpercentBonusOnEarningsandASpecialBadge =>
+      '15% Bonus on Earnings + Special Badge';
+
+  @override
+  String get tenpercentBonusOnEarnings => '10% Bonus on Earnings';
+
+  @override
+  String get fivepercentBonusOnEarnings => '5% Bonus on Earnings';
 
   @override
   String get invalidAccountNumberLength => 'Invalid account number length';

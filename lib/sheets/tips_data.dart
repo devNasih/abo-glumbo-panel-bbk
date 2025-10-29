@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/tipping.dart';
+import 'package:date_time_format/date_time_format.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -117,21 +116,23 @@ class TipsDataSheet extends StatelessWidget {
                         'Tip Information',
                     children: [
                       _buildDetailRow(
-                        AppLocalizations.of(context)?.totalTips ?? 'Total Tips',
-                        "${AppLocalizations.of(context)?.sar ?? '\$'}${tip.totalTip?.toStringAsFixed(2) ?? '0.00'}",
+                        AppLocalizations.of(context)!.cashTips,
+                        "${tip.cashtip?.toStringAsFixed(2) ?? '0.00'} ${AppLocalizations.of(context)!.sar}",
                         valueColor: Colors.green.shade700,
                         isHighlighted: true,
                       ),
                       _buildDetailRow(
-                        AppLocalizations.of(context)?.lastTipAmount ??
-                            'Last Tip Amount',
-                        "${AppLocalizations.of(context)?.sar ?? '\$'}${tip.lastTipAmount?.toStringAsFixed(2) ?? '0.00'}",
+                        AppLocalizations.of(context)!.cardTips,
+                        "${tip.cardtip?.toStringAsFixed(2) ?? '0.00'} ${AppLocalizations.of(context)!.sar}",
+                        valueColor: Colors.green.shade700,
+                        isHighlighted: true,
                       ),
                       _buildDetailRow(
                         AppLocalizations.of(context)?.lastUpdated ??
                             'Last Updated',
                         tip.lastUpdated != null
-                            ? "${tip.lastUpdated!.day}/${tip.lastUpdated!.month}/${tip.lastUpdated!.year} at ${tip.lastUpdated!.hour}:${tip.lastUpdated!.minute.toString().padLeft(2, '0')}"
+                            ? tip.lastUpdated!.format('d/m/Y - H:m A')
+                            // ? "${tip.lastUpdated!.day}/${tip.lastUpdated!.month}/${tip.lastUpdated!.year} at ${tip.lastUpdated!.hour}:${tip.lastUpdated!.minute.toString().padLeft(2, '0')} ${tip.lastUpdated!.hour > 12 ? AppLocalizations.of(context)!.pm : AppLocalizations.of(context)!.am}"
                             : "Never",
                       ),
                     ],
@@ -171,7 +172,7 @@ class TipsDataSheet extends StatelessWidget {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: tip.totalTip != null && tip.totalTip! > 0
+                  onPressed: tip.cashtip != null && tip.cardtip! > 0
                       ? () {
                           _showClearWalletConfirmation(tip, context);
                         }
@@ -319,7 +320,7 @@ class TipsDataSheet extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "${AppLocalizations.of(context)!.areYouSureYouWantToSend} ${AppLocalizations.of(context)!.sar}${tip.totalTip?.toStringAsFixed(2)} ${AppLocalizations.of(context)!.to} ${tip.agentName} ${AppLocalizations.of(context)!.andClearTheirWallet}?",
+                    "${AppLocalizations.of(context)!.areYouSureYouWantToSend} ${AppLocalizations.of(context)!.sar}${tip.cardtip?.toStringAsFixed(2)} ${AppLocalizations.of(context)!.to} ${tip.agentName} ${AppLocalizations.of(context)!.andClearTheirWallet}?",
                     style: TextStyle(color: Colors.grey.shade600),
                   ),
                   const SizedBox(height: 12),
@@ -440,8 +441,6 @@ class TipsDataSheet extends StatelessWidget {
                         final XFile? pickedFile = await picker.pickImage(
                           source: source,
                           imageQuality: 80,
-                          maxWidth: 1920,
-                          maxHeight: 1920,
                         );
 
                         if (pickedFile != null) {

@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/location.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
@@ -294,7 +295,7 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
             if (widget.onUseCurrentLocation != null) const Divider(),
             Expanded(
               child: widget.isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? Center(child: Loader(size: 16, color: AppColors.primary))
                   : filteredLocations.isEmpty
                   ? Center(
                       child: Text(

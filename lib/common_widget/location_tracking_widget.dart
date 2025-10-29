@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:flutter/material.dart';
 import 'package:aboglumbo_bbk_panel/services/location_services.dart';
 import 'package:aboglumbo_bbk_panel/services/battery_optimization_service.dart';
@@ -323,12 +324,10 @@ class _LocationTrackingWidgetState extends State<LocationTrackingWidget> {
                             ? _stopTracking
                             : _startTracking,
                         icon: _isLoading
-                            ? const SizedBox(
+                            ? SizedBox(
                                 width: 16,
                                 height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
+                                child: Loader(size: 16, color: Colors.white),
                               )
                             : Icon(isTracking ? Icons.stop : Icons.play_arrow),
                         label: Text(

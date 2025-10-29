@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
@@ -65,12 +66,31 @@ class _PayoutAccountsPageState extends State<PayoutAccountsPage> {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Text(
-        localizations.addAndManageYourPayoutAccounts,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: colorScheme.onSurfaceVariant,
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(24),
+      margin: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.primary, width: 2),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            spreadRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Center(
+        child: Text(
+          localizations.addAndManageYourPayoutAccounts,
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
@@ -85,9 +105,7 @@ class _PayoutAccountsPageState extends State<PayoutAccountsPage> {
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: CircularProgressIndicator(color: colorScheme.primary),
-          );
+          return Center(child: Loader(size: 45, color: colorScheme.primary));
         }
 
         final accounts = snapshot.data ?? [];
@@ -97,7 +115,7 @@ class _PayoutAccountsPageState extends State<PayoutAccountsPage> {
         }
 
         return ListView.separated(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 100),
           itemCount: accounts.length,
           separatorBuilder: (_, __) => const SizedBox(height: 16),
           itemBuilder: (context, index) => _AccountCard(
@@ -233,8 +251,6 @@ class _PayoutAccountsPageState extends State<PayoutAccountsPage> {
           ],
         ),
         backgroundColor: colorScheme.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -987,11 +1003,8 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
             child: _isLoading
                 ? SizedBox(
                     height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: colorScheme.onPrimary,
-                    ),
+                    width: 35,
+                    child: Loader(size: 16, color: colorScheme.onPrimary),
                   )
                 : Text(
                     isEdit
@@ -1054,10 +1067,6 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
               ),
             ],
           ),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
         ),
       );
     } catch (e) {
@@ -1073,10 +1082,6 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
             ],
           ),
           backgroundColor: Theme.of(context).colorScheme.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
         ),
       );
     } finally {

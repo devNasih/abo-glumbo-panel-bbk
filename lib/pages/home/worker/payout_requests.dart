@@ -63,13 +63,13 @@ class PayoutRequests extends StatelessWidget {
 
   String _formatCurrency(BuildContext context, String? amount) {
     if (amount == null || amount.isEmpty) {
-      return '${AppLocalizations.of(context)!.sar} 0.00';
+      return '0.00 ${AppLocalizations.of(context)!.sar}';
     }
     try {
       final value = double.parse(amount);
-      return '${AppLocalizations.of(context)!.sar} ${value.toStringAsFixed(2)}';
+      return '${value.toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}';
     } catch (e) {
-      return '${AppLocalizations.of(context)!.sar} $amount';
+      return '$amount ${AppLocalizations.of(context)!.sar}';
     }
   }
 
@@ -86,12 +86,12 @@ class PayoutRequests extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(AppLocalizations.of(context)!.cancel),
+            child: Text(AppLocalizations.of(context)!.back),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(AppLocalizations.of(context)!.delete),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
         ],
       ),

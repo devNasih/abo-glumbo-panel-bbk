@@ -3,6 +3,7 @@ import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/agents/agent_info.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/bloc/manage_app_bloc.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
+import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -13,20 +14,35 @@ class ManageAgents extends StatefulWidget {
   State<ManageAgents> createState() => _ManageAgentsState();
 }
 
-class _ManageAgentsState extends State<ManageAgents> {
+class _ManageAgentsState extends State<ManageAgents>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-
-  // Filter chip state - 0: All, 1: Verified, 2: Pending
   int _selectedFilter = 0;
+  late AnimationController _fabAnimationController;
+  late Animation<double> _fabAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _fabAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _fabAnimation = CurvedAnimation(
+      parent: _fabAnimationController,
+      curve: Curves.easeInOut,
+    );
+    _fabAnimationController.forward();
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _fabAnimationController.dispose();
     super.dispose();
   }
 
-  // Show confirmation dialog
   Future<bool?> _showConfirmationDialog({
     required BuildContext context,
     required String title,
@@ -38,82 +54,118 @@ class _ManageAgentsState extends State<ManageAgents> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         final theme = Theme.of(context);
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isApproval ? Colors.green.shade50 : Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(12),
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutBack,
+          builder: (context, value, child) {
+            return Transform.scale(
+              scale: value,
+              child: AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
                 ),
-                child: Icon(
-                  isApproval ? Icons.check_circle_rounded : Icons.block_rounded,
-                  color: isApproval
-                      ? Colors.green.shade600
-                      : Colors.red.shade600,
-                  size: 28,
+                title: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: isApproval
+                              ? [Colors.green.shade400, Colors.green.shade600]
+                              : [Colors.red.shade400, Colors.red.shade600],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (isApproval ? Colors.green : Colors.red)
+                                .withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        isApproval
+                            ? Icons.check_circle_rounded
+                            : Icons.block_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
+                content: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    message,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      height: 1.5,
+                    ),
                   ),
                 ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      AppLocalizations.of(context)!.cancel,
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isApproval
+                          ? Colors.green.shade600
+                          : Colors.red.shade600,
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                      shadowColor: (isApproval ? Colors.green : Colors.red)
+                          .withOpacity(0.3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 28,
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      AppLocalizations.of(context)!.confirm,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          content: Text(
-            message,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-              ),
-              child: Text(
-                AppLocalizations.of(context)!.cancel,
-                style: TextStyle(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isApproval
-                    ? Colors.green.shade600
-                    : Colors.red.shade600,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                AppLocalizations.of(context)!.confirm,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -128,310 +180,226 @@ class _ManageAgentsState extends State<ManageAgents> {
         if (state is AgentApproved) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                state.isApproved
-                    ? AppLocalizations.of(context)!.agentApproved
-                    : AppLocalizations.of(context)!.agentDisapproved,
+              content: Row(
+                children: [
+                  Icon(
+                    state.isApproved
+                        ? Icons.check_circle_rounded
+                        : Icons.block_rounded,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      state.isApproved
+                          ? AppLocalizations.of(context)!.agentApproved
+                          : AppLocalizations.of(context)!.agentDisapproved,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              duration: const Duration(seconds: 2),
-              backgroundColor: state.isApproved ? Colors.green : Colors.red,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              duration: const Duration(seconds: 3),
+              backgroundColor: state.isApproved
+                  ? Colors.green.shade600
+                  : Colors.red.shade600,
+              elevation: 6,
             ),
           );
         }
       },
       child: Scaffold(
+        backgroundColor: AppColors.bgWhite,
         appBar: AppBar(
-          title: Text(AppLocalizations.of(context)!.manageWorkers),
+          title: Text(
+            AppLocalizations.of(context)!.manageWorkers,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           elevation: 0,
+          centerTitle: false,
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh_rounded),
+              onPressed: () {
+                setState(() {});
+              },
+              tooltip: AppLocalizations.of(context)!.refresh,
+            ),
+            const SizedBox(width: 8),
+          ],
         ),
         body: Column(
           children: [
-            // Modern Search Bar with shadow and elevation
+            // Header gradient section
             Container(
               decoration: BoxDecoration(
-                color: theme.scaffoldBackgroundColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.bgWhite],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
               ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                child: SearchBar(
-                  controller: _searchController,
-                  hintText: AppLocalizations.of(context)!.search,
-                  leading: Icon(
-                    Icons.search_rounded,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  trailing: _searchQuery.isNotEmpty
-                      ? [
-                          IconButton(
-                            icon: const Icon(Icons.clear_rounded),
-                            onPressed: () {
+              child: Column(
+                children: [
+                  // Modern Search Bar
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                    child: Hero(
+                      tag: 'search_bar_agents',
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 20,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: TextField(
+                            controller: _searchController,
+                            onChanged: (value) {
                               setState(() {
-                                _searchController.clear();
-                                _searchQuery = '';
+                                _searchQuery = value.toLowerCase();
                               });
                             },
-                            tooltip: AppLocalizations.of(context)!.clear,
+                            decoration: InputDecoration(
+                              hintText: AppLocalizations.of(context)!.search,
+                              hintStyle: TextStyle(
+                                color: Colors.grey.shade400,
+                                fontSize: 15,
+                              ),
+                              prefixIcon: Icon(
+                                Icons.search_rounded,
+                                color: theme.colorScheme.primary,
+                                size: 24,
+                              ),
+                              suffixIcon: _searchQuery.isNotEmpty
+                                  ? IconButton(
+                                      icon: Icon(
+                                        Icons.clear_rounded,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _searchController.clear();
+                                          _searchQuery = '';
+                                        });
+                                      },
+                                      tooltip: AppLocalizations.of(
+                                        context,
+                                      )!.clear,
+                                    )
+                                  : null,
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 16,
+                              ),
+                            ),
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ]
-                      : null,
-                  elevation: MaterialStateProperty.all(0),
-                  backgroundColor: MaterialStateProperty.all(
-                    theme.colorScheme.surfaceVariant.withOpacity(0.4),
-                  ),
-                  shape: MaterialStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
+                        ),
+                      ),
                     ),
                   ),
-                  padding: MaterialStateProperty.all(
-                    const EdgeInsets.symmetric(horizontal: 16),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _searchQuery = value.toLowerCase();
-                    });
-                  },
-                ),
-              ),
-            ),
 
-            // Elegant Filter Chips - Choice Chips for exclusive selection
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: theme.scaffoldBackgroundColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+                  // Enhanced Filter Chips
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildFilterChip(
+                            context: context,
+                            label: AppLocalizations.of(context)!.all,
+                            icon: Icons.apps_rounded,
+                            isSelected: _selectedFilter == 0,
+                            onTap: () => setState(() => _selectedFilter = 0),
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 10),
+                          _buildFilterChip(
+                            context: context,
+                            label: AppLocalizations.of(context)!.verified,
+                            icon: Icons.verified_rounded,
+                            isSelected: _selectedFilter == 1,
+                            onTap: () => setState(() => _selectedFilter = 1),
+                            color: Colors.green,
+                          ),
+                          const SizedBox(width: 10),
+                          _buildFilterChip(
+                            context: context,
+                            label: AppLocalizations.of(context)!.pending,
+                            icon: Icons.pending_rounded,
+                            isSelected: _selectedFilter == 2,
+                            onTap: () => setState(() => _selectedFilter = 2),
+                            color: Colors.orange,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-                child: Wrap(
-                  spacing: 10.0,
-                  runSpacing: 8.0,
-                  children: [
-                    // All Chip
-                    ChoiceChip(
-                      label: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.list_rounded,
-                            size: 16,
-                            color: _selectedFilter == 0
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            AppLocalizations.of(context)!.all,
-                            style: TextStyle(
-                              fontWeight: _selectedFilter == 0
-                                  ? FontWeight.w600
-                                  : FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      selected: _selectedFilter == 0,
-                      onSelected: (bool selected) {
-                        setState(() {
-                          _selectedFilter = 0;
-                        });
-                      },
-                      selectedColor: theme.colorScheme.primaryContainer,
-                      backgroundColor: theme.colorScheme.surface,
-                      elevation: _selectedFilter == 0 ? 2 : 0,
-                      pressElevation: 4,
-                      side: BorderSide(
-                        color: _selectedFilter == 0
-                            ? theme.colorScheme.primary.withOpacity(0.5)
-                            : theme.colorScheme.outline.withOpacity(0.3),
-                        width: _selectedFilter == 0 ? 1.5 : 1,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-                      showCheckmark: false,
-                    ),
-
-                    // Verified Chip - Now with GREEN colors
-                    ChoiceChip(
-                      label: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.verified_rounded,
-                            size: 16,
-                            color: _selectedFilter == 1
-                                ? Colors.green.shade700
-                                : theme.colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            AppLocalizations.of(context)!.verified,
-                            style: TextStyle(
-                              fontWeight: _selectedFilter == 1
-                                  ? FontWeight.w600
-                                  : FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      selected: _selectedFilter == 1,
-                      onSelected: (bool selected) {
-                        setState(() {
-                          _selectedFilter = 1;
-                        });
-                      },
-                      selectedColor: Colors.green.shade50,
-                      backgroundColor: theme.colorScheme.surface,
-                      elevation: _selectedFilter == 1 ? 2 : 0,
-                      pressElevation: 4,
-                      side: BorderSide(
-                        color: _selectedFilter == 1
-                            ? Colors.green.shade300
-                            : theme.colorScheme.outline.withOpacity(0.3),
-                        width: _selectedFilter == 1 ? 1.5 : 1,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-                      showCheckmark: false,
-                    ),
-
-                    // Pending Chip
-                    ChoiceChip(
-                      label: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.pending_rounded,
-                            size: 16,
-                            color: _selectedFilter == 2
-                                ? Colors.orange.shade700
-                                : theme.colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            AppLocalizations.of(context)!.pending,
-                            style: TextStyle(
-                              fontWeight: _selectedFilter == 2
-                                  ? FontWeight.w600
-                                  : FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      selected: _selectedFilter == 2,
-                      onSelected: (bool selected) {
-                        setState(() {
-                          _selectedFilter = 2;
-                        });
-                      },
-                      selectedColor: Colors.orange.shade50,
-                      backgroundColor: theme.colorScheme.surface,
-                      elevation: _selectedFilter == 2 ? 2 : 0,
-                      pressElevation: 4,
-                      side: BorderSide(
-                        color: _selectedFilter == 2
-                            ? Colors.orange.shade300
-                            : theme.colorScheme.outline.withOpacity(0.3),
-                        width: _selectedFilter == 2 ? 1.5 : 1,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-                      showCheckmark: false,
-                    ),
-                  ],
-                ),
-              ),
             ),
 
-            const SizedBox(height: 4),
-
-            // Agent List
+            // Agents List
             Expanded(
               child: StreamBuilder(
                 stream: AppServices.getAllAgentsStream(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: Loader(size: 50));
-                  }
-                  if (snapshot.hasError) {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.error_outline_rounded,
-                            size: 64,
-                            color: theme.colorScheme.error,
-                          ),
-                          const SizedBox(height: 16),
+                          Loader(size: 60),
+                          const SizedBox(height: 24),
                           Text(
-                            '${AppLocalizations.of(context)!.error}: ${snapshot.error}',
-                            textAlign: TextAlign.center,
+                            'Loading agents...',
                             style: TextStyle(
                               color: theme.colorScheme.onSurfaceVariant,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
                     );
                   }
+
+                  if (snapshot.hasError) {
+                    return _buildEmptyState(
+                      context: context,
+                      icon: Icons.error_outline_rounded,
+                      title: AppLocalizations.of(context)!.error,
+                      subtitle: '${snapshot.error}',
+                      color: theme.colorScheme.error,
+                    );
+                  }
+
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.people_outline_rounded,
-                            size: 64,
-                            color: theme.colorScheme.onSurfaceVariant
-                                .withOpacity(0.5),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            AppLocalizations.of(context)!.noAgentsFound,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
+                    return _buildEmptyState(
+                      context: context,
+                      icon: Icons.engineering_rounded,
+                      title: AppLocalizations.of(context)!.noAgentsFound,
+                      subtitle: 'No agents available at the moment',
+                      color: theme.colorScheme.primary,
                     );
                   }
 
@@ -439,67 +407,40 @@ class _ManageAgentsState extends State<ManageAgents> {
 
                   // Apply filters
                   final filteredAgents = agents.where((agent) {
-                    // Search filter - includes name and email
                     bool matchesSearch = true;
                     if (_searchQuery.isNotEmpty) {
                       final name = (agent.name ?? '').toLowerCase();
                       final email = (agent.email ?? '').toLowerCase();
+                      final phone = (agent.phone ?? '').toLowerCase();
                       matchesSearch =
                           name.contains(_searchQuery) ||
-                          email.contains(_searchQuery);
+                          email.contains(_searchQuery) ||
+                          phone.contains(_searchQuery);
                     }
 
-                    // Verification status filter
                     bool matchesVerification = true;
                     final isVerified = agent.isVerified ?? false;
 
                     if (_selectedFilter == 1) {
-                      // Show only verified
                       matchesVerification = isVerified;
                     } else if (_selectedFilter == 2) {
-                      // Show only pending
                       matchesVerification = !isVerified;
                     }
-                    // If _selectedFilter == 0 (All), matchesVerification stays true
 
                     return matchesSearch && matchesVerification;
                   }).toList();
 
-                  // Show message if no results found
                   if (filteredAgents.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.search_off_rounded,
-                            size: 64,
-                            color: theme.colorScheme.onSurfaceVariant
-                                .withOpacity(0.5),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            AppLocalizations.of(
-                              context,
-                            )!.noWorkersMatchYourFilters,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            AppLocalizations.of(
-                              context,
-                            )!.tryAdjustingYourSearchCriteria,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: theme.colorScheme.onSurfaceVariant
-                                  .withOpacity(0.7),
-                            ),
-                          ),
-                        ],
-                      ),
+                    return _buildEmptyState(
+                      context: context,
+                      icon: Icons.search_off_rounded,
+                      title: AppLocalizations.of(
+                        context,
+                      )!.noWorkersMatchYourFilters,
+                      subtitle: AppLocalizations.of(
+                        context,
+                      )!.tryAdjustingYourSearchCriteria,
+                      color: theme.colorScheme.primary,
                     );
                   }
 
@@ -507,262 +448,10 @@ class _ManageAgentsState extends State<ManageAgents> {
                     padding: const EdgeInsets.all(16),
                     itemCount: filteredAgents.length,
                     itemBuilder: (context, index) {
-                      final agent = filteredAgents[index];
-                      final isVerified = agent.isVerified ?? false;
-
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: Card(
-                          elevation: 2,
-                          shadowColor: Colors.black.withOpacity(0.1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            side: BorderSide(
-                              color: isVerified
-                                  ? Colors.green.shade200
-                                  : theme.colorScheme.outline.withOpacity(0.1),
-                              width: 1,
-                            ),
-                          ),
-                          child: InkWell(
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AgentInfo(agent: agent),
-                              ),
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Row(
-                                children: [
-                                  // Avatar - GREEN for verified
-                                  Container(
-                                    width: 56,
-                                    height: 56,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                        colors: isVerified
-                                            ? [
-                                                Colors.green.shade400,
-                                                Colors.green.shade300,
-                                              ]
-                                            : [
-                                                Colors.orange.shade400,
-                                                Colors.orange.shade300,
-                                              ],
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color:
-                                              (isVerified
-                                                      ? Colors.green
-                                                      : Colors.orange)
-                                                  .withOpacity(0.3),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        (agent.name ?? 'A')
-                                            .substring(0, 1)
-                                            .toUpperCase(),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 16),
-
-                                  // Agent Info
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                agent.name ?? 'Unknown',
-                                                style: theme
-                                                    .textTheme
-                                                    .titleMedium
-                                                    ?.copyWith(
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      fontSize: 16,
-                                                    ),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8,
-                                                    vertical: 4,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: isVerified
-                                                    ? Colors.green.shade50
-                                                    : Colors.orange.shade50,
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Icon(
-                                                    isVerified
-                                                        ? Icons.verified_rounded
-                                                        : Icons.pending_rounded,
-                                                    size: 14,
-                                                    color: isVerified
-                                                        ? Colors.green.shade700
-                                                        : Colors
-                                                              .orange
-                                                              .shade700,
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    isVerified
-                                                        ? AppLocalizations.of(
-                                                            context,
-                                                          )!.verified
-                                                        : AppLocalizations.of(
-                                                            context,
-                                                          )!.pending,
-                                                    style: TextStyle(
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: isVerified
-                                                          ? Colors
-                                                                .green
-                                                                .shade700
-                                                          : Colors
-                                                                .orange
-                                                                .shade700,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 6),
-                                        if (agent.email != null &&
-                                            agent.email!.isNotEmpty)
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.email_outlined,
-                                                size: 14,
-                                                color: theme
-                                                    .colorScheme
-                                                    .onSurfaceVariant,
-                                              ),
-                                              const SizedBox(width: 6),
-                                              Expanded(
-                                                child: Text(
-                                                  agent.email!,
-                                                  style: theme
-                                                      .textTheme
-                                                      .bodySmall
-                                                      ?.copyWith(
-                                                        color: theme
-                                                            .colorScheme
-                                                            .onSurfaceVariant,
-                                                        fontSize: 13,
-                                                      ),
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 12),
-
-                                  // Toggle Button with Confirmation
-                                  if (agent.uid != null)
-                                    Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: () async {
-                                          final confirmed =
-                                              await _showConfirmationDialog(
-                                                context: context,
-                                                title: isVerified
-                                                    ? AppLocalizations.of(
-                                                        context,
-                                                      )!.disapproveAgent
-                                                    : AppLocalizations.of(
-                                                        context,
-                                                      )!.approveAgent,
-                                                message: isVerified
-                                                    ? AppLocalizations.of(
-                                                        context,
-                                                      )!.areYouSureYouWantToDisapproveAgent
-                                                    : AppLocalizations.of(
-                                                        context,
-                                                      )!.areYouSureYouWantToApproveThisAgent,
-                                                isApproval: !isVerified,
-                                              );
-
-                                          if (confirmed == true &&
-                                              context.mounted) {
-                                            context.read<ManageAppBloc>().add(
-                                              ApproveRejectAgentEvent(
-                                                agent.uid!,
-                                                !isVerified,
-                                              ),
-                                            );
-                                          }
-                                        },
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(8),
-                                          decoration: BoxDecoration(
-                                            color: isVerified
-                                                ? Colors.red.shade50
-                                                : Colors.green.shade50,
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                          child: Icon(
-                                            isVerified
-                                                ? Icons.block_rounded
-                                                : Icons.check_circle_rounded,
-                                            color: isVerified
-                                                ? Colors.red.shade600
-                                                : Colors.green.shade600,
-                                            size: 22,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
+                      return _buildAgentCard(
+                        context: context,
+                        agent: filteredAgents[index],
+                        index: index,
                       );
                     },
                   );
@@ -771,6 +460,432 @@ class _ManageAgentsState extends State<ManageAgents> {
             ),
           ],
         ),
+        floatingActionButton: ScaleTransition(
+          scale: _fabAnimation,
+          child: FloatingActionButton.extended(
+            onPressed: () {
+              setState(() {
+                _searchController.clear();
+                _searchQuery = '';
+                _selectedFilter = 0;
+              });
+            },
+            backgroundColor: theme.colorScheme.primaryContainer,
+            foregroundColor: theme.colorScheme.onPrimaryContainer,
+            elevation: 4,
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text(
+              'Reset Filters',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterChip({
+    required BuildContext context,
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required Color color,
+  }) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          decoration: BoxDecoration(
+            gradient: isSelected
+                ? LinearGradient(
+                    colors: [color, color.withOpacity(0.8)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            color: isSelected ? null : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? color : Colors.grey.shade300,
+              width: isSelected ? 2 : 1,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: color.withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : [],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18, color: isSelected ? Colors.white : color),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.grey.shade700,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAgentCard({
+    required BuildContext context,
+    required agent,
+    required int index,
+  }) {
+    final theme = Theme.of(context);
+    final isVerified = agent.isVerified ?? false;
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 300 + (index * 50)),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Transform.translate(
+          offset: Offset(0, 50 * (1 - value)),
+          child: Opacity(opacity: value, child: child),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        child: Material(
+          elevation: 3,
+          shadowColor: isVerified
+              ? Colors.green.withOpacity(0.2)
+              : Colors.orange.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(20),
+          child: InkWell(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AgentInfo(agent: agent)),
+            ),
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white,
+                    isVerified
+                        ? Colors.green.shade50.withOpacity(0.3)
+                        : Colors.orange.shade50.withOpacity(0.3),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                border: Border.all(
+                  color: isVerified
+                      ? Colors.green.shade200
+                      : Colors.orange.shade200,
+                  width: 1.5,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    // Enhanced Avatar
+                    Hero(
+                      tag: 'agent_${agent.uid}',
+                      child: Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: isVerified
+                                ? [Colors.green.shade400, Colors.green.shade600]
+                                : [
+                                    Colors.orange.shade400,
+                                    Colors.orange.shade600,
+                                  ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: (isVerified ? Colors.green : Colors.orange)
+                                  .withOpacity(0.4),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            (agent.name ?? 'A').substring(0, 1).toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 16),
+
+                    // Agent Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  agent.name ?? 'Unknown',
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 17,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: isVerified
+                                        ? [
+                                            Colors.green.shade400,
+                                            Colors.green.shade600,
+                                          ]
+                                        : [
+                                            Colors.orange.shade400,
+                                            Colors.orange.shade600,
+                                          ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          (isVerified
+                                                  ? Colors.green
+                                                  : Colors.orange)
+                                              .withOpacity(0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      isVerified
+                                          ? Icons.verified_rounded
+                                          : Icons.pending_rounded,
+                                      size: 14,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      isVerified
+                                          ? AppLocalizations.of(
+                                              context,
+                                            )!.verified
+                                          : AppLocalizations.of(
+                                              context,
+                                            )!.pending,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          if (agent.email != null && agent.email!.isNotEmpty)
+                            _buildInfoRow(
+                              context: context,
+                              icon: Icons.email_outlined,
+                              text: agent.email!,
+                            ),
+                          if (agent.phone != null && agent.phone!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: _buildInfoRow(
+                                context: context,
+                                icon: Icons.phone_outlined,
+                                text: agent.phone!,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    // Enhanced Toggle Button
+                    if (agent.uid != null)
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () async {
+                            final confirmed = await _showConfirmationDialog(
+                              context: context,
+                              title: isVerified
+                                  ? AppLocalizations.of(
+                                      context,
+                                    )!.disapproveAgent
+                                  : AppLocalizations.of(context)!.approveAgent,
+                              message: isVerified
+                                  ? AppLocalizations.of(
+                                      context,
+                                    )!.areYouSureYouWantToDisapproveAgent
+                                  : AppLocalizations.of(
+                                      context,
+                                    )!.areYouSureYouWantToApproveThisAgent,
+                              isApproval: !isVerified,
+                            );
+
+                            if (confirmed == true && context.mounted) {
+                              context.read<ManageAppBloc>().add(
+                                ApproveRejectAgentEvent(
+                                  agent.uid!,
+                                  !isVerified,
+                                ),
+                              );
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: isVerified
+                                    ? [Colors.red.shade400, Colors.red.shade600]
+                                    : [
+                                        Colors.green.shade400,
+                                        Colors.green.shade600,
+                                      ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      (isVerified ? Colors.red : Colors.green)
+                                          .withOpacity(0.4),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              isVerified
+                                  ? Icons.block_rounded
+                                  : Icons.check_circle_rounded,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow({
+    required BuildContext context,
+    required IconData icon,
+    required String text,
+  }) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: theme.colorScheme.primary),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+  }) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 64, color: color),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 48),
+            child: Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 15,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
       ),
     );
   }

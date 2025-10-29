@@ -61,11 +61,10 @@ class _AddNewCategoriesState extends State<AddNewCategories> {
         if (!await file.exists()) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+               SnackBar(
                 content: Text(
-                  'Selected file could not be found. Please try again.',
+                 AppLocalizations.of(context)?.selectedFileCouldNotBeFound ?? 'Selected file could not be found. Please try again.',
                 ),
-                behavior: SnackBarBehavior.floating,
                 backgroundColor: Colors.red,
               ),
             );
@@ -88,7 +87,7 @@ class _AddNewCategoriesState extends State<AddNewCategories> {
               AppLocalizations.of(context)?.imageLoadError ??
                   'Error picking image: ${e.toString()}',
             ),
-            behavior: SnackBarBehavior.floating,
+           
             backgroundColor: Colors.red,
           ),
         );

@@ -62,7 +62,7 @@ class LanguageSelectorCard extends StatelessWidget {
         final currentState = context.read<AccountBloc>().state;
         final currentLanguageCode = currentState.locale.languageCode;
 
-        print(
+        debugPrint(
           'Tapped on $langCode, current: $currentLanguageCode',
         ); // Debug print
         if (langCode != currentLanguageCode) {

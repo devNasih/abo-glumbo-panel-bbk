@@ -1,7 +1,9 @@
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
+import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -9,8 +11,9 @@ class AgentInfo extends StatelessWidget {
   final UserModel agent;
   AgentInfo({super.key, required this.agent});
 
-  static Color primary = const Color(0xFF0A2463);
-  static Color secondary = const Color(0xFF0081FA);
+  static Color primary = AppColors.primary;
+  static Color secondary = AppColors.secondary;
+  static Color cardBackground = AppColors.bgWhite;
 
   final Map<String, Map<String, String>> jobCategories = {
     'plumbing': {'en': 'Plumbing', 'ar': 'السباكة'},
@@ -37,221 +40,46 @@ class AgentInfo extends StatelessWidget {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(agent.name ?? 'Agent Details'),
-        backgroundColor: primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildProfileHeader(context),
-            const SizedBox(height: 24),
-            _buildSectionCard(
-              AppLocalizations.of(context)!.personalInformation,
-              Icons.person,
-              [
-                _buildInfoRow(
-                  AppLocalizations.of(context)!.name,
-                  agent.name,
-                  context,
-                ),
-                _buildInfoRow(
-                  AppLocalizations.of(context)!.email,
-                  agent.email,
-                  context,
-                ),
-                _buildPhoneRow(
-                  AppLocalizations.of(context)!.phone,
-                  agent.phone,
-                  context,
-                ),
-                _buildInfoRow(
-                  AppLocalizations.of(context)!.country,
-                  agent.country,
-                  context,
-                ),
-                _buildInfoRow(
-                  AppLocalizations.of(context)!.district,
-                  agent.districtName,
-                  context,
-                ),
-                _buildInfoRow(
-                  AppLocalizations.of(context)!.languageCode,
-                  agent.lanCode,
-                  context,
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            _buildSectionCard(
-              AppLocalizations.of(context)!.accountStatus,
-              Icons.verified_user,
-              [
-                _buildStatusRow(
-                  AppLocalizations.of(context)!.adminStatus,
-                  agent.isAdmin ?? false,
-                  context,
-                ),
-                _buildStatusRow(
-                  AppLocalizations.of(context)!.verified,
-                  agent.isVerified ?? false,
-                  context,
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            if (agent.jobRoles != null && agent.jobRoles!.isNotEmpty)
-              _buildSectionCard(
-                AppLocalizations.of(context)!.jobRoles,
-                Icons.work,
-                [_buildJobRoles(context)],
-              ),
-
-            const SizedBox(height: 16),
-
-            _buildSectionCard(
-              AppLocalizations.of(context)!.systemInformation,
-              Icons.info,
-              [
-                _buildInfoRow(
-                  AppLocalizations.of(context)!.userId,
-                  agent.uid,
-                  context,
-                ),
-                _buildInfoRow(
-                  AppLocalizations.of(context)!.createdAt,
-                  _formatTimestamp(agent.createdAt),
-                  context,
-                ),
-                _buildInfoRow(
-                  AppLocalizations.of(context)!.updatedAt,
-                  _formatTimestamp(agent.updatedAt),
-                  context,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-          ],
+  void _copyToClipboard(BuildContext context, String text, String label) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '$label ${AppLocalizations.of(context)!.copiedToClipboard}',
         ),
+        duration: const Duration(seconds: 3),
+       
       ),
-      floatingActionButton: agent.phone != null && agent.phone!.isNotEmpty
-          ? FloatingActionButton.extended(
-              onPressed: () => _makePhoneCall(agent.phone!),
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.phone),
-              label: Text(AppLocalizations.of(context)!.call),
-            )
-          : null,
     );
   }
 
-  Widget _buildProfileHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [primary, secondary],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 40,
-            backgroundColor: Colors.white,
-            backgroundImage: agent.profileUrl != null
-                ? NetworkImage(agent.profileUrl!)
-                : null,
-            child: agent.profileUrl == null
-                ? Text(
-                    agent.name?.isNotEmpty == true
-                        ? agent.name![0].toUpperCase()
-                        : 'A',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: primary,
-                    ),
-                  )
-                : null,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  agent.name ?? 'Unknown Agent',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  agent.email ?? 'No email',
-                  style: const TextStyle(fontSize: 16, color: Colors.white70),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    if (agent.isAdmin == true)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.orange,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          AppLocalizations.of(context)!.admin,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    if (agent.isAdmin == true) const SizedBox(width: 8),
-                    if (agent.isVerified == true)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          AppLocalizations.of(context)!.verified,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: cardBackground,
+      body: CustomScrollView(
+        slivers: [
+          _buildAppBar(context),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildQuickActionsCard(context),
+                  const SizedBox(height: 16),
+                  _buildPersonalInfoCard(context),
+                  const SizedBox(height: 16),
+                  _buildBankDetailsCard(context),
+                  const SizedBox(height: 16),
+                  if (agent.jobRoles != null && agent.jobRoles!.isNotEmpty)
+                    _buildJobRolesCard(context),
+                  if (agent.jobRoles != null && agent.jobRoles!.isNotEmpty)
+                    const SizedBox(height: 16),
+                  _buildSystemInfoCard(context),
+                  const SizedBox(height: 80),
+                ],
+              ),
             ),
           ),
         ],
@@ -259,21 +87,250 @@ class AgentInfo extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionCard(String title, IconData icon, List<Widget> children) {
+  Widget _buildAppBar(BuildContext context) {
+    return SliverAppBar(
+      title: Text(AppLocalizations.of(context)!.agentInfo),
+      expandedHeight: 300,
+      floating: false,
+      pinned: true,
+      backgroundColor: primary,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [primary, secondary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 40),
+                Hero(
+                  tag: 'agent_${agent.uid}',
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 4),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundColor: Colors.white,
+                      backgroundImage: agent.profileUrl != null
+                          ? NetworkImage(agent.profileUrl!)
+                          : null,
+                      child: agent.profileUrl == null
+                          ? Text(
+                              agent.name?.isNotEmpty == true
+                                  ? agent.name![0].toUpperCase()
+                                  : 'A',
+                              style: TextStyle(
+                                fontSize: 48,
+                                fontWeight: FontWeight.bold,
+                                color: primary,
+                              ),
+                            )
+                          : null,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  agent.name ?? 'Unknown Agent',
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 6),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (agent.isVerified == true)
+                      _buildBadge(
+                        AppLocalizations.of(context)!.verified,
+                        Icons.verified,
+                        Colors.green,
+                      ),
+                    if (agent.isVerified == true && agent.isAdmin == true)
+                      const SizedBox(width: 10),
+                    if (agent.isAdmin == true)
+                      _buildBadge(
+                        AppLocalizations.of(context)!.admin,
+                        Icons.admin_panel_settings,
+                        Colors.orange,
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBadge(String label, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 16),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActionsCard(BuildContext context) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AppLocalizations.of(context)!.quickActions,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: primary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                if (agent.phone != null && agent.phone!.isNotEmpty)
+                  _buildQuickActionButton(
+                    context,
+                    Icons.phone,
+                    AppLocalizations.of(context)!.call,
+                    Colors.green,
+                    () => _makePhoneCall(agent.phone!),
+                  ),
+                if (agent.email != null && agent.email!.isNotEmpty)
+                  _buildQuickActionButton(
+                    context,
+                    Icons.email,
+                    AppLocalizations.of(context)!.email,
+                    Colors.blue,
+                    () async {
+                      final Uri emailUri = Uri(
+                        scheme: 'mailto',
+                        path: agent.email,
+                      );
+                      if (await canLaunchUrl(emailUri)) {
+                        await launchUrl(emailUri);
+                      }
+                    },
+                  ),
+                _buildQuickActionButton(
+                  context,
+                  Icons.copy,
+                  AppLocalizations.of(context)!.copyId,
+                  Colors.purple,
+                  () => _copyToClipboard(context, agent.uid ?? '', 'User ID'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickActionButton(
+    BuildContext context,
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPersonalInfoCard(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, color: primary, size: 24),
-                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.person, color: primary, size: 24),
+                ),
+                const SizedBox(width: 12),
                 Text(
-                  title,
+                  AppLocalizations.of(context)!.personalInformation,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -282,185 +339,441 @@ class AgentInfo extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            ...children,
+            const SizedBox(height: 20),
+            _buildModernInfoRow(
+              context,
+              Icons.badge_outlined,
+              AppLocalizations.of(context)!.name,
+              agent.name,
+            ),
+            _buildDivider(),
+            _buildModernInfoRow(
+              context,
+              Icons.email_outlined,
+              AppLocalizations.of(context)!.email,
+              agent.email,
+            ),
+            _buildDivider(),
+            _buildModernInfoRow(
+              context,
+              Icons.phone_outlined,
+              AppLocalizations.of(context)!.phone,
+              agent.phone,
+            ),
+            _buildDivider(),
+            _buildModernInfoRow(
+              context,
+              Icons.public,
+              AppLocalizations.of(context)!.country,
+              agent.country,
+            ),
+            _buildDivider(),
+            _buildModernInfoRow(
+              context,
+              Icons.location_city_outlined,
+              AppLocalizations.of(context)!.district,
+              agent.districtName,
+            ),
+            _buildDivider(),
+            _buildModernInfoRow(
+              context,
+              Icons.language,
+              AppLocalizations.of(context)!.languageCode,
+              agent.lanCode,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String? value, BuildContext context) {
-    if (value == null || value.isEmpty) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                color: Colors.grey,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 16, color: Colors.black87),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPhoneRow(String label, String? value, BuildContext context) {
-    if (value == null || value.isEmpty) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                color: Colors.grey,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    value,
-                    style: const TextStyle(fontSize: 16, color: Colors.black87),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => _makePhoneCall(value),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
+  Widget _buildBankDetailsCard(BuildContext context) {
+    // Handle null or empty payoutAccounts
+    if (agent.payoutAccounts == null || agent.payoutAccounts!.isEmpty) {
+      return Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade100,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.green, width: 1),
+                      color: Colors.grey.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(
-                      Icons.phone,
-                      size: 16,
-                      color: Colors.green.shade700,
+                    child: const Icon(
+                      Icons.account_balance,
+                      color: Colors.grey,
+                      size: 24,
                     ),
                   ),
+                  const SizedBox(width: 12),
+                  Text(
+                    AppLocalizations.of(context)!.bankAccountDetails,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: Text(
+                  'No bank account details available',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 15),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
+      );
+    }
+
+    // Try to find primary account, otherwise use the first account
+    final account = agent.payoutAccounts!.firstWhere(
+      (element) => element.isPrimary == true,
+      orElse: () => agent.payoutAccounts!.first,
+    );
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            colors: [primary.withOpacity(0.05), secondary.withOpacity(0.05)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.account_balance,
+                      color: Colors.green,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    AppLocalizations.of(context)!.bankAccountDetails,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              _buildBankInfoRow(
+                context,
+                Icons.business,
+                AppLocalizations.of(context)!.bankName,
+                account.bankName ?? 'Not provided',
+              ),
+              _buildDivider(),
+              _buildBankInfoRow(
+                context,
+                Icons.person_outline,
+                AppLocalizations.of(context)!.accountHolderName,
+                account.accountHolderName ?? 'Not provided',
+              ),
+              _buildDivider(),
+              _buildBankInfoRow(
+                context,
+                Icons.credit_card,
+                AppLocalizations.of(context)!.accountNumber,
+                account.accountNumber ?? 'Not provided',
+                canCopy: true,
+              ),
+              _buildDivider(),
+              _buildBankInfoRow(
+                context,
+                Icons.account_balance_wallet,
+                AppLocalizations.of(context)!.iban,
+                account.ifscCode ?? 'Not provided',
+                canCopy: true,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildStatusRow(String label, bool status, BuildContext context) {
+  Widget _buildBankInfoRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String? value, {
+    bool canCopy = false,
+  }) {
+    final displayValue = value ?? 'Not provided';
+    final hasValue =
+        value != null && value.isNotEmpty && value != 'Not provided';
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                color: Colors.grey,
-              ),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: status ? Colors.green.shade100 : Colors.red.shade100,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: status ? Colors.green : Colors.red,
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+          Icon(icon, color: Colors.grey[600], size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  status ? Icons.check_circle : Icons.cancel,
-                  color: status ? Colors.green : Colors.red,
-                  size: 16,
-                ),
-                const SizedBox(width: 4),
                 Text(
-                  status
-                      ? AppLocalizations.of(context)!.yes
-                      : AppLocalizations.of(context)!.no,
+                  label,
                   style: TextStyle(
-                    color: status ? Colors.green.shade800 : Colors.red.shade800,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  displayValue,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: hasValue ? FontWeight.w600 : FontWeight.normal,
+                    color: hasValue ? Colors.black87 : Colors.grey[400],
                   ),
                 ),
               ],
             ),
           ),
+          if (canCopy && hasValue)
+            IconButton(
+              icon: Icon(Icons.copy, color: secondary, size: 18),
+              onPressed: () => _copyToClipboard(context, displayValue, label),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildJobRoles(BuildContext context) {
+  Widget _buildJobRolesCard(BuildContext context) {
     final currentLocale = Localizations.localeOf(context).languageCode;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          AppLocalizations.of(context)!.assignedRoles,
-          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: agent.jobRoles!
-              .map(
-                (role) => Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: secondary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: secondary.withOpacity(0.3)),
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    _getLocalizedJobCategory(role, currentLocale),
-                    style: TextStyle(
-                      color: primary,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  child: const Icon(Icons.work, color: Colors.orange, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  AppLocalizations.of(context)!.jobRoles,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
                   ),
                 ),
-              )
-              .toList(),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: agent.jobRoles!
+                  .map(
+                    (role) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [secondary.withOpacity(0.8), secondary],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: secondary.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.verified_user,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            _getLocalizedJobCategory(role, currentLocale),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
         ),
-      ],
+      ),
     );
+  }
+
+  Widget _buildSystemInfoCard(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.info_outline,
+                    color: Colors.grey[700],
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  AppLocalizations.of(context)!.systemInformation,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _buildModernInfoRow(
+              context,
+              Icons.fingerprint,
+              AppLocalizations.of(context)!.userId,
+              agent.uid,
+              trailing: IconButton(
+                icon: Icon(Icons.copy, color: secondary, size: 18),
+                onPressed: () =>
+                    _copyToClipboard(context, agent.uid ?? '', 'User ID'),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ),
+            _buildDivider(),
+            _buildModernInfoRow(
+              context,
+              Icons.calendar_today,
+              AppLocalizations.of(context)!.createdAt,
+              _formatTimestamp(agent.createdAt),
+            ),
+            _buildDivider(),
+            _buildModernInfoRow(
+              context,
+              Icons.update,
+              AppLocalizations.of(context)!.updatedAt,
+              _formatTimestamp(agent.updatedAt),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernInfoRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String? value, {
+    Widget? trailing,
+  }) {
+    if (value == null || value.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.grey[600], size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (trailing != null) trailing,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Divider(color: Colors.grey[300], height: 1, thickness: 1);
   }
 
   String? _formatTimestamp(Timestamp? timestamp) {
@@ -473,7 +786,6 @@ class AgentInfo extends StatelessWidget {
     if (jobCategories.containsKey(jobKey.toLowerCase())) {
       return jobCategories[jobKey.toLowerCase()]![locale] ?? jobKey;
     }
-
     return jobKey;
   }
 }

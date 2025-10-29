@@ -23,6 +23,7 @@ class UserModel {
   String? availableBalance;
   String? paidAmounts;
   List<PayoutAccountModel>? payoutAccounts = <PayoutAccountModel>[];
+  double? paidoutTips;
 
   // Optional: Tier summary fields (for quick access on dashboard)
   String? highestTier; // 'Bronze', 'Silver', 'Gold', 'Platinum'
@@ -55,6 +56,7 @@ class UserModel {
     this.highestTier,
     this.totalMonthlyBonus,
     this.lastBonusDate,
+    this.paidoutTips,
   });
 
   UserModel copyWith({
@@ -83,6 +85,7 @@ class UserModel {
     String? highestTier,
     double? totalMonthlyBonus,
     Timestamp? lastBonusDate,
+    double? paidoutTips,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -109,6 +112,7 @@ class UserModel {
       highestTier: highestTier ?? this.highestTier,
       totalMonthlyBonus: totalMonthlyBonus ?? this.totalMonthlyBonus,
       lastBonusDate: lastBonusDate ?? this.lastBonusDate,
+      paidoutTips: paidoutTips ?? this.paidoutTips,
     );
   }
 
@@ -153,6 +157,9 @@ class UserModel {
           ? (json['totalMonthlyBonus'] as num).toDouble()
           : null,
       lastBonusDate: json['lastBonusDate'],
+      paidoutTips: json['paidoutTips'] != null
+          ? (json['paidoutTips'] as num).toDouble()
+          : null,
     );
   }
 
@@ -207,6 +214,9 @@ class UserModel {
           ? (data!['totalMonthlyBonus'] as num).toDouble()
           : null,
       lastBonusDate: data?['lastBonusDate'],
+      paidoutTips: data?['paidoutTips'] != null
+          ? (data!['paidoutTips'] as num).toDouble()
+          : null,
     );
   }
 
@@ -235,6 +245,7 @@ class UserModel {
       'highestTier': highestTier,
       'totalMonthlyBonus': totalMonthlyBonus,
       'lastBonusDate': lastBonusDate,
+      'paidoutTips': paidoutTips,
     };
   }
 
@@ -263,6 +274,7 @@ class UserModel {
       'highestTier': highestTier,
       'totalMonthlyBonus': totalMonthlyBonus,
       'lastBonusDate': lastBonusDate,
+      'paidoutTips': paidoutTips,
     };
   }
 
@@ -333,6 +345,9 @@ class UserModel {
     }
     if (lastBonusDate != previous.lastBonusDate && lastBonusDate != null) {
       json['lastBonusDate'] = lastBonusDate;
+    }
+    if (paidoutTips != previous.paidoutTips && paidoutTips != null) {
+      json['paidoutTips'] = paidoutTips;
     }
 
     return json;

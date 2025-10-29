@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'dart:math';
 import 'package:aboglumbo_bbk_panel/models/payout_request.dart';
 import 'package:aboglumbo_bbk_panel/models/transaction.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -171,14 +171,32 @@ class AppServices {
     return snapshot.docs.isNotEmpty;
   }
 
-  static Future<void> updateUserProfile(UserModel user) async {
+  static Future<void> updateUserProfile(
+    UserModel user, {
+    bool updateProfileUrl = false,
+    bool updateDocUrl = false,
+  }) async {
     try {
       String userId = user.uid ?? '';
 
       if (userId.isNotEmpty) {
-        Map<String, dynamic> userData = user.toJson();
-        userData.remove('uid');
-        userData['updatedAt'] = Timestamp.now();
+        // Only include fields that are being updated
+        Map<String, dynamic> userData = {
+          'name': user.name,
+          'phone': user.phone,
+          'districtName': user.districtName,
+          'jobRoles': user.jobRoles,
+          'updatedAt': Timestamp.now(),
+        };
+
+        // Only add image URLs if they were actually updated
+        if (updateProfileUrl && user.profileUrl != null) {
+          userData['profileUrl'] = user.profileUrl;
+        }
+
+        if (updateDocUrl && user.docUrl != null) {
+          userData['docUrl'] = user.docUrl;
+        }
 
         await AppFirestore.usersCollectionRef.doc(userId).update(userData);
       }
@@ -366,6 +384,36 @@ class AppServices {
           .toList();
     });
   }
+static Future<List<CategoryModel>> getCategoriesByIds(List<String> categoryIds) async {
+  if (categoryIds.isEmpty) return [];
+  
+  // Split into chunks of 10 due to Firestore whereIn limit
+  List<List<String>> chunks = [];
+  for (int i = 0; i < categoryIds.length; i += 10) {
+    chunks.add(categoryIds.sublist(i, min(i + 10, categoryIds.length)));
+  }
+
+  // Fetch all chunks in parallel
+  List<Future<QuerySnapshot>> futures = chunks.map((chunk) =>
+    FirebaseFirestore.instance
+        .collection('categories')
+        .where(FieldPath.documentId, whereIn: chunk)
+        .get()
+  ).toList();
+
+  List<QuerySnapshot> snapshots = await Future.wait(futures);
+  
+  List<CategoryModel> categories = [];
+  for (var snapshot in snapshots) {
+    categories.addAll(
+      snapshot.docs.map((doc) => 
+        CategoryModel.fromJson({...doc.data() as Map<String, dynamic>, 'id': doc.id})
+      ).toList()
+    );
+  }
+
+  return categories;
+}
 
   static Stream<List<ServiceModel>> getAllServicesStream() {
     return AppFirestore.servicesCollectionRef.snapshots().map((snapshot) {
@@ -410,9 +458,11 @@ class AppServices {
 
   static Stream<List<TippingModel>> getTippingStream() {
     return AppFirestore.tippingCollectionRef.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return TippingModel.fromJson(doc.data() as Map<String, dynamic>);
-      }).toList();
+      return snapshot.docs
+          .map(
+            (doc) => TippingModel.fromJson(doc.data() as Map<String, dynamic>),
+          )
+          .toList();
     });
   }
 
@@ -420,6 +470,7 @@ class AppServices {
     String agentId,
     String transactionId,
     XFile? image,
+    TippingModel? tipmodel,
   ) async {
     try {
       String? imageUrl;
@@ -432,21 +483,28 @@ class AppServices {
           return false;
         }
       }
-      final model = AllTipsModel(proofs: [{
-        'transactionId': transactionId,
-        'proofImageUrl': imageUrl,
-      }]);
+      final model = AllTipsModel(
+        agentId: agentId,
+        createdAt: DateTime.now(),
+        totalTipAmount: tipmodel?.cardtip,
+        paymentMethod: "card",
+        id: agentId,
+        proofs: [
+          {'transactionId': transactionId, 'proofImageUrl': imageUrl},
+        ],
+      );
       await AppFirestore.tippingCollectionRef
           .doc(agentId)
-          .collection("total")
+          .collection('tipPayoutCollectionsRef')
           .doc(agentId)
-          .set(model.toJson());
+          .set({"": model.toJson()});
 
       await AppFirestore.tippingCollectionRef.doc(agentId).update({
-        'totalTip': 0.0,
-        'lastTipAmount': 0.0,
+        'cardtip': 0.0,
+        'cashtip': 0.0,
         'payoutRequested': false,
         'updatedAt': Timestamp.now(),
+        'payoutAmount': FieldValue.increment(tipmodel?.cardtip ?? 0.0),
       });
 
       return true;
@@ -591,19 +649,16 @@ class AppServices {
         .get();
     final data = docSnapshot.data() as Map<String, dynamic>?;
     String categoryName = data?['name'] ?? '';
-    log("wuerying");
     Query query = AppFirestore.usersCollectionRef
         .where('isVerified', isEqualTo: true)
         .where('isAdmin', isNotEqualTo: true)
         .where('jobRoles', arrayContains: categoryName);
-    log(query.toString());
 
     yield* query.snapshots().map((snapshot) {
       return snapshot.docs
           .map((doc) => UserModel.fromJson(doc.data() as Map<String, dynamic>))
           .toList();
     });
-    log("completed");
   }
 
   static Future<bool> isEmailRegistered(String email) async {
@@ -804,7 +859,6 @@ class AppServices {
         .where('type', isEqualTo: type)
         .snapshots()
         .map((snapshot) {
-          log(snapshot.docs.toString());
           return snapshot.docs
               .map(
                 (doc) => CustomerSupportModel.fromJson(
@@ -930,8 +984,18 @@ class AppServices {
 
           if (reviews.isEmpty) return 0.0;
 
-          final ratings = reviews.map((review) => review['rating']).toList();
-          return ratings.reduce((a, b) => a + b) / ratings.length;
+          // Filter out null ratings and convert to double
+          final ratings = reviews
+              .map((review) => review['rating'])
+              .where((rating) => rating != null)
+              .map((rating) => (rating as num).toDouble())
+              .toList();
+
+          if (ratings.isEmpty) return 0.0;
+
+          // Calculate sum safely
+          final sum = ratings.reduce((a, b) => a + b);
+          return sum / (ratings.length);
         });
 
     return Rx.combineLatest4<int, int, int, double, Map<String, dynamic>>(
@@ -948,7 +1012,7 @@ class AppServices {
         'completed': completedCount,
         'latest': latestCount,
         'accepted': acceptedCount,
-        'rating': avgRating,
+        'rating': avgRating.toStringAsFixed(1),
       },
     );
   }
@@ -957,7 +1021,6 @@ class AppServices {
     final snapshot = await AppFirestore.tippingCollectionRef
         .where('agentId', isEqualTo: workerId)
         .get();
-    log(snapshot.docs.toString());
     return TippingModel.fromJson(
       snapshot.docs.first.data() as Map<String, dynamic>,
     );
@@ -969,7 +1032,12 @@ class AppServices {
         .collection('total')
         .where('id', isEqualTo: workerId)
         .get();
-    log(snapshot.docs.toString());
+
+    // Check if snapshot has documents before accessing .first
+    if (snapshot.docs.isEmpty) {
+      return 0.0;
+    }
+
     return snapshot.docs.first['amount'] ?? 0.0;
   }
 
@@ -1214,7 +1282,6 @@ class AppServices {
 
     final primaryBankAcount = await getPrimaryPayoutAccount(userId);
 
-    log("primaryBankAcount: $primaryBankAcount");
     await AppFirestore.payoutCollectionRef.doc(newId).set({
       'id': newId,
       'amount': amount,
@@ -1292,5 +1359,46 @@ class AppServices {
           )
           .toList(),
     );
+  }
+
+  static Future<List<AllTipsModel>> getTipsById(String workerId) async {
+    try {
+      // Get the specific document
+      final docSnapshot = await AppFirestore.tippingCollectionRef
+          .doc(workerId)
+          .collection("totalTipsCollectionRef")
+          .doc(workerId)
+          .get();
+
+      if (!docSnapshot.exists) {
+        debugPrint('No tips document found for worker: $workerId');
+        return [];
+      }
+
+      final data = docSnapshot.data();
+      if (data == null) {
+        debugPrint('No data found for worker: $workerId');
+        return [];
+      }
+      if (data['tipData'] == null) {
+        debugPrint('No tipdata field found');
+        return [];
+      }
+
+      // Get the tipdata array field and convert to List<AllTipsModel>
+      final List<dynamic> tipdataList = data['tipData'] as List<dynamic>;
+
+      final List<AllTipsModel> tipsList = tipdataList
+          .map(
+            (tipJson) => AllTipsModel.fromJson(tipJson as Map<String, dynamic>),
+          )
+          .toList();
+
+      debugPrint('Fetched ${tipsList.length} tips for worker: $workerId');
+      return tipsList;
+    } catch (e) {
+      debugPrint('Error fetching tips: $e');
+      return [];
+    }
   }
 }

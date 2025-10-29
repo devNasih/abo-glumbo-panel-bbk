@@ -1122,7 +1122,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get andClearTheirWallet => 'وإزالة محفظتهم';
 
   @override
-  String get invalid => 'Invalid';
+  String get invalid => 'غير صالح';
 
   @override
   String get locationPermissionDeniedForever => 'تم رفض إذن الموقع بشكل دائم';
@@ -1131,16 +1131,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tracking => 'تتبع';
 
   @override
-  String get uploadImage => 'Upload Image';
+  String get uploadImage => 'تحميل صورة';
 
   @override
-  String get pleaseUploadAnImage => 'Please upload an image';
+  String get pleaseUploadAnImage => 'يرجى تحميل صورة';
 
   @override
-  String get item => 'Item';
+  String get item => 'العنصر';
 
   @override
-  String get paymentMethod => 'Payment Method';
+  String get paymentMethod => 'طريقة الدفع';
 
   @override
   String get completeWork => 'إكمال العمل';
@@ -1152,178 +1152,174 @@ class AppLocalizationsAr extends AppLocalizations {
   String get qty => 'الكمية';
 
   @override
-  String get serviceCompletedDescription =>
-      'Work was done and service provided';
+  String get serviceCompletedDescription => 'تم القيام بالعمل وتقديم الخدمة';
 
   @override
   String get inspectionOnlyDescription =>
-      'Only inspection done, no service provided';
+      'تم القيام بالفحص فقط ولم يتم تقديم خدمة';
 
   @override
-  String get required => 'Required';
+  String get required => 'مطلوب';
 
   @override
-  String get requests => 'Requests';
+  String get requests => 'طلبات';
 
   @override
-  String get newtext => 'New';
+  String get newtext => 'جديد';
 
   @override
-  String get totalCost => 'Total Cost';
+  String get totalCost => 'التكلفة الكلية';
 
   @override
-  String get inspectionOnly => 'Inspection Only';
+  String get inspectionOnly => 'فحص فقط';
 
   @override
-  String get support => 'Support';
+  String get support => 'دعم';
 
   @override
-  String get getHelpAnytime => 'Get help anytime';
+  String get getHelpAnytime => 'الحصول على دعم في اي وقت';
 
   @override
-  String get tierSystem => 'Tier System';
+  String get tierSystem => 'نظام المستوى';
 
   @override
-  String get bronze => 'Bronze';
+  String get bronze => 'البرونزة';
 
   @override
-  String get silver => 'Silver';
+  String get silver => 'الفضة';
 
   @override
-  String get gold => 'Gold';
+  String get gold => 'الذهب';
 
   @override
-  String get platinum => 'Platinum';
+  String get platinum => 'البلاتين';
 
   @override
-  String get nobonus => 'No bonus';
+  String get nobonus => 'لا بونوس';
 
   @override
-  String get fivepercentBonus => '5% Bonus';
+  String get fivepercentBonus => '5% بونوس';
 
   @override
-  String get tenpercentBonus => '10% Bonus';
+  String get tenpercentBonus => '10% بونوس';
 
   @override
-  String get fifteenpercentBonus => '15% Bonus + Badge';
+  String get fifteenpercentBonus => '15% بونوس + بيج';
 
   @override
-  String get greaterThan3dot5rating => '≥ 3.5 rating';
+  String get greaterThan3dot5rating => '≥ 3.5 التقييم';
 
   @override
-  String get greaterThan4dot0rating => '≥ 4.0 rating';
+  String get greaterThan4dot0rating => '≥ 4.0 التقييم';
 
   @override
-  String get greaterThan4dot5rating => '≥ 4.5 rating';
+  String get greaterThan4dot5rating => '≥ 4.5 التقييم';
 
   @override
-  String get greaterThan4dot8rating => '≥ 4.8 rating';
+  String get greaterThan4dot8rating => '≥ 4.8 التقييم';
 
   @override
-  String get bonus => 'Bonus';
+  String get bonus => 'بونوس';
 
   @override
-  String get jobs => 'Jobs';
+  String get jobs => 'وظائف';
 
   @override
-  String get earnings => 'Earnings';
+  String get earnings => 'الأرباح';
 
   @override
-  String get exitAppTitle => 'Exit App';
+  String get exitAppTitle => 'خروج من التطبيق';
 
   @override
-  String get recentTransactions => 'Recent Transactions';
+  String get recentTransactions => 'المعاملات الحديثة';
 
   @override
-  String get noTransactionsYet => 'No transactions yet';
+  String get noTransactionsYet => 'لا يوجد معاملات حتى الان';
 
   @override
-  String get id => 'ID';
+  String get id => 'الرقم التعريفي';
 
   @override
-  String get exitAppMessage => 'Are you sure you want to exit the app?';
+  String get exitAppMessage => 'هل تريد الخروج من التطبيق؟';
 
   @override
-  String get exit => 'Exit';
+  String get exit => 'خروج';
 
   @override
-  String get nextTierProgress => 'Next tier progress';
+  String get nextTierProgress => 'تقدم المستوى التالي';
 
   @override
-  String get greaterThan20jobsPerMonth => '≥ 20 jobs/month';
+  String get greaterThan20jobsPerMonth => '≥ 20 وظائف في الشهر';
 
   @override
-  String get orderId => 'Order ID';
+  String get orderId => 'رقم الطلب';
 
   @override
-  String get greaterThan40jobsPerMonth => '≥ 40 jobs/month';
+  String get greaterThan40jobsPerMonth => '≥ 40 وظائف في الشهر';
 
   @override
-  String get greaterThan60jobsPerMonth => '≥ 60 jobs/month';
+  String get greaterThan60jobsPerMonth => '≥ 60 وظائف في الشهر';
 
   @override
-  String get progressResetsMonthly =>
-      'Progress resets monthly, Maintain high ratings and complete more jobs to unlock better rewards.';
+  String get progressResetsMonthly => 'تنظيف التقدم الشهري';
 
   @override
-  String get viewYourRewards => 'View your rewards';
+  String get viewYourRewards => 'عرض جوائزك';
 
   @override
-  String get noSupportAvailable => 'No support available';
+  String get noSupportAvailable => 'لا يوجد دعم متاح';
 
   @override
-  String get contactSupportOptions => 'Contact support options';
+  String get contactSupportOptions => 'خيارات الاتصال بالدعم';
 
   @override
-  String get contactByEmail => 'Contact by email';
+  String get contactByEmail => 'اتصال بالبريد الالكتروني';
 
   @override
-  String get contactByPhone => 'Contact by phone';
+  String get contactByPhone => 'اتصال بالهاتف';
 
   @override
-  String get contactByWhatsApp => 'Contact by WhatsApp';
+  String get contactByWhatsApp => 'اتصال بواتساب';
 
   @override
-  String get serviceCompleted => 'Service Completed';
+  String get serviceCompleted => 'تم القيام بالعمل وتقديم الخدمة';
 
   @override
-  String get dashboard => 'Dashboard';
+  String get dashboard => 'لوحة القيادة';
 
   @override
-  String get serviceItems => 'Service Items';
+  String get serviceItems => 'عناصر الخدمة';
 
   @override
-  String get enterServiceCost => 'Enter service cost';
+  String get enterServiceCost => 'ادخل تكلفة الخدمة';
 
   @override
   String get serviceCostMustBeGreaterThanZero =>
-      'Service cost must be greater than 0';
+      'يجب ان تكون تكلفة الخدمة اكبر من صفر';
 
   @override
-  String get pleaseEnterValidNumber => 'Please enter a valid number';
+  String get pleaseEnterValidNumber => 'يرجى ادخال رقم صحيح';
 
   @override
-  String get pleaseEnterServiceCost => 'Please enter service cost';
+  String get pleaseEnterServiceCost => 'يرجى ادخال تكلفة الخدمة';
 
   @override
-  String get tapToUploadImage => 'Tap to upload image';
+  String get tapToUploadImage => 'انقر لرفع الصورة';
 
   @override
-  String get serviceCost => 'Service Cost';
+  String get serviceCost => 'تكلفة الخدمة';
 
   @override
-  String get addItem => 'Add Item';
+  String get addItem => 'اضافة عنصر';
 
   @override
   String get camera => 'الكاميرا';
 
   @override
-  String get pleaseAddAtleastOneServiceItem =>
-      'Please add at least one service item.';
+  String get pleaseAddAtleastOneServiceItem => 'يرجى اضافة عنصر واحد على الاقل';
 
   @override
-  String get pleaseFillAllServiceItemFields =>
-      'Please fill all service item fields.';
+  String get pleaseFillAllServiceItemFields => 'يرجى ملء جميع حقول العنصر';
 
   @override
   String get locationServiceRequired => 'الرجاء تفعيل خدمة الموقع';
@@ -2151,22 +2147,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accept => 'قبول';
 
   @override
-  String get excellent => 'Excellent';
+  String get excellent => 'ممتاز';
 
   @override
-  String get good => 'Good';
+  String get good => 'جيد';
 
   @override
-  String get average => 'Average';
+  String get average => 'متوسط';
 
   @override
-  String get poor => 'Poor';
+  String get poor => 'ضعيف';
 
   @override
-  String get selected => 'Selected';
+  String get selected => 'محدد';
 
   @override
-  String get selectAll => 'Select All';
+  String get selectAll => 'اختر الكل';
 
   @override
   String get inspectionFee => 'رسوم الفحص';
@@ -2175,20 +2171,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cancelledBy => 'تم الإلغاء بواسطة';
 
   @override
-  String get pleaseEnterInspectionFeeAmount =>
-      'Please enter inspection fee amount';
+  String get pleaseEnterInspectionFeeAmount => 'يرجى ادخال مبلغ رسوم الفحص';
 
   @override
   String get rejectBooking => 'رفض الحجز';
 
   @override
-  String get pleaseuploadpaymentproof => 'Please upload payment proof';
+  String get pleaseuploadpaymentproof => 'يرجى تحميل بيانات الدفع';
 
   @override
-  String get tapToUpload => 'Tap to upload proof image/file';
+  String get iban => 'IBAN';
 
   @override
-  String get selectSource => 'Select Source';
+  String get tapToUpload => 'انقر لرفع الصورة';
+
+  @override
+  String get selectSource => 'اختر المصدر';
 
   @override
   String get areYouSureYouWantToRejectThisBooking =>
@@ -2201,49 +2199,47 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acceptBooking => 'قبول الحجز';
 
   @override
-  String get requestPayout => 'Request Payout';
+  String get requestPayout => 'طلب دفعة';
 
   @override
-  String get lastTip => 'Last Tip';
+  String get lastTip => 'آخر نصيحة';
 
   @override
-  String get paymentBreakdown => 'Payment Breakdown';
+  String get paymentBreakdown => 'تفصيل الدفع';
 
   @override
-  String get cashPayments => 'Cash Payments';
+  String get cashPayments => 'دفعات نقدية';
 
   @override
-  String get cardPayments => 'Card Payments';
+  String get cardPayments => 'دفعات بطاقة';
 
   @override
-  String get asOf => 'As of';
+  String get asOf => 'منذ';
 
   @override
-  String get totalEarnings => 'Total Earnings';
+  String get totalEarnings => 'إجمالي الأرباح';
 
   @override
-  String get pleaseEnterAValidAmount => 'Please enter a valid amount';
+  String get pleaseEnterAValidAmount => 'يرجى ادخال مبلغ صحيح';
 
   @override
-  String get amountExceedsAvailableBalance =>
-      'Amount exceeds available balance';
+  String get amountExceedsAvailableBalance => 'المبلغ يتجاوز الرصيد المتوفر';
 
   @override
-  String get cashPaymentsAreAlreadyWithYou =>
-      'Cash payments are already with you';
+  String get cashPaymentsAreAlreadyWithYou => 'الدفعات النقدية تحملك بالفعل';
 
   @override
-  String get amount => 'Amount';
+  String get amount => 'المبلغ';
 
   @override
-  String get availableForPayout => 'Available for Payout';
+  String get availableForPayout => 'متاح للدفع';
 
   @override
   String get theAdminWillProcessYourRequestWithin2to3days =>
-      'The admin will process your request within 2 - 3 business days.';
+      'سيتم معالجة طلبك من قبل الادارة في 2 إلى 3 أيام';
 
   @override
-  String get availableBalance => 'Available Balance';
+  String get availableBalance => 'الرصيد المتوفر';
 
   @override
   String get areYouSureYouWantToAcceptThisBooking =>
@@ -2270,238 +2266,331 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يمكن حذف حالة الابري من جهة الاتصال الوحيدة';
 
   @override
-  String get submitRequest => 'Submit Request';
+  String get submitRequest => 'إرسال الطلب';
 
   @override
-  String get payoutAccounts => 'Payout Accounts';
+  String get payoutAccounts => 'حسابات الدفع';
 
   @override
-  String get noPayoutAccountsAdded => 'No payout accounts added';
+  String get noPayoutAccountsAdded => 'لم يتم إضافة حسابات دفع بعد';
 
   @override
-  String get managePayouts => 'Manage Payouts';
+  String get imageIsTooLargePleaseSelectAnImageSmallerThan5MB =>
+      'الصورة كبيرة جداً يرجى اختيار صورة أصغر من 5MB';
 
   @override
-  String get requestedOn => 'Requested on';
+  String get managePayouts => 'إدارة الدفعات';
 
   @override
-  String get workerInformation => 'Worker Information';
+  String get requestedOn => 'طلب على';
 
   @override
-  String get payoutAmount => 'Payout Amount';
+  String get selectedFileCouldNotBeFound => 'لم يتم العثور على الملف المحدد';
 
   @override
-  String get bankAccountDetails => 'Bank Account Details';
+  String get errorPickingImage => 'خطأ في اختيار الصورة';
 
   @override
-  String get approve => 'Approve';
+  String get errorCroppingImage => 'خطأ في القص';
 
   @override
-  String get rejectPayout => 'Reject Payout';
+  String get workerInformation => 'معلومات العامل';
 
   @override
-  String get payoutApproved => 'Payout Approved';
+  String get noPayoutRequestsYet => 'لا يوجد طلبات دفع حتى الآن';
 
   @override
-  String get approvePayout => 'Approve Payout';
+  String get noRequests => 'لا يوجد طلبات';
 
   @override
-  String get fileRequired => 'File is required';
+  String get reviews => 'التقييمات';
 
   @override
-  String get transactionNumberRequired => 'Transaction number is required';
+  String get payoutRequirement =>
+      'لطلب دفع، يجب أن يكون لديك على الأقل 10 ريال سعودي في نقاط القبول المتاحة.';
 
   @override
-  String get supportedFormats => 'Supported formats:';
+  String get cashTips => 'نقاط القبول النقدية';
+
+  @override
+  String get cardTips => 'نقاط القبول البطاقة';
+
+  @override
+  String get am => 'صباحا';
+
+  @override
+  String get pm => 'مساء';
+
+  @override
+  String get inHand => 'في اليد';
+
+  @override
+  String get errorLoadingReviews => 'خطأ في تحميل التقييمات';
+
+  @override
+  String get noReviewsYet => 'لا يوجد تقييمات حتى الآن';
+
+  @override
+  String get reviewsWillAppearHereAfterCustomersRateYourService =>
+      'ستظهر التقييمات هنا بعد تقييم الخدمة';
+
+  @override
+  String get approved => 'موافق';
+
+  @override
+  String get total => 'مجموع';
+
+  @override
+  String get failedToLoadVideo => 'فشل تحميل الفيديو';
+
+  @override
+  String get loading => 'تحميل...';
+
+  @override
+  String get payoutAmount => 'مبلغ الدفعة';
+
+  @override
+  String get bankAccountDetails => 'تفاصيل الحساب البنكي';
+
+  @override
+  String get approve => 'قبول';
+
+  @override
+  String get rejectPayout => 'رفض الدفعة';
+
+  @override
+  String get payoutApproved => 'الدفعة الموافقة';
+
+  @override
+  String get approvePayout => 'قبول الدفعة';
+
+  @override
+  String get fileRequired => 'ملف مطلوب';
+
+  @override
+  String get transactionNumberRequired => 'رقم المعاملة مطلوب';
+
+  @override
+  String get supportedFormats => 'الصيغ المدعومة:';
 
   @override
   String get pleaseProvideTransactionDetails =>
-      'Please provide transaction details to approve this payout request.';
+      'يرجى تقديم تفاصيل المعاملة لقبول طلب الدفعة.';
 
   @override
-  String get pdfImageOrDocument => 'PDF, Image, or Document';
+  String get pdfImageOrDocument => 'PDF, صورة أو مستند';
 
   @override
-  String get tapToSelectFile => 'Tap to select file';
+  String get tapToSelectFile => 'انقر لتحديد الملف';
 
   @override
-  String get lifetimeEarnings => 'Lifetime Earnings';
+  String get lifetimeEarnings => 'إجمالي الأرباح';
 
   @override
-  String get uploadProof => 'Upload Proof';
+  String get uploadProof => 'تحميل الوثيقة';
 
   @override
   String get notenoughtipstorequestpayoutminSAR10 =>
       'لا توجد إكرامية كافية لطلب الدفع (الحد الأدنى 10 ر.س)';
 
   @override
-  String get requestTipPayout => 'Request Tip Payout';
+  String get requestTipPayout => 'طلب دفعة النصيحة';
 
   @override
-  String get errorRequestingPayout => 'Error requesting payout';
+  String get errorRequestingPayout => 'خطأ في طلب الدفعة';
 
   @override
-  String get payoutRequestSubmittedSuccessfully =>
-      'Payout request submitted successfully';
+  String get payoutRequestSubmittedSuccessfully => 'تم إرسال طلب الدفعة بنجاح';
 
   @override
   String get areYouSureYouWantToRequestAPayoutForTheAccumulatedTips =>
-      'Are you sure you want to request a payout for the accumulated tips?';
+      'هل أنت متأكد أنك تريد طلب دفعة للنصيحة المجمعة؟';
 
   @override
-  String get transactionNumber => 'Transaction Number';
+  String get transactionNumber => 'رقم المعاملة';
 
   @override
-  String get tipspayoutisdoneseparately => 'Tips payout is done separately';
+  String get tipspayoutisdoneseparately =>
+      'تنجم النصيحة يتم تنجيمها بشكل مستقل';
 
   @override
-  String get pleaseProvideARejectionReason =>
-      'Please provide a rejection reason';
+  String get pleaseProvideARejectionReason => 'يرجى تقديم سبب الرفض';
 
   @override
-  String get enterTransactionNumber => 'Enter Transaction Number';
+  String get enterTransactionNumber => 'أدخل رقم المعاملة';
 
   @override
   String get youHaveNoPayoutAccountsgotoprofilesectionandaddanaccount =>
-      'You have no payout accounts. Go to profile section and add an account.';
+      'ليس لديك حسابات دفع بعد. اذهب إلى قسم الملف الشخصي وأضف حساب';
 
   @override
-  String get payoutRejectedSuccessfully => 'Payout rejected successfully';
+  String get payoutRejectedSuccessfully => 'تم رفض الدفعة بنجاح';
 
   @override
-  String get payoutRejected => 'Payout Rejected';
+  String get payoutRejected => 'رفض الدفعة';
 
   @override
-  String get rejectConfirmation =>
-      'Are you sure you want to reject this payout request?';
+  String get rejectConfirmation => 'هل أنت متأكد أنك تريد رفض طلب الدفعة؟';
 
   @override
-  String get reason => 'Reason';
+  String get reason => 'سبب';
 
   @override
-  String get enterTheReason =>
-      'Enter the reason for rejecting this payout request';
+  String get enterTheReason => 'أدخل سبب الرفض لطلب الدفعة';
 
   @override
-  String get payoutRequests => 'Payout Requests';
+  String get payoutRequests => 'طلبات الدفع';
 
   @override
-  String get status => 'Status';
+  String get status => 'الحالة';
 
   @override
-  String get noPayoutRequestsFound => 'No payout requests found';
+  String get noPayoutRequestsFound => 'لم يتم العثور على طلبات دفع';
 
   @override
-  String get payoutRequestCancelled => 'Payout request cancelled';
+  String get payoutRequestCancelled => 'تم إلغاء طلب الدفع';
 
   @override
   String get areYouSureYouWantToCancelThisPayoutRequest =>
-      'Are you sure you want to cancel this payout request?';
+      'هل أنت متأكد أنك تريد إلغاء طلب الدفعة؟';
 
   @override
-  String get addAnAccountToReceivePayments =>
-      'Add an account to receive payments';
+  String get addAnAccountToReceivePayments => 'أضف حساب لاستلام الدفعات';
 
   @override
-  String get addAccount => 'Add Account';
+  String get addAccount => 'إضافة حساب';
 
   @override
-  String get accountNumber => 'Account Number';
+  String get accountNumber => 'رقم الحساب';
 
   @override
-  String get ifscCode => 'IFSC Code';
+  String get ifscCode => 'كود ifsc';
 
   @override
-  String get addFirstAccount => 'Add your first account';
+  String get addFirstAccount => 'أضف حسابك الأول';
 
   @override
-  String get enterAccountDetails => 'Enter Account Details';
+  String get enterAccountDetails => 'أدخل تفاصيل الحساب';
 
   @override
-  String get manageBankAccounts => 'Manage Bank Accounts';
+  String get manageBankAccounts => 'إدارة حسابات البنك';
 
   @override
   String get addAndManageYourPayoutAccounts =>
-      'Add and manage your payout accounts';
+      'أضف وإدارة حسابات الدفع الخاصة بك';
 
   @override
-  String get updateAccountDetails => 'Update Account Details';
+  String get updateAccountDetails => 'تحديث تفاصيل الحساب';
 
   @override
-  String get accountType => 'Account Type';
+  String get accountType => 'نوع الحساب';
 
   @override
-  String get primaryAccountUpdated => 'Primary account updated';
+  String get primaryAccountUpdated => 'تم تحديث الحساب الرئيسي';
 
   @override
   String get deleteAccountConfirmation =>
-      'Are you sure you want to delete this account?';
+      'هل أنت متأكد أنك تريد حذف هذا الحساب؟';
 
   @override
-  String get accountDeletedSuccessfully => 'Account deleted successfully';
+  String get accountDeletedSuccessfully => 'تم حذف الحساب بنجاح';
 
   @override
-  String get editAccount => 'Edit Account';
+  String get editAccount => 'تحرير الحساب';
 
   @override
-  String get pleaseEnterAccountNumber => 'Please enter account number';
+  String get pleaseEnterAccountNumber => 'يرجى إدخال رقم الحساب';
 
   @override
-  String get accountHolderName => 'Account Holder Name';
+  String get accountHolderName => 'اسم صاحب الحساب';
 
   @override
-  String get nameMustBeAtLeast3Chars => 'Name must be at least 3 characters';
+  String get nameMustBeAtLeast3Chars => 'يجب أن يكون الاسم أكثر من 3 أحرف';
 
   @override
-  String get pleaseEnterAccountHolderName => 'Please enter account holder name';
+  String get pleaseEnterAccountHolderName => 'يرجى إدخال اسم صاحب الحساب';
 
   @override
-  String get bankName => 'Bank Name';
+  String get bankName => 'اسم البنك';
 
   @override
-  String get updateAccount => 'Update Account';
+  String get updateAccount => 'تحديث الحساب';
 
   @override
-  String get setPrimary => 'Set Primary';
+  String get setPrimary => 'ضبط الرئيسي';
 
   @override
-  String get accountAddedSuccessfully => 'Account added successfully';
+  String get accountAddedSuccessfully => 'تمت إضافة الحساب بنجاح';
 
   @override
-  String get accountUpdatedSuccessfully => 'Account updated successfully';
+  String get accountUpdatedSuccessfully => 'تم تحديث الحساب بنجاح';
 
   @override
-  String get savings => 'Savings';
+  String get savings => 'حفظات';
 
   @override
-  String get enterAccountHolderName => 'Enter Account Holder Name';
+  String get enterAccountHolderName => 'أدخل اسم صاحب الحساب';
 
   @override
-  String get enterifscCode => 'Enter IFSC Code';
+  String get enterifscCode => 'أدخل كود ifsc';
 
   @override
-  String get enterBankName => 'Enter Bank Name';
+  String get enterBankName => 'أدخل اسم البنك';
 
   @override
-  String get enterAccountNumber => 'Enter Account Number';
+  String get enterAccountNumber => 'أدخل رقم الحساب';
 
   @override
-  String get setAsPrimaryAccount => 'Set as Primary Account';
+  String get setAsPrimaryAccount => 'ضبط كحساب رئيسي';
 
   @override
-  String get pleaseEnterBankName => 'Please enter bank name';
+  String get pleaseEnterBankName => 'يرجى إدخال اسم البنك';
 
   @override
-  String get pleaseEnterIfscCode => 'Please enter IFSC code';
+  String get pleaseEnterIfscCode => 'يرجى إدخال كود ifsc';
 
   @override
-  String get processing => 'Processing';
+  String get copyId => 'نسخ الرقم';
 
   @override
-  String get payoutRequestSuccessful => 'Payout request successful';
+  String get quickActions => 'إجراءات سريعة';
 
   @override
-  String get invalidAccountNumberLength => 'Invalid account number length';
+  String get copiedToClipboard => 'تم نسخ الرقم إلى الحافظة';
+
+  @override
+  String get refresh => 'تحديث';
+
+  @override
+  String get loadingCustomers => 'تحميل الزبائن';
+
+  @override
+  String get processing => 'التحميل';
+
+  @override
+  String get allReviews => 'جميع التقييمات';
+
+  @override
+  String get service => 'خدمة';
+
+  @override
+  String get ratingDistribution => 'توزيع التقييمات';
+
+  @override
+  String get payoutRequestSuccessful => 'طلب الدفع بنجاح';
+
+  @override
+  String get fifteenpercentBonusOnEarningsandASpecialBadge =>
+      'مكافأة خمسة عشر بالمائة على الأرباح + شارة خاصة';
+
+  @override
+  String get tenpercentBonusOnEarnings => 'خصم 10% على الأرباح';
+
+  @override
+  String get fivepercentBonusOnEarnings => 'خصم 5% على الأرباح';
+
+  @override
+  String get invalidAccountNumberLength => 'طول رقم الحساب غير صحيح';
 
   @override
   String payoutRequestSuccessfulMessage(String amount) {

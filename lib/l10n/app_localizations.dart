@@ -4274,6 +4274,12 @@ abstract class AppLocalizations {
   /// **'Please upload payment proof'**
   String get pleaseuploadpaymentproof;
 
+  /// No description provided for @iban.
+  ///
+  /// In en, this message translates to:
+  /// **'IBAN'**
+  String get iban;
+
   /// No description provided for @tapToUpload.
   ///
   /// In en, this message translates to:
@@ -4448,6 +4454,12 @@ abstract class AppLocalizations {
   /// **'No payout accounts added'**
   String get noPayoutAccountsAdded;
 
+  /// No description provided for @imageIsTooLargePleaseSelectAnImageSmallerThan5MB.
+  ///
+  /// In en, this message translates to:
+  /// **'Image is too large. Please select an image smaller than 5 MB'**
+  String get imageIsTooLargePleaseSelectAnImageSmallerThan5MB;
+
   /// No description provided for @managePayouts.
   ///
   /// In en, this message translates to:
@@ -4460,11 +4472,125 @@ abstract class AppLocalizations {
   /// **'Requested on'**
   String get requestedOn;
 
+  /// No description provided for @selectedFileCouldNotBeFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected file could not be found. Please try again.'**
+  String get selectedFileCouldNotBeFound;
+
+  /// No description provided for @errorPickingImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Error picking image'**
+  String get errorPickingImage;
+
+  /// No description provided for @errorCroppingImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Error cropping image'**
+  String get errorCroppingImage;
+
   /// No description provided for @workerInformation.
   ///
   /// In en, this message translates to:
   /// **'Worker Information'**
   String get workerInformation;
+
+  /// No description provided for @noPayoutRequestsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No payout requests yet'**
+  String get noPayoutRequestsYet;
+
+  /// No description provided for @noRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'No requests'**
+  String get noRequests;
+
+  /// No description provided for @reviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews'**
+  String get reviews;
+
+  /// No description provided for @payoutRequirement.
+  ///
+  /// In en, this message translates to:
+  /// **'To request a payout, you\'ll need at least 10 SAR in card tips available.'**
+  String get payoutRequirement;
+
+  /// No description provided for @cashTips.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Tips'**
+  String get cashTips;
+
+  /// No description provided for @cardTips.
+  ///
+  /// In en, this message translates to:
+  /// **'Card Tips'**
+  String get cardTips;
+
+  /// No description provided for @am.
+  ///
+  /// In en, this message translates to:
+  /// **'AM'**
+  String get am;
+
+  /// No description provided for @pm.
+  ///
+  /// In en, this message translates to:
+  /// **'PM'**
+  String get pm;
+
+  /// No description provided for @inHand.
+  ///
+  /// In en, this message translates to:
+  /// **'In Hand'**
+  String get inHand;
+
+  /// No description provided for @errorLoadingReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading reviews'**
+  String get errorLoadingReviews;
+
+  /// No description provided for @noReviewsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No reviews yet'**
+  String get noReviewsYet;
+
+  /// No description provided for @reviewsWillAppearHereAfterCustomersRateYourService.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews will appear here after customers rate your service'**
+  String get reviewsWillAppearHereAfterCustomersRateYourService;
+
+  /// No description provided for @approved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get approved;
+
+  /// No description provided for @total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get total;
+
+  /// No description provided for @failedToLoadVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load video'**
+  String get failedToLoadVideo;
+
+  /// No description provided for @loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get loading;
 
   /// No description provided for @payoutAmount.
   ///
@@ -4691,7 +4817,7 @@ abstract class AppLocalizations {
   /// No description provided for @ifscCode.
   ///
   /// In en, this message translates to:
-  /// **'IFSC Code'**
+  /// **'IBAN'**
   String get ifscCode;
 
   /// No description provided for @addFirstAccount.
@@ -4823,7 +4949,7 @@ abstract class AppLocalizations {
   /// No description provided for @enterifscCode.
   ///
   /// In en, this message translates to:
-  /// **'Enter IFSC Code'**
+  /// **'Enter IBAN'**
   String get enterifscCode;
 
   /// No description provided for @enterBankName.
@@ -4853,8 +4979,38 @@ abstract class AppLocalizations {
   /// No description provided for @pleaseEnterIfscCode.
   ///
   /// In en, this message translates to:
-  /// **'Please enter IFSC code'**
+  /// **'Please enter IBAN'**
   String get pleaseEnterIfscCode;
+
+  /// No description provided for @copyId.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy ID'**
+  String get copyId;
+
+  /// No description provided for @quickActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Actions'**
+  String get quickActions;
+
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get copiedToClipboard;
+
+  /// No description provided for @refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refresh;
+
+  /// No description provided for @loadingCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading customers'**
+  String get loadingCustomers;
 
   /// No description provided for @processing.
   ///
@@ -4862,11 +5018,47 @@ abstract class AppLocalizations {
   /// **'Processing'**
   String get processing;
 
+  /// No description provided for @allReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'All Reviews'**
+  String get allReviews;
+
+  /// No description provided for @service.
+  ///
+  /// In en, this message translates to:
+  /// **'Service'**
+  String get service;
+
+  /// No description provided for @ratingDistribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating Distribution'**
+  String get ratingDistribution;
+
   /// No description provided for @payoutRequestSuccessful.
   ///
   /// In en, this message translates to:
   /// **'Payout request successful'**
   String get payoutRequestSuccessful;
+
+  /// No description provided for @fifteenpercentBonusOnEarningsandASpecialBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'15% Bonus on Earnings + Special Badge'**
+  String get fifteenpercentBonusOnEarningsandASpecialBadge;
+
+  /// No description provided for @tenpercentBonusOnEarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'10% Bonus on Earnings'**
+  String get tenpercentBonusOnEarnings;
+
+  /// No description provided for @fivepercentBonusOnEarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'5% Bonus on Earnings'**
+  String get fivepercentBonusOnEarnings;
 
   /// No description provided for @invalidAccountNumberLength.
   ///

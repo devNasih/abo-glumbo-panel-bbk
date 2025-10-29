@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:aboglumbo_bbk_panel/common_widget/danger_alerts.dart';
+import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
@@ -182,11 +183,9 @@ class _AccountPageState extends State<AccountPage> {
                                   width: 120,
                                   height: 120,
                                   placeholder: (context, url) => Center(
-                                    child: CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        AppColors.primary,
-                                      ),
-                                      strokeWidth: 2,
+                                    child: Loader(
+                                      size: 16,
+                                      color: AppColors.primary,
                                     ),
                                   ),
                                   errorWidget: (context, url, error) =>
@@ -304,7 +303,8 @@ class _AccountPageState extends State<AccountPage> {
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => const PayoutAccountsPage(),
-                      )),
+                        ),
+                      ),
                       title: Text(
                         AppLocalizations.of(context)?.payoutAccounts ?? '',
                         style: GoogleFonts.dmSans(
@@ -507,7 +507,7 @@ class _AccountPageState extends State<AccountPage> {
             key: const ValueKey('delete_account_progress_dialog'),
             content: Row(
               children: [
-                const CircularProgressIndicator(),
+                Loader(size: 24, color: AppColors.primary),
                 const SizedBox(width: 16),
                 Text(
                   AppLocalizations.of(dialogContext)?.deletingAccount ??

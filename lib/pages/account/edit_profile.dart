@@ -83,13 +83,15 @@ class _EditProfileState extends State<EditProfile> {
         if (fileSize > 5 * 1024 * 1024) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Text(
-                  'Image is too large. Please select an image smaller than 5MB.',
+                  AppLocalizations.of(
+                    context,
+                  )!.imageIsTooLargePleaseSelectAnImageSmallerThan5MB,
                 ),
-                behavior: SnackBarBehavior.floating,
+
                 backgroundColor: Colors.red,
-                duration: Duration(seconds: 5),
+                duration: Duration(seconds: 3),
               ),
             );
           }
@@ -108,7 +110,7 @@ class _EditProfileState extends State<EditProfile> {
       }
     } catch (e) {
       if (mounted) {
-       // Handle error gracefully
+        // Handle error gracefully
       }
     }
   }
@@ -161,8 +163,10 @@ class _EditProfileState extends State<EditProfile> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error cropping image: ${e.toString()}'),
-            behavior: SnackBarBehavior.floating,
+            content: Text(
+              '${AppLocalizations.of(context)?.error}: ${e.toString()}',
+            ),
+
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),
@@ -291,8 +295,11 @@ class _EditProfileState extends State<EditProfile> {
                                     fit: BoxFit.cover,
                                     width: 120,
                                     height: 120,
-                                    placeholder: (context, url) => const Center(
-                                      child: CircularProgressIndicator(),
+                                    placeholder: (context, url) => Center(
+                                      child: Loader(
+                                        size: 20,
+                                        color: AppColors.primary,
+                                      ),
                                     ),
                                     errorWidget: (context, url, error) =>
                                         const Icon(

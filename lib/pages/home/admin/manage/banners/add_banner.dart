@@ -44,11 +44,11 @@ class _AddBannerState extends State<AddBanner> {
         if (!await file.exists()) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+               SnackBar(
                 content: Text(
-                  'Selected file could not be found. Please try again.',
+                 AppLocalizations.of(context)?.selectedFileCouldNotBeFound ?? 'Selected file could not be found. Please try again.',
                 ),
-                behavior: SnackBarBehavior.floating,
+             
                 backgroundColor: Colors.red,
               ),
             );
@@ -64,8 +64,7 @@ class _AddBannerState extends State<AddBanner> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error selecting image: ${e.toString()}'),
-            behavior: SnackBarBehavior.floating,
+            content: Text('${AppLocalizations.of(context)!.errorPickingImage}: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -120,8 +119,7 @@ class _AddBannerState extends State<AddBanner> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error cropping image: ${e.toString()}'),
-            behavior: SnackBarBehavior.floating,
+            content: Text('${AppLocalizations.of(context)!.errorCroppingImage}: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );

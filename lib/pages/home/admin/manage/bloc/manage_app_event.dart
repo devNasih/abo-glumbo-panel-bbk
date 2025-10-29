@@ -11,7 +11,8 @@ class ClearTipWalletEvent extends ManageAppEvent {
   final String agentId;
   final String transactionId;
   final XFile? image;
-  const ClearTipWalletEvent(this.agentId, this.transactionId, this.image);
+  final TippingModel? tippingModel;
+  const ClearTipWalletEvent(this.agentId, this.transactionId, this.image, this.tippingModel);
 
   @override
   List<Object> get props => [agentId];

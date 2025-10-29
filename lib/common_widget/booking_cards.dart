@@ -166,10 +166,11 @@ class BookingCards extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              (selectedAddress != null &&
-                                      selectedAddress.id.isNotEmpty)
-                                  ? (selectedAddress.fullName)
-                                  : (booking.customer.name ?? ''),
+                              // (selectedAddress != null &&
+                              //         selectedAddress.id.isNotEmpty)
+                              //     ? (selectedAddress.fullName)
+                              //     :
+                              (booking.customer.name ?? ''),
                               style: textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.w500,
                               ),
@@ -185,7 +186,7 @@ class BookingCards extends StatelessWidget {
                                 style: textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurface.withOpacity(0.6),
                                 ),
-                                maxLines: 1,
+                                maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
                           ],
