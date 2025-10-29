@@ -23,355 +23,427 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  List<TransactionModel> transactions = [];
-  List<AllTipsModel>? tippingData;
-  bool isLoading = true;
-
-  double cashPayments = 0.0;
-  double cardPayments = 0.0;
-  double totalEarnings = 0.0;
-  double totalTips = 0.0;
-  double availableBalance = 0.0;
-  double cardTips = 0.0;
-  double cashTips = 0.0;
-  double paidAmounts = 0.0;
-  // Key to track refresh state
-  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
-      GlobalKey<RefreshIndicatorState>();
-
-  // Stream key to force rebuild
+  late Future<_DashboardData> _dashboardDataFuture;
   int _refreshKey = 0;
+
   @override
   void initState() {
     super.initState();
-    _loadEarningsData();
+    _dashboardDataFuture = _loadAllDashboardData();
   }
 
-  Future<void> _loadEarningsData() async {
-    setState(() => isLoading = true);
-    transactions = await AppServices.getWorkerTransactions(
-      widget.workerData.uid ?? "",
-    );
-
+  /// Load all dashboard data simultaneously
+  Future<_DashboardData> _loadAllDashboardData() async {
     try {
-      tippingData = await AppServices.getTipsById(widget.workerData.uid ?? "");
+      // Execute all async operations in parallel
+      final results = await Future.wait([
+        AppServices.getallstats(widget.workerData.uid ?? "").first,
+        AppServices.getWorkerTransactions(widget.workerData.uid ?? ""),
+        AppServices.getTipsById(
+          widget.workerData.uid ?? "",
+        ).catchError((_) => <AllTipsModel>[]),
+        AppServices.getWorkerAvailableBalance(widget.workerData.uid ?? ""),
+        AppServices.getWorkerPaidAmounts(widget.workerData.uid ?? ""),
+      ]);
+
+      final stats = results[0] as Map<String, dynamic>;
+      final transactions = results[1] as List<TransactionModel>;
+      final tips = results[2] as List<AllTipsModel>;
+      final availableBalance = results[3] as double;
+      final paidAmounts = results[4] as double;
+
+      // Calculate earnings
+      final earnings = _calculateEarnings(transactions, tips, paidAmounts);
+
+      return _DashboardData(stats: stats, totalEarnings: earnings);
     } catch (e) {
-      tippingData = [];
-    }
-
-    availableBalance = await AppServices.getWorkerAvailableBalance(
-      widget.workerData.uid ?? "",
-    );
-
-    paidAmounts = await AppServices.getWorkerPaidAmounts(
-      widget.workerData.uid ?? "",
-    );
-
-    _calculateEarnings();
-
-    if (mounted) {
-      setState(() => isLoading = false);
+      debugPrint('Error loading dashboard data: $e');
+      rethrow;
     }
   }
 
-  void _calculateEarnings() {
-    cashPayments = 0.0;
-    cardPayments = 0.0;
+  /// Calculate earnings from transactions and tips
+  double _calculateEarnings(
+    List<TransactionModel> transactions,
+    List<AllTipsModel> tips,
+    double paidAmounts,
+  ) {
+    double cashPayments = 0.0;
+    double cardPayments = 0.0;
 
+    // Calculate transaction earnings
     for (var transaction in transactions) {
-      if (transaction.paymentStatus.toLowerCase() == 'completed' ||
-          transaction.paymentStatus.toLowerCase() == 'paid') {
-        if (transaction.paymentMethod.toLowerCase() == 'cash on hands') {
+      final status = transaction.paymentStatus.toLowerCase();
+      if (status == 'completed' || status == 'paid') {
+        final method = transaction.paymentMethod.toLowerCase();
+        if (method == 'cash on hands') {
           cashPayments += transaction.amount;
-        } else if (transaction.paymentMethod.toLowerCase() == 'cards') {
+        } else if (method == 'cards') {
           cardPayments += transaction.amount;
         }
       }
     }
-    for (int i = 0; i < tippingData!.length; i++) {
-      if (tippingData![i].paymentMethod?.toLowerCase() == 'cards') {
-        cardTips += tippingData![i].totalTipAmount ?? 0.0;
-      } else {
-        cashTips += tippingData![i].totalTipAmount ?? 0.0;
-      }
-    }
 
-    totalTips = cashTips + cardTips;
-
-    totalEarnings = cashPayments + cardPayments - paidAmounts;
+    return cashPayments + cardPayments - paidAmounts;
   }
 
-  Future<void> _handleRefresh() async {
-    _loadEarningsData();
-    // Add a small delay to show the refresh indicator
-    await Future.delayed(const Duration(milliseconds: 500));
+  /// Get rating quality text
+  String _getRatingSubtitle(double rating) {
+    final l10n = AppLocalizations.of(context)!;
+    if (rating >= 4.5) return l10n.excellent;
+    if (rating >= 3.5) return l10n.good;
+    if (rating >= 2.5) return l10n.average;
+    return l10n.poor;
+  }
 
-    // Trigger a rebuild by updating the key
+  /// Handle pull-to-refresh
+  Future<void> _handleRefresh() async {
     setState(() {
       _refreshKey++;
+      _dashboardDataFuture = _loadAllDashboardData();
     });
+    await _dashboardDataFuture;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgWhite,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        titleSpacing: 16,
-        elevation: 0,
-        title: Text(AppLocalizations.of(context)!.dashboard),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => NotificationsPage()),
-            ),
-          ),
-        ],
-      ),
+      appBar: _buildAppBar(),
       body: RefreshIndicator(
-        key: _refreshIndicatorKey,
         onRefresh: _handleRefresh,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Performance Stats
-                _buildStatsSection(),
-                const SizedBox(height: 16),
-                _buildQuickActionsGrid(),
-                const SizedBox(height: 16),
-                _buildEarningsSection(),
-              ],
-            ),
+        child: FutureBuilder<_DashboardData>(
+          key: ValueKey(_refreshKey),
+          future: _dashboardDataFuture,
+          builder: (context, snapshot) {
+            // Coordinated loading state - all shimmer together
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return _buildLoadingState();
+            }
+
+            // Error state
+            if (snapshot.hasError) {
+              return _buildErrorState(snapshot.error.toString());
+            }
+
+            // Success state - all data displayed together
+            if (snapshot.hasData) {
+              return _buildSuccessState(snapshot.data!);
+            }
+
+            return _buildLoadingState();
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Build app bar
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      automaticallyImplyLeading: false,
+      titleSpacing: 16,
+      elevation: 0,
+      title: Text(AppLocalizations.of(context)!.dashboard),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => NotificationsPage()),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Build loading state with shimmer placeholders
+  Widget _buildLoadingState() {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildStatsShimmerSection(),
+            const SizedBox(height: 16),
+            _buildQuickActionsShimmer(),
+            const SizedBox(height: 16),
+            _buildStatShimmerCard(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build error state
+  Widget _buildErrorState(String error) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
+              const SizedBox(height: 16),
+              Text(
+                AppLocalizations.of(context)!.error,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red.shade700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                error,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: _handleRefresh,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildEarningsSection() {
-    return !isLoading
-        ? _buildStatCard(
-            _StatData(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => WorkerEarningsPage(
-                      workerId: widget.workerData.uid ?? "",
-                    ),
-                  ),
-                );
-              },
-              title: AppLocalizations.of(context)!.earnings,
-              subtitle: "",
-              value: totalEarnings.toString(),
-              icon: Icons.wallet,
-              color: Colors.deepPurple,
-            ),
-          )
-        : _buildStatShimmerCard();
+  /// Build success state with all loaded data
+  Widget _buildSuccessState(_DashboardData data) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildStatsSection(data.stats),
+            const SizedBox(height: 16),
+            _buildQuickActionsGrid(),
+            const SizedBox(height: 16),
+            _buildEarningsCard(data.totalEarnings),
+          ],
+        ),
+      ),
+    );
   }
 
-  Widget _buildStatsSection() {
-    return StreamBuilder(
-      key: ValueKey(_refreshKey), // Force stream to rebuild
-      stream: AppServices.getallstats(widget.workerData.uid ?? ""),
-      builder: (context, asyncSnapshot) {
-        if (asyncSnapshot.connectionState == ConnectionState.waiting) {
-          return _buildStatsShimmerSection();
-        }
-        if (asyncSnapshot.hasError) {
-          return Center(
-            child: Text(
-              '${AppLocalizations.of(context)!.error}: ${asyncSnapshot.error}',
-            ),
-          );
-        }
-        // return _buildStatsShimmerSection();
+  /// Build stats section
+  Widget _buildStatsSection(Map<String, dynamic> data) {
+    final l10n = AppLocalizations.of(context)!;
 
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final isWide = constraints.maxWidth > 600;
-            final stats = [
-              _StatData(
-                title: AppLocalizations.of(context)!.newtext,
-                subtitle: AppLocalizations.of(context)!.requests,
-                value: asyncSnapshot.data!['latest'].toString(),
-                icon: Icons.assignment_outlined,
-                color: AppColors.secondary,
-                onTap: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => Home(newIndex: 1)),
-                    (Route<dynamic> route) => false,
-                  );
-                },
-              ),
-              _StatData(
-                title: AppLocalizations.of(context)!.completed,
-                subtitle: AppLocalizations.of(context)!.requests,
-                value: asyncSnapshot.data!['completed'].toString(),
-                icon: Icons.check_circle_outline,
-                color: const Color(0xFF10B981),
-                onTap: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          Home(newIndex: 1, selectedFilter: "C"),
-                    ),
-                    (Route<dynamic> route) => false,
-                  );
-                },
-              ),
-              _StatData(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => WorkerReviewsPage(
-                        workerId: widget.workerData.uid ?? "",
-                      ),
-                    ),
-                  );
-                },
-                title: AppLocalizations.of(context)!.rating,
-                subtitle: _getRatingSubtitle(
-                  asyncSnapshot.data!['rating'].toString(),
-                ),
-                value: asyncSnapshot.data!['rating'].toString(),
-                icon: Icons.star_outline,
-                color: const Color.fromRGBO(254, 217, 55, 1),
-              ),
-            ];
+    final stats = [
+      _StatData(
+        title: l10n.newtext,
+        subtitle: l10n.requests,
+        value: data['latest']?.toString() ?? '0',
+        icon: Icons.assignment_outlined,
+        color: AppColors.secondary,
+        onTap: () => Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => Home(newIndex: 1)),
+          (_) => false,
+        ),
+      ),
+      _StatData(
+        title: l10n.completed,
+        subtitle: l10n.requests,
+        value: data['completed']?.toString() ?? '0',
+        icon: Icons.check_circle_outline,
+        color: const Color(0xFF10B981),
+        onTap: () => Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => Home(newIndex: 1, selectedFilter: "C"),
+          ),
+          (_) => false,
+        ),
+      ),
+      _StatData(
+        title: l10n.rating,
+        subtitle: _getRatingSubtitle(
+          double.tryParse(data['rating']?.toString() ?? '0') ?? 0.0,
+        ),
+        value: data['rating']?.toString() ?? '0.0',
+        icon: Icons.star_outline,
+        color: const Color(0xFFFED937),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                WorkerReviewsPage(workerId: widget.workerData.uid ?? ""),
+          ),
+        ),
+      ),
+    ];
 
-            if (isWide) {
-              return Row(
-                children: stats.asMap().entries.map((entry) {
-                  return Expanded(
+    return _buildStatsGrid(stats);
+  }
+
+  /// Build responsive stats grid
+  Widget _buildStatsGrid(List<_StatData> stats) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth > 600;
+
+        if (isWide) {
+          return Row(
+            children: stats
+                .asMap()
+                .entries
+                .map(
+                  (entry) => Expanded(
                     child: Padding(
                       padding: EdgeInsets.only(
                         right: entry.key == stats.length - 1 ? 0 : 12,
                       ),
                       child: _buildStatCard(entry.value),
                     ),
-                  );
-                }).toList(),
-              );
-            } else {
-              return Column(
-                children: stats.asMap().entries.map((entry) {
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      bottom: entry.key == stats.length - 1 ? 0 : 12,
-                    ),
-                    child: _buildStatCard(entry.value),
-                  );
-                }).toList(),
-              );
-            }
-          },
+                  ),
+                )
+                .toList(),
+          );
+        }
+
+        return Column(
+          children: stats
+              .asMap()
+              .entries
+              .map(
+                (entry) => Padding(
+                  padding: EdgeInsets.only(
+                    bottom: entry.key == stats.length - 1 ? 0 : 12,
+                  ),
+                  child: _buildStatCard(entry.value),
+                ),
+              )
+              .toList(),
         );
       },
     );
   }
 
-  String _getRatingSubtitle(String rating) {
-    final ratingDouble = double.tryParse(rating) ?? 0.0;
-    if (ratingDouble >= 4.5) {
-      return AppLocalizations.of(context)!.excellent;
-    } else if (ratingDouble >= 3.5) {
-      return AppLocalizations.of(context)!.good;
-    } else if (ratingDouble >= 2.5) {
-      return AppLocalizations.of(context)!.average;
-    } else {
-      return AppLocalizations.of(context)!.poor;
-    }
-  }
-
+  /// Build individual stat card
   Widget _buildStatCard(_StatData data) {
-    return GestureDetector(
-      onTap: data.onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              spreadRadius: 0,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              spacing: 5,
-              mainAxisAlignment: MainAxisAlignment.start,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: data.onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: data.color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(data.icon, color: data.color, size: 28),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: data.color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(data.icon, color: data.color, size: 28),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            data.title,
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            data.subtitle,
+                            style: const TextStyle(
+                              color: Color(0xFF64748B),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: data.title,
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      TextSpan(
-                        text: '\n${data.subtitle}',
-                        style: TextStyle(
-                          color: Color(0xFF64748B),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 20),
+                Text(
+                  data.value,
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 36,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -1.5,
+                    height: 1,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            Text(
-              data.value,
-              style: TextStyle(
-                color: AppColors.primary,
-                fontSize: 36,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -1.5,
-                height: 1,
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
+          ),
         ),
       ),
     );
   }
 
+  /// Build earnings card
+  Widget _buildEarningsCard(double totalEarnings) {
+    return _buildStatCard(
+      _StatData(
+        title: AppLocalizations.of(context)!.earnings,
+        subtitle: "",
+        value: totalEarnings.toStringAsFixed(2),
+        icon: Icons.wallet,
+        color: Colors.deepPurple,
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                WorkerEarningsPage(workerId: widget.workerData.uid ?? ""),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Build quick actions grid
   Widget _buildQuickActionsGrid() {
+    final l10n = AppLocalizations.of(context)!;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth > 600;
+
         return GridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -381,31 +453,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
           childAspectRatio: isWide ? 1.4 : 1.2,
           children: [
             _buildActionButton(
-              AppLocalizations.of(context)!.support,
-              AppLocalizations.of(context)!.getHelpAnytime,
+              l10n.support,
+              l10n.getHelpAnytime,
               Icons.support_agent_outlined,
               AppColors.red,
-              () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (context) => const ContactBottomSheet(),
-                );
-              },
+              () => showModalBottomSheet(
+                context: context,
+                builder: (_) => const ContactBottomSheet(),
+              ),
             ),
             _buildActionButton(
-              AppLocalizations.of(context)!.rewards,
-              AppLocalizations.of(context)!.viewYourRewards,
+              l10n.rewards,
+              l10n.viewYourRewards,
               Icons.card_giftcard_outlined,
-              const Color.fromARGB(255, 255, 168, 38),
-              () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        RewardsPage(workerData: widget.workerData),
-                  ),
-                );
-              },
+              const Color(0xFFFFA826),
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => RewardsPage(workerData: widget.workerData),
+                ),
+              ),
             ),
           ],
         );
@@ -413,18 +480,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  /// Build action button
   Widget _buildActionButton(
     String label,
     String subtitle,
     IconData icon,
     Color accentColor,
-    VoidCallback? ontap,
+    VoidCallback onTap,
   ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),
@@ -437,11 +505,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: ontap,
+          onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -464,10 +531,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  textAlign: TextAlign.start,
+                  subtitle,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  subtitle,
                   style: const TextStyle(
                     color: Color(0xFF94A3B8),
                     fontSize: 12,
@@ -482,41 +548,72 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  // ========== SHIMMER LOADING STATES ==========
+
+  /// Build shimmer section for stats
   Widget _buildStatsShimmerSection() {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth > 600;
-        final stats = List.generate(3, (index) => _buildStatShimmerCard());
+        final shimmers = List.generate(3, (_) => _buildStatShimmerCard());
 
         if (isWide) {
           return Row(
-            children: stats.asMap().entries.map((entry) {
-              return Expanded(
-                child: Padding(
+            children: shimmers
+                .asMap()
+                .entries
+                .map(
+                  (entry) => Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        right: entry.key == shimmers.length - 1 ? 0 : 12,
+                      ),
+                      child: entry.value,
+                    ),
+                  ),
+                )
+                .toList(),
+          );
+        }
+
+        return Column(
+          children: shimmers
+              .asMap()
+              .entries
+              .map(
+                (entry) => Padding(
                   padding: EdgeInsets.only(
-                    right: entry.key == stats.length - 1 ? 0 : 12,
+                    bottom: entry.key == shimmers.length - 1 ? 0 : 12,
                   ),
                   child: entry.value,
                 ),
-              );
-            }).toList(),
-          );
-        } else {
-          return Column(
-            children: stats.asMap().entries.map((entry) {
-              return Padding(
-                padding: EdgeInsets.only(
-                  bottom: entry.key == stats.length - 1 ? 0 : 12,
-                ),
-                child: entry.value,
-              );
-            }).toList(),
-          );
-        }
+              )
+              .toList(),
+        );
       },
     );
   }
 
+  /// Build quick actions shimmer
+  Widget _buildQuickActionsShimmer() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth > 600;
+
+        return GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: isWide ? 1.4 : 1.2,
+          children: [_buildActionShimmerCard(), _buildActionShimmerCard()],
+        );
+      },
+    );
+  }
+
+  /// Build shimmer card for stat
   Widget _buildStatShimmerCard() {
     return Container(
       width: double.infinity,
@@ -528,21 +625,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
             blurRadius: 10,
-            spreadRadius: 0,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               _buildShimmerBox(width: 40, height: 40, borderRadius: 12),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Column(
-                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildShimmerBox(width: 100, height: 16),
@@ -553,13 +647,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           const SizedBox(height: 22),
-          _buildShimmerBox(width: 30, height: 30),
-          const SizedBox(height: 8),
+          _buildShimmerBox(width: 80, height: 36),
         ],
       ),
     );
   }
 
+  /// Build shimmer card for action button
+  Widget _buildActionShimmerCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildShimmerBox(width: 44, height: 44, borderRadius: 12),
+            const Spacer(),
+            _buildShimmerBox(width: 100, height: 16),
+            const SizedBox(height: 4),
+            _buildShimmerBox(width: 80, height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build individual shimmer box
   Widget _buildShimmerBox({
     required double width,
     required double height,
@@ -580,6 +706,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
+// ========== DATA MODELS ==========
+
+/// Dashboard data container
+class _DashboardData {
+  final Map<String, dynamic> stats;
+  final double totalEarnings;
+
+  const _DashboardData({required this.stats, required this.totalEarnings});
+}
+
+/// Stat card data model
 class _StatData {
   final String title;
   final String subtitle;
@@ -588,7 +725,7 @@ class _StatData {
   final Color color;
   final VoidCallback onTap;
 
-  _StatData({
+  const _StatData({
     required this.title,
     required this.subtitle,
     required this.value,

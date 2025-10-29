@@ -2580,6 +2580,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get payoutRequestSuccessful => 'طلب الدفع بنجاح';
 
   @override
+  String get loadingCategories => 'تحميل الاقسام...';
+
+  @override
+  String get editSelection => 'تحرير الاختيار';
+
+  @override
+  String get apply => 'تطبيق';
+
+  @override
+  String get noBannersAAddedYet => 'لا يوجد بانرات حتى الآن';
+
+  @override
+  String get availableRoles => 'الوظائف المتاحة';
+
+  @override
   String get fifteenpercentBonusOnEarningsandASpecialBadge =>
       'مكافأة خمسة عشر بالمائة على الأرباح + شارة خاصة';
 

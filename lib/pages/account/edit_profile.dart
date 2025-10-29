@@ -12,6 +12,7 @@ import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/sheets/locations.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
+import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,10 +35,14 @@ class _EditProfileState extends State<EditProfile> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController districtNameController = TextEditingController();
-  final TextEditingController jobRolesController = TextEditingController();
   final List<LocationModel> districts = [];
   XFile? selectedImage;
   XFile? selectedProfileImage;
+
+  // Job categories and selected job roles
+  Map<String, Map<String, String>> jobCategories = {};
+  List<String> selectedJobRoles = [];
+  bool isCategoriesLoading = true;
 
   void fillContent() {
     if (widget.workerData != null) {
@@ -46,7 +51,7 @@ class _EditProfileState extends State<EditProfile> {
       emailController.text = widget.workerData!.email ?? '';
       phoneController.text = widget.workerData!.phone ?? '';
       districtNameController.text = widget.workerData!.districtName ?? '';
-      jobRolesController.text = widget.workerData!.jobRoles?.join(', ') ?? '';
+      selectedJobRoles = widget.workerData!.jobRoles ?? [];
     }
   }
 
@@ -55,10 +60,352 @@ class _EditProfileState extends State<EditProfile> {
     super.initState();
     fillContent();
     _loadDistricts();
+    loadJobCategories();
+  }
+
+  /// Load job categories from Firebase
+  Future<void> loadJobCategories() async {
+    setState(() {
+      isCategoriesLoading = true;
+    });
+
+    try {
+      final categories = await AppServices.fetchJobCategories();
+      setState(() {
+        jobCategories = categories;
+        isCategoriesLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error loading categories: $e');
+      setState(() {
+        isCategoriesLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.failedToLoadCategories ??
+                  'Failed to load job categories',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _loadDistricts() {
     context.read<AccountBloc>().add(LoadDistrictsEvent());
+  }
+
+  String getJobCategoryDisplayName(String key) {
+    final currentLanguage = AppLocalizations.of(context)?.localeName ?? 'en';
+    final isArabic = currentLanguage == 'ar';
+    return jobCategories[key]?[isArabic ? 'ar' : 'en'] ?? key;
+  }
+
+  String getJobCategoryKey(String displayName) {
+    final currentLanguage = AppLocalizations.of(context)?.localeName ?? 'en';
+    final isArabic = currentLanguage == 'ar';
+
+    for (var entry in jobCategories.entries) {
+      if (entry.value[isArabic ? 'ar' : 'en'] == displayName) {
+        return entry.key;
+      }
+    }
+    return displayName;
+  }
+
+  void selectJobRolesBottomSheet() {
+    List<String> tempSelectedJobRoles = List.from(selectedJobRoles);
+    TextEditingController customRolesController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final currentLanguage =
+                AppLocalizations.of(context)?.localeName ?? 'en';
+            final isArabic = currentLanguage == 'ar';
+
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(28),
+                  topRight: Radius.circular(28),
+                ),
+              ),
+              child: DraggableScrollableSheet(
+                initialChildSize: 0.75,
+                minChildSize: 0.5,
+                maxChildSize: 0.95,
+                expand: false,
+                builder: (context, scrollController) {
+                  return Column(
+                    children: [
+                      // Drag handle
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12, bottom: 4),
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+
+                      // Header
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 8, 16, 16),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    AppLocalizations.of(
+                                          context,
+                                        )?.selectJobRoles ??
+                                        'Select Job Roles',
+                                    style: GoogleFonts.dmSans(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                      height: 1.2,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${tempSelectedJobRoles.length} ${AppLocalizations.of(context)?.selected ?? 'selected'}',
+                                    style: GoogleFonts.dmSans(
+                                      fontSize: 14,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close_rounded),
+                              onPressed: () => Navigator.pop(context),
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.grey[100],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Selected roles preview (chips)
+
+                      // Available roles list
+                      Expanded(
+                        child: ListView(
+                          controller: scrollController,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          children: [
+                            if (jobCategories.isNotEmpty)
+                              Text(
+                                AppLocalizations.of(context)?.availableRoles ??
+                                    'Available Roles',
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey[600],
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            const SizedBox(height: 8),
+
+                            ...jobCategories.entries.map((entry) {
+                              final displayName =
+                                  entry.value[isArabic ? 'ar' : 'en'] ??
+                                  entry.value['en']!;
+                              final isSelected =
+                                  tempSelectedJobRoles.contains(displayName) ||
+                                  tempSelectedJobRoles.contains(
+                                    entry.value['en'],
+                                  ) ||
+                                  tempSelectedJobRoles.contains(
+                                    entry.value['ar'],
+                                  );
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () {
+                                      setModalState(() {
+                                        if (isSelected) {
+                                          tempSelectedJobRoles.removeWhere(
+                                            (role) =>
+                                                role == displayName ||
+                                                role == entry.value['en'] ||
+                                                role == entry.value['ar'],
+                                          );
+                                        } else {
+                                          tempSelectedJobRoles.removeWhere(
+                                            (role) =>
+                                                role == displayName ||
+                                                role == entry.value['en'] ||
+                                                role == entry.value['ar'],
+                                          );
+                                          tempSelectedJobRoles.add(displayName);
+                                        }
+                                      });
+                                    },
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 14,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? AppColors.secondary.withOpacity(
+                                                0.08,
+                                              )
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? AppColors.secondary.withOpacity(
+                                                  0.3,
+                                                )
+                                              : Colors.grey[200]!,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          // Checkbox
+                                          Container(
+                                            width: 24,
+                                            height: 24,
+                                            decoration: BoxDecoration(
+                                              color: isSelected
+                                                  ? AppColors.secondary
+                                                  : Colors.transparent,
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: isSelected
+                                                    ? AppColors.secondary
+                                                    : Colors.grey[400]!,
+                                                width: 2,
+                                              ),
+                                            ),
+                                            child: isSelected
+                                                ? const Icon(
+                                                    Icons.check_rounded,
+                                                    size: 16,
+                                                    color: Colors.white,
+                                                  )
+                                                : null,
+                                          ),
+                                          const SizedBox(width: 16),
+
+                                          // Role name
+                                          Expanded(
+                                            child: Text(
+                                              displayName,
+                                              style: GoogleFonts.dmSans(
+                                                fontSize: 15,
+                                                fontWeight: isSelected
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w500,
+                                                color: isSelected
+                                                    ? AppColors.secondary
+                                                    : Colors.black87,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      ),
+
+                      // Bottom action button
+                      Container(
+                        padding: EdgeInsets.fromLTRB(
+                          24,
+                          16,
+                          24,
+                          MediaQuery.of(context).padding.bottom + 16,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, -2),
+                            ),
+                          ],
+                        ),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.secondary,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            onPressed: tempSelectedJobRoles.isEmpty
+                                ? null
+                                : () {
+                                    setState(() {
+                                      selectedJobRoles.clear();
+                                      selectedJobRoles.addAll(
+                                        tempSelectedJobRoles,
+                                      );
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  '${AppLocalizations.of(context)?.apply ?? 'Apply'} (${tempSelectedJobRoles.length})',
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   Future<void> pickImage(bool isProfile) async {
@@ -73,7 +420,6 @@ class _EditProfileState extends State<EditProfile> {
       if (image != null) {
         final file = File(image.path);
 
-        // Check if file exists
         if (!await file.exists()) {
           return;
         }
@@ -89,7 +435,6 @@ class _EditProfileState extends State<EditProfile> {
                     context,
                   )!.imageIsTooLargePleaseSelectAnImageSmallerThan5MB,
                 ),
-
                 backgroundColor: Colors.red,
                 duration: Duration(seconds: 3),
               ),
@@ -166,7 +511,6 @@ class _EditProfileState extends State<EditProfile> {
             content: Text(
               '${AppLocalizations.of(context)?.error}: ${e.toString()}',
             ),
-
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),
@@ -197,10 +541,7 @@ class _EditProfileState extends State<EditProfile> {
                     email: emailController.text,
                     phone: phoneController.text,
                     districtName: districtNameController.text,
-                    jobRoles: jobRolesController.text
-                        .split(',')
-                        .map((e) => e.trim())
-                        .toList(),
+                    jobRoles: selectedJobRoles,
                     profileUrl: profileImageUrl,
                     lanCode: widget.workerData?.lanCode,
                     country: widget.workerData?.country,
@@ -214,10 +555,7 @@ class _EditProfileState extends State<EditProfile> {
                     liveLocation: widget.workerData?.liveLocation,
                   );
 
-              // Update local storage with new user data
               LocalStore.storeUserData(updatedUser);
-
-              // Refresh user data in LoginBloc to keep it synchronized
               context.read<LoginBloc>().add(RefreshUserData());
 
               Navigator.pop(context, updatedUser);
@@ -397,19 +735,102 @@ class _EditProfileState extends State<EditProfile> {
                     suffix: const Icon(Icons.keyboard_arrow_down),
                   ),
                   const SizedBox(height: 16),
-                  TextFormWidget(
-                    controller: jobRolesController,
-                    label: locale?.jobRoles ?? 'Job Roles',
-                    keyboardType: TextInputType.text,
-                    textInputAction: TextInputAction.done,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return locale?.jobRolesAreRequired ??
-                            'Job roles are required';
-                      }
-                      return null;
-                    },
+
+                  // Replace TextFormWidget with custom job roles container
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        locale?.jobRoles ?? 'Job Roles',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: isCategoriesLoading
+                            ? null
+                            : selectJobRolesBottomSheet,
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          width: double.infinity,
+                          constraints: const BoxConstraints(minHeight: 56),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: AppColors.grey2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: selectedJobRoles.isEmpty
+                                    ? Text(
+                                        locale?.selectJobRoles ??
+                                            'Select job roles',
+                                        style: GoogleFonts.dmSans(
+                                          fontSize: 14,
+                                          color: Colors.grey,
+                                        ),
+                                      )
+                                    : Wrap(
+                                        spacing: 6,
+                                        runSpacing: 6,
+                                        children: selectedJobRoles.map((role) {
+                                          return Chip(
+                                            label: Text(
+                                              getJobCategoryDisplayName(
+                                                getJobCategoryKey(role),
+                                              ),
+                                              style: GoogleFonts.dmSans(
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                            deleteIcon: const Icon(
+                                              Icons.close,
+                                              size: 16,
+                                            ),
+                                            onDeleted: () {
+                                              setState(() {
+                                                selectedJobRoles.remove(role);
+                                              });
+                                            },
+                                            backgroundColor: AppColors.secondary
+                                                .withOpacity(0.1),
+                                            labelStyle: TextStyle(
+                                              color: AppColors.secondary,
+                                            ),
+                                            deleteIconColor:
+                                                AppColors.secondary,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                            ),
+                                            materialTapTargetSize:
+                                                MaterialTapTargetSize
+                                                    .shrinkWrap,
+                                          );
+                                        }).toList(),
+                                      ),
+                              ),
+                              const SizedBox(width: 8),
+                              Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 16,
+                                color: selectedJobRoles.isEmpty
+                                    ? Colors.grey
+                                    : AppColors.secondary,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+
                   const SizedBox(height: 16),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
@@ -445,6 +866,19 @@ class _EditProfileState extends State<EditProfile> {
                     child: ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState?.validate() ?? false) {
+                          // Validation for job roles
+                          if (selectedJobRoles.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  locale?.pleaseSelectAtLeastOneJobRole ??
+                                      'Please select at least one job role',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
                           context.read<AccountBloc>().add(
                             UpdateProfileEvent(
                               user: UserModel(
@@ -453,10 +887,7 @@ class _EditProfileState extends State<EditProfile> {
                                 email: emailController.text,
                                 phone: phoneController.text,
                                 districtName: districtNameController.text,
-                                jobRoles: jobRolesController.text
-                                    .split(',')
-                                    .map((e) => e.trim())
-                                    .toList(),
+                                jobRoles: selectedJobRoles,
                                 profileUrl: profileImageUrl,
                                 lanCode: widget.workerData?.lanCode,
                                 country: widget.workerData?.country,
@@ -508,7 +939,6 @@ class _EditProfileState extends State<EditProfile> {
     emailController.dispose();
     phoneController.dispose();
     districtNameController.dispose();
-    jobRolesController.dispose();
     super.dispose();
   }
 }

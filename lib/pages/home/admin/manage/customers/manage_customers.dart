@@ -237,7 +237,7 @@ class _ManageCustomersPageState extends State<ManageCustomersPage>
               ),
               duration: const Duration(seconds: 3),
               backgroundColor: Colors.red.shade600,
-          
+
               elevation: 6,
             ),
           );
@@ -400,7 +400,7 @@ class _ManageCustomersPageState extends State<ManageCustomersPage>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Loader(size: 60),
+                          Loader(size: 32),
                           const SizedBox(height: 24),
                           Text(
                             AppLocalizations.of(context)!.loadingCustomers,

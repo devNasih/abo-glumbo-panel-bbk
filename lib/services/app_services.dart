@@ -384,36 +384,46 @@ class AppServices {
           .toList();
     });
   }
-static Future<List<CategoryModel>> getCategoriesByIds(List<String> categoryIds) async {
-  if (categoryIds.isEmpty) return [];
-  
-  // Split into chunks of 10 due to Firestore whereIn limit
-  List<List<String>> chunks = [];
-  for (int i = 0; i < categoryIds.length; i += 10) {
-    chunks.add(categoryIds.sublist(i, min(i + 10, categoryIds.length)));
+
+  static Future<List<CategoryModel>> getCategoriesByIds(
+    List<String> categoryIds,
+  ) async {
+    if (categoryIds.isEmpty) return [];
+
+    // Split into chunks of 10 due to Firestore whereIn limit
+    List<List<String>> chunks = [];
+    for (int i = 0; i < categoryIds.length; i += 10) {
+      chunks.add(categoryIds.sublist(i, min(i + 10, categoryIds.length)));
+    }
+
+    // Fetch all chunks in parallel
+    List<Future<QuerySnapshot>> futures = chunks
+        .map(
+          (chunk) => FirebaseFirestore.instance
+              .collection('categories')
+              .where(FieldPath.documentId, whereIn: chunk)
+              .get(),
+        )
+        .toList();
+
+    List<QuerySnapshot> snapshots = await Future.wait(futures);
+
+    List<CategoryModel> categories = [];
+    for (var snapshot in snapshots) {
+      categories.addAll(
+        snapshot.docs
+            .map(
+              (doc) => CategoryModel.fromJson({
+                ...doc.data() as Map<String, dynamic>,
+                'id': doc.id,
+              }),
+            )
+            .toList(),
+      );
+    }
+
+    return categories;
   }
-
-  // Fetch all chunks in parallel
-  List<Future<QuerySnapshot>> futures = chunks.map((chunk) =>
-    FirebaseFirestore.instance
-        .collection('categories')
-        .where(FieldPath.documentId, whereIn: chunk)
-        .get()
-  ).toList();
-
-  List<QuerySnapshot> snapshots = await Future.wait(futures);
-  
-  List<CategoryModel> categories = [];
-  for (var snapshot in snapshots) {
-    categories.addAll(
-      snapshot.docs.map((doc) => 
-        CategoryModel.fromJson({...doc.data() as Map<String, dynamic>, 'id': doc.id})
-      ).toList()
-    );
-  }
-
-  return categories;
-}
 
   static Stream<List<ServiceModel>> getAllServicesStream() {
     return AppFirestore.servicesCollectionRef.snapshots().map((snapshot) {
@@ -1399,6 +1409,33 @@ static Future<List<CategoryModel>> getCategoriesByIds(List<String> categoryIds) 
     } catch (e) {
       debugPrint('Error fetching tips: $e');
       return [];
+    }
+  }
+
+  /// Fetches job categories from Firebase and returns them as a Map
+  static Future<Map<String, Map<String, String>>> fetchJobCategories() async {
+    try {
+      final QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('categories')
+          .where('isActive', isEqualTo: true)
+          .get();
+
+      final Map<String, Map<String, String>> categories = {};
+
+      for (var doc in snapshot.docs) {
+        final category = CategoryModel.fromQuerySnapshot(doc);
+
+        // Use the category ID as the key, and create the localization map
+        categories[category.id ?? doc.id] = {
+          'en': category.name ?? '',
+          'ar': category.name_ar ?? category.name ?? '',
+        };
+      }
+
+      return categories;
+    } catch (e) {
+      print('Error fetching job categories: $e');
+      return {};
     }
   }
 }

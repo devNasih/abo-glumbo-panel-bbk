@@ -16,7 +16,7 @@ class ManageCategories extends StatelessWidget {
         stream: AppServices.getAllCategoriesStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: Loader(size: 50));
+            return Center(child: Loader(size: 32));
           }
           if (snapshot.hasError) {
             return Center(
@@ -27,6 +27,7 @@ class ManageCategories extends StatelessWidget {
           }
           final categories = snapshot.data ?? [];
           return ListView.builder(
+            padding: const EdgeInsets.only(top: 16, bottom: 100),
             itemCount: categories.length,
             itemBuilder: (context, index) {
               final category = categories[index];

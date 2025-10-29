@@ -21,7 +21,7 @@ class HighlightedServices extends StatelessWidget {
         stream: AppServices.getAllHighlightedServicesStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: Loader(size: 50));
+            return Center(child: Loader(size: 32));
           }
 
           if (snapshot.hasError) {
@@ -30,6 +30,7 @@ class HighlightedServices extends StatelessWidget {
 
           final highlightedServices = snapshot.data ?? [];
           return ListView.builder(
+            padding: EdgeInsets.only(top: 16, bottom: 100),
             itemCount: highlightedServices.length,
             itemBuilder: (context, index) {
               final service = highlightedServices[index];
@@ -45,9 +46,8 @@ class HighlightedServices extends StatelessWidget {
                       onPressed: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => AddHighlightedServices(
-                            service: service,
-                          ),
+                          builder: (context) =>
+                              AddHighlightedServices(service: service),
                         ),
                       ),
                     ),

@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/tipping.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/bloc/manage_app_bloc.dart';
@@ -40,6 +41,9 @@ class ManageTips extends StatelessWidget {
         body: StreamBuilder<List<TippingModel>>(
           stream: AppServices.getTippingStream(),
           builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: Loader(size: 32));
+            }
             if (snapshot.hasError) {
               return Center(child: Text(AppLocalizations.of(context)!.error));
             }
@@ -101,7 +105,7 @@ class ManageTips extends StatelessWidget {
                                 tip.agentId ?? '',
                                 transactionId,
                                 image,
-                                tip
+                                tip,
                               ),
                             );
                           },

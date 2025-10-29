@@ -46,21 +46,14 @@ class _SignupState extends State<Signup> {
   double? imageUploadProgress;
   String? docUrl;
   String? profileImageUrl;
-  final Map<String, Map<String, String>> jobCategories = {
-    'plumbing': {'en': 'Plumbing', 'ar': 'السباكة'},
-    'ac': {'en': 'A/C', 'ar': 'تكييف الهواء'},
-    'cleaning': {'en': 'Cleaning', 'ar': 'التنظيف'},
-    'electrician': {'en': 'Electrician', 'ar': 'كهربائي'},
-    'flooring': {'en': 'Flooring', 'ar': 'الأرضيات'},
-    'painter': {'en': 'Painter', 'ar': 'دهان'},
-    'other': {'en': 'Other', 'ar': 'أخرى'},
-  };
+  Map<String, Map<String, String>> jobCategories = {};
+  bool isCategoriesLoading = true;
 
   final _formkey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneNumberController = TextEditingController();
   final TextEditingController districtNameController = TextEditingController();
-  final TextEditingController jobRolesController = TextEditingController();
+  final TextEditingController jobRoleController = TextEditingController();
   List<String> selectedJobRoles = [];
   Future pickImage(bool isProfile) async {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -140,7 +133,39 @@ class _SignupState extends State<Signup> {
   @override
   void initState() {
     loadLocations();
+    loadJobCategories();
     super.initState();
+  }
+
+  Future<void> loadJobCategories() async {
+    setState(() {
+      isCategoriesLoading = true;
+    });
+
+    try {
+      final categories = await AppServices.fetchJobCategories();
+      setState(() {
+        jobCategories = categories;
+        isCategoriesLoading = false;
+      });
+    } catch (e) {
+      print('Error loading categories: $e');
+      setState(() {
+        isCategoriesLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.failedToLoadCategories ??
+                  'Failed to load job categories',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _determinePosition() async {
@@ -553,43 +578,43 @@ class _SignupState extends State<Signup> {
                               );
                             }),
                             const SizedBox(height: 16),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Text(
-                                AppLocalizations.of(
-                                      context,
-                                    )?.addCustomJobRoles ??
-                                    'Add Custom Job Roles',
-                                style: GoogleFonts.dmSans(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: TextField(
-                                controller: customRolesController,
-                                decoration: InputDecoration(
-                                  hintText:
-                                      AppLocalizations.of(
-                                        context,
-                                      )?.enterAdditionalJobRoles ??
-                                      'Enter additional job roles (comma separated)',
-                                  hintStyle: GoogleFonts.dmSans(fontSize: 14),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                minLines: 1,
-                                maxLines: 3,
-                              ),
-                            ),
+                            // Padding(
+                            //   padding: const EdgeInsets.symmetric(
+                            //     horizontal: 16,
+                            //   ),
+                            //   child: Text(
+                            //     AppLocalizations.of(
+                            //           context,
+                            //         )?.addCustomJobRoles ??
+                            //         'Add Custom Job Roles',
+                            //     style: GoogleFonts.dmSans(
+                            //       fontSize: 16,
+                            //       fontWeight: FontWeight.w500,
+                            //     ),
+                            //   ),
+                            // ),
+                            // const SizedBox(height: 8),
+                            // Padding(
+                            //   padding: const EdgeInsets.symmetric(
+                            //     horizontal: 16,
+                            //   ),
+                            //   child: TextField(
+                            //     controller: customRolesController,
+                            //     decoration: InputDecoration(
+                            //       hintText:
+                            //           AppLocalizations.of(
+                            //             context,
+                            //           )?.enterAdditionalJobRoles ??
+                            //           'Enter additional job roles (comma separated)',
+                            //       hintStyle: GoogleFonts.dmSans(fontSize: 14),
+                            //       border: OutlineInputBorder(
+                            //         borderRadius: BorderRadius.circular(8),
+                            //       ),
+                            //     ),
+                            //     minLines: 1,
+                            //     maxLines: 3,
+                            //   ),
+                            // ),
                             const SizedBox(height: 24),
                             Padding(
                               padding: const EdgeInsets.symmetric(
@@ -632,8 +657,6 @@ class _SignupState extends State<Signup> {
                                     setState(() {
                                       selectedJobRoles.clear();
                                       selectedJobRoles.addAll(finalJobRoles);
-                                      jobRolesController.text = finalJobRoles
-                                          .join(', ');
                                     });
 
                                     Navigator.pop(context);
@@ -976,22 +999,180 @@ class _SignupState extends State<Signup> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  TextFormWidget(
-                    controller: jobRolesController,
-                    label: locale?.jobRoles ?? '',
-                    keyboardType: TextInputType.text,
-                    textInputAction: TextInputAction.done,
-                    onTap: selectJobRolesBottomSheet,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return AppLocalizations.of(
-                              context,
-                            )?.jobRolesAreRequired ??
-                            'Job Roles are required';
-                      }
-                      return null;
-                    },
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Label
+                      Text(
+                        locale?.jobRoles ?? 'Job Roles',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Container with selected job roles
+                      GestureDetector(
+                        onTap: isCategoriesLoading
+                            ? null
+                            : selectJobRolesBottomSheet,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(
+                              color: selectedJobRoles.isEmpty
+                                  ? AppColors.grey2
+                                  : AppColors.secondary.withOpacity(0.5),
+                              width: 1.5,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: isCategoriesLoading
+                              ? Row(
+                                  children: [
+                                    SizedBox(
+                                      height: 16,
+                                      width: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: AppColors.secondary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'Loading categories...',
+                                      style: GoogleFonts.dmSans(
+                                        fontSize: 14,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : selectedJobRoles.isEmpty
+                              ? Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      locale?.selectJobRoles ??
+                                          'Select job roles',
+                                      style: GoogleFonts.dmSans(
+                                        fontSize: 14,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 16,
+                                      color: Colors.grey,
+                                    ),
+                                  ],
+                                )
+                              : Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: selectedJobRoles.map((role) {
+                                        final displayName =
+                                            getJobCategoryDisplayName(
+                                              getJobCategoryKey(role),
+                                            );
+
+                                        return Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 6,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.secondary
+                                                .withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                            border: Border.all(
+                                              color: AppColors.secondary
+                                                  .withOpacity(0.3),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                displayName,
+                                                style: GoogleFonts.dmSans(
+                                                  fontSize: 13,
+                                                  color: AppColors.secondary,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    selectedJobRoles.remove(
+                                                      role,
+                                                    );
+                                                  });
+                                                },
+                                                child: Icon(
+                                                  Icons.close,
+                                                  size: 16,
+                                                  color: AppColors.secondary,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Icon(
+                                          Icons.edit_outlined,
+                                          size: 14,
+                                          color: AppColors.secondary,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          locale!.editSelection,
+                                          style: GoogleFonts.dmSans(
+                                            fontSize: 12,
+                                            color: AppColors.secondary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      ),
+
+                      // Error message (if validation fails)
+                      if (selectedJobRoles.isEmpty &&
+                          _formkey.currentState?.validate() == false)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8, left: 12),
+                          child: Text(
+                            locale?.jobRolesAreRequired ??
+                                'Job Roles are required',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 12,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
+
                   const SizedBox(height: 16),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
@@ -1043,8 +1224,10 @@ class _SignupState extends State<Signup> {
                                   );
                                   return;
                                 }
-                                if (selectedJobRoles.isEmpty &&
-                                    jobRolesController.text.trim().isEmpty) {
+                                if (selectedJobRoles.isEmpty
+                                //  &&
+                                //     jobRolesController.text.trim().isEmpty
+                                ) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
@@ -1088,20 +1271,20 @@ class _SignupState extends State<Signup> {
                                   }
                                 }
 
-                                if (jobRolesController.text.trim().isNotEmpty) {
-                                  final customRoles = jobRolesController.text
-                                      .trim()
-                                      .split(',')
-                                      .map((e) => e.trim())
-                                      .where((e) => e.isNotEmpty)
-                                      .toList();
+                                // if (jobRolesController.text.trim().isNotEmpty) {
+                                //   final customRoles = jobRolesController.text
+                                //       .trim()
+                                //       .split(',')
+                                //       .map((e) => e.trim())
+                                //       .where((e) => e.isNotEmpty)
+                                //       .toList();
 
-                                  for (String customRole in customRoles) {
-                                    if (!jobRoles.contains(customRole)) {
-                                      jobRoles.add(customRole.trim());
-                                    }
-                                  }
-                                }
+                                // for (String customRole in customRoles) {
+                                //   if (!jobRoles.contains(customRole)) {
+                                //     jobRoles.add(customRole.trim());
+                                //   }
+                                // }
+                                // }
                                 jobRoles = jobRoles
                                     .map((e) => e.trim())
                                     .toSet()

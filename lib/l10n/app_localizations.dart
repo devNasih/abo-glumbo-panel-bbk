@@ -5042,6 +5042,36 @@ abstract class AppLocalizations {
   /// **'Payout request successful'**
   String get payoutRequestSuccessful;
 
+  /// No description provided for @loadingCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading categories...'**
+  String get loadingCategories;
+
+  /// No description provided for @editSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Selection'**
+  String get editSelection;
+
+  /// No description provided for @apply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get apply;
+
+  /// No description provided for @noBannersAAddedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No banners added yet'**
+  String get noBannersAAddedYet;
+
+  /// No description provided for @availableRoles.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Roles'**
+  String get availableRoles;
+
   /// No description provided for @fifteenpercentBonusOnEarningsandASpecialBadge.
   ///
   /// In en, this message translates to:

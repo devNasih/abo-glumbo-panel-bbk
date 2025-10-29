@@ -2614,6 +2614,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get payoutRequestSuccessful => 'Payout request successful';
 
   @override
+  String get loadingCategories => 'Loading categories...';
+
+  @override
+  String get editSelection => 'Edit Selection';
+
+  @override
+  String get apply => 'Apply';
+
+  @override
+  String get noBannersAAddedYet => 'No banners added yet';
+
+  @override
+  String get availableRoles => 'Available Roles';
+
+  @override
   String get fifteenpercentBonusOnEarningsandASpecialBadge =>
       '15% Bonus on Earnings + Special Badge';
 

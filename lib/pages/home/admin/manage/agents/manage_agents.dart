@@ -368,10 +368,10 @@ class _ManageAgentsState extends State<ManageAgents>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Loader(size: 60),
+                          Loader(size: 32),
                           const SizedBox(height: 24),
                           Text(
-                            'Loading agents...',
+                            AppLocalizations.of(context)!.loadingAgents,
                             style: TextStyle(
                               color: theme.colorScheme.onSurfaceVariant,
                               fontSize: 16,
@@ -398,7 +398,7 @@ class _ManageAgentsState extends State<ManageAgents>
                       context: context,
                       icon: Icons.engineering_rounded,
                       title: AppLocalizations.of(context)!.noAgentsFound,
-                      subtitle: 'No agents available at the moment',
+                      subtitle: AppLocalizations.of(context)!.noAgentsAvailable,
                       color: theme.colorScheme.primary,
                     );
                   }
@@ -445,7 +445,12 @@ class _ManageAgentsState extends State<ManageAgents>
                   }
 
                   return ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.only(
+                      top: 16,
+                      bottom: 100,
+                      left: 16,
+                      right: 16,
+                    ),
                     itemCount: filteredAgents.length,
                     itemBuilder: (context, index) {
                       return _buildAgentCard(

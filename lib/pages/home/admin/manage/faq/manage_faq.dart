@@ -33,7 +33,7 @@ class _ManageFaqState extends State<ManageFaq> {
               showDialog(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => Center(child: Loader()),
+                builder: (context) => Center(child: Loader(size: 32)),
               ).then((_) => _isDeletingDialogShowing = false);
             }
           } else {
@@ -80,7 +80,7 @@ class _ManageFaqState extends State<ManageFaq> {
           stream: AppServices.getFaqStream(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: Loader());
+              return Center(child: Loader(size: 32));
             }
 
             if (snapshot.hasError) {

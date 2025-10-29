@@ -38,7 +38,30 @@ class ManageBanners extends StatelessWidget {
           stream: AppServices.getAllBannersStream(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: Loader(size: 50));
+              return Center(child: Loader(size: 32));
+            }
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  '${AppLocalizations.of(context)?.error}: ${snapshot.error}',
+                ),
+              );
+            }
+
+            if (snapshot.data == null || snapshot.data!.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.storefront, size: 100, color: Colors.grey[400]),
+                    Text(
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      AppLocalizations.of(context)?.noBannersAAddedYet ??
+                          'No Banners',
+                    ),
+                  ],
+                ),
+              );
             }
 
             if (snapshot.hasError) {

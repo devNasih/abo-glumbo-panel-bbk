@@ -3,16 +3,14 @@ import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/highlighted_services.dart';
 import 'package:aboglumbo_bbk_panel/models/service.dart';
+import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class HighlightedServiceWidget extends StatelessWidget {
-  const HighlightedServiceWidget({
-    super.key,
-    required this.data,
-  });
+  const HighlightedServiceWidget({super.key, required this.data});
   final HighlightedServicesModel data;
 
   @override
@@ -53,9 +51,10 @@ class HighlightedServiceWidget extends StatelessWidget {
                   if (snapshot.hasError) {
                     return _buildErrorContainer(context, isRtlLanguage);
                   }
-                  
+
                   final service = ServiceModel.fromDocumentSnapshot(
-                      snapshot.data as DocumentSnapshot);
+                    snapshot.data as DocumentSnapshot,
+                  );
 
                   return GestureDetector(
                     onTap: () {},
@@ -85,14 +84,11 @@ class HighlightedServiceWidget extends StatelessWidget {
                                 stops: [0, 1],
                                 begin: Alignment.center,
                                 end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  Colors.black,
-                                ],
+                                colors: [Colors.transparent, Colors.black],
                               ),
                             ),
-                            alignment: Directionality.of(context) ==
-                                    TextDirection.ltr
+                            alignment:
+                                Directionality.of(context) == TextDirection.ltr
                                 ? Alignment.bottomLeft
                                 : Alignment.bottomRight,
                             padding: const EdgeInsets.all(8),
@@ -136,10 +132,7 @@ class HighlightedServiceWidget extends StatelessWidget {
         color: Colors.grey[200],
         borderRadius: BorderRadius.circular(4),
       ),
-      child: const CircularProgressIndicator(
-        strokeWidth: 2,
-        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
-      ),
+      child: Loader(size: 14, color: AppColors.primary),
     );
   }
 
@@ -159,18 +152,11 @@ class HighlightedServiceWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.error_outline,
-            color: Colors.red,
-            size: 24,
-          ),
+          const Icon(Icons.error_outline, color: Colors.red, size: 24),
           const SizedBox(height: 4),
           Text(
             AppLocalizations.of(context)?.failedToLoadServices ?? 'Error',
-            style: GoogleFonts.dmSans(
-              fontSize: 10,
-              color: Colors.red,
-            ),
+            style: GoogleFonts.dmSans(fontSize: 10, color: Colors.red),
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -183,7 +169,7 @@ class HighlightedServiceWidget extends StatelessWidget {
   // Helper method to build service image with URL validation
   Widget _buildServiceImage(ServiceModel service) {
     final imageUrl = service.image?.trim() ?? '';
-    
+
     // Check if URL is empty or invalid
     if (imageUrl.isEmpty || !_isValidUrl(imageUrl)) {
       return Container(
@@ -201,17 +187,11 @@ class HighlightedServiceWidget extends StatelessWidget {
       fit: BoxFit.cover,
       placeholder: (context, url) => Container(
         color: Colors.grey[100],
-        child:  Center(
-          child: Loader(size: 20),
-        ),
+        child: Center(child: Loader(size: 20)),
       ),
       errorWidget: (context, url, error) => Container(
         color: Colors.grey[300],
-        child: const Icon(
-          Icons.broken_image,
-          size: 40,
-          color: Colors.grey,
-        ),
+        child: const Icon(Icons.broken_image, size: 40, color: Colors.grey),
       ),
     );
   }
@@ -220,9 +200,9 @@ class HighlightedServiceWidget extends StatelessWidget {
   bool _isValidUrl(String url) {
     try {
       final uri = Uri.parse(url);
-      return uri.hasScheme && 
-             (uri.scheme == 'http' || uri.scheme == 'https') && 
-             uri.host.isNotEmpty;
+      return uri.hasScheme &&
+          (uri.scheme == 'http' || uri.scheme == 'https') &&
+          uri.host.isNotEmpty;
     } catch (e) {
       return false;
     }
