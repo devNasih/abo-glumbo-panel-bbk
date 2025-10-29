@@ -5042,6 +5042,12 @@ abstract class AppLocalizations {
   /// **'Payout request successful'**
   String get payoutRequestSuccessful;
 
+  /// No description provided for @confirmDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Details'**
+  String get confirmDetails;
+
   /// No description provided for @loadingCategories.
   ///
   /// In en, this message translates to:

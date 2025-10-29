@@ -843,28 +843,32 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
     return isValid;
   }
 
-  void _handleComplete() {
+  void _handleCompleteWithConfirmation() {
     if (_validateForm()) {
-      // Convert UI ServiceItem objects to BookingServiceItem data objects
-      List<BookingServiceItem> items = _serviceCompleted
-          ? _serviceItems.map((item) => item.toBookingServiceItem()).toList()
-          : [];
-
-      Navigator.of(context).pop();
-      context.read<BookingBloc>().add(
-        CompleteBooking(
-          mode: _serviceCompleted ? 1 :0 ,
-          bookingId: widget.booking.id,
-          selectedImage: _selectedImage!,
-          serviceCost: _serviceCompleted
-              ? double.parse(_serviceCostController.text)
-              : 0,
-          serviceItems: items,
-          selectedPaymentMethod: _selectedPaymentMethod,
-          totalCost: _totalCost,
-        ),
-      );
+      _showConfirmationDialog();
     }
+  }
+
+  void _handleComplete() {
+    // Convert UI ServiceItem objects to BookingServiceItem data objects
+    List<BookingServiceItem> items = _serviceCompleted
+        ? _serviceItems.map((item) => item.toBookingServiceItem()).toList()
+        : [];
+
+    Navigator.of(context).pop();
+    context.read<BookingBloc>().add(
+      CompleteBooking(
+        mode: _serviceCompleted ? 1 : 0,
+        bookingId: widget.booking.id,
+        selectedImage: _selectedImage!,
+        serviceCost: _serviceCompleted
+            ? double.parse(_serviceCostController.text)
+            : 0,
+        serviceItems: items,
+        selectedPaymentMethod: _selectedPaymentMethod,
+        totalCost: _totalCost,
+      ),
+    );
   }
 
   @override
@@ -1536,7 +1540,7 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: _handleComplete,
+                      onPressed: _handleCompleteWithConfirmation,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
@@ -1560,6 +1564,250 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _showConfirmationDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.receipt_long, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text(
+                AppLocalizations.of(context)!.confirmDetails,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Service Type
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _serviceCompleted
+                        ? AppColors.primary.withAlpha(30)
+                        : Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _serviceCompleted
+                            ? Icons.check_circle
+                            : Icons.search_outlined,
+                        color: _serviceCompleted
+                            ? AppColors.primary
+                            : Colors.grey.shade700,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _serviceCompleted
+                            ? AppLocalizations.of(context)!.serviceCompleted
+                            : AppLocalizations.of(context)!.inspectionOnly,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: _serviceCompleted
+                              ? AppColors.primary
+                              : Colors.grey.shade800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Inspection/Service Cost
+                _buildDetailRow(
+                  _serviceCompleted
+                      ? AppLocalizations.of(context)!.serviceCost
+                      : AppLocalizations.of(context)!.inspectionFee,
+                  _serviceCompleted
+                      ? double.parse(_serviceCostController.text)
+                      : widget.booking.service.price?.toDouble() ?? 0,
+                ),
+
+                // Service Items (only if service completed)
+                if (_serviceCompleted && _serviceItems.isNotEmpty) ...[
+                  const Divider(height: 24),
+                  Text(
+                    AppLocalizations.of(context)!.serviceItems,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ..._serviceItems.asMap().entries.map((entry) {
+                    int index = entry.key;
+                    ServiceItem item = entry.value;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${index + 1}. ${item.nameController.text}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '${AppLocalizations.of(context)!.qty}: ${item.quantity.toStringAsFixed(0)}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                                Text(
+                                  '${item.price.toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                                Text(
+                                  '${(item.quantity * item.price).toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ],
+
+                const Divider(height: 24),
+
+                // Payment Method
+                _buildDetailRow(
+                  AppLocalizations.of(context)!.paymentMethod,
+                  _selectedPaymentMethod,
+                  isAmount: false,
+                ),
+
+                const Divider(height: 24),
+
+                // Total Cost
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withAlpha(50),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.primary),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.totalCost,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      Text(
+                        '${_totalCost.toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                AppLocalizations.of(context)!.cancel,
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                _handleComplete();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                AppLocalizations.of(context)!.confirm,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRow(String label, dynamic value, {bool isAmount = true}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+          ),
+          Text(
+            isAmount
+                ? '${(value as double).toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}'
+                : value.toString(),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+        ],
       ),
     );
   }

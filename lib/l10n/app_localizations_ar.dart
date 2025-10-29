@@ -2580,6 +2580,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get payoutRequestSuccessful => 'طلب الدفع بنجاح';
 
   @override
+  String get confirmDetails => 'تأكيد البيانات';
+
+  @override
   String get loadingCategories => 'تحميل الاقسام...';
 
   @override

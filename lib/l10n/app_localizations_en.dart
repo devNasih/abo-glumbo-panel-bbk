@@ -2614,6 +2614,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get payoutRequestSuccessful => 'Payout request successful';
 
   @override
+  String get confirmDetails => 'Confirm Details';
+
+  @override
   String get loadingCategories => 'Loading categories...';
 
   @override
