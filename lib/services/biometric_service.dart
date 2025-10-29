@@ -30,6 +30,7 @@ class BiometricService {
   }
 
   static Future<bool> isBiometricEnabled() async {
+    // ignore: await_only_futures
     return await LocalStore.getBiometricAuthEnabled(LocalStore.getUID() ?? '');
   }
 }

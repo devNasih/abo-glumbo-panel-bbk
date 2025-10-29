@@ -149,7 +149,7 @@ class _SignupState extends State<Signup> {
         isCategoriesLoading = false;
       });
     } catch (e) {
-      print('Error loading categories: $e');
+      debugPrint('Error loading categories: $e');
       setState(() {
         isCategoriesLoading = false;
       });

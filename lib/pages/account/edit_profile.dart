@@ -119,7 +119,6 @@ class _EditProfileState extends State<EditProfile> {
 
   void selectJobRolesBottomSheet() {
     List<String> tempSelectedJobRoles = List.from(selectedJobRoles);
-    TextEditingController customRolesController = TextEditingController();
 
     showModalBottomSheet(
       context: context,

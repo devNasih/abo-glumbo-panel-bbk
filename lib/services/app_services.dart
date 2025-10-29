@@ -1434,7 +1434,7 @@ class AppServices {
 
       return categories;
     } catch (e) {
-      print('Error fetching job categories: $e');
+      debugPrint('Error fetching job categories: $e');
       return {};
     }
   }

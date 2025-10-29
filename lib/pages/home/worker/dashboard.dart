@@ -49,7 +49,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final stats = results[0] as Map<String, dynamic>;
       final transactions = results[1] as List<TransactionModel>;
       final tips = results[2] as List<AllTipsModel>;
-      final availableBalance = results[3] as double;
+      // final availableBalance = results[3] as double;
       final paidAmounts = results[4] as double;
 
       // Calculate earnings
