@@ -1,1 +1,11 @@
-{}
+{
+  "ar": [
+    "pleaseUploadFiles",
+    "confirmCompletion",
+    "confirmCompletionMessage",
+    "tapToUploadFiles",
+    "addMoreFiles",
+    "allowedFileTypes",
+    "uploadFiles"
+  ]
+}

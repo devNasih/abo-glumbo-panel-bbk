@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:aboglumbo_bbk_panel/models/payout_request.dart';
 import 'package:aboglumbo_bbk_panel/models/transaction.dart';
@@ -962,71 +963,6 @@ class AppServices {
         });
   }
 
-  static Stream<Map<String, dynamic>> getallstats(String uid) {
-    final completed = AppFirestore.bookingsCollectionRef
-        .where('agent.uid', isEqualTo: uid)
-        .where('bookingStatusCode', isEqualTo: 'C')
-        .snapshots()
-        .map((snapshot) => snapshot.docs.length);
-
-    final latest = AppFirestore.bookingsCollectionRef
-        .where('agent.uid', isEqualTo: uid)
-        .where('bookingStatusCode', isEqualTo: 'P')
-        .snapshots()
-        .map((snapshot) => snapshot.docs.length);
-
-    final accepted = AppFirestore.bookingsCollectionRef
-        .where('agent.uid', isEqualTo: uid)
-        .where('bookingStatusCode', isEqualTo: 'A')
-        .snapshots()
-        .map((snapshot) => snapshot.docs.length);
-
-    final Stream<double> rating = AppFirestore.bookingsCollectionRef
-        .where('bookingStatusCode', isEqualTo: 'C')
-        .where('agent.uid', isEqualTo: uid)
-        .where('review', isNull: false)
-        .snapshots()
-        .map((snapshot) {
-          final reviews = snapshot.docs
-              .where((doc) => doc['review'] != null)
-              .map((doc) => doc['review'])
-              .toList();
-
-          if (reviews.isEmpty) return 0.0;
-
-          // Filter out null ratings and convert to double
-          final ratings = reviews
-              .map((review) => review['rating'])
-              .where((rating) => rating != null)
-              .map((rating) => (rating as num).toDouble())
-              .toList();
-
-          if (ratings.isEmpty) return 0.0;
-
-          // Calculate sum safely
-          final sum = ratings.reduce((a, b) => a + b);
-          return sum / (ratings.length);
-        });
-
-    return Rx.combineLatest4<int, int, int, double, Map<String, dynamic>>(
-      completed,
-      latest,
-      accepted,
-      rating,
-      (
-        int completedCount,
-        int latestCount,
-        int acceptedCount,
-        double avgRating,
-      ) => {
-        'completed': completedCount,
-        'latest': latestCount,
-        'accepted': acceptedCount,
-        'rating': avgRating.toStringAsFixed(1),
-      },
-    );
-  }
-
   static Future<TippingModel> getWorkerTippingData(String workerId) async {
     final snapshot = await AppFirestore.tippingCollectionRef
         .where('agentId', isEqualTo: workerId)
@@ -1438,4 +1374,257 @@ class AppServices {
       return {};
     }
   }
+
+  // ---------------------------------------------------------------------------------------------------------
+
+  /// Stream for stats only (backward compatible)
+
+  /// Build stats stream combining completed, latest, accepted, and rating
+  static Stream<Map<String, dynamic>> _getStatsStream(String uid) {
+    final completed = AppFirestore.bookingsCollectionRef
+        .where('agent.uid', isEqualTo: uid)
+        .where('bookingStatusCode', isEqualTo: 'C')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+
+    final latest = AppFirestore.bookingsCollectionRef
+        .where('agent.uid', isEqualTo: uid)
+        .where('bookingStatusCode', isEqualTo: 'P')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+
+    final accepted = AppFirestore.bookingsCollectionRef
+        .where('agent.uid', isEqualTo: uid)
+        .where('bookingStatusCode', isEqualTo: 'A')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+
+    final Stream<double> rating = AppFirestore.bookingsCollectionRef
+        .where('bookingStatusCode', isEqualTo: 'C')
+        .where('agent.uid', isEqualTo: uid)
+        .where('review', isNull: false)
+        .snapshots()
+        .map((snapshot) {
+          final reviews = snapshot.docs
+              .where((doc) => doc['review'] != null)
+              .map((doc) => doc['review'])
+              .toList();
+
+          if (reviews.isEmpty) return 0.0;
+
+          final ratings = reviews
+              .map((review) => review['rating'])
+              .where((rating) => rating != null)
+              .map((rating) => (rating as num).toDouble())
+              .toList();
+
+          if (ratings.isEmpty) return 0.0;
+
+          final sum = ratings.reduce((a, b) => a + b);
+          return sum / ratings.length;
+        });
+
+    return Rx.combineLatest4<
+      int,
+      int,
+      int,
+      double,
+      Map<String, dynamic>
+    >(completed, latest, accepted, rating, (
+      int completedCount,
+      int latestCount,
+      int acceptedCount,
+      double avgRating,
+    ) {
+      debugPrint(
+        '✅ Stats Combined - Completed: $completedCount, Latest: $latestCount, '
+        'Accepted: $acceptedCount, Rating: ${avgRating.toStringAsFixed(1)}',
+      );
+      return {
+        'completed': completedCount,
+        'latest': latestCount,
+        'accepted': acceptedCount,
+        'rating': avgRating.toStringAsFixed(1),
+      };
+    });
+  }
+
+  /// Real-time stream for transactions
+  static Stream<List<TransactionModel>> _getTransactionsRealTimeStream(
+    String uid,
+  ) {
+    return AppFirestore.transactionsCollectionRef
+        .where('workerId', isEqualTo: uid)
+        .snapshots()
+        .map(
+          (snap) => snap.docs
+              .map(
+                (doc) => TransactionModel.fromJson(
+                  doc.data() as Map<String, dynamic>,
+                ),
+              )
+              .toList(),
+        )
+        .handleError((error) {
+          debugPrint('❌ Error fetching transactions stream: $error');
+          return <TransactionModel>[];
+        });
+  }
+
+  /// Real-time stream for tips
+  static Stream<List<AllTipsModel>> _getTipsRealTimeStream(String uid) {
+    return AppFirestore.tippingCollectionRef
+        .doc(uid)
+        .collection("totalTipsCollectionRef")
+        .doc(uid)
+        .snapshots()
+        .map((docSnap) {
+          if (!docSnap.exists) return <AllTipsModel>[];
+
+          final data = docSnap.data();
+          if (data?['tipData'] == null) return <AllTipsModel>[];
+
+          final List<dynamic> tipdataList = data!['tipData'] as List<dynamic>;
+
+          return tipdataList
+              .map(
+                (tipJson) =>
+                    AllTipsModel.fromJson(tipJson as Map<String, dynamic>),
+              )
+              .toList();
+        })
+        .handleError((error) {
+          debugPrint('❌ Error fetching tips stream: $error');
+          return <AllTipsModel>[];
+        });
+  }
+
+  /// Real-time stream for paid amounts
+  static Stream<double> _getPaidAmountsStream(String uid) {
+    return AppFirestore.usersCollectionRef
+        .doc(uid)
+        .snapshots()
+        .map((snapshot) {
+          if (!snapshot.exists) return 0.0;
+
+          final data = snapshot.data() as Map<String, dynamic>?;
+          return (data?['paidAmounts'] as num?)?.toDouble() ?? 0.0;
+        })
+        .handleError((error) {
+          debugPrint('❌ Error fetching paid amounts stream: $error');
+          return 0.0;
+        });
+  }
+
+  // ========== REFRESH CONTROL WITH STREAMS ==========
+
+  /// StreamController to trigger manual refreshes
+  final _dashboardRefreshController = StreamController<int>.broadcast();
+
+  /// Get the refresh trigger stream
+  Stream<int> get dashboardRefreshTrigger => _dashboardRefreshController.stream;
+
+  /// Trigger manual refresh by adding a timestamp
+  void triggerDashboardRefresh() {
+    debugPrint('🔄 Manual dashboard refresh triggered');
+    _dashboardRefreshController.add(DateTime.now().millisecondsSinceEpoch);
+  }
+
+  /// Dispose the refresh controller (call in app cleanup)
+  void disposeDashboardRefresh() {
+    _dashboardRefreshController.close();
+  }
+
+  /// Complete dashboard stream with manual refresh support
+  static Stream<DashboardDataStream> getCompleteDashboardStreamWithRefresh(
+    String uid,
+    Stream<int> refreshTrigger,
+  ) {
+    debugPrint(
+      '🚀 Setting up complete dashboard stream with refresh for: $uid',
+    );
+
+    return refreshTrigger
+        .startWith(0) // Start immediately
+        .switchMap((_) {
+          debugPrint('📊 Dashboard data refresh initiated');
+          return Rx.combineLatest4(
+            _getStatsStream(uid),
+            _getTransactionsRealTimeStream(uid),
+            _getTipsRealTimeStream(uid),
+            _getPaidAmountsStream(uid),
+            (
+              Map<String, dynamic> stats,
+              List<TransactionModel> transactions,
+              List<AllTipsModel> tips,
+              double paidAmounts,
+            ) {
+              debugPrint('📊 Dashboard stream updated - combining all data');
+
+              double cashPayments = 0.0;
+              double cardPayments = 0.0;
+
+              for (var transaction in transactions) {
+                final status = transaction.paymentStatus.toLowerCase();
+                if (status == 'completed' || status == 'paid') {
+                  final method = transaction.paymentMethod.toLowerCase();
+                  if (method == 'cash on hands') {
+                    cashPayments += transaction.amount;
+                  } else if (method == 'cards') {
+                    cardPayments += transaction.amount;
+                  }
+                }
+              }
+
+              final totalEarnings = cashPayments + cardPayments - paidAmounts;
+
+              return DashboardDataStream(
+                stats: stats,
+                totalEarnings: totalEarnings,
+                transactions: transactions,
+                tips: tips,
+                paidAmounts: paidAmounts,
+              );
+            },
+          );
+        })
+        .handleError((error) {
+          debugPrint('❌ Dashboard stream error: $error');
+          return DashboardDataStream(
+            stats: {
+              'completed': 0,
+              'latest': 0,
+              'accepted': 0,
+              'rating': '0.0',
+            },
+            totalEarnings: 0.0,
+            transactions: [],
+            tips: [],
+            paidAmounts: 0.0,
+          );
+        });
+  }
+}
+
+class DashboardDataStream {
+  final Map<String, dynamic> stats;
+  final double totalEarnings;
+  final List<TransactionModel> transactions;
+  final List<AllTipsModel> tips;
+  final double paidAmounts;
+
+  const DashboardDataStream({
+    required this.stats,
+    required this.totalEarnings,
+    required this.transactions,
+    required this.tips,
+    required this.paidAmounts,
+  });
+
+  // Helper to get specific stats
+  int get completedBookings => (stats['completed'] as int?) ?? 0;
+  int get latestRequests => (stats['latest'] as int?) ?? 0;
+  int get acceptedBookings => (stats['accepted'] as int?) ?? 0;
+  double get rating =>
+      double.tryParse(stats['rating']?.toString() ?? '0') ?? 0.0;
 }

@@ -1,12 +1,16 @@
+import 'dart:developer';
+
 import 'package:aboglumbo_bbk_panel/pages/bookings/bloc/booking_bloc.dart';
 import 'package:aboglumbo_bbk_panel/services/location_services.dart';
+
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
+import 'package:app_settings/app_settings.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 class BookingControlsWidget extends StatefulWidget {
@@ -89,8 +93,26 @@ class _BookingControlsWidgetState extends State<BookingControlsWidget> {
           );
         } else if (state is BookingStartWorkingFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.error), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(state.error),
+              backgroundColor: Colors.red,
+              duration: const Duration(
+                seconds: 6,
+              ), // Give users time to read and act
+              action:
+                  state.error.contains('Background location permission') ||
+                      state.error.contains('Allow all the time')
+                  ? SnackBarAction(
+                      label: AppLocalizations.of(context)!.openSettings,
+                      textColor: Colors.white,
+                      onPressed: () => AppSettings.openAppSettings(
+                        type: AppSettingsType.location,
+                      ),
+                    )
+                  : null,
+            ),
           );
+          log('start tracking error: ${state.error}');
         } else if (state is BookingStopWorkingSuccess) {
           setState(() => isCancelBookingButtonBlocked = false);
           ScaffoldMessenger.of(context).showSnackBar(
@@ -105,6 +127,7 @@ class _BookingControlsWidgetState extends State<BookingControlsWidget> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.error), backgroundColor: Colors.red),
           );
+          log("stop tracking error: ${state.error}");
         }
       },
       builder: (context, state) {
@@ -146,7 +169,12 @@ class _BookingControlsWidgetState extends State<BookingControlsWidget> {
                     children: [
                       Expanded(
                         child: _buildButton(
-                          onPressed: shouldBlockCancel || isCancelLoading
+                          onPressed:
+                              shouldBlockCancel ||
+                                  isCancelLoading ||
+                                  isCompleteLoading ||
+                                  isStartWorkingLoading ||
+                                  isStopWorkingLoading
                               ? null
                               : () => _showCancelBottomSheet(context),
                           label: AppLocalizations.of(context)!.cancelBooking,
@@ -328,7 +356,7 @@ class _BookingControlsWidgetState extends State<BookingControlsWidget> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Cannot cancel this booking while tracking is active. Please stop tracking first, then you can cancel the booking.',
+                  AppLocalizations.of(context)!.cannotCancel,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 15, color: Colors.grey.shade700),
                 ),
@@ -345,8 +373,8 @@ class _BookingControlsWidgetState extends State<BookingControlsWidget> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text(
-                      'OK',
+                    child: Text(
+                      AppLocalizations.of(context)!.ok,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -476,13 +504,14 @@ class _BookingControlsWidgetState extends State<BookingControlsWidget> {
       );
       return;
     }
+    final parentContext = context;
 
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (BuildContext context) {
+      builder: (BuildContext bottomSheetContext) {
         return Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -519,7 +548,7 @@ class _BookingControlsWidgetState extends State<BookingControlsWidget> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () => Navigator.of(bottomSheetContext).pop(),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         side: BorderSide(color: Colors.grey.shade300),
@@ -540,12 +569,12 @@ class _BookingControlsWidgetState extends State<BookingControlsWidget> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).pop();
+                        Navigator.of(bottomSheetContext).pop();
                         final uid = LocalStore.getUID();
                         if (uid != null) {
-                          context.read<BookingBloc>().add(
+                          parentContext.read<BookingBloc>().add(
                             StartWorkingOnBooking(
-                              context: context,
+                              context: parentContext,
                               bookingId: widget.booking.id,
                               uid: uid,
                             ),
@@ -677,6 +706,7 @@ class _BookingControlsWidgetState extends State<BookingControlsWidget> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      isDismissible: false,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -702,23 +732,26 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _serviceCostController = TextEditingController();
   final List<ServiceItem> _serviceItems = [];
-  File? _selectedImage;
-  final ImagePicker _picker = ImagePicker();
-  String _selectedPaymentMethod = 'Cash';
-  final List<String> _paymentMethods = ['Cash', 'Card'];
-  String? _imageError;
-  bool _serviceCompleted = false; // New toggle state
+  List<File> selectedFiles = [];
+  String? _fileError;
+  bool _serviceCompleted = false;
 
   double get _totalCost {
     if (!_serviceCompleted) {
       return widget.booking.service.price?.toDouble() ?? 0;
     }
     double inspectionCost = widget.booking.service.price?.toDouble() ?? 0;
-    double itemsTotal = _serviceItems.fold(
-      0,
-      (sum, item) => sum + (item.quantity * item.price),
-    );
-    return inspectionCost + itemsTotal;
+
+    if (_serviceItems.isNotEmpty) {
+      double itemsTotal = _serviceItems.fold(
+        0,
+        (sum, item) => sum + (item.quantity * item.price),
+      );
+      return inspectionCost + itemsTotal;
+    } else {
+      double serviceCost = double.tryParse(_serviceCostController.text) ?? 0;
+      return inspectionCost + serviceCost;
+    }
   }
 
   @override
@@ -730,13 +763,18 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
     super.dispose();
   }
 
-  Future<void> _pickImage(ImageSource source) async {
+  Future<void> _pickFiles() async {
     try {
-      final XFile? pickedFile = await _picker.pickImage(source: source);
-      if (pickedFile != null) {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf', 'doc'],
+      );
+
+      if (result != null) {
         setState(() {
-          _selectedImage = File(pickedFile.path);
-          _imageError = null;
+          selectedFiles.addAll(result.files.map((file) => File(file.path!)));
+          _fileError = null;
         });
       }
     } catch (e) {
@@ -749,34 +787,26 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
     }
   }
 
-  void _showImageSourceOptions() {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: Text(AppLocalizations.of(context)!.gallery),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _pickImage(ImageSource.gallery);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_camera),
-                title: Text(AppLocalizations.of(context)!.camera),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _pickImage(ImageSource.camera);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  void _removeFile(int index) {
+    setState(() {
+      selectedFiles.removeAt(index);
+    });
+  }
+
+  IconData _getFileIcon(String path) {
+    String ext = path.split('.').last.toLowerCase();
+    if (['jpg', 'jpeg', 'png'].contains(ext)) {
+      return Icons.image;
+    } else if (ext == 'pdf') {
+      return Icons.picture_as_pdf;
+    } else {
+      return Icons.insert_drive_file;
+    }
+  }
+
+  bool _isImageFile(String path) {
+    String ext = path.split('.').last.toLowerCase();
+    return ['jpg', 'jpeg', 'png'].contains(ext);
   }
 
   void _addServiceItem() {
@@ -786,56 +816,256 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
   }
 
   void _removeServiceItem(int index) {
-    setState(() {
-      _serviceItems[index].dispose();
-      _serviceItems.removeAt(index);
-    });
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // Get the item name for display, or show "Item {index+1}" if empty
+        String itemName = _serviceItems[index].nameController.text.isNotEmpty
+            ? _serviceItems[index].nameController.text
+            : '${AppLocalizations.of(context)!.item} ${index + 1}';
+
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  AppLocalizations.of(context)!.removeItem,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppLocalizations.of(context)!.removeItemConfirmation,
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+              ),
+              const SizedBox(height: 12),
+              // Show item details
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.inventory_2_outlined,
+                          size: 18,
+                          color: Colors.red.shade700,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            itemName,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.red.shade900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_serviceItems[index]
+                            .quantityController
+                            .text
+                            .isNotEmpty ||
+                        _serviceItems[index]
+                            .priceController
+                            .text
+                            .isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          if (_serviceItems[index]
+                              .quantityController
+                              .text
+                              .isNotEmpty) ...[
+                            Text(
+                              '${AppLocalizations.of(context)!.qty}: ',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            Text(
+                              _serviceItems[index].quantityController.text,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                          ],
+                          if (_serviceItems[index]
+                                  .quantityController
+                                  .text
+                                  .isNotEmpty &&
+                              _serviceItems[index]
+                                  .priceController
+                                  .text
+                                  .isNotEmpty)
+                            Text(
+                              '  ×  ',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          if (_serviceItems[index]
+                              .priceController
+                              .text
+                              .isNotEmpty) ...[
+                            Text(
+                              '${AppLocalizations.of(context)!.price}: ',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            Text(
+                              '${_serviceItems[index].priceController.text} ${AppLocalizations.of(context)!.sar}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                    // Show total if both qty and price exist
+                    if (_serviceItems[index]
+                            .quantityController
+                            .text
+                            .isNotEmpty &&
+                        _serviceItems[index]
+                            .priceController
+                            .text
+                            .isNotEmpty) ...[
+                      const Divider(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!.total,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                          Text(
+                            '${_serviceItems[index].quantity * _serviceItems[index].price} ${AppLocalizations.of(context)!.sar}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                AppLocalizations.of(context)!.cancel,
+                style: TextStyle(
+                  color: Colors.grey.shade700,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  _serviceItems[index].dispose();
+                  _serviceItems.removeAt(index);
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.delete_outline, size: 18),
+                  const SizedBox(width: 6),
+                  Text(
+                    AppLocalizations.of(context)!.remove,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   bool _validateForm() {
     bool isValid = true;
 
-    // Validate image
-    if (_selectedImage == null) {
+    if (_serviceCompleted && selectedFiles.isEmpty) {
       setState(() {
-        _imageError = AppLocalizations.of(context)!.pleaseUploadAnImage;
+        _fileError = AppLocalizations.of(context)!.pleaseUploadFiles;
       });
       isValid = false;
     }
 
-    // Validate form fields (only if service completed)
     if (_formKey.currentState?.validate() ?? false) {
       _formKey.currentState!.save();
     } else {
       isValid = false;
     }
 
-    // Validate service items only if service was completed
-    if (_serviceCompleted) {
-      if (_serviceItems.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!.pleaseAddAtleastOneServiceItem,
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-        isValid = false;
-      } else {
-        for (var item in _serviceItems) {
-          if (!item.isValid()) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  AppLocalizations.of(context)!.pleaseFillAllServiceItemFields,
-                ),
-                backgroundColor: Colors.red,
+    if (_serviceCompleted && _serviceItems.isNotEmpty) {
+      for (var item in _serviceItems) {
+        if (!item.isValid()) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.pleaseFillAllServiceItemFields,
               ),
-            );
-            isValid = false;
-            break;
-          }
+              backgroundColor: Colors.red,
+            ),
+          );
+          isValid = false;
+          break;
         }
       }
     }
@@ -849,8 +1079,260 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
     }
   }
 
+  void _showConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            AppLocalizations.of(context)!.confirmCompletion,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppLocalizations.of(context)!.confirmCompletionMessage,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+                ),
+                SizedBox(height: 16),
+                // Mode indicator
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _serviceCompleted
+                        ? AppColors.primary.withAlpha(30)
+                        : Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: _serviceCompleted
+                          ? AppColors.primary
+                          : Colors.grey.shade300,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _serviceCompleted
+                            ? Icons.check_circle
+                            : Icons.search_outlined,
+                        color: _serviceCompleted
+                            ? AppColors.primary
+                            : Colors.grey.shade600,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _serviceCompleted
+                            ? AppLocalizations.of(context)!.serviceCompleted
+                            : AppLocalizations.of(context)!.inspectionOnly,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: _serviceCompleted
+                              ? AppColors.primary
+                              : Colors.grey.shade800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Cost Breakdown
+                Text(
+                  AppLocalizations.of(context)!.costBreakdown,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Inspection Fee (always shown)
+                _buildCostRow(
+                  label: AppLocalizations.of(context)!.inspectionFee,
+                  amount: widget.booking.service.price?.toDouble() ?? 0,
+                ),
+
+                // Service completed mode - show additional costs
+                if (_serviceCompleted) ...[
+                  const Divider(height: 20),
+
+                  // Service Items breakdown
+                  if (_serviceItems.isNotEmpty) ...[
+                    Text(
+                      AppLocalizations.of(context)!.serviceItems,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ..._serviceItems.map((item) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${item.nameController.text} (${item.quantityController.text} × ${double.tryParse(item.priceController.text)?.toStringAsFixed(2) ?? '0'})',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '${(item.quantity * item.price).toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ]
+                  // Service Cost (only if items not added)
+                  else if (_serviceCostController.text.isNotEmpty) ...[
+                    _buildCostRow(
+                      label: AppLocalizations.of(context)!.serviceCost,
+                      amount: double.tryParse(_serviceCostController.text) ?? 0,
+                    ),
+                  ],
+                ],
+
+                const Divider(height: 20),
+
+                // Total Cost
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withAlpha(30),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.totalCost,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      Text(
+                        '${_totalCost.toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Files count (if service completed)
+                if (_serviceCompleted && selectedFiles.isNotEmpty) ...[
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.attach_file,
+                        size: 16,
+                        color: Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${selectedFiles.length} ${AppLocalizations.of(context)!.filesAttached}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
+                // Confirmation message
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                AppLocalizations.of(context)!.cancel,
+                style: TextStyle(
+                  color: Colors.grey.shade700,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _handleComplete();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                AppLocalizations.of(context)!.confirm,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        );
+      },
+    );
+  }
+
+  // Helper method to build cost rows
+  Widget _buildCostRow({required String label, required double amount}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+          ),
+          Text(
+            '${amount.toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey.shade800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _handleComplete() {
-    // Convert UI ServiceItem objects to BookingServiceItem data objects
     List<BookingServiceItem> items = _serviceCompleted
         ? _serviceItems.map((item) => item.toBookingServiceItem()).toList()
         : [];
@@ -860,12 +1342,11 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
       CompleteBooking(
         mode: _serviceCompleted ? 1 : 0,
         bookingId: widget.booking.id,
-        selectedImage: _selectedImage!,
-        serviceCost: _serviceCompleted
+        selectedFiles: selectedFiles,
+        serviceCost: _serviceCompleted && _serviceItems.isEmpty
             ? double.parse(_serviceCostController.text)
             : 0,
         serviceItems: items,
-        selectedPaymentMethod: _selectedPaymentMethod,
         totalCost: _totalCost,
       ),
     );
@@ -973,13 +1454,14 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
                       onChanged: (value) {
                         setState(() {
                           _serviceCompleted = value;
-                          // Clear service items and cost when toggled off
                           if (!value) {
                             _serviceCostController.clear();
                             for (var item in _serviceItems) {
                               item.dispose();
                             }
                             _serviceItems.clear();
+                            selectedFiles.clear();
+                            _fileError = null;
                           }
                         });
                       },
@@ -989,84 +1471,140 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
               ),
               const SizedBox(height: 20),
 
-              // Image Upload Section with Validation
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: _imageError != null
-                        ? Colors.red
-                        : Colors.grey.shade200,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.image_outlined,
-                          size: 20,
-                          color: Colors.grey.shade700,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${AppLocalizations.of(context)!.uploadImage}*',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade800,
-                          ),
-                        ),
-                      ],
+              // Upload Files Section - Only show when service completed
+              if (_serviceCompleted) ...[
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _fileError != null
+                          ? Colors.red
+                          : Colors.grey.shade200,
                     ),
-                    const SizedBox(height: 12),
-                    if (_selectedImage != null)
-                      Stack(
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.file(
-                              _selectedImage!,
-                              height: 150,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
+                          Icon(
+                            Icons.attach_file,
+                            size: 20,
+                            color: Colors.grey.shade700,
                           ),
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: GestureDetector(
-                              onTap: () =>
-                                  setState(() => _selectedImage = null),
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.close,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                              ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${AppLocalizations.of(context)!.uploadFilesTitle}*',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade800,
                             ),
                           ),
                         ],
-                      )
-                    else
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        AppLocalizations.of(context)!.uploadHint,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Display selected files
+                      if (selectedFiles.isNotEmpty)
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: selectedFiles.asMap().entries.map((entry) {
+                            int index = entry.key;
+                            File file = entry.value;
+                            bool isImage = _isImageFile(file.path);
+
+                            return Stack(
+                              children: [
+                                Container(
+                                  height: 100,
+                                  width: 100,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: isImage
+                                        ? Image.file(file, fit: BoxFit.cover)
+                                        : Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                _getFileIcon(file.path),
+                                                size: 40,
+                                                color: AppColors.primary,
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 4,
+                                                    ),
+                                                child: Text(
+                                                  file.path.split('/').last,
+                                                  style: const TextStyle(
+                                                    fontSize: 10,
+                                                  ),
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: GestureDetector(
+                                    onTap: () => _removeFile(index),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }).toList(),
+                        ),
+
+                      // Add files button
+                      const SizedBox(height: 8),
                       InkWell(
-                        onTap: _showImageSourceOptions,
+                        onTap: _pickFiles,
                         child: Container(
-                          height: 100,
+                          height: 80,
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: _imageError != null
+                              color: _fileError != null
                                   ? Colors.red
                                   : Colors.grey.shade300,
                               width: 2,
@@ -1077,22 +1615,26 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  Icons.add_photo_alternate_outlined,
-                                  size: 32,
-                                  color: _imageError != null
+                                  Icons.upload_file,
+                                  size: 28,
+                                  color: _fileError != null
                                       ? Colors.red
                                       : Colors.grey.shade600,
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 4),
                                 Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  )!.tapToUploadImage,
+                                  selectedFiles.isEmpty
+                                      ? AppLocalizations.of(
+                                          context,
+                                        )!.tapToUploadFiles
+                                      : AppLocalizations.of(
+                                          context,
+                                        )!.addMoreFiles,
                                   style: TextStyle(
-                                    color: _imageError != null
+                                    color: _fileError != null
                                         ? Colors.red
                                         : Colors.grey.shade600,
-                                    fontSize: 14,
+                                    fontSize: 12,
                                   ),
                                 ),
                               ],
@@ -1100,309 +1642,72 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
                           ),
                         ),
                       ),
-                    if (_imageError != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          _imageError!,
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontSize: 12,
+                      if (_fileError != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            _fileError!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
+                      SizedBox(height: 10),
+                      Text(
+                        AppLocalizations.of(context)!.allowedFileTypes,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Conditional Service Fields - Only show if service completed
-              if (_serviceCompleted) ...[
-                // Service Cost with Validation
-                Text(
-                  '${AppLocalizations.of(context)!.serviceCost} *',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade800,
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _serviceCostController,
-                  keyboardType: TextInputType.number,
-                  onChanged: (_) => setState(() {}),
-                  validator: (value) {
-                    if (!_serviceCompleted) return null;
-                    if (value == null || value.isEmpty) {
-                      return AppLocalizations.of(
-                        context,
-                      )!.pleaseEnterServiceCost;
-                    }
-                    if (double.tryParse(value) == null) {
-                      return AppLocalizations.of(
-                        context,
-                      )!.pleaseEnterValidNumber;
-                    }
-                    if (double.parse(value) <= 0) {
-                      return AppLocalizations.of(
-                        context,
-                      )!.serviceCostMustBeGreaterThanZero;
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                    hintText: AppLocalizations.of(context)!.enterServiceCost,
-                    prefixIcon: Icon(Icons.money, color: AppColors.primary),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        color: AppColors.primary,
-                        width: 2,
-                      ),
-                    ),
-                    errorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Colors.red),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
 
-                // Service Items Section
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${AppLocalizations.of(context)!.serviceItems} *',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade800,
-                      ),
-                    ),
-                    InkWell(
-                      onTap: _addServiceItem,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              AppLocalizations.of(context)!.addItem,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-
-                // Dynamic Service Items with Validation
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _serviceItems.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade200),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: TextFormField(
-                                    controller:
-                                        _serviceItems[index].nameController,
-                                    decoration: InputDecoration(
-                                      hintText:
-                                          '${AppLocalizations.of(context)!.item} ${index + 1}',
-                                      isDense: true,
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 10,
-                                          ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.white,
-                                    ),
-                                    validator: (value) {
-                                      if (!_serviceCompleted) return null;
-                                      if (value == null || value.isEmpty) {
-                                        return AppLocalizations.of(
-                                          context,
-                                        )!.required;
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  flex: 2,
-                                  child: TextFormField(
-                                    controller:
-                                        _serviceItems[index].quantityController,
-                                    keyboardType: TextInputType.number,
-                                    onChanged: (_) => setState(() {}),
-                                    decoration: InputDecoration(
-                                      hintText: AppLocalizations.of(
-                                        context,
-                                      )!.qty,
-                                      isDense: true,
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 10,
-                                          ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.white,
-                                    ),
-                                    validator: (value) {
-                                      if (!_serviceCompleted) return null;
-                                      if (value == null || value.isEmpty) {
-                                        return AppLocalizations.of(
-                                          context,
-                                        )!.required;
-                                      }
-                                      if (double.tryParse(value) == null) {
-                                        return AppLocalizations.of(
-                                          context,
-                                        )!.invalid;
-                                      }
-                                      if (double.parse(value) <= 0) {
-                                        return AppLocalizations.of(
-                                          context,
-                                        )!.serviceCostMustBeGreaterThanZero;
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  flex: 2,
-                                  child: TextFormField(
-                                    controller:
-                                        _serviceItems[index].priceController,
-                                    keyboardType: TextInputType.number,
-                                    onChanged: (_) => setState(() {}),
-                                    decoration: InputDecoration(
-                                      hintText: AppLocalizations.of(
-                                        context,
-                                      )!.price,
-                                      isDense: true,
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 10,
-                                          ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.white,
-                                    ),
-                                    validator: (value) {
-                                      if (!_serviceCompleted) return null;
-                                      if (value == null || value.isEmpty) {
-                                        return AppLocalizations.of(
-                                          context,
-                                        )!.required;
-                                      }
-                                      if (double.tryParse(value) == null) {
-                                        return AppLocalizations.of(
-                                          context,
-                                        )!.invalid;
-                                      }
-                                      if (double.parse(value) <= 0) {
-                                        return AppLocalizations.of(
-                                          context,
-                                        )!.serviceCostMustBeGreaterThanZero;
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.delete_outline,
-                                    color: Colors.red,
-                                  ),
-                                  onPressed: () => _removeServiceItem(index),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
                 const SizedBox(height: 20),
               ],
 
-              if (_serviceCompleted == false) ...[
-                Text(
-                  '${AppLocalizations.of(context)!.inspectionFee} ',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade800,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                IgnorePointer(
-                  ignoring: true,
-                  child: TextFormField(
-                    controller: TextEditingController(
-                      text:
-                          widget.booking.service.price?.toStringAsFixed(2) ??
-                          '0',
+              // Conditional Service Fields - Only show if service completed
+              if (_serviceCompleted) ...[
+                // Service Cost - Only show if no items added AND service cost is empty
+                if (_serviceItems.isEmpty) ...[
+                  Text(
+                    '${AppLocalizations.of(context)!.serviceCost} *',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade800,
                     ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _serviceCostController,
                     keyboardType: TextInputType.number,
-                    onChanged: (_) => setState(() {}),
-
+                    onChanged: (_) => setState(
+                      () {},
+                    ), // Triggers rebuild to hide service items
+                    validator: (value) {
+                      if (!_serviceCompleted || _serviceItems.isNotEmpty) {
+                        return null;
+                      }
+                      if (value == null || value.isEmpty) {
+                        return AppLocalizations.of(
+                          context,
+                        )!.pleaseEnterServiceCost;
+                      }
+                      if (double.tryParse(value) == null) {
+                        return AppLocalizations.of(
+                          context,
+                        )!.pleaseEnterValidNumber;
+                      }
+                      if (double.parse(value) <= 0) {
+                        return AppLocalizations.of(
+                          context,
+                        )!.serviceCostMustBeGreaterThanZero;
+                      }
+                      return null;
+                    },
                     decoration: InputDecoration(
                       hintText: AppLocalizations.of(context)!.enterServiceCost,
                       prefixIcon: Icon(Icons.money, color: AppColors.primary),
@@ -1427,61 +1732,315 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 20),
+                ],
+
+                // Service Items Section - Only show if service cost field is EMPTY
+                if (_serviceCostController.text.isEmpty) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.serviceItems,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                      InkWell(
+                        onTap: _addServiceItem,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.add,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                AppLocalizations.of(context)!.addItem,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade200, width: 1),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 18,
+                          color: Colors.blue.shade700,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            AppLocalizations.of(
+                              context,
+                            )!.serviceItemsCalculationNote,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.blue.shade900,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Dynamic Service Items list
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _serviceItems.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    flex: 3,
+                                    child: TextFormField(
+                                      controller:
+                                          _serviceItems[index].nameController,
+                                      decoration: InputDecoration(
+                                        hintText:
+                                            '${AppLocalizations.of(context)!.item} ${index + 1}',
+                                        isDense: true,
+                                        label: Text(
+                                          "${AppLocalizations.of(context)!.item} ${index + 1}",
+                                        ),
+
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 10,
+                                            ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                      ),
+                                      validator: (value) {
+                                        if (!_serviceCompleted ||
+                                            _serviceItems.isEmpty) {
+                                          return null;
+                                        }
+                                        if (value == null || value.isEmpty) {
+                                          return AppLocalizations.of(
+                                            context,
+                                          )!.required;
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    flex: 2,
+                                    child: TextFormField(
+                                      controller: _serviceItems[index]
+                                          .quantityController,
+                                      keyboardType: TextInputType.number,
+                                      onChanged: (_) => setState(() {}),
+                                      decoration: InputDecoration(
+                                        hintText: AppLocalizations.of(
+                                          context,
+                                        )!.qty,
+                                        label: Text(
+                                          AppLocalizations.of(context)!.qty,
+                                        ),
+                                        isDense: true,
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 10,
+                                            ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                      ),
+                                      validator: (value) {
+                                        if (!_serviceCompleted ||
+                                            _serviceItems.isEmpty) {
+                                          return null;
+                                        }
+                                        if (value == null || value.isEmpty) {
+                                          return AppLocalizations.of(
+                                            context,
+                                          )!.required;
+                                        }
+                                        if (double.tryParse(value) == null) {
+                                          return AppLocalizations.of(
+                                            context,
+                                          )!.invalid;
+                                        }
+                                        if (double.parse(value) <= 0) {
+                                          return AppLocalizations.of(
+                                            context,
+                                          )!.serviceCostMustBeGreaterThanZero;
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    flex: 2,
+                                    child: TextFormField(
+                                      controller:
+                                          _serviceItems[index].priceController,
+                                      keyboardType: TextInputType.number,
+                                      onChanged: (_) => setState(() {}),
+                                      decoration: InputDecoration(
+                                        hintText: AppLocalizations.of(
+                                          context,
+                                        )!.price,
+                                        label: Text(
+                                          AppLocalizations.of(context)!.price,
+                                        ),
+                                        isDense: true,
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 10,
+                                            ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                      ),
+                                      validator: (value) {
+                                        if (!_serviceCompleted ||
+                                            _serviceItems.isEmpty) {
+                                          return null;
+                                        }
+                                        if (value == null || value.isEmpty) {
+                                          return AppLocalizations.of(
+                                            context,
+                                          )!.required;
+                                        }
+                                        if (double.tryParse(value) == null) {
+                                          return AppLocalizations.of(
+                                            context,
+                                          )!.invalid;
+                                        }
+                                        if (double.parse(value) <= 0) {
+                                          return AppLocalizations.of(
+                                            context,
+                                          )!.serviceCostMustBeGreaterThanZero;
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () => _removeServiceItem(index),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ],
+
+              if (_serviceCompleted == false) ...[
+                Text(
+                  '${AppLocalizations.of(context)!.inspectionFee} ',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                IgnorePointer(
+                  ignoring: true,
+                  child: TextFormField(
+                    controller: TextEditingController(
+                      text:
+                          widget.booking.service.price?.toStringAsFixed(2) ??
+                          '0',
+                    ),
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      hintText: AppLocalizations.of(context)!.enterServiceCost,
+                      prefixIcon: Icon(Icons.money, color: AppColors.primary),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: AppColors.primary,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 20),
               ],
-
-              // Payment Method
-              Text(
-                '${AppLocalizations.of(context)!.paymentMethod} *',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade800,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedPaymentMethod,
-                    isExpanded: true,
-                    icon: const Icon(Icons.keyboard_arrow_down),
-                    items: _paymentMethods.map((String method) {
-                      return DropdownMenuItem<String>(
-                        value: method,
-                        child: Row(
-                          children: [
-                            Icon(
-                              method == 'Cash'
-                                  ? Icons.money
-                                  : Icons.credit_card,
-                              size: 20,
-                              color: AppColors.primary,
-                            ),
-                            const SizedBox(width: 12),
-                            Text(method),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      if (newValue != null) {
-                        setState(() {
-                          _selectedPaymentMethod = newValue;
-                        });
-                      }
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
 
               // Total Cost
               Container(
@@ -1564,250 +2123,6 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Future<void> _showConfirmationDialog() async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Row(
-            children: [
-              Icon(Icons.receipt_long, color: AppColors.primary),
-              const SizedBox(width: 8),
-              Text(
-                AppLocalizations.of(context)!.confirmDetails,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Service Type
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: _serviceCompleted
-                        ? AppColors.primary.withAlpha(30)
-                        : Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        _serviceCompleted
-                            ? Icons.check_circle
-                            : Icons.search_outlined,
-                        color: _serviceCompleted
-                            ? AppColors.primary
-                            : Colors.grey.shade700,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _serviceCompleted
-                            ? AppLocalizations.of(context)!.serviceCompleted
-                            : AppLocalizations.of(context)!.inspectionOnly,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: _serviceCompleted
-                              ? AppColors.primary
-                              : Colors.grey.shade800,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Inspection/Service Cost
-                _buildDetailRow(
-                  _serviceCompleted
-                      ? AppLocalizations.of(context)!.serviceCost
-                      : AppLocalizations.of(context)!.inspectionFee,
-                  _serviceCompleted
-                      ? double.parse(_serviceCostController.text)
-                      : widget.booking.service.price?.toDouble() ?? 0,
-                ),
-
-                // Service Items (only if service completed)
-                if (_serviceCompleted && _serviceItems.isNotEmpty) ...[
-                  const Divider(height: 24),
-                  Text(
-                    AppLocalizations.of(context)!.serviceItems,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade800,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ..._serviceItems.asMap().entries.map((entry) {
-                    int index = entry.key;
-                    ServiceItem item = entry.value;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Colors.grey.shade200),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${index + 1}. ${item.nameController.text}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '${AppLocalizations.of(context)!.qty}: ${item.quantity.toStringAsFixed(0)}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                                Text(
-                                  '${item.price.toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                                Text(
-                                  '${(item.quantity * item.price).toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}',
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ],
-
-                const Divider(height: 24),
-
-                // Payment Method
-                _buildDetailRow(
-                  AppLocalizations.of(context)!.paymentMethod,
-                  _selectedPaymentMethod,
-                  isAmount: false,
-                ),
-
-                const Divider(height: 24),
-
-                // Total Cost
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withAlpha(50),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.primary),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        AppLocalizations.of(context)!.totalCost,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      Text(
-                        '${_totalCost.toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(
-                AppLocalizations.of(context)!.cancel,
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                _handleComplete();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                AppLocalizations.of(context)!.confirm,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildDetailRow(String label, dynamic value, {bool isAmount = true}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
-          ),
-          Text(
-            isAmount
-                ? '${(value as double).toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}'
-                : value.toString(),
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-          ),
-        ],
       ),
     );
   }

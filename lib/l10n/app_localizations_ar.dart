@@ -1140,6 +1140,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get item => 'العنصر';
 
   @override
+  String get quantity => 'كمية';
+
+  @override
+  String get openSettings => 'افتح الاعدادات';
+
+  @override
   String get paymentMethod => 'طريقة الدفع';
 
   @override
@@ -2580,16 +2586,92 @@ class AppLocalizationsAr extends AppLocalizations {
   String get payoutRequestSuccessful => 'طلب الدفع بنجاح';
 
   @override
+  String get rejectedBy => 'مرفوض بواسطة';
+
+  @override
+  String get rejectedOn => 'مرفوض على';
+
+  @override
+  String get acceptedOn => 'مقبول على';
+
+  @override
+  String get acceptedBy => 'مقبول بواسطة';
+
+  @override
+  String get completedOn => 'مكتمل على';
+
+  @override
+  String get completedBy => 'مكتمل بواسطة';
+
+  @override
   String get confirmDetails => 'تأكيد البيانات';
 
   @override
   String get loadingCategories => 'تحميل الاقسام...';
 
   @override
+  String get pleaseUploadFiles => 'Please upload files';
+
+  @override
+  String get confirmCompletion => 'Confirm Completion';
+
+  @override
+  String get uploadFilesTitle => 'وثائق التكميل / المستندات المساعدة';
+
+  @override
+  String get uploadHint =>
+      'قم بتحميل صورة أو صورة الفاتورة يعرضها العميل عند إكمال الخدمة أو شراء العناصر';
+
+  @override
+  String get pleaseUploadFilesMessage =>
+      'يرجى تحميل وثائق التكميل / المستندات المساعدة';
+
+  @override
+  String get confirmCompletionMessage =>
+      'Are you sure you want to confirm completion of this booking?';
+
+  @override
+  String get cannotCancel =>
+      'لا يمكن إلغاء الحجز بينما يتم تتبعه. يرجى إيقاف التتبع في إطلاق واحدة، ثم يمكنك إلغاء الحجز.';
+
+  @override
   String get editSelection => 'تحرير الاختيار';
 
   @override
   String get apply => 'تطبيق';
+
+  @override
+  String get tapToUploadFiles => 'Tap to upload files';
+
+  @override
+  String get serviceItemsCalculationNote =>
+      'سيتم حساب التكلفة الإجمالية تلقائيًا على أساس (الكمية × السعر) لكل عنصر وإضافتها إلى رسوم الفحص.';
+
+  @override
+  String get addMoreFiles => 'Add more files';
+
+  @override
+  String get allowedFileTypes =>
+      'Allowed file types: jpg, jpeg, png, pdf, doc,';
+
+  @override
+  String get uploadFiles => 'Upload Files';
+
+  @override
+  String get filesAttached => 'الوثائق المرفقة';
+
+  @override
+  String get costBreakdown => 'تقسيم التكلفة';
+
+  @override
+  String get removeItem => 'إزالة العنصر';
+
+  @override
+  String get removeItemConfirmation =>
+      'هل أنت متأكد من أنك تريد إزالة هذا العنصر؟';
+
+  @override
+  String get remove => 'إزالة';
 
   @override
   String get noBannersAAddedYet => 'لا يوجد بانرات حتى الآن';

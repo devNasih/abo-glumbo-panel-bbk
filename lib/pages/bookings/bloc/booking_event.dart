@@ -25,18 +25,16 @@ class CancelBooking extends BookingEvent {
 class CompleteBooking extends BookingEvent {
   final int mode;
   final String bookingId;
-  final File selectedImage;
+  final List<File> selectedFiles;
   final double serviceCost;
   final List<BookingServiceItem> serviceItems; // Changed to BookingServiceItem
-  final String selectedPaymentMethod;
   final double totalCost;
 
   const CompleteBooking({
     required this.mode,
-    required this.selectedImage,
+    required this.selectedFiles,
     required this.serviceCost,
     required this.serviceItems,
-    required this.selectedPaymentMethod,
     required this.totalCost,
     required this.bookingId,
   });
@@ -45,10 +43,9 @@ class CompleteBooking extends BookingEvent {
   List<Object> get props => [
     mode,
     bookingId,
-    selectedImage,
+    selectedFiles,
     serviceCost,
     serviceItems,
-    selectedPaymentMethod,
     totalCost,
   ];
 }
@@ -76,5 +73,3 @@ class StopWorkingOnBooking extends BookingEvent {
   @override
   List<Object> get props => [bookingId];
 }
-
-

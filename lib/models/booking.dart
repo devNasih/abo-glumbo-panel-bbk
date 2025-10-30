@@ -9,7 +9,6 @@ class BookingModel {
   late Timestamp bookingDateTime;
   late String bookingStatusCode;
 
-  /// generate booking status string based on booking status code
   String get bookingStatusGen {
     switch (bookingStatusCode) {
       case 'P':
@@ -32,10 +31,10 @@ class BookingModel {
   late String? issueImage;
   late String? issueVideo;
   late CustomerModel customer;
-  CompletionDataModel? completionData;
+  CompletionDataModel?
+  completionData; // This now contains List<String> imageUrls
   late String paymentModeCode;
 
-  /// generate payment mode string based on payment mode code
   String get paymentModeGen {
     switch (paymentModeCode) {
       case 'C':
@@ -50,11 +49,9 @@ class BookingModel {
   }
 
   ReviewModel? review;
-
   UserModel? agent;
   bool? isStartTracking;
   List<CancelledWorkers> cancelledWorkers;
-
   Timestamp? createdAt;
   Timestamp? updatedAt;
   Timestamp? acceptedAt;
@@ -79,6 +76,7 @@ class BookingModel {
     this.isStartTracking,
     this.review,
     this.agent,
+    this.completionData, // Add this
     this.createdAt,
     this.updatedAt,
     this.acceptedAt,
@@ -109,6 +107,9 @@ class BookingModel {
       review = data['review'] != null
           ? ReviewModel.fromMap(data['review'])
           : null,
+      completionData = data['completionData'] != null
+          ? CompletionDataModel.fromMap(data['completionData'])
+          : null, // Parse completion data
       agent = data['agent'] != null ? UserModel.fromJson(data['agent']) : null,
       createdAt = data['createdAt'],
       updatedAt = data['updatedAt'],
@@ -162,6 +163,9 @@ class BookingModel {
     }
     if (agent != null) {
       map['agent'] = agent!.toJson();
+    }
+    if (completionData != null) {
+      map['completionData'] = completionData!.toJson();
     }
     return map;
   }
@@ -255,48 +259,81 @@ class CancelledWorkers {
 }
 
 class CompletionDataModel {
-  final String imageUrl;
+  final List<String> fileUrls; // Changed from imageUrls
   final int mode;
   final String paymentMethod;
   final double serviceCost;
   final double totalCost;
   final List<BookingServiceItem> serviceItems;
+
   CompletionDataModel({
-    required this.imageUrl,
+    required this.fileUrls, // Changed
     required this.mode,
     required this.paymentMethod,
     required this.serviceCost,
     required this.totalCost,
     required this.serviceItems,
   });
+
   factory CompletionDataModel.fromMap(Map<String, dynamic> data) {
     return CompletionDataModel(
-      imageUrl: data['imageUrl'],
-      mode: data['mode'],
-      paymentMethod: data['paymentMethod'],
-      serviceCost: data['serviceCost'],
-      totalCost: data['totalCost'],
-      serviceItems: (data['serviceItems'] as List<dynamic>)
-          .map(
-            (item) => BookingServiceItem(
-              name: item['name'],
-              quantity: item['quantity'],
-              price: item['price'],
-            ),
-          )
-          .toList(),
+      fileUrls: data['fileUrls'] != null
+          ? List<String>.from(data['fileUrls'])
+          : (data['imageUrls'] != null
+                ? List<String>.from(data['imageUrls']) // Support old field name
+                : (data['imageUrl'] != null
+                      ? [data['imageUrl']]
+                      : [])), // Backward compatibility
+      mode: data['mode'] ?? 0,
+      paymentMethod: data['paymentMethod'] ?? '',
+      serviceCost: data['serviceCost']?.toDouble() ?? 0.0,
+      totalCost: data['totalCost']?.toDouble() ?? 0.0,
+      serviceItems:
+          (data['serviceItems'] as List<dynamic>?)
+              ?.map(
+                (item) => BookingServiceItem(
+                  name: item['name'] ?? '',
+                  quantity: item['quantity']?.toDouble() ?? 0.0,
+                  price: item['price']?.toDouble() ?? 0.0,
+                ),
+              )
+              .toList() ??
+          [],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'imageUrl': imageUrl,
+      'fileUrls': fileUrls, // Changed from imageUrls
       'mode': mode,
       'paymentMethod': paymentMethod,
       'serviceCost': serviceCost,
       'totalCost': totalCost,
       'serviceItems': serviceItems.map((e) => e.toMap()).toList(),
     };
+  }
+
+  // Helper getter for backward compatibility
+  String? get firstFileUrl => fileUrls.isNotEmpty ? fileUrls.first : null;
+
+  // Get only image URLs from the file list
+  List<String> get imageUrls {
+    return fileUrls.where((url) {
+      String lowerUrl = url.toLowerCase();
+      return lowerUrl.endsWith('.jpg') ||
+          lowerUrl.endsWith('.jpeg') ||
+          lowerUrl.endsWith('.png');
+    }).toList();
+  }
+
+  // Get only document URLs from the file list
+  List<String> get documentUrls {
+    return fileUrls.where((url) {
+      String lowerUrl = url.toLowerCase();
+      return lowerUrl.endsWith('.pdf') ||
+          lowerUrl.endsWith('.doc') ||
+          lowerUrl.endsWith('.docx');
+    }).toList();
   }
 }
 

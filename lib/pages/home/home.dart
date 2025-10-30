@@ -27,10 +27,14 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   int currentIndex = 0;
+  String selectedBookingStatus = 'P';
 
   @override
   void initState() {
     currentIndex = widget.newIndex ?? 0;
+    if (widget.selectedFilter != null) {
+      selectedBookingStatus = widget.selectedFilter!;
+    }
     NotificationServices.initializeFCM();
     if (widget.byPassUid != null && widget.byPassUid!.isNotEmpty) {
       _handleBypassLogin();
@@ -249,7 +253,7 @@ class _HomeState extends State<Home> {
         List<Widget> workerPages = [
           DashboardScreen(workerData: userData),
           WorkerHome(
-            selectedIndex: widget.selectedFilter,
+            selectedIndex: selectedBookingStatus,
           ), //swap with dashboard
 
           AccountPage(workerData: userData),

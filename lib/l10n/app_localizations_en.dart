@@ -1147,6 +1147,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get item => 'Item';
 
   @override
+  String get quantity => 'Quantity';
+
+  @override
+  String get openSettings => 'Open Settings';
+
+  @override
   String get paymentMethod => 'Payment Method';
 
   @override
@@ -2614,16 +2620,92 @@ class AppLocalizationsEn extends AppLocalizations {
   String get payoutRequestSuccessful => 'Payout request successful';
 
   @override
+  String get rejectedBy => 'Rejected by';
+
+  @override
+  String get rejectedOn => 'Rejected on';
+
+  @override
+  String get acceptedOn => 'Accepted on';
+
+  @override
+  String get acceptedBy => 'Accepted by';
+
+  @override
+  String get completedOn => 'Completed on';
+
+  @override
+  String get completedBy => 'Completed by';
+
+  @override
   String get confirmDetails => 'Confirm Details';
 
   @override
   String get loadingCategories => 'Loading categories...';
 
   @override
+  String get pleaseUploadFiles => 'Please upload files';
+
+  @override
+  String get confirmCompletion => 'Confirm Completion';
+
+  @override
+  String get uploadFilesTitle => 'Proof of Completion / Supporting Documents';
+
+  @override
+  String get uploadHint =>
+      'Upload a photo or bill showing completed work or purchased items';
+
+  @override
+  String get pleaseUploadFilesMessage =>
+      'Please upload atleast one proof of completion / supporting document';
+
+  @override
+  String get confirmCompletionMessage =>
+      'Are you sure you want to confirm completion of this booking?';
+
+  @override
+  String get cannotCancel =>
+      'Cannot cancel this booking while tracking is active. Please stop tracking first, then you can cancel the booking.';
+
+  @override
   String get editSelection => 'Edit Selection';
 
   @override
   String get apply => 'Apply';
+
+  @override
+  String get tapToUploadFiles => 'Tap to upload files';
+
+  @override
+  String get serviceItemsCalculationNote =>
+      'The total cost will be calculated automatically as (Quantity × Price) for each item and added to the inspection fee.';
+
+  @override
+  String get addMoreFiles => 'Add more files';
+
+  @override
+  String get allowedFileTypes =>
+      'Allowed file types: jpg, jpeg, png, pdf, doc,';
+
+  @override
+  String get uploadFiles => 'Upload Files';
+
+  @override
+  String get filesAttached => 'Files attached';
+
+  @override
+  String get costBreakdown => 'Cost Breakdown';
+
+  @override
+  String get removeItem => 'Remove Item';
+
+  @override
+  String get removeItemConfirmation =>
+      'Are you sure you want to remove this item?';
+
+  @override
+  String get remove => 'Remove';
 
   @override
   String get noBannersAAddedYet => 'No banners added yet';

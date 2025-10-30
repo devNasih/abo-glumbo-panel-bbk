@@ -2300,6 +2300,18 @@ abstract class AppLocalizations {
   /// **'Item'**
   String get item;
 
+  /// No description provided for @quantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get quantity;
+
+  /// No description provided for @openSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get openSettings;
+
   /// No description provided for @paymentMethod.
   ///
   /// In en, this message translates to:
@@ -5042,6 +5054,42 @@ abstract class AppLocalizations {
   /// **'Payout request successful'**
   String get payoutRequestSuccessful;
 
+  /// No description provided for @rejectedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected by'**
+  String get rejectedBy;
+
+  /// No description provided for @rejectedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected on'**
+  String get rejectedOn;
+
+  /// No description provided for @acceptedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted on'**
+  String get acceptedOn;
+
+  /// No description provided for @acceptedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted by'**
+  String get acceptedBy;
+
+  /// No description provided for @completedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed on'**
+  String get completedOn;
+
+  /// No description provided for @completedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed by'**
+  String get completedBy;
+
   /// No description provided for @confirmDetails.
   ///
   /// In en, this message translates to:
@@ -5054,6 +5102,48 @@ abstract class AppLocalizations {
   /// **'Loading categories...'**
   String get loadingCategories;
 
+  /// No description provided for @pleaseUploadFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Please upload files'**
+  String get pleaseUploadFiles;
+
+  /// No description provided for @confirmCompletion.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Completion'**
+  String get confirmCompletion;
+
+  /// No description provided for @uploadFilesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Proof of Completion / Supporting Documents'**
+  String get uploadFilesTitle;
+
+  /// No description provided for @uploadHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload a photo or bill showing completed work or purchased items'**
+  String get uploadHint;
+
+  /// No description provided for @pleaseUploadFilesMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please upload atleast one proof of completion / supporting document'**
+  String get pleaseUploadFilesMessage;
+
+  /// No description provided for @confirmCompletionMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to confirm completion of this booking?'**
+  String get confirmCompletionMessage;
+
+  /// No description provided for @cannotCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot cancel this booking while tracking is active. Please stop tracking first, then you can cancel the booking.'**
+  String get cannotCancel;
+
   /// No description provided for @editSelection.
   ///
   /// In en, this message translates to:
@@ -5065,6 +5155,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply'**
   String get apply;
+
+  /// No description provided for @tapToUploadFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to upload files'**
+  String get tapToUploadFiles;
+
+  /// No description provided for @serviceItemsCalculationNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The total cost will be calculated automatically as (Quantity × Price) for each item and added to the inspection fee.'**
+  String get serviceItemsCalculationNote;
+
+  /// No description provided for @addMoreFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Add more files'**
+  String get addMoreFiles;
+
+  /// No description provided for @allowedFileTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed file types: jpg, jpeg, png, pdf, doc,'**
+  String get allowedFileTypes;
+
+  /// No description provided for @uploadFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Files'**
+  String get uploadFiles;
+
+  /// No description provided for @filesAttached.
+  ///
+  /// In en, this message translates to:
+  /// **'Files attached'**
+  String get filesAttached;
+
+  /// No description provided for @costBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost Breakdown'**
+  String get costBreakdown;
+
+  /// No description provided for @removeItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Item'**
+  String get removeItem;
+
+  /// No description provided for @removeItemConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove this item?'**
+  String get removeItemConfirmation;
+
+  /// No description provided for @remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get remove;
 
   /// No description provided for @noBannersAAddedYet.
   ///

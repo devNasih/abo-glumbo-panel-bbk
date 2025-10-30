@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/main.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
@@ -9,6 +8,7 @@ import 'package:aboglumbo_bbk_panel/services/location_services.dart';
 import 'package:background_fetch/background_fetch.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -53,11 +53,15 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
   ) async {
     emit(BookingCompleteLoading());
     try {
-      // Step 1: Upload image to Firebase Storage
-      String imageUrl = await _uploadImageToStorage(
-        event.selectedImage,
-        event.bookingId,
-      );
+      // Step 1: Upload files (images and documents) to Firebase Storage
+      List<String> fileUrls = [];
+      for (int i = 0; i < event.selectedFiles.length; i++) {
+        String fileUrl = await _uploadFileToStorage(
+          event.selectedFiles[i],
+          '${event.bookingId}_file_$i', // Unique name for each file
+        );
+        fileUrls.add(fileUrl);
+      }
 
       // Step 2: Prepare service items data
       List<Map<String, dynamic>> serviceItemsData = event.serviceItems
@@ -67,12 +71,10 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
       // Step 3: Save booking completion data to Firestore
       await _saveBookingCompletionData(
         bookingId: event.bookingId,
-        imageUrl: imageUrl,
+        fileUrls: fileUrls, // Changed from imageUrls
         serviceCost: event.serviceCost,
         serviceItems: serviceItemsData,
-        paymentMethod: event.selectedPaymentMethod.toLowerCase() == 'card'
-            ? 'C'
-            : 'O',
+
         totalCost: event.totalCost,
         mode: event.mode,
       );
@@ -90,35 +92,61 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     }
   }
 
-  // Upload image to Firebase Storage and return download URL
-  Future<String> _uploadImageToStorage(File imageFile, String bookingId) async {
+  // Updated upload method to handle both images and documents
+  Future<String> _uploadFileToStorage(File file, String fileName) async {
     try {
-      // Create a unique filename using timestamp and booking ID
-      String fileName =
-          'booking_completion_${bookingId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      // Get file extension to determine content type
+      String extension = file.path.split('.').last.toLowerCase();
+      String contentType;
 
-      // Upload the file
-      final uploadTask = AppFireStorage.servicesStorageRef
-          .child(fileName)
-          .putFile(imageFile);
+      // Set appropriate content type
+      switch (extension) {
+        case 'jpg':
+        case 'jpeg':
+          contentType = 'image/jpeg';
+          break;
+        case 'png':
+          contentType = 'image/png';
+          break;
+        case 'pdf':
+          contentType = 'application/pdf';
+          break;
+        case 'doc':
+          contentType = 'application/msword';
+          break;
+        case 'docx':
+          contentType =
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+          break;
+        default:
+          contentType = 'application/octet-stream';
+      }
 
-      // Wait for upload to complete and get download URL
-      final snapshot = await uploadTask;
-      final downloadUrl = await snapshot.ref.getDownloadURL();
+      // Create reference with proper extension
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('booking_files')
+          .child('$fileName.$extension');
 
+      // Upload with metadata
+      final metadata = SettableMetadata(contentType: contentType);
+
+      await storageRef.putFile(file, metadata);
+
+      // Get download URL
+      String downloadUrl = await storageRef.getDownloadURL();
       return downloadUrl;
     } catch (e) {
-      throw Exception('Failed to upload image: $e');
+      throw Exception('Failed to upload file: $e');
     }
   }
 
   // Save booking completion data to Firestore
   Future<void> _saveBookingCompletionData({
     required String bookingId,
-    required String imageUrl,
+    required List<String> fileUrls, // Changed from imageUrls
     required double serviceCost,
     required List<Map<String, dynamic>> serviceItems,
-    required String paymentMethod,
     required double totalCost,
     required int mode,
   }) async {
@@ -129,15 +157,15 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
           .doc(bookingId)
           .update({
             'completionData': {
-              'imageUrl': imageUrl,
+              'fileUrls': fileUrls, // Changed from imageUrls
               'serviceCost': serviceCost,
               'serviceItems': serviceItems,
-              'paymentMethod': paymentMethod,
               'totalCost': totalCost,
               'mode': mode,
             },
             'completedAt': FieldValue.serverTimestamp(),
             'status': 'completed',
+            'bookingStatusCode': 'C',
             'updatedAt': FieldValue.serverTimestamp(),
           });
     } catch (e) {

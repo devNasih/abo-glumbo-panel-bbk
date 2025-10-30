@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
-import 'package:aboglumbo_bbk_panel/models/tipping.dart';
-import 'package:aboglumbo_bbk_panel/models/transaction.dart';
+
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/notifications.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
@@ -23,69 +24,46 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  late Future<_DashboardData> _dashboardDataFuture;
-  int _refreshKey = 0;
+  late Stream<DashboardDataStream> _dashboardStream;
+  late AppServices _appServices;
+  bool _isRefreshing = false;
 
   @override
   void initState() {
     super.initState();
-    _dashboardDataFuture = _loadAllDashboardData();
+    _appServices = AppServices();
+    _dashboardStream = AppServices.getCompleteDashboardStreamWithRefresh(
+      widget.workerData.uid ?? "",
+      _appServices.dashboardRefreshTrigger,
+    );
   }
 
   /// Load all dashboard data simultaneously
-  Future<_DashboardData> _loadAllDashboardData() async {
-    try {
-      // Execute all async operations in parallel
-      final results = await Future.wait([
-        AppServices.getallstats(widget.workerData.uid ?? "").first,
-        AppServices.getWorkerTransactions(widget.workerData.uid ?? ""),
-        AppServices.getTipsById(
-          widget.workerData.uid ?? "",
-        ).catchError((_) => <AllTipsModel>[]),
-        AppServices.getWorkerAvailableBalance(widget.workerData.uid ?? ""),
-        AppServices.getWorkerPaidAmounts(widget.workerData.uid ?? ""),
-      ]);
-
-      final stats = results[0] as Map<String, dynamic>;
-      final transactions = results[1] as List<TransactionModel>;
-      final tips = results[2] as List<AllTipsModel>;
-      // final availableBalance = results[3] as double;
-      final paidAmounts = results[4] as double;
-
-      // Calculate earnings
-      final earnings = _calculateEarnings(transactions, tips, paidAmounts);
-
-      return _DashboardData(stats: stats, totalEarnings: earnings);
-    } catch (e) {
-      debugPrint('Error loading dashboard data: $e');
-      rethrow;
-    }
-  }
 
   /// Calculate earnings from transactions and tips
-  double _calculateEarnings(
-    List<TransactionModel> transactions,
-    List<AllTipsModel> tips,
-    double paidAmounts,
-  ) {
-    double cashPayments = 0.0;
-    double cardPayments = 0.0;
+  // double _calculateEarnings(
+  //   List<TransactionModel> transactions,
+  //   List<AllTipsModel> tips,
+  //   double paidAmounts,
+  // ) {
+  //   double cashPayments = 0.0;
+  //   double cardPayments = 0.0;
 
-    // Calculate transaction earnings
-    for (var transaction in transactions) {
-      final status = transaction.paymentStatus.toLowerCase();
-      if (status == 'completed' || status == 'paid') {
-        final method = transaction.paymentMethod.toLowerCase();
-        if (method == 'cash on hands') {
-          cashPayments += transaction.amount;
-        } else if (method == 'cards') {
-          cardPayments += transaction.amount;
-        }
-      }
-    }
+  //   // Calculate transaction earnings
+  //   for (var transaction in transactions) {
+  //     final status = transaction.paymentStatus.toLowerCase();
+  //     if (status == 'completed' || status == 'paid') {
+  //       final method = transaction.paymentMethod.toLowerCase();
+  //       if (method == 'cash on hands') {
+  //         cashPayments += transaction.amount;
+  //       } else if (method == 'cards') {
+  //         cardPayments += transaction.amount;
+  //       }
+  //     }
+  //   }
 
-    return cashPayments + cardPayments - paidAmounts;
-  }
+  //   return cashPayments + cardPayments - paidAmounts;
+  // }
 
   /// Get rating quality text
   String _getRatingSubtitle(double rating) {
@@ -98,11 +76,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   /// Handle pull-to-refresh
   Future<void> _handleRefresh() async {
+    debugPrint('🔄 Pull-to-refresh triggered');
+
     setState(() {
-      _refreshKey++;
-      _dashboardDataFuture = _loadAllDashboardData();
+      _isRefreshing = true;
     });
-    await _dashboardDataFuture;
+
+    try {
+      // Add a small delay to ensure UI updates smoothly
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // Trigger manual refresh through the controller
+      _appServices.triggerDashboardRefresh();
+
+      // Wait for stream to emit new data
+      await _dashboardStream.first;
+
+      debugPrint('✅ Refresh completed');
+    } catch (e) {
+      debugPrint('❌ Refresh error: $e');
+    } finally {
+      setState(() {
+        _isRefreshing = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    // Clean up refresh controller
+    _appServices.disposeDashboardRefresh();
+    super.dispose();
   }
 
   @override
@@ -112,9 +116,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: _buildAppBar(),
       body: RefreshIndicator(
         onRefresh: _handleRefresh,
-        child: FutureBuilder<_DashboardData>(
-          key: ValueKey(_refreshKey),
-          future: _dashboardDataFuture,
+        child: StreamBuilder<DashboardDataStream>(
+          stream: _dashboardStream,
+
           builder: (context, snapshot) {
             // Coordinated loading state - all shimmer together
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -225,7 +229,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   /// Build success state with all loaded data
-  Widget _buildSuccessState(_DashboardData data) {
+  Widget _buildSuccessState(DashboardDataStream data) {
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       child: Padding(
@@ -709,12 +713,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 // ========== DATA MODELS ==========
 
 /// Dashboard data container
-class _DashboardData {
-  final Map<String, dynamic> stats;
-  final double totalEarnings;
-
-  const _DashboardData({required this.stats, required this.totalEarnings});
-}
 
 /// Stat card data model
 class _StatData {
