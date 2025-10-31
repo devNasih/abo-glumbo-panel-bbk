@@ -76,6 +76,15 @@ class BookingInfo extends StatelessWidget {
                 (booking.issueVideo != null && booking.issueVideo!.isNotEmpty))
               _buildIssueMediaCard(context, textTheme, colorScheme),
             const SizedBox(height: 16),
+
+            // Add this after _buildIssueMediaCard and before _buildBookingTimelineCard
+            if (booking.bookingStatusCode.toLowerCase() == 'c' &&
+                booking.paymentCompleted &&
+                booking.completionData != null) ...[
+              _buildCompletionDataCard(context, textTheme, colorScheme),
+              const SizedBox(height: 16),
+            ],
+
             _buildBookingTimelineCard(context, textTheme, colorScheme),
           ],
         ),
@@ -141,7 +150,7 @@ class BookingInfo extends StatelessWidget {
 
             _buildInfoRow(
               context,
-              label: AppLocalizations.of(context)!.orderId,
+              label: AppLocalizations.of(context)!.bookingId,
               value: booking.id,
               textTheme: textTheme,
               colorScheme: colorScheme,
@@ -177,20 +186,6 @@ class BookingInfo extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Payment Mode
-            if (booking.bookingStatusCode.toLowerCase() == 'c' &&
-                booking.paymentCompleted) ...{
-              _buildInfoRow(
-                context,
-                label: AppLocalizations.of(context)!.paymentMode,
-                value: booking.paymentModeCode.toLowerCase() == 'c'
-                    ? AppLocalizations.of(context)!.card
-                    : booking.paymentModeCode.toLowerCase() == 'a'
-                    ? AppLocalizations.of(context)!.applePay
-                    : AppLocalizations.of(context)!.cashOnHands,
-                textTheme: textTheme,
-                colorScheme: colorScheme,
-              ),
-            },
           ],
         ),
       ),
@@ -498,7 +493,7 @@ class BookingInfo extends StatelessWidget {
             // Images Section
             if (booking.issueImage != null && booking.issueImage!.isNotEmpty)
               Text(
-                AppLocalizations.of(context)!.images,
+                AppLocalizations.of(context)!.image,
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -564,10 +559,10 @@ class BookingInfo extends StatelessWidget {
             if (booking.issueVideo != null && booking.issueVideo!.isNotEmpty)
               Container(
                 width: double.infinity,
-                height: 120,
+                height: 200,
                 decoration: BoxDecoration(
                   color: colorScheme.surfaceVariant.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: colorScheme.outline.withOpacity(0.2),
                   ),
@@ -714,9 +709,7 @@ class BookingInfo extends StatelessWidget {
         'date': booking.completedAt!.toDate(),
       });
     }
-
-    // Rejected
-    if (booking.rejectedAt != null) {
+    if (booking.bookingStatusCode.toLowerCase() == 'r') {
       timelineItems.add({
         'title': AppLocalizations.of(context)!.rejectedAt,
         'time': _formatDateLocalized(booking.rejectedAt!.toDate(), context),
@@ -725,6 +718,17 @@ class BookingInfo extends StatelessWidget {
         )!.bookingWasRejectedByServiceProvider,
         'status': 'rejected',
         'date': booking.rejectedAt!.toDate(),
+      });
+    }
+    if (booking.bookingStatusCode.toLowerCase() == 'xc') {
+      timelineItems.add({
+        'title': AppLocalizations.of(context)!.cancelledByCustomer,
+        'time': _formatDateLocalized(booking.cancelledAt!.toDate(), context),
+        'description': AppLocalizations.of(
+          context,
+        )!.bookingWasCancelledByCustomer,
+        'status': 'rejected',
+        'date': booking.cancelledAt!.toDate(),
       });
     }
 
@@ -747,19 +751,12 @@ class BookingInfo extends StatelessWidget {
     }
 
     // Admin cancellation
-    if (booking.bookingStatusCode.toLowerCase() == 'xx') {
-      timelineItems.add({
-        'title': AppLocalizations.of(context)!.cancelledByAdmin,
-        'time': _formatDateLocalized((booking.cancelledAt!.toDate()), context),
-        'description':
-            '${AppLocalizations.of(context)!.cancelledBy}: ${AppLocalizations.of(context)!.admin}',
-        'status': 'rejected',
-        'date': booking.cancelledAt!.toDate(),
-      });
-    }
 
     // If no completion/rejection/cancellation, add current status
-    if (booking.completedAt == null && booking.rejectedAt == null) {
+    if (booking.completedAt == null &&
+        booking.rejectedAt == null &&
+        booking.bookingStatusCode.toLowerCase() != 'xc' &&
+        booking.bookingStatusCode.toLowerCase() != 'xx') {
       if (booking.trackingStartedAt != null) {
         timelineItems.add({
           'title': AppLocalizations.of(context)!.serviceInProgress,
@@ -781,18 +778,15 @@ class BookingInfo extends StatelessWidget {
           'date': DateTime.now(),
         });
       } else {
-        if (booking.bookingStatusCode.toLowerCase() != 'xx') {
-          // Only show if not cancelled by admin
-          timelineItems.add({
-            'title': AppLocalizations.of(context)!.waitingForAcceptance,
-            'time': AppLocalizations.of(context)!.pending,
-            'description': AppLocalizations.of(
-              context,
-            )!.waitingForServiceProviderResponse,
-            'status': 'current',
-            'date': DateTime.now(),
-          });
-        }
+        timelineItems.add({
+          'title': AppLocalizations.of(context)!.waitingForAcceptance,
+          'time': AppLocalizations.of(context)!.pending,
+          'description': AppLocalizations.of(
+            context,
+          )!.waitingForServiceProviderResponse,
+          'status': 'current',
+          'date': DateTime.now(),
+        });
       }
     }
 
@@ -1036,5 +1030,371 @@ class BookingInfo extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildCompletionDataCard(
+    BuildContext context,
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+  ) {
+    if (booking.completionData == null) {
+      return const SizedBox.shrink();
+    }
+
+    final completionData = booking.completionData!;
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(0.1),
+          width: 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with icon
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: colorScheme.tertiary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.check_circle,
+                    color: colorScheme.tertiary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  AppLocalizations.of(context)!.completionDetails,
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              context,
+              label: AppLocalizations.of(context)!.transactionId,
+              value: booking.orderId ?? "",
+              textTheme: textTheme,
+              colorScheme: colorScheme,
+            ),
+
+            const SizedBox(height: 16),
+            _buildInfoRow(
+              context,
+              label: AppLocalizations.of(context)!.invoiceType,
+              value: completionData.mode == 0
+                  ? AppLocalizations.of(context)!.inspection
+                  : AppLocalizations.of(context)!.fullService,
+              textTheme: textTheme,
+              colorScheme: colorScheme,
+            ),
+
+            // Upload Files
+            if (completionData.fileUrls.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                AppLocalizations.of(context)!.uploadFilesTitle,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: colorScheme.onSurface.withOpacity(0.7),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ..._buildFileLinks(context, completionData.fileUrls, colorScheme),
+            ],
+
+            // Service Items
+            if (completionData.serviceItems.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                AppLocalizations.of(context)!.serviceItems,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: colorScheme.onSurface.withOpacity(0.7),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceVariant.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: colorScheme.outline.withOpacity(0.1),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: completionData.serviceItems
+                        .asMap()
+                        .entries
+                        .map(
+                          (entry) => Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    flex: 12,
+                                    child: Text(
+                                      entry.value.name,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'x${entry.value.quantity.toInt()}',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: colorScheme.onSurface
+                                            .withOpacity(0.7),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    flex: 5,
+                                    child: Text(
+                                      '${AppLocalizations.of(context)!.sar} ${entry.value.price.toStringAsFixed(2)}',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.green,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (entry.key !=
+                                  completionData.serviceItems.length - 1)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
+                                  child: Divider(
+                                    color: colorScheme.outline.withOpacity(0.2),
+                                    height: 1,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+              ),
+            ],
+
+            // Service Cost
+            if (completionData.serviceCost > 0) ...[
+              const SizedBox(height: 12),
+              _buildCostRow(
+                context,
+                label: AppLocalizations.of(context)!.serviceCost,
+                amount: completionData.serviceCost,
+                colorScheme: colorScheme,
+              ),
+            ],
+
+            if (completionData.serviceCost <= 0) ...[
+              const SizedBox(height: 12),
+              _buildCostRow(
+                context,
+                label: AppLocalizations.of(context)!.inspectionFee,
+                amount: completionData.totalCost,
+                colorScheme: colorScheme,
+              ),
+            ],
+
+            // Total Cost
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green.withOpacity(0.3)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.amountPaid,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    '${AppLocalizations.of(context)!.sar} ${completionData.totalCost.toStringAsFixed(2)}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.green,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 12),
+            if (booking.bookingStatusCode.toLowerCase() == 'c' &&
+                booking.paymentCompleted) ...{
+              _buildInfoRow(
+                context,
+                label: AppLocalizations.of(context)!.paymentMode,
+                value: booking.paymentModeCode.toLowerCase() == 'c'
+                    ? AppLocalizations.of(context)!.card
+                    : booking.paymentModeCode.toLowerCase() == 'a'
+                    ? AppLocalizations.of(context)!.applePay
+                    : AppLocalizations.of(context)!.cashOnHands,
+                textTheme: textTheme,
+                colorScheme: colorScheme,
+              ),
+            },
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCostRow(
+    BuildContext context, {
+    required String label,
+    required double amount,
+    required ColorScheme colorScheme,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: colorScheme.onSurface.withOpacity(0.7),
+          ),
+        ),
+        Text(
+          '${AppLocalizations.of(context)!.sar} ${amount.toStringAsFixed(2)}',
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface,
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildFileLinks(
+    BuildContext context,
+    List<String> fileUrls,
+    ColorScheme colorScheme,
+  ) {
+    return fileUrls
+        .asMap()
+        .entries
+        .map(
+          (entry) => Padding(
+            padding: EdgeInsets.only(
+              bottom: entry.key == fileUrls.length - 1 ? 0 : 8,
+            ),
+            child: GestureDetector(
+              onTap: () => launchUrlString(entry.value),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: colorScheme.primary.withOpacity(0.2),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      _getFileIcon(entry.value),
+                      size: 20,
+                      color: colorScheme.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _getFileName(entry.value),
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: colorScheme.primary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.open_in_new,
+                      size: 16,
+                      color: colorScheme.primary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        )
+        .toList();
+  }
+
+  IconData _getFileIcon(String fileUrl) {
+    String lowerUrl = fileUrl.toLowerCase();
+    if (lowerUrl.endsWith('.pdf')) {
+      return Icons.picture_as_pdf;
+    } else if (lowerUrl.endsWith('.doc') || lowerUrl.endsWith('.docx')) {
+      return Icons.description;
+    } else if (lowerUrl.endsWith('.jpg') ||
+        lowerUrl.endsWith('.jpeg') ||
+        lowerUrl.endsWith('.png')) {
+      return Icons.image;
+    }
+    return Icons.attachment;
+  }
+
+  String _getFileName(String fileUrl) {
+    return "file ${int.tryParse((fileUrl.split('/').last.split('?').first.split("_").elementAt(3).substring(0, 1)))! + 1}${(fileUrl.split('/').last.split('?').first.split("_").elementAt(3).substring(1))}";
   }
 }

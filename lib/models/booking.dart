@@ -60,6 +60,7 @@ class BookingModel {
   Timestamp? trackingStartedAt;
   Timestamp? cancelledAt;
   String? cancellationReason;
+  String? orderId;
   bool paymentCompleted = false;
 
   BookingModel({
@@ -85,6 +86,7 @@ class BookingModel {
     this.trackingStartedAt,
     this.cancelledAt,
     this.cancellationReason,
+    this.orderId,
     this.paymentCompleted = false,
   });
 
@@ -119,6 +121,7 @@ class BookingModel {
       cancellationReason = data['cancellationReason'],
       paymentCompleted = data['paymentCompleted'] ?? false,
       trackingStartedAt = data['trackingStartedAt'],
+      orderId = data['orderId'],
       cancelledAt = data['cancelledAt'];
 
   factory BookingModel.fromQueryDocumentSnapshot(
@@ -141,6 +144,7 @@ class BookingModel {
       'notes': notes,
       'issueImage': issueImage,
       'customer': customer.toJson(),
+      'orderId': orderId,
       'issueVideo': issueVideo,
       'cancelledWorkers': cancelledWorkers.map((e) => e.toJson()).toList(),
       'paymentModeCode': paymentModeCode,

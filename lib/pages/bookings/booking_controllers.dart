@@ -1,17 +1,16 @@
 import 'dart:developer';
-
 import 'package:aboglumbo_bbk_panel/pages/bookings/bloc/booking_bloc.dart';
 import 'package:aboglumbo_bbk_panel/services/location_services.dart';
-
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
-import 'package:app_settings/app_settings.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
 import 'dart:io';
+
+import 'package:permission_handler/permission_handler.dart';
 
 class BookingControlsWidget extends StatefulWidget {
   final BookingModel booking;
@@ -94,7 +93,11 @@ class _BookingControlsWidgetState extends State<BookingControlsWidget> {
         } else if (state is BookingStartWorkingFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.error),
+              content: Text(
+                AppLocalizations.of(
+                  context,
+                )!.backgroundLocationPermissionRequired,
+              ),
               backgroundColor: Colors.red,
               duration: const Duration(
                 seconds: 6,
@@ -103,11 +106,9 @@ class _BookingControlsWidgetState extends State<BookingControlsWidget> {
                   state.error.contains('Background location permission') ||
                       state.error.contains('Allow all the time')
                   ? SnackBarAction(
-                      label: AppLocalizations.of(context)!.openSettings,
+                      label: AppLocalizations.of(context)!.openLocationSettings,
                       textColor: Colors.white,
-                      onPressed: () => AppSettings.openAppSettings(
-                        type: AppSettingsType.location,
-                      ),
+                      onPressed: () => Permission.locationAlways.request(),
                     )
                   : null,
             ),

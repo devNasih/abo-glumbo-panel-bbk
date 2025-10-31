@@ -1156,16 +1156,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loadingBanners => 'Loading Banners';
 
   @override
+  String get paymentPending => 'Payment Pending';
+
+  @override
   String get loadingHighlightedServices => 'Loading Highlighted Services';
 
   @override
   String get loadingServices => 'Loading Services';
 
   @override
+  String get completionDetails => 'Completion Details';
+
+  @override
   String get loadingFaqs => 'Loading FAQs';
 
   @override
   String get loadingWorkers => 'Loading workers';
+
+  @override
+  String get bookingWasCancelledByCustomer =>
+      'Booking was cancelled by customer';
 
   @override
   String get deleteCategory => 'Delete Category';
@@ -1741,8 +1751,32 @@ class AppLocalizationsEn extends AppLocalizations {
       'Location services disabled. Please enable location services.';
 
   @override
+  String get openLocationSettings => 'Open Location Settings';
+
+  @override
+  String get image => 'Image';
+
+  @override
+  String get invoiceType => 'Invoice Type';
+
+  @override
+  String get fullService => 'Full Service';
+
+  @override
+  String get inspection => 'Inspection';
+
+  @override
+  String get bookingId => 'Booking ID';
+
+  @override
+  String get amountPaid => 'Amount Paid';
+
+  @override
+  String get transactionId => 'Transaction ID';
+
+  @override
   String get backgroundLocationPermissionRequired =>
-      'Background location permission required. Please select \'Allow all the time\' for location access.';
+      'Background location tracking requires Always Allow permission. Please enable this in your device settings.';
 
   @override
   String get locationPermissionDeniedPleaseGrant =>

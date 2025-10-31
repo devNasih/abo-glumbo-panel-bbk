@@ -2318,6 +2318,12 @@ abstract class AppLocalizations {
   /// **'Loading Banners'**
   String get loadingBanners;
 
+  /// No description provided for @paymentPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Pending'**
+  String get paymentPending;
+
   /// No description provided for @loadingHighlightedServices.
   ///
   /// In en, this message translates to:
@@ -2330,6 +2336,12 @@ abstract class AppLocalizations {
   /// **'Loading Services'**
   String get loadingServices;
 
+  /// No description provided for @completionDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Completion Details'**
+  String get completionDetails;
+
   /// No description provided for @loadingFaqs.
   ///
   /// In en, this message translates to:
@@ -2341,6 +2353,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading workers'**
   String get loadingWorkers;
+
+  /// No description provided for @bookingWasCancelledByCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking was cancelled by customer'**
+  String get bookingWasCancelledByCustomer;
 
   /// No description provided for @deleteCategory.
   ///
@@ -3428,10 +3446,58 @@ abstract class AppLocalizations {
   /// **'Location services disabled. Please enable location services.'**
   String get locationServicesDisabledPleaseEnable;
 
+  /// No description provided for @openLocationSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Location Settings'**
+  String get openLocationSettings;
+
+  /// No description provided for @image.
+  ///
+  /// In en, this message translates to:
+  /// **'Image'**
+  String get image;
+
+  /// No description provided for @invoiceType.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice Type'**
+  String get invoiceType;
+
+  /// No description provided for @fullService.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Service'**
+  String get fullService;
+
+  /// No description provided for @inspection.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection'**
+  String get inspection;
+
+  /// No description provided for @bookingId.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking ID'**
+  String get bookingId;
+
+  /// No description provided for @amountPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount Paid'**
+  String get amountPaid;
+
+  /// No description provided for @transactionId.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction ID'**
+  String get transactionId;
+
   /// No description provided for @backgroundLocationPermissionRequired.
   ///
   /// In en, this message translates to:
-  /// **'Background location permission required. Please select \'Allow all the time\' for location access.'**
+  /// **'Background location tracking requires Always Allow permission. Please enable this in your device settings.'**
   String get backgroundLocationPermissionRequired;
 
   /// No description provided for @locationPermissionDeniedPleaseGrant.

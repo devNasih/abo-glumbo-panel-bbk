@@ -24,6 +24,7 @@ class _WorkerHomeState extends State<WorkerHome>
   static const List<Map<String, String>> _bookingStatuses = [
     {'code': 'P', 'name': 'To Do'},
     {'code': 'A', 'name': 'Accepted'},
+    {'code': 'CP', 'name': 'Payment Pending'},
     {'code': 'C', 'name': 'Completed'},
     {'code': 'X', 'name': 'Cancelled'},
   ];
@@ -144,7 +145,9 @@ class _WorkerHomeState extends State<WorkerHome>
         size: 20,
       ),
       label: Text(
-        LocalizationHelper().localizedBookingStatus(name, context: context),
+        LocalizationHelper()
+            .localizedBookingStatus(name, context: context)
+            .toUpperCase(),
         style: TextStyle(
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
         ),

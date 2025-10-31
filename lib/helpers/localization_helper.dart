@@ -18,6 +18,8 @@ class LocalizationHelper {
         return AppLocalizations.of(context)!.completed;
       case 'cancelled':
         return AppLocalizations.of(context)!.cancelled;
+      case 'payment pending':
+        return AppLocalizations.of(context)!.paymentPending;
       default:
         return 'unknown';
     }
@@ -57,8 +59,8 @@ class LocalizationHelper {
         return AppLocalizations.of(context)!.pending;
       case 'A':
         return AppLocalizations.of(context)!.accepted;
-      case 'R':
-        return AppLocalizations.of(context)!.rejected;
+      case 'CP':
+        return AppLocalizations.of(context)!.paymentPending;
       case 'C':
         return AppLocalizations.of(context)!.completed;
       case 'X':

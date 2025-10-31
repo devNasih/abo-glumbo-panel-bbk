@@ -29,7 +29,7 @@ class _AdminHomeState extends State<AdminHome> {
   final List<Map<String, String>> bookingStatus = [
     {'code': 'P', 'name': 'Pending'},
     {'code': 'A', 'name': 'Accepted'},
-    {'code': 'R', 'name': 'Rejected'},
+    {'code': 'CP', 'name': 'Payment Pending'},
     {'code': 'C', 'name': 'Completed'},
     {'code': 'X', 'name': 'Cancelled'},
   ];

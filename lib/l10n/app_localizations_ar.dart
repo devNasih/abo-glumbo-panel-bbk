@@ -1149,16 +1149,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loadingBanners => 'تحميل البانرات';
 
   @override
+  String get paymentPending => 'دفع قيد الانتظار';
+
+  @override
   String get loadingHighlightedServices => 'تحميل الخدمات المميزة';
 
   @override
   String get loadingServices => 'تحميل الخدمات';
 
   @override
+  String get completionDetails => 'تفاصيل الانتهاء';
+
+  @override
   String get loadingFaqs => 'تحميل الاسئلة الشائعة';
 
   @override
   String get loadingWorkers => 'تحميل العاملين';
+
+  @override
+  String get bookingWasCancelledByCustomer => 'تم الغاء الحجز من قبل الزبون';
 
   @override
   String get deleteCategory => 'حذف القسم';
@@ -1718,8 +1727,32 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم تعطيل خدمات الموقع. يرجى تمكين خدمات الموقع.';
 
   @override
+  String get openLocationSettings => 'افتح إعدادات الموقع';
+
+  @override
+  String get image => 'صورة';
+
+  @override
+  String get invoiceType => 'نوع الفاتورة';
+
+  @override
+  String get fullService => 'خدمة كامل';
+
+  @override
+  String get inspection => 'فحصة';
+
+  @override
+  String get bookingId => 'رقم الحجز';
+
+  @override
+  String get amountPaid => 'المبلغ المدفوع';
+
+  @override
+  String get transactionId => 'رقم المعاملة';
+
+  @override
   String get backgroundLocationPermissionRequired =>
-      'مطلوب إذن الموقع في الخلفية. يرجى اختيار \'السماح طوال الوقت\' للوصول إلى الموقع.';
+      'تتطلب ميزة تتبع الموقع في الخلفية الحصول على إذن \'السماح دائماً\'. يرجى تفعيل هذا في إعدادات جهازك.';
 
   @override
   String get locationPermissionDeniedPleaseGrant =>
@@ -2655,10 +2688,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loadingCategories => 'تحميل الاقسام...';
 
   @override
-  String get pleaseUploadFiles => 'Please upload files';
+  String get pleaseUploadFiles => 'يرجى تحميل الملفات';
 
   @override
-  String get confirmCompletion => 'Confirm Completion';
+  String get confirmCompletion => 'تأكيد الانجاز';
 
   @override
   String get uploadFilesTitle => 'وثائق التكميل / المستندات المساعدة';
@@ -2673,7 +2706,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get confirmCompletionMessage =>
-      'Are you sure you want to confirm completion of this booking?';
+      'هل أنت متأكد أنك تريد تأكيد انجاز هذا الحجز؟';
 
   @override
   String get cannotCancel =>
@@ -2686,21 +2719,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get apply => 'تطبيق';
 
   @override
-  String get tapToUploadFiles => 'Tap to upload files';
+  String get tapToUploadFiles => 'انقر لتحميل الملفات';
 
   @override
   String get serviceItemsCalculationNote =>
       'سيتم حساب التكلفة الإجمالية تلقائيًا على أساس (الكمية × السعر) لكل عنصر وإضافتها إلى رسوم الفحص.';
 
   @override
-  String get addMoreFiles => 'Add more files';
+  String get addMoreFiles => 'اضافة الملفات';
 
   @override
   String get allowedFileTypes =>
-      'Allowed file types: jpg, jpeg, png, pdf, doc,';
+      'الملفات المسموح بها: jpg, jpeg, png, pdf, doc,';
 
   @override
-  String get uploadFiles => 'Upload Files';
+  String get uploadFiles => 'تحميل الملفات';
 
   @override
   String get filesAttached => 'الوثائق المرفقة';

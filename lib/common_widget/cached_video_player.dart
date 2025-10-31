@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
+import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:dio/dio.dart';
@@ -206,9 +207,6 @@ class _CachedVideoPlayerState extends State<CachedVideoPlayer> {
           // Controls Overlay
           if (widget.showControls && _showControls)
             _buildControlsOverlay(colorScheme),
-
-          // Play/Pause Button (always visible when paused)
-          if (!_videoController!.value.isPlaying) _buildPlayButton(colorScheme),
         ],
       ),
     );
@@ -269,26 +267,6 @@ class _CachedVideoPlayerState extends State<CachedVideoPlayer> {
     );
   }
 
-  Widget _buildPlayButton(ColorScheme colorScheme) {
-    return Center(
-      child: GestureDetector(
-        onTap: _togglePlayPause,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.black54,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            _videoController!.value.isPlaying ? Icons.pause : Icons.play_arrow,
-            color: Colors.white,
-            size: 32,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildControlsOverlay(ColorScheme colorScheme) {
     return Positioned(
       bottom: 0,
@@ -306,19 +284,6 @@ class _CachedVideoPlayerState extends State<CachedVideoPlayer> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Progress Bar
-            VideoProgressIndicator(
-              _videoController!,
-              allowScrubbing: true,
-              colors: VideoProgressColors(
-                playedColor: colorScheme.primary,
-                bufferedColor: Colors.white30,
-                backgroundColor: Colors.white12,
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // Control Buttons Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -345,15 +310,27 @@ class _CachedVideoPlayerState extends State<CachedVideoPlayer> {
                         final currentPosition =
                             _videoController!.value.position;
                         final newPosition =
-                            currentPosition + const Duration(seconds: 10);
+                            currentPosition + const Duration(seconds: 5);
                         _videoController!.seekTo(newPosition);
                       },
-                      icon: const Icon(Icons.forward_10, color: Colors.white),
+                      icon: const Icon(Icons.forward_5, color: Colors.white),
                     ),
                   ],
                 ),
               ],
             ),
+            // Progress Bar
+            VideoProgressIndicator(
+              _videoController!,
+              allowScrubbing: true,
+              colors: VideoProgressColors(
+                playedColor: AppColors.secondary,
+                bufferedColor: Colors.white30,
+                backgroundColor: Colors.white12,
+              ),
+            ),
+
+            // Control Buttons Row
           ],
         ),
       ),
