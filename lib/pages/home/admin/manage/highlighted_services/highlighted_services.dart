@@ -21,7 +21,13 @@ class HighlightedServices extends StatelessWidget {
         stream: AppServices.getAllHighlightedServicesStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: Loader(size: 32));
+            return Center(child: Column(
+              children: [
+                SizedBox( height: 24, child: Loader()),
+                const SizedBox(height: 10),
+                Text(AppLocalizations.of(context)!.loadingHighlightedServices),
+              ],
+            ));
           }
 
           if (snapshot.hasError) {

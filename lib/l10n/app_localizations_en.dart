@@ -1144,10 +1144,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pleaseUploadAnImage => 'Please upload an image';
 
   @override
+  String get searchBookings => 'Search Bookings';
+
+  @override
   String get item => 'Item';
 
   @override
   String get quantity => 'Quantity';
+
+  @override
+  String get loadingBanners => 'Loading Banners';
+
+  @override
+  String get loadingHighlightedServices => 'Loading Highlighted Services';
+
+  @override
+  String get loadingServices => 'Loading Services';
+
+  @override
+  String get loadingFaqs => 'Loading FAQs';
+
+  @override
+  String get loadingWorkers => 'Loading workers';
+
+  @override
+  String get deleteCategory => 'Delete Category';
+
+  @override
+  String get deletedSuccessfully => 'Deleted successfully';
+
+  @override
+  String get deleteError => 'Delete error';
+
+  @override
+  String get deleteService => 'Delete Service';
+
+  @override
+  String get serviceDeletedSuccessfully => 'Service deleted successfully';
+
+  @override
+  String get deleteServiceConfirmation =>
+      'Are you sure you want to delete this service?';
+
+  @override
+  String get failedToLoadData => 'Failed to load data';
+
+  @override
+  String get categoryNameAlreadyExists => 'Category name already exists';
+
+  @override
+  String get deleteCategoryConfirmation =>
+      'Are you sure you want to delete this category?';
 
   @override
   String get openSettings => 'Open Settings';

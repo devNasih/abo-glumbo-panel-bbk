@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:aboglumbo_bbk_panel/common_widget/booking_cards.dart';
+import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
@@ -36,6 +37,9 @@ class _AdminHomeState extends State<AdminHome> {
   String selectedBookingStatus = 'P';
   List<LocationModel> locations = [];
 
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
   showAssignToUserBottomSheet(BookingModel booking) {
     final adminBloc = context.read<AdminBloc>();
 
@@ -61,7 +65,14 @@ class _AdminHomeState extends State<AdminHome> {
   @override
   void initState() {
     context.read<AccountBloc>().add(LoadDistrictsEvent());
+
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -170,6 +181,38 @@ class _AdminHomeState extends State<AdminHome> {
               child: Column(
                 children: [
                   Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value.toLowerCase();
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: AppLocalizations.of(context)!.searchBookings,
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  setState(() {
+                                    _searchController.clear();
+                                    _searchQuery = '';
+                                  });
+                                },
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
                     padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
                     child: SizedBox(
                       height: 52,
@@ -233,8 +276,11 @@ class _AdminHomeState extends State<AdminHome> {
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
+                          return Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [SizedBox(height: 24, child: Loader())],
+                            ),
                           );
                         }
                         if (snapshot.hasError) {
@@ -245,8 +291,27 @@ class _AdminHomeState extends State<AdminHome> {
                             ),
                           );
                         }
-                        final bookings = snapshot.data ?? [];
-                        if (bookings.isEmpty) {
+                        final allBookings = snapshot.data ?? [];
+
+                        final filteredBookings = _searchQuery.isEmpty
+                            ? allBookings
+                            : allBookings.where((booking) {
+                                final customerName =
+                                    booking.customer.name?.toLowerCase() ?? '';
+                                final bookingId = booking.id.toLowerCase();
+                                final serviceType = (booking.service.name ?? "")
+                                    .toLowerCase();
+                                final serviceTypeAr =
+                                    (booking.service.name_ar ?? "")
+                                        .toLowerCase();
+
+                                return customerName.contains(_searchQuery) ||
+                                    bookingId.contains(_searchQuery) ||
+                                    serviceTypeAr.contains(_searchQuery) ||
+                                    serviceType.contains(_searchQuery);
+                              }).toList();
+
+                        if (filteredBookings.isEmpty) {
                           return Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -268,11 +333,11 @@ class _AdminHomeState extends State<AdminHome> {
                         }
                         return ListView.separated(
                           padding: const EdgeInsets.symmetric(vertical: 8),
-                          itemCount: bookings.length,
+                          itemCount: filteredBookings.length,
                           separatorBuilder: (_, __) =>
                               const SizedBox(height: 8),
                           itemBuilder: (context, index) {
-                            final booking = bookings[index];
+                            final booking = filteredBookings[index];
                             return BookingCards(
                               booking: booking,
                               isAdmin: true,

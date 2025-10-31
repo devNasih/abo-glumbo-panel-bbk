@@ -4,6 +4,7 @@ import 'package:aboglumbo_bbk_panel/common_widget/crop_confirm_dialog.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/delete_confirm_dialog.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/removable_image.dart';
+import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/regex.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/categories.dart';
@@ -61,9 +62,10 @@ class _AddNewCategoriesState extends State<AddNewCategories> {
         if (!await file.exists()) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-               SnackBar(
+              SnackBar(
                 content: Text(
-                 AppLocalizations.of(context)?.selectedFileCouldNotBeFound ?? 'Selected file could not be found. Please try again.',
+                  AppLocalizations.of(context)?.selectedFileCouldNotBeFound ??
+                      'Selected file could not be found. Please try again.',
                 ),
                 backgroundColor: Colors.red,
               ),
@@ -87,7 +89,7 @@ class _AddNewCategoriesState extends State<AddNewCategories> {
               AppLocalizations.of(context)?.imageLoadError ??
                   'Error picking image: ${e.toString()}',
             ),
-           
+
             backgroundColor: Colors.red,
           ),
         );
@@ -169,7 +171,7 @@ class _AddNewCategoriesState extends State<AddNewCategories> {
         });
   }
 
-  void _saveCategory() {
+  void _saveCategory() async {
     final hasImage =
         selectedImage != null ||
         (widget.category?.svg != null && !shouldRemoveExistingImage);
@@ -186,6 +188,17 @@ class _AddNewCategoriesState extends State<AddNewCategories> {
       );
       return;
     }
+    try {
+      await checkCategoryExistence(nameController.text.trim());
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.categoryAlreadyExists),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return; // Stop execution if duplicate found
+    }
 
     if (_formKey.currentState!.validate()) {
       final category = CategoryModel(
@@ -198,6 +211,7 @@ class _AddNewCategoriesState extends State<AddNewCategories> {
       );
 
       if (widget.category == null) {
+        await checkCategoryExistence(nameController.text.trim());
         // Adding new category
         context.read<ManageAppBloc>().add(
           AddCategoryEvent(category, imageFile: selectedImage),
@@ -208,6 +222,23 @@ class _AddNewCategoriesState extends State<AddNewCategories> {
           UpdateCategoryEvent(category, imageFile: selectedImage),
         );
       }
+    }
+  }
+
+  checkCategoryExistence(String categoryName) async {
+    try {
+      final category = await AppFirestore.categoriesCollectionRef
+          .where('name', isEqualTo: categoryName)
+          .limit(1)
+          .get();
+      if (category.docs.isNotEmpty) {
+        throw Exception(
+          AppLocalizations.of(context)?.categoryNameAlreadyExists ??
+              'Category name already exists',
+        );
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -281,7 +312,11 @@ class _AddNewCategoriesState extends State<AddNewCategories> {
                   icon: const Icon(Icons.save),
                   onPressed: _saveCategory,
                 ),
-              if (isLoading) Loader(color: Colors.white, size: 20),
+              if (isLoading)
+                Padding(
+                  padding: EdgeInsets.only(right: 16, left: 16),
+                  child: Loader(size: 10, color: Colors.white),
+                ),
             ],
           ),
           body: Form(

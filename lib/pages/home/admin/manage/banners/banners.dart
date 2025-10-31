@@ -38,7 +38,16 @@ class ManageBanners extends StatelessWidget {
           stream: AppServices.getAllBannersStream(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: Loader(size: 32));
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(height: 24, child: Loader()),
+                    const SizedBox(height: 10),
+                    Text(AppLocalizations.of(context)!.loadingBanners),
+                  ],
+                ),
+              );
             }
             if (snapshot.hasError) {
               return Center(

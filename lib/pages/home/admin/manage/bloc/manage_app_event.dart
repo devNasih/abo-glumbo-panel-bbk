@@ -178,3 +178,18 @@ class RejectPayoutEvent extends ManageAppEvent {
   @override
   List<Object> get props => [payoutRequestId, reason];
 }
+class DeleteCategoryEvent extends ManageAppEvent {
+  final String categoryId;
+  const DeleteCategoryEvent(this.categoryId);
+
+  @override
+  List<Object> get props => [categoryId];
+}
+class DeleteServiceEvent extends ManageAppEvent {
+  final String serviceId;
+  const DeleteServiceEvent(this.serviceId);
+
+  @override
+  List<Object> get props => [serviceId];
+}
+

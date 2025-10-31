@@ -1,5 +1,5 @@
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
-import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/payouts/payout_request_card.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/widgets/payout_request_card.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:flutter/material.dart';

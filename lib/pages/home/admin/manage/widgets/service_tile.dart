@@ -1,10 +1,12 @@
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/service.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/bloc/manage_app_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/services/edit_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ServiceTileDevWidget extends StatelessWidget {
@@ -69,6 +71,24 @@ class ServiceTileDevWidget extends StatelessWidget {
                             ),
                           ),
                           icon: const Icon(Icons.edit, size: 18),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 40,
+                            minHeight: 40,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: IconButton(
+                          onPressed: () => _showDeleteConfirmDialog(context),
+
+                          icon: const Icon(
+                            Icons.delete,
+                            size: 18,
+                            color: Colors.red,
+                          ),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(
                             minWidth: 40,
@@ -155,5 +175,85 @@ class ServiceTileDevWidget extends StatelessWidget {
     } catch (e) {
       return false;
     }
+  }
+
+  void _showDeleteConfirmDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => _buildDeleteConfirmDialog(context),
+    );
+  }
+
+  Widget _buildDeleteConfirmDialog(BuildContext context) {
+    return BlocConsumer<ManageAppBloc, ManageAppState>(
+      listener: (blocContext, state) {
+        if (state is ServiceDeleted) {
+          // Close the dialog
+          Navigator.of(context).pop();
+
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)?.deletedSuccessfully ??
+                    'Service deleted successfully',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else if (state is ServiceDeleteError) {
+          // Close the dialog
+          Navigator.of(context).pop();
+
+          // Show error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${AppLocalizations.of(context)?.deleteError ?? 'Delete error'}: ${state.error}',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      builder: (blocContext, state) {
+        final isDeleting = state is DeletingService;
+
+        return AlertDialog(
+          title: Text(
+            AppLocalizations.of(context)?.deleteService ?? 'Delete Service',
+          ),
+          content: Text(
+            AppLocalizations.of(context)?.deleteServiceConfirmation ??
+                'Are you sure you want to delete this service? This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: isDeleting ? null : () => Navigator.of(context).pop(),
+              child: Text(AppLocalizations.of(context)!.cancel),
+            ),
+            TextButton(
+              onPressed: isDeleting
+                  ? null
+                  : () {
+                      blocContext.read<ManageAppBloc>().add(
+                        DeleteServiceEvent(service.id ?? ''),
+                      );
+                    },
+              child: isDeleting
+                  ? SizedBox(
+                      width: 30,
+                      height: 20,
+                      child: Loader(size: 12, color: AppColors.primary),
+                    )
+                  : Text(
+                      AppLocalizations.of(context)!.delete,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

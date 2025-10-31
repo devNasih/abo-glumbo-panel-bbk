@@ -42,6 +42,8 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
     );
     on<ApprovePayoutEvent>(_approvePayout);
     on<RejectPayoutEvent>(_rejectPayout);
+    on<DeleteCategoryEvent>(_deleteCategory);
+    on<DeleteServiceEvent>(_deleteService);
   }
 
   Future<void> _clearTipWallet(
@@ -50,7 +52,12 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
   ) async {
     emit(ClearingWallet());
     try {
-      await AppServices.clearTippingAmount(event.agentId, event.transactionId, event.image,event.tippingModel);
+      await AppServices.clearTippingAmount(
+        event.agentId,
+        event.transactionId,
+        event.image,
+        event.tippingModel,
+      );
       emit(WalletCleared());
     } catch (e) {
       emit(WalletClearError(e.toString()));
@@ -485,6 +492,32 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
         return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
       default:
         return 'application/octet-stream';
+    }
+  }
+
+  Future<void> _deleteCategory(
+    DeleteCategoryEvent event,
+    Emitter<ManageAppState> emit,
+  ) async {
+    emit(DeletingCategory());
+    try {
+      await AppFirestore.categoriesCollectionRef.doc(event.categoryId).delete();
+      emit(CategoryDeleted(true));
+    } catch (e) {
+      emit(CategoryDeleteError(e.toString()));
+    }
+  }
+
+  Future<void> _deleteService(
+    DeleteServiceEvent event,
+    Emitter<ManageAppState> emit,
+  ) async {
+    emit(DeletingService());
+    try {
+      await AppFirestore.servicesCollectionRef.doc(event.serviceId).delete();
+      emit(ServiceDeleted(true));
+    } catch (e) {
+      emit(ServiceDeleteError(e.toString()));
     }
   }
 }

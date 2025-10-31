@@ -33,7 +33,9 @@ class _ManageFaqState extends State<ManageFaq> {
               showDialog(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => Center(child: Loader(size: 32)),
+                builder: (context) => Center(
+                  child: SizedBox(height: 24, child: Loader(size: 20)),
+                ),
               ).then((_) => _isDeletingDialogShowing = false);
             }
           } else {
@@ -80,7 +82,14 @@ class _ManageFaqState extends State<ManageFaq> {
           stream: AppServices.getFaqStream(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: Loader(size: 32));
+              return Center(child: Column(
+                mainAxisSize: MainAxisSize.min,children: [
+                  SizedBox(height: 24,child: Loader(), 
+                  ),
+                  SizedBox(height: 10,),
+                  Text(AppLocalizations.of(context)!.loadingFaqs),
+                ],
+              ));
             }
 
             if (snapshot.hasError) {

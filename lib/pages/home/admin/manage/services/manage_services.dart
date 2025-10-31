@@ -16,7 +16,14 @@ class ManageServices extends StatelessWidget {
         stream: AppServices.getAllServicesStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: Loader(size: 50));
+            return Center(child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: 24, child: Loader()),
+                const SizedBox(height: 10),
+                Text(AppLocalizations.of(context)!.loadingServices),
+              ],
+            ));
           }
 
           if (snapshot.hasError) {

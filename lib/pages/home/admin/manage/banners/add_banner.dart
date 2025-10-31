@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:aboglumbo_bbk_panel/common_widget/crop_confirm_dialog.dart';
+import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/regex.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/banner.dart';
@@ -44,11 +45,12 @@ class _AddBannerState extends State<AddBanner> {
         if (!await file.exists()) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-               SnackBar(
+              SnackBar(
                 content: Text(
-                 AppLocalizations.of(context)?.selectedFileCouldNotBeFound ?? 'Selected file could not be found. Please try again.',
+                  AppLocalizations.of(context)?.selectedFileCouldNotBeFound ??
+                      'Selected file could not be found. Please try again.',
                 ),
-             
+
                 backgroundColor: Colors.red,
               ),
             );
@@ -64,7 +66,9 @@ class _AddBannerState extends State<AddBanner> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AppLocalizations.of(context)!.errorPickingImage}: ${e.toString()}'),
+            content: Text(
+              '${AppLocalizations.of(context)!.errorPickingImage}: ${e.toString()}',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -119,7 +123,9 @@ class _AddBannerState extends State<AddBanner> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AppLocalizations.of(context)!.errorCroppingImage}: ${e.toString()}'),
+            content: Text(
+              '${AppLocalizations.of(context)!.errorCroppingImage}: ${e.toString()}',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -197,7 +203,10 @@ class _AddBannerState extends State<AddBanner> {
               builder: (context, state) {
                 return IconButton(
                   icon: state is AddingBanner || state is UpdatingBanner
-                      ? CircularProgressIndicator(color: Colors.white)
+                      ? Padding(
+                          padding: EdgeInsets.only(right: 16, left: 16),
+                          child: Loader(size: 10, color: Colors.white),
+                        )
                       : Icon(Icons.save),
                   onPressed: (state is AddingBanner || state is UpdatingBanner)
                       ? null

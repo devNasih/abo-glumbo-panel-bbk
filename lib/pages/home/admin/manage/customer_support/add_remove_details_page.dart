@@ -102,7 +102,16 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
                   ),
                 ],
               ),
-              body: Center(child: Loader()),
+              body: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(height: 24, child: Loader()),
+                    SizedBox(height: 10),
+                    Text(AppLocalizations.of(context)!.loading),
+                  ],
+                ),
+              ),
             );
           }
 

@@ -58,15 +58,34 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await loadCategories();
-      await loadLocations(); // Load locations
-      fillContents(); // Call after both categories and locations are loaded
+      await _initializeData();
     });
   }
 
-  Future loadCategories() async {
-    setState(() => contentLoading = true);
+  Future<void> _initializeData() async {
+    try {
+      // Wait for both operations to complete concurrently
+      await Future.wait([loadCategories(), loadLocations()]);
 
+      // Fill contents after both are loaded
+      fillContents();
+    } catch (e) {
+      log('Error initializing data: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.failedToLoadData ??
+                  'Failed to load data',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> loadCategories() async {
     try {
       var response = await AppFirestore.categoriesCollectionRef
           .where('isActive', isEqualTo: true)
@@ -92,16 +111,13 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
           ),
         );
       }
+      rethrow; // Re-throw so Future.wait catches it
     }
-
-    setState(() => contentLoading = false);
   }
 
-  // Add method to load locations
-  Future loadLocations() async {
+  Future<void> loadLocations() async {
     try {
-      var response = await AppFirestore.locationsCollectionRef
-          .get(); // Assuming you have a locations collection
+      var response = await AppFirestore.locationsCollectionRef.get();
       setState(() {
         locations = response.docs.map((e) {
           return LocationModel.fromQuerySnapshot(e);
@@ -122,14 +138,14 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
           ),
         );
       }
-      // Set empty list on error to avoid null issues
       setState(() {
         locations = [];
       });
+      rethrow; // Re-throw so Future.wait catches it
     }
   }
 
-  void fillContents() async {
+  void fillContents() {
     if (widget.service != null) {
       nameController.text = widget.service!.name ?? '';
       nameArController.text = widget.service!.name_ar ?? '';
@@ -138,7 +154,6 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
       priceController.text = widget.service!.price.toString();
       isActive = widget.service!.isActive;
 
-      // Fill selected locations if service has locations
       if (widget.service!.locations.isNotEmpty) {
         selectedLocations = locations.where((location) {
           return widget.service!.locations.contains(location.id);
@@ -155,11 +170,14 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
         log('Error: $e');
       }
 
-      setState(() {}); // Update UI after filling contents
+      setState(() {});
     }
     if (widget.service == null) {
       priceController.text = '0';
     }
+
+    // Set loading to false when data is filled
+    setState(() => contentLoading = false);
   }
 
   Future pickImage() async {

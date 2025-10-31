@@ -368,10 +368,10 @@ class _ManageAgentsState extends State<ManageAgents>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Loader(size: 32),
-                          const SizedBox(height: 24),
+                          SizedBox(height: 25, child: Loader()),
+                          const SizedBox(height: 10),
                           Text(
-                            AppLocalizations.of(context)!.loadingAgents,
+                            AppLocalizations.of(context)!.loadingWorkers,
                             style: TextStyle(
                               color: theme.colorScheme.onSurfaceVariant,
                               fontSize: 16,

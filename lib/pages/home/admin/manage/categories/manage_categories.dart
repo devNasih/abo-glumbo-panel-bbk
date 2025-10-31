@@ -16,7 +16,16 @@ class ManageCategories extends StatelessWidget {
         stream: AppServices.getAllCategoriesStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: Loader(size: 32));
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: 24, child: Loader()),
+                  SizedBox(height: 10),
+                  Text(AppLocalizations.of(context)!.loadingCategories),
+                ],
+              ),
+            );
           }
           if (snapshot.hasError) {
             return Center(

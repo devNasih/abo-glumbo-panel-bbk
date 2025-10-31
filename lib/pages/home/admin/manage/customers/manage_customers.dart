@@ -400,7 +400,7 @@ class _ManageCustomersPageState extends State<ManageCustomersPage>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Loader(size: 32),
+                          SizedBox(height: 24, child: Loader()),
                           const SizedBox(height: 24),
                           Text(
                             AppLocalizations.of(context)!.loadingCustomers,

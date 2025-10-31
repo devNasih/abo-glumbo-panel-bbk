@@ -301,4 +301,38 @@ final class PayoutRejectionError extends ManageAppState {
 
 
 
+final class DeletingCategory extends ManageAppState {}
+
+final class CategoryDeleted extends ManageAppState {
+  final bool isDeleted;
+  const CategoryDeleted(this.isDeleted);
+
+  @override
+  List<Object> get props => [isDeleted];
+}
+
+final class CategoryDeleteError extends ManageAppState {
+  final String error;
+  const CategoryDeleteError(this.error);
+
+  @override
+  List<Object> get props => [error];
+}
+final class DeletingService extends ManageAppState {}
+
+final class ServiceDeleted extends ManageAppState {
+  final bool isDeleted;
+  const ServiceDeleted(this.isDeleted);
+
+  @override
+  List<Object> get props => [isDeleted];
+}
+
+final class ServiceDeleteError extends ManageAppState {
+  final String error;
+  const ServiceDeleteError(this.error);
+
+  @override
+  List<Object> get props => [error];
+}
 

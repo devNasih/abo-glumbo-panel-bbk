@@ -1,8 +1,12 @@
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
+import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/categories.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/bloc/manage_app_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/categories/add_new_categories.dart';
+import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CategoryTileDevWidget extends StatelessWidget {
@@ -21,7 +25,6 @@ class CategoryTileDevWidget extends StatelessWidget {
       padding: const EdgeInsets.only(left: 13, right: 13, top: 13, bottom: 13),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
@@ -59,6 +62,11 @@ class CategoryTileDevWidget extends StatelessWidget {
             ),
           ),
           TextButton(
+            style: ButtonStyle(
+              padding: WidgetStatePropertyAll(EdgeInsets.all(1)),
+              maximumSize: WidgetStatePropertyAll(Size(40, 40)),
+              minimumSize: WidgetStatePropertyAll(Size(40, 40)),
+            ),
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
@@ -67,8 +75,86 @@ class CategoryTileDevWidget extends StatelessWidget {
             ),
             child: const Icon(Icons.edit),
           ),
+          TextButton(
+            style: ButtonStyle(
+              side: WidgetStatePropertyAll(BorderSide.none),
+              padding: WidgetStatePropertyAll(EdgeInsets.zero),
+              maximumSize: WidgetStatePropertyAll(Size(40, 40)),
+              minimumSize: WidgetStatePropertyAll(Size(40, 40)),
+            ),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (dialogContext) =>
+                    showDeleteConfirmDialog(dialogContext),
+              );
+            },
+            child: const Icon(Icons.delete, color: Colors.red),
+          ),
         ],
       ),
+    );
+  }
+
+  // Updated showDeleteConfirmDialog method with delete functionality
+  Widget showDeleteConfirmDialog(BuildContext context) {
+    return BlocConsumer<ManageAppBloc, ManageAppState>(
+      listener: (blocContext, state) {
+        if (state is CategoryDeleted) {
+          // Generic deletion success
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.deletedSuccessfully),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else if (state is CategoryDeleteError) {
+          // Generic deletion error
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${AppLocalizations.of(context)?.deleteError}: ${state is BannerDeleteError ? (state).error : (state as FaqDeleteError).error}',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      builder: (blocContext, state) {
+        final isDeleting = state is DeletingCategory;
+
+        return AlertDialog(
+          title: Text(AppLocalizations.of(context)!.deleteCategory),
+          content: Text(
+            AppLocalizations.of(context)!.deleteCategoryConfirmation,
+          ),
+          actions: [
+            TextButton(
+              onPressed: isDeleting ? null : () => Navigator.pop(context),
+              child: Text(AppLocalizations.of(context)!.cancel),
+            ),
+            TextButton(
+              onPressed: isDeleting
+                  ? null
+                  : () {
+                      // Trigger delete event
+                      context.read<ManageAppBloc>().add(
+                        DeleteCategoryEvent(category.id ?? ''),
+                      );
+                    },
+              child: isDeleting
+                  ? SizedBox(
+                      width: 30,
+                      height: 20,
+                      child: Loader(size: 12, color: AppColors.primary),
+                    )
+                  : Text(AppLocalizations.of(context)!.delete),
+            ),
+          ],
+        );
+      },
     );
   }
 }

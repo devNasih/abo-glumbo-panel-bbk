@@ -1137,10 +1137,55 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pleaseUploadAnImage => 'يرجى تحميل صورة';
 
   @override
+  String get searchBookings => 'بحث عن الحجوزات';
+
+  @override
   String get item => 'العنصر';
 
   @override
   String get quantity => 'كمية';
+
+  @override
+  String get loadingBanners => 'تحميل البانرات';
+
+  @override
+  String get loadingHighlightedServices => 'تحميل الخدمات المميزة';
+
+  @override
+  String get loadingServices => 'تحميل الخدمات';
+
+  @override
+  String get loadingFaqs => 'تحميل الاسئلة الشائعة';
+
+  @override
+  String get loadingWorkers => 'تحميل العاملين';
+
+  @override
+  String get deleteCategory => 'حذف القسم';
+
+  @override
+  String get deletedSuccessfully => 'تم حذف القسم بنجاح';
+
+  @override
+  String get deleteError => 'خطأ في حذف القسم';
+
+  @override
+  String get deleteService => 'حذف الخدمة';
+
+  @override
+  String get serviceDeletedSuccessfully => 'تم حذف الخدمة بنجاح';
+
+  @override
+  String get deleteServiceConfirmation => 'هل انت متاكد من حذف الخدمة؟';
+
+  @override
+  String get failedToLoadData => 'فشل تحميل البيانات';
+
+  @override
+  String get categoryNameAlreadyExists => 'اسم القسم موجود بالفعل';
+
+  @override
+  String get deleteCategoryConfirmation => 'هل انت متاكد من حذف القسم؟';
 
   @override
   String get openSettings => 'افتح الاعدادات';

@@ -2294,6 +2294,12 @@ abstract class AppLocalizations {
   /// **'Please upload an image'**
   String get pleaseUploadAnImage;
 
+  /// No description provided for @searchBookings.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Bookings'**
+  String get searchBookings;
+
   /// No description provided for @item.
   ///
   /// In en, this message translates to:
@@ -2305,6 +2311,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Quantity'**
   String get quantity;
+
+  /// No description provided for @loadingBanners.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading Banners'**
+  String get loadingBanners;
+
+  /// No description provided for @loadingHighlightedServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading Highlighted Services'**
+  String get loadingHighlightedServices;
+
+  /// No description provided for @loadingServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading Services'**
+  String get loadingServices;
+
+  /// No description provided for @loadingFaqs.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading FAQs'**
+  String get loadingFaqs;
+
+  /// No description provided for @loadingWorkers.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading workers'**
+  String get loadingWorkers;
+
+  /// No description provided for @deleteCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Category'**
+  String get deleteCategory;
+
+  /// No description provided for @deletedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted successfully'**
+  String get deletedSuccessfully;
+
+  /// No description provided for @deleteError.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete error'**
+  String get deleteError;
+
+  /// No description provided for @deleteService.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Service'**
+  String get deleteService;
+
+  /// No description provided for @serviceDeletedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Service deleted successfully'**
+  String get serviceDeletedSuccessfully;
+
+  /// No description provided for @deleteServiceConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this service?'**
+  String get deleteServiceConfirmation;
+
+  /// No description provided for @failedToLoadData.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load data'**
+  String get failedToLoadData;
+
+  /// No description provided for @categoryNameAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'Category name already exists'**
+  String get categoryNameAlreadyExists;
+
+  /// No description provided for @deleteCategoryConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this category?'**
+  String get deleteCategoryConfirmation;
 
   /// No description provided for @openSettings.
   ///
