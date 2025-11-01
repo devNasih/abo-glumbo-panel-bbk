@@ -3458,6 +3458,132 @@ abstract class AppLocalizations {
   /// **'Image'**
   String get image;
 
+  /// No description provided for @notificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Title'**
+  String get notificationTitle;
+
+  /// No description provided for @enterYourNotificationMessageHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your notification message here'**
+  String get enterYourNotificationMessageHere;
+
+  /// No description provided for @aboGlumboWorker.
+  ///
+  /// In en, this message translates to:
+  /// **'Abo Glumbo Worker'**
+  String get aboGlumboWorker;
+
+  /// No description provided for @now.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get now;
+
+  /// No description provided for @recipients.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipients'**
+  String get recipients;
+
+  /// No description provided for @exceedsMaxSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Exceeds max size'**
+  String get exceedsMaxSize;
+
+  /// No description provided for @sendNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Notifications'**
+  String get sendNotifications;
+
+  /// No description provided for @sendNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Notification'**
+  String get sendNotification;
+
+  /// No description provided for @noTechniciansFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No technicians found'**
+  String get noTechniciansFound;
+
+  /// No description provided for @noTechniciansAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No technicians available'**
+  String get noTechniciansAvailable;
+
+  /// No description provided for @manageNotificationAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Notification Alerts'**
+  String get manageNotificationAlerts;
+
+  /// No description provided for @previewLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview Language'**
+  String get previewLanguage;
+
+  /// No description provided for @sendNotificationsToCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Notifications to Customer'**
+  String get sendNotificationsToCustomer;
+
+  /// No description provided for @preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get preview;
+
+  /// No description provided for @message.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get message;
+
+  /// No description provided for @composeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Compose Message'**
+  String get composeMessage;
+
+  /// No description provided for @clearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear All'**
+  String get clearAll;
+
+  /// No description provided for @iqama.
+  ///
+  /// In en, this message translates to:
+  /// **'Iqama'**
+  String get iqama;
+
+  /// No description provided for @certificationsrelevantExperienceDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications/Relevant Experience Documents'**
+  String get certificationsrelevantExperienceDocuments;
+
+  /// No description provided for @filesSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Files selected'**
+  String get filesSelected;
+
+  /// No description provided for @certificationsrelevantExperienceDocumentsOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications/relevant experience documents (optional)'**
+  String get certificationsrelevantExperienceDocumentsOptional;
+
   /// No description provided for @invoiceType.
   ///
   /// In en, this message translates to:
@@ -5306,6 +5432,12 @@ abstract class AppLocalizations {
   /// **'Edit Selection'**
   String get editSelection;
 
+  /// No description provided for @noRecipientsSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No recipients selected'**
+  String get noRecipientsSelected;
+
   /// No description provided for @apply.
   ///
   /// In en, this message translates to:
@@ -5317,6 +5449,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap to upload files'**
   String get tapToUploadFiles;
+
+  /// No description provided for @addRecipients.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Recipients'**
+  String get addRecipients;
 
   /// No description provided for @serviceItemsCalculationNote.
   ///
@@ -5407,6 +5545,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invalid account number length'**
   String get invalidAccountNumberLength;
+
+  /// Message showing number of technicians selected with plural forms
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No technicians selected} =1{1 technician selected} other{{count} technicians selected}}'**
+  String technicianSelected(int count);
 
   /// Message indicating payout request is successful
   ///

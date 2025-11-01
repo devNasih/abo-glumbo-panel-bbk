@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
@@ -6,6 +8,7 @@ import 'package:aboglumbo_bbk_panel/services/auth_services.dart';
 import 'package:aboglumbo_bbk_panel/services/firestorage.dart';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
@@ -211,6 +214,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   Future<bool> _performSignUp(SignUpButtonPressed event) async {
     String? profileImageUrl;
     String? idImageUrl;
+    List<String>? certificationUrls;
 
     try {
       // Create the user account first to authenticate with Firebase
@@ -271,8 +275,35 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         }
       }
 
-      // Update the user document with the image URLs if they were uploaded
-      if (profileImageUrl != null || idImageUrl != null) {
+      // Upload certifications if any
+      if (event.certifications != null && event.certifications!.isNotEmpty) {
+        certificationUrls = [];
+        for (var cert in event.certifications!) {
+          try {
+            String certUrl = await _uploadPlatformFileWithRetry(
+              cert,
+              'agents/certifications',
+            );
+            certificationUrls.add(certUrl);
+            if (kDebugMode) {
+              print('Certification ${cert.name} uploaded successfully');
+            }
+          } catch (certUploadError) {
+            if (kDebugMode) {
+              print(
+                'Certification upload failed for ${cert.name}: $certUploadError',
+              );
+            }
+            // Continue with signup even if one certification fails
+            // but remove the failed URL if it was added
+          }
+        }
+      }
+
+      // Update the user document with the image URLs and certifications if they were uploaded
+      if (profileImageUrl != null ||
+          idImageUrl != null ||
+          certificationUrls != null) {
         try {
           Map<String, dynamic> updateData = {};
           if (profileImageUrl != null) {
@@ -281,6 +312,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           if (idImageUrl != null) {
             updateData['docUrl'] = idImageUrl;
           }
+          if (certificationUrls != null && certificationUrls.isNotEmpty) {
+            updateData['certifications'] = certificationUrls;
+          }
           updateData['updatedAt'] = Timestamp.now();
 
           await AppFirestore.usersCollectionRef
@@ -288,12 +322,12 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
               .update(updateData);
 
           if (kDebugMode) {
-            print('User document updated with image URLs');
+            print('User document updated with image URLs and certifications');
           }
         } catch (updateError) {
           if (kDebugMode) {
             print(
-              'Failed to update user document with image URLs: $updateError',
+              'Failed to update user document with image URLs and certifications: $updateError',
             );
           }
           // Continue with signup even if document update fails
@@ -315,6 +349,40 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
       return false;
     }
+  }
+
+  Future<String> _uploadPlatformFileWithRetry(
+    PlatformFile file,
+    String storagePath, {
+    int maxRetries = 2,
+  }) async {
+    for (int attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        if (file.path == null) {
+          throw Exception('File path is null');
+        }
+
+        final fileRef = AppFireStorage.agentDocStorageRef.child(
+          '$storagePath/${DateTime.now().millisecondsSinceEpoch}_${file.name}',
+        );
+
+        final uploadTask = fileRef.putFile(File(file.path!));
+        final snapshot = await uploadTask;
+        final downloadUrl = await snapshot.ref.getDownloadURL();
+
+        return downloadUrl;
+      } catch (e) {
+        if (attempt == maxRetries) {
+          rethrow; // If final attempt fails, throw the error
+        }
+        // Wait before retrying
+        await Future.delayed(Duration(seconds: (attempt + 1) * 2));
+        if (kDebugMode) {
+          print('File upload attempt ${attempt + 1} failed, retrying...');
+        }
+      }
+    }
+    throw Exception('File upload failed after $maxRetries retries');
   }
 
   Future<String?> _uploadFileWithRetry(

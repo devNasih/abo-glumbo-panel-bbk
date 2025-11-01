@@ -62,6 +62,7 @@ class SignUpButtonPressed extends LoginEvent {
   final String password;
   final XFile? profileImage;
   final XFile? idImage;
+  final List<PlatformFile>? certifications;
   UserModel userModel;
   SignUpButtonPressed({
     required this.email,
@@ -69,6 +70,7 @@ class SignUpButtonPressed extends LoginEvent {
     this.profileImage,
     this.idImage,
     required this.userModel,
+    this.certifications,
   });
   @override
   List<Object?> get props => [
@@ -77,5 +79,6 @@ class SignUpButtonPressed extends LoginEvent {
     profileImage,
     idImage,
     userModel,
+    certifications,
   ];
 }

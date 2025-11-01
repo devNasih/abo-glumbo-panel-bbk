@@ -1757,6 +1757,72 @@ class AppLocalizationsEn extends AppLocalizations {
   String get image => 'Image';
 
   @override
+  String get notificationTitle => 'Notification Title';
+
+  @override
+  String get enterYourNotificationMessageHere =>
+      'Enter your notification message here';
+
+  @override
+  String get aboGlumboWorker => 'Abo Glumbo Worker';
+
+  @override
+  String get now => 'Now';
+
+  @override
+  String get recipients => 'Recipients';
+
+  @override
+  String get exceedsMaxSize => 'Exceeds max size';
+
+  @override
+  String get sendNotifications => 'Send Notifications';
+
+  @override
+  String get sendNotification => 'Send Notification';
+
+  @override
+  String get noTechniciansFound => 'No technicians found';
+
+  @override
+  String get noTechniciansAvailable => 'No technicians available';
+
+  @override
+  String get manageNotificationAlerts => 'Manage Notification Alerts';
+
+  @override
+  String get previewLanguage => 'Preview Language';
+
+  @override
+  String get sendNotificationsToCustomer => 'Send Notifications to Customer';
+
+  @override
+  String get preview => 'Preview';
+
+  @override
+  String get message => 'Message';
+
+  @override
+  String get composeMessage => 'Compose Message';
+
+  @override
+  String get clearAll => 'Clear All';
+
+  @override
+  String get iqama => 'Iqama';
+
+  @override
+  String get certificationsrelevantExperienceDocuments =>
+      'Certifications/Relevant Experience Documents';
+
+  @override
+  String get filesSelected => 'Files selected';
+
+  @override
+  String get certificationsrelevantExperienceDocumentsOptional =>
+      'Certifications/relevant experience documents (optional)';
+
+  @override
   String get invoiceType => 'Invoice Type';
 
   @override
@@ -2753,10 +2819,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editSelection => 'Edit Selection';
 
   @override
+  String get noRecipientsSelected => 'No recipients selected';
+
+  @override
   String get apply => 'Apply';
 
   @override
   String get tapToUploadFiles => 'Tap to upload files';
+
+  @override
+  String get addRecipients => 'Add Recipients';
 
   @override
   String get serviceItemsCalculationNote =>
@@ -2806,6 +2878,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invalidAccountNumberLength => 'Invalid account number length';
+
+  @override
+  String technicianSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count technicians selected',
+      one: '1 technician selected',
+      zero: 'No technicians selected',
+    );
+    return '$_temp0';
+  }
 
   @override
   String payoutRequestSuccessfulMessage(String amount) {

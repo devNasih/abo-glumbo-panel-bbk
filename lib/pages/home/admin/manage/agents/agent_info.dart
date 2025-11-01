@@ -48,7 +48,6 @@ class AgentInfo extends StatelessWidget {
           '$label ${AppLocalizations.of(context)!.copiedToClipboard}',
         ),
         duration: const Duration(seconds: 3),
-       
       ),
     );
   }
@@ -70,6 +69,16 @@ class AgentInfo extends StatelessWidget {
                   const SizedBox(height: 16),
                   _buildPersonalInfoCard(context),
                   const SizedBox(height: 16),
+                  if (agent.docUrl != null && agent.docUrl!.isNotEmpty)
+                    _buildIqamaCard(context),
+                  if (agent.docUrl != null && agent.docUrl!.isNotEmpty)
+                    const SizedBox(height: 16),
+                  if (agent.certifications != null &&
+                      agent.certifications!.isNotEmpty)
+                    _buildCertificationsCard(context),
+                  if (agent.certifications != null &&
+                      agent.certifications!.isNotEmpty)
+                    const SizedBox(height: 16),
                   _buildBankDetailsCard(context),
                   const SizedBox(height: 16),
                   if (agent.jobRoles != null && agent.jobRoles!.isNotEmpty)
@@ -85,6 +94,251 @@ class AgentInfo extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildIqamaCard(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.badge, color: Colors.blue, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  AppLocalizations.of(context)!.iqama,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                agent.docUrl!,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(40),
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                            : null,
+                        color: primary,
+                      ),
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 200,
+                    color: Colors.grey[200],
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Failed to load image',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCertificationsCard(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20, right: 20, top: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.only(
+                    left: 10,
+                    right: 10,
+                    top: 10,
+                    bottom: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.workspace_premium,
+                    color: Colors.purple,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    maxLines: 2,
+                    AppLocalizations.of(
+                      context,
+                    )!.certificationsrelevantExperienceDocuments,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.purple,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: agent.certifications!.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final certUrl = agent.certifications![index];
+                final fileName = _getFileNameFromUrl(certUrl);
+
+                return InkWell(
+                  onTap: () => _launchCertificationUrl(certUrl),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.purple.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.purple.withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.purple.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.picture_as_pdf,
+                            color: Colors.purple,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                fileName,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Tap to view document',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.open_in_new,
+                          color: Colors.purple.withOpacity(0.6),
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launchCertificationUrl(String url) async {
+    final Uri uri = Uri.parse(url);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        throw 'Could not launch $url';
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error launching certification URL: $e');
+      }
+    }
+  }
+
+  String _getFileNameFromUrl(String url) {
+    try {
+      final uri = Uri.parse(url);
+      final segments = uri.pathSegments;
+      if (segments.isNotEmpty) {
+        String fileName = segments.last;
+        // Decode URL-encoded characters
+        fileName = Uri.decodeComponent(fileName);
+        // If filename is too long, truncate it
+        if (fileName.length > 40) {
+          final extension = fileName.split('.').last;
+          fileName = '${fileName.substring(0, 35)}....$extension';
+        }
+        return fileName;
+      }
+      return 'Certification Document ${url.hashCode.abs() % 1000}';
+    } catch (e) {
+      return 'Certification Document';
+    }
   }
 
   Widget _buildAppBar(BuildContext context) {

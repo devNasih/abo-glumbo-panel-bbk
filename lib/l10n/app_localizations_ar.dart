@@ -1733,6 +1733,71 @@ class AppLocalizationsAr extends AppLocalizations {
   String get image => 'صورة';
 
   @override
+  String get notificationTitle => 'عنوان الإشعار';
+
+  @override
+  String get enterYourNotificationMessageHere => 'ادخل رسالتك هنا';
+
+  @override
+  String get aboGlumboWorker => 'عامل أبو جلمبو';
+
+  @override
+  String get now => 'الان';
+
+  @override
+  String get recipients => 'المستلمين';
+
+  @override
+  String get exceedsMaxSize => 'تجاوز الحد الاقصى';
+
+  @override
+  String get sendNotifications => 'إرسال الإشعارات';
+
+  @override
+  String get sendNotification => 'إرسال الإشعار';
+
+  @override
+  String get noTechniciansFound => 'لم يتم العثور على مهندسين';
+
+  @override
+  String get noTechniciansAvailable => 'لا يوجد مهندسين متاحين';
+
+  @override
+  String get manageNotificationAlerts => 'ادارة الإشعارات';
+
+  @override
+  String get previewLanguage => 'معاينة اللغة';
+
+  @override
+  String get sendNotificationsToCustomer => 'إرسال الإشعارات إلى العميل';
+
+  @override
+  String get preview => 'معاينة';
+
+  @override
+  String get message => 'رسالة';
+
+  @override
+  String get composeMessage => 'إنشاء رسالة';
+
+  @override
+  String get clearAll => 'مسح الكل';
+
+  @override
+  String get iqama => 'اقامة';
+
+  @override
+  String get certificationsrelevantExperienceDocuments =>
+      'وثائق الخبرة المرتبطة بالشهادات';
+
+  @override
+  String get filesSelected => 'الملفات المحددة';
+
+  @override
+  String get certificationsrelevantExperienceDocumentsOptional =>
+      'وثائق الخبرة المرتبطة بالشهادات (اختياري)';
+
+  @override
   String get invoiceType => 'نوع الفاتورة';
 
   @override
@@ -2716,10 +2781,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get editSelection => 'تحرير الاختيار';
 
   @override
+  String get noRecipientsSelected => 'لم يتم اختيار اي مستلمين';
+
+  @override
   String get apply => 'تطبيق';
 
   @override
   String get tapToUploadFiles => 'انقر لتحميل الملفات';
+
+  @override
+  String get addRecipients => 'اضافة المستلمين';
 
   @override
   String get serviceItemsCalculationNote =>
@@ -2769,6 +2840,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get invalidAccountNumberLength => 'طول رقم الحساب غير صحيح';
+
+  @override
+  String technicianSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم اختيار $count فنيين',
+      two: 'تم اختيار فنيين',
+      one: 'تم اختيار فني واحد',
+      zero: 'لم يتم اختيار أي فني',
+    );
+    return '$_temp0';
+  }
 
   @override
   String payoutRequestSuccessfulMessage(String amount) {

@@ -6,6 +6,7 @@ import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/customer_support/man
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/customers/manage_customers.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/faq/manage_faq.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/highlighted_services/highlighted_services.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/notification_alerts/notification_alert_sending_page.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/payouts/manage_payouts.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/services/manage_services.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/tips/tips.dart';
@@ -99,6 +100,12 @@ class _ManageAppState extends State<ManageApp> {
         icon: Icons.support_agent_outlined,
         onTap: () => _navigateToPage('Manage Customer Support'),
       ),
+      _TileInfo(
+        key: 'send_notifications',
+        labelFallback: AppLocalizations.of(context)!.manageNotificationAlerts,
+        icon: Icons.notifications,
+        onTap: () => _navigateToPage('Manage Notification Alerts'),
+      ),
     ];
   }
 
@@ -128,6 +135,8 @@ class _ManageAppState extends State<ManageApp> {
               return const ManagePayouts();
             case 'Manage Customer Support':
               return const ManageCustomerSupport();
+            case 'Manage Notification Alerts':
+              return const SendNotificationPage();
             default:
               return const Placeholder();
           }

@@ -22,6 +22,7 @@ class UserModel {
   double? rating;
   String? availableBalance;
   String? paidAmounts;
+  List<String>? certifications; // List of service ids>
   List<PayoutAccountModel>? payoutAccounts = <PayoutAccountModel>[];
   double? paidoutTips;
 
@@ -34,6 +35,7 @@ class UserModel {
   UserModel({
     this.uid,
     this.name,
+    this.certifications,
     this.email,
     this.phone,
     this.lanCode,
@@ -84,6 +86,7 @@ class UserModel {
     String? paidAmounts,
     String? highestTier,
     double? totalMonthlyBonus,
+    List<String>? certifications,
     Timestamp? lastBonusDate,
     double? paidoutTips,
   }) {
@@ -113,6 +116,7 @@ class UserModel {
       totalMonthlyBonus: totalMonthlyBonus ?? this.totalMonthlyBonus,
       lastBonusDate: lastBonusDate ?? this.lastBonusDate,
       paidoutTips: paidoutTips ?? this.paidoutTips,
+      certifications: certifications ?? this.certifications,
     );
   }
 
@@ -160,6 +164,9 @@ class UserModel {
       paidoutTips: json['paidoutTips'] != null
           ? (json['paidoutTips'] as num).toDouble()
           : null,
+      certifications: json['certifications'] != null
+          ? List<String>.from(json['certifications'])
+          : <String>[],
     );
   }
 
@@ -199,6 +206,10 @@ class UserModel {
       rating: data?['rating'] != null
           ? (data!['rating'] as num).toDouble()
           : null,
+
+      certifications: data?['certifications'] != null
+          ? List<String>.from(data!['certifications'])
+          : <String>[],
       payoutAccounts: data?['payoutAccounts'] != null
           ? List<PayoutAccountModel>.from(
               data!['payoutAccounts'].map(
@@ -245,6 +256,9 @@ class UserModel {
       'highestTier': highestTier,
       'totalMonthlyBonus': totalMonthlyBonus,
       'lastBonusDate': lastBonusDate,
+
+      'certifications': certifications,
+
       'paidoutTips': paidoutTips,
     };
   }
@@ -274,6 +288,8 @@ class UserModel {
       'highestTier': highestTier,
       'totalMonthlyBonus': totalMonthlyBonus,
       'lastBonusDate': lastBonusDate,
+
+      'certifications': certifications,
       'paidoutTips': paidoutTips,
     };
   }
@@ -346,12 +362,18 @@ class UserModel {
     if (lastBonusDate != previous.lastBonusDate && lastBonusDate != null) {
       json['lastBonusDate'] = lastBonusDate;
     }
+
+    if (certifications != previous.certifications && certifications != null) {
+      json['certifications'] = certifications;
+    }
     if (paidoutTips != previous.paidoutTips && paidoutTips != null) {
       json['paidoutTips'] = paidoutTips;
     }
 
     return json;
   }
+
+ 
 }
 
 // Keep your existing LiveLocation and PayoutAccountModel classes unchanged

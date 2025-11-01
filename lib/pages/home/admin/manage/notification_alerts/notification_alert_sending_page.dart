@@ -1,0 +1,1166 @@
+import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
+import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
+import 'package:aboglumbo_bbk_panel/models/user.dart';
+import 'package:aboglumbo_bbk_panel/styles/color.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+
+class SendNotificationPage extends StatefulWidget {
+  const SendNotificationPage({super.key});
+
+  @override
+  State<SendNotificationPage> createState() => _SendNotificationPageState();
+}
+
+class _SendNotificationPageState extends State<SendNotificationPage> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final TextEditingController _titleEnController = TextEditingController();
+  final TextEditingController _bodyEnController = TextEditingController();
+  final TextEditingController _titleArController = TextEditingController();
+  final TextEditingController _bodyArController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
+
+  List<UserModel> _allTechnicians = [];
+  List<UserModel> _filteredTechnicians = [];
+  Set<String> selectedTechnicianIds = {};
+  bool _isLoading = false;
+  bool _isSending = false;
+  String _searchQuery = '';
+  String _previewLanguage = 'en'; // 'en' or 'ar' - only for preview
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTechnicians();
+    _searchController.addListener(_filterTechnicians);
+  }
+
+  @override
+  void dispose() {
+    _titleEnController.dispose();
+    _bodyEnController.dispose();
+    _titleArController.dispose();
+    _bodyArController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadTechnicians() async {
+    setState(() => _isLoading = true);
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .where('isAdmin', isEqualTo: false)
+          .get();
+
+      setState(() {
+        _allTechnicians = snapshot.docs
+            .map((doc) => UserModel.fromDocumentSnapshot(doc))
+            .toList();
+        _filteredTechnicians = _allTechnicians;
+      });
+    } catch (e) {
+      if (kDebugMode) print('Error loading technicians: $e');
+      _showSnackBar('Error loading technicians');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _filterTechnicians() {
+    setState(() {
+      _searchQuery = _searchController.text.toLowerCase();
+      _filteredTechnicians = _allTechnicians
+          .where(
+            (tech) =>
+                (tech.name?.toLowerCase().contains(_searchQuery) ?? false) ||
+                (tech.email?.toLowerCase().contains(_searchQuery) ?? false) ||
+                (tech.phone?.contains(_searchQuery) ?? false),
+          )
+          .toList();
+    });
+  }
+
+  _showSnackBar(String message, [bool issuccess = false]) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: issuccess ? Colors.green : Colors.red,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  bool _validateNotifications() {
+    final titleEnEmpty = _titleEnController.text.isEmpty;
+    final bodyEnEmpty = _bodyEnController.text.isEmpty;
+    final titleArEmpty = _titleArController.text.isEmpty;
+    final bodyArEmpty = _bodyArController.text.isEmpty;
+
+    // At least one language must have both title and body
+    final enComplete = !titleEnEmpty && !bodyEnEmpty;
+    final arComplete = !titleArEmpty && !bodyArEmpty;
+
+    if (!enComplete && !arComplete) {
+      _showSnackBar(
+        'Please fill in at least English or Arabic message content',
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  Future<void> _sendNotifications() async {
+    if (selectedTechnicianIds.isEmpty) {
+      _showSnackBar('Please select at least one technician');
+      return;
+    }
+
+    if (!_validateNotifications()) {
+      return;
+    }
+
+    setState(() => _isSending = true);
+
+    try {
+      final batch = _firestore.batch();
+      final timestamp = Timestamp.now();
+
+      for (String technicianId in selectedTechnicianIds) {
+        try {
+          // Store notification in Firestore with both languages
+          final notificationRef = _firestore
+              .collection('users')
+              .doc(technicianId)
+              .collection('notifications')
+              .doc();
+
+          batch.set(notificationRef, {
+            'titleEn': _titleEnController.text,
+            'bodyEn': _bodyEnController.text,
+            'titleAr': _titleArController.text,
+            'bodyAr': _bodyArController.text,
+            'sentAt': timestamp,
+            'read': false,
+            'type': 'custom',
+          });
+
+          // Create queue document to trigger Cloud Function
+          final queueRef = _firestore.collection('notification_queue').doc();
+
+          batch.set(queueRef, {
+            'recipientId': technicianId,
+            'titleEn': _titleEnController.text,
+            'bodyEn': _bodyEnController.text,
+            'titleAr': _titleArController.text,
+            'bodyAr': _bodyArController.text,
+            'createdAt': timestamp,
+            'processed': false,
+          });
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error processing technician $technicianId: $e');
+          }
+        }
+      }
+
+      await batch.commit();
+
+      if (mounted) {
+        _showSnackBar(
+          'Notification sent to ${selectedTechnicianIds.length} technician(s)',
+          true,
+        );
+
+        // Reset form
+        _titleEnController.clear();
+        _bodyEnController.clear();
+        _titleArController.clear();
+        _bodyArController.clear();
+        selectedTechnicianIds.clear();
+        _searchController.clear();
+      }
+    } catch (e) {
+      if (kDebugMode) print('Error sending notifications: $e');
+      _showSnackBar('Error sending notifications');
+    } finally {
+      setState(() => _isSending = false);
+    }
+  }
+
+  void _showRecipientBottomSheet() {
+    _searchController.clear();
+    _filterTechnicians();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.7,
+              minChildSize: 0.5,
+              maxChildSize: 0.95,
+              builder: (context, scrollController) {
+                return Column(
+                  children: [
+                    // Header
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Colors.grey[300]!,
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.people,
+                                color: AppColors.primary,
+                                size: 24,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Select Recipients',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                    if (selectedTechnicianIds.isNotEmpty)
+                                      Text(
+                                        '${selectedTechnicianIds.length} selected',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          // Search Bar
+                          TextField(
+                            controller: _searchController,
+                            onChanged: (_) =>
+                                setModalState(() => _filterTechnicians()),
+                            decoration: InputDecoration(
+                              hintText: 'Search by name, email, or phone...',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              prefixIcon: const Icon(Icons.search),
+                              suffixIcon: _searchQuery.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        setModalState(
+                                          () => _filterTechnicians(),
+                                        );
+                                      },
+                                    )
+                                  : null,
+                              filled: true,
+                              fillColor: Colors.grey[50],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Technicians List
+                    Expanded(
+                      child: _filteredTechnicians.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.people_outline,
+                                    size: 48,
+                                    color: Colors.grey[300],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    _searchQuery.isEmpty
+                                        ? 'No technicians available'
+                                        : 'No matching technicians found',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.separated(
+                              controller: scrollController,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              itemCount: _filteredTechnicians.length,
+                              separatorBuilder: (_, __) =>
+                                  Divider(height: 1, color: Colors.grey[200]),
+                              itemBuilder: (context, index) {
+                                final technician = _filteredTechnicians[index];
+                                final isSelected = selectedTechnicianIds
+                                    .contains(technician.uid);
+
+                                return CheckboxListTile(
+                                  value: isSelected,
+                                  onChanged: (value) {
+                                    setModalState(() {
+                                      if (value == true) {
+                                        selectedTechnicianIds.add(
+                                          technician.uid ?? '',
+                                        );
+                                      } else {
+                                        selectedTechnicianIds.remove(
+                                          technician.uid,
+                                        );
+                                      }
+                                    });
+                                    setState(() {});
+                                  },
+                                  title: Text(technician.name ?? 'Unknown'),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      if (technician.email?.isNotEmpty == true)
+                                        Text(
+                                          technician.email!,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                      if (technician.phone?.isNotEmpty == true)
+                                        Text(
+                                          technician.phone!,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                      if (technician.fcmToken == null ||
+                                          technician.fcmToken!.isEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 4.0,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.warning,
+                                                size: 12,
+                                                color: Colors.orange,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              const Text(
+                                                'No FCM token',
+                                                style: TextStyle(
+                                                  color: Colors.orange,
+                                                  fontSize: 10,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  secondary: CircleAvatar(
+                                    backgroundColor: isSelected
+                                        ? AppColors.primary
+                                        : Colors.grey[300],
+                                    child: Text(
+                                      technician.name?.isNotEmpty == true
+                                          ? technician.name![0].toUpperCase()
+                                          : 'T',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                    // Footer with Select All / Deselect All
+                    if (_filteredTechnicians.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            top: BorderSide(color: Colors.grey[300]!, width: 1),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            if (selectedTechnicianIds.isNotEmpty)
+                              Expanded(
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.grey[200],
+                                  ),
+                                  onPressed: () {
+                                    setModalState(() {
+                                      selectedTechnicianIds.clear();
+                                    });
+                                    setState(() {});
+                                  },
+                                  child: Text(
+                                    'Deselect All',
+                                    style: TextStyle(color: Colors.grey[800]),
+                                  ),
+                                ),
+                              )
+                            else
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    setModalState(() {
+                                      for (var tech in _filteredTechnicians) {
+                                        selectedTechnicianIds.add(
+                                          tech.uid ?? '',
+                                        );
+                                      }
+                                    });
+                                    setState(() {});
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                  ),
+                                  child: const Text(
+                                    'Select All',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                ),
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text(
+                                  'Done',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.bgWhite,
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.manageNotificationAlerts),
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildLanguageTabs(),
+                        const SizedBox(height: 16),
+                        _buildPreviewCard(),
+                        const SizedBox(height: 16),
+                        _buildMessageCompositionCard(),
+                        const SizedBox(height: 16),
+                        _buildSelectedRecipientsCard(),
+                        const SizedBox(height: 24),
+                        _buildSendButton(),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildLanguageTabs() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                AppLocalizations.of(context)!.previewLanguage,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _previewLanguage = 'en'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: _previewLanguage == 'en'
+                            ? AppColors.primary
+                            : Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.language,
+                            size: 18,
+                            color: _previewLanguage == 'en'
+                                ? Colors.white
+                                : Colors.grey[800],
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            AppLocalizations.of(context)!.english,
+                            style: TextStyle(
+                              color: _previewLanguage == 'en'
+                                  ? Colors.white
+                                  : Colors.grey[800],
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _previewLanguage = 'ar'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: _previewLanguage == 'ar'
+                            ? AppColors.primary
+                            : Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.language,
+                            size: 18,
+                            color: _previewLanguage == 'ar'
+                                ? Colors.white
+                                : Colors.grey[800],
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            AppLocalizations.of(context)!.arabic,
+                            style: TextStyle(
+                              color: _previewLanguage == 'ar'
+                                  ? Colors.white
+                                  : Colors.grey[800],
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessageCompositionCard() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.edit, color: AppColors.primary, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  AppLocalizations.of(context)!.composeMessage,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            // English Section
+            _buildLanguageSection(
+              language: AppLocalizations.of(context)!.english,
+              languageFlag: '🇬🇧',
+              titleController: _titleEnController,
+              bodyController: _bodyEnController,
+              isArabic: false,
+            ),
+            const SizedBox(height: 24),
+            Divider(color: Colors.grey[300], thickness: 1),
+            const SizedBox(height: 24),
+            // Arabic Section
+            _buildLanguageSection(
+              language: AppLocalizations.of(context)!.arabic,
+              languageFlag: '🇸🇦',
+              titleController: _titleArController,
+              bodyController: _bodyArController,
+              isArabic: Directionality.of(context) == TextDirection.rtl,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageSection({
+    required String language,
+    required String languageFlag,
+    required TextEditingController titleController,
+    required TextEditingController bodyController,
+    required bool isArabic,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Language Header
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            children: [
+              Text(languageFlag, style: const TextStyle(fontSize: 20)),
+              const SizedBox(width: 8),
+              Text(
+                language,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Title Field
+        TextField(
+          controller: titleController,
+          maxLength: 80,
+          maxLines: 1,
+          onChanged: (_) => setState(() {}),
+          textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+          decoration: InputDecoration(
+            hintText: AppLocalizations.of(context)!.notificationTitle,
+            labelText: AppLocalizations.of(context)!.title,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            prefixIcon: isArabic ? null : const Icon(Icons.subject),
+            suffixIcon: isArabic ? const Icon(Icons.subject) : null,
+            counterText: '${titleController.text.length}/80',
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Body Field
+        TextField(
+          controller: bodyController,
+          maxLength: 500,
+          maxLines: 4,
+          onChanged: (_) => setState(() {}),
+          textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+          decoration: InputDecoration(
+            hintText: AppLocalizations.of(
+              context,
+            )!.enterYourNotificationMessageHere,
+            labelText: AppLocalizations.of(context)!.message,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            alignLabelWithHint: true,
+            prefixIcon: isArabic ? null : const Icon(Icons.message),
+            suffixIcon: isArabic ? const Icon(Icons.message) : null,
+            counterText: '${bodyController.text.length}/500',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPreviewCard() {
+    final isEnglish = _previewLanguage == 'en';
+    final titleText = isEnglish
+        ? _titleEnController.text
+        : _titleArController.text;
+    final bodyText = isEnglish
+        ? _bodyEnController.text
+        : _bodyArController.text;
+    final hasContent = titleText.isNotEmpty || bodyText.isNotEmpty;
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.visibility,
+                    color: Colors.purple,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  AppLocalizations.of(context)!.preview,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.purple,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            // Notification Preview
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[900],
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Status bar simulation
+                  !isEnglish
+                      ? Row(
+                          children: [
+                            ...isEnglish
+                                ? [
+                                    const Icon(
+                                      Icons.signal_cellular_alt,
+                                      size: 14,
+                                      color: Colors.white70,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Icon(
+                                      Icons.wifi,
+                                      size: 14,
+                                      color: Colors.white70,
+                                    ),
+                                  ]
+                                : [
+                                    const Icon(
+                                      Icons.wifi,
+                                      size: 14,
+                                      color: Colors.white70,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Icon(
+                                      Icons.signal_cellular_alt,
+                                      size: 14,
+                                      color: Colors.white70,
+                                    ),
+                                  ],
+                            const Spacer(),
+                            Text(
+                              '9:41',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[400],
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          children: [
+                            Text(
+                              '9:41',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[400],
+                              ),
+                            ),
+                            const Spacer(),
+                            ...isEnglish
+                                ? [
+                                    const Icon(
+                                      Icons.signal_cellular_alt,
+                                      size: 14,
+                                      color: Colors.white70,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Icon(
+                                      Icons.wifi,
+                                      size: 14,
+                                      color: Colors.white70,
+                                    ),
+                                  ]
+                                : [
+                                    const Icon(
+                                      Icons.wifi,
+                                      size: 14,
+                                      color: Colors.white70,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Icon(
+                                      Icons.signal_cellular_alt,
+                                      size: 14,
+                                      color: Colors.white70,
+                                    ),
+                                  ],
+                          ],
+                        ),
+                  const SizedBox(height: 16),
+                  // Notification Card
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[850],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey[700]!, width: 1),
+                    ),
+                    child: Directionality(
+                      textDirection: isEnglish
+                          ? TextDirection.ltr
+                          : TextDirection.rtl,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.notifications,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  isEnglish
+                                      ? "Abo Glumbo Worker"
+                                      : "عامل ابو جلمبو",
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey[200],
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                isEnglish ? 'now' : 'الان',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          if (titleText.isNotEmpty)
+                            Text(
+                              titleText,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              textDirection: isEnglish
+                                  ? TextDirection.ltr
+                                  : TextDirection.rtl,
+                            )
+                          else
+                            Text(
+                              isEnglish
+                                  ? 'Notification Title'
+                                  : 'عنوان الإشعار',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          if (titleText.isNotEmpty) const SizedBox(height: 4),
+                          if (bodyText.isNotEmpty)
+                            Text(
+                              bodyText,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[300],
+                                height: 1.4,
+                              ),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              textDirection: isEnglish
+                                  ? TextDirection.ltr
+                                  : TextDirection.rtl,
+                            )
+                          else if (hasContent)
+                            Text(
+                              isEnglish
+                                  ? 'Your message will appear here'
+                                  : 'ستظهر رسالتك هنا',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelectedRecipientsCard() {
+    final selectedTechnicians = _allTechnicians
+        .where((tech) => selectedTechnicianIds.contains(tech.uid))
+        .toList();
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.people,
+                    color: Colors.green,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.recipients,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                      Text(
+                        AppLocalizations.of(
+                          context,
+                        )!.technicianSelected(selectedTechnicianIds.length),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+                if (selectedTechnicianIds.isNotEmpty) ...{
+                  IconButton(
+                    onPressed: _showRecipientBottomSheet,
+                    icon: const Icon(Icons.edit),
+                  ),
+                },
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (selectedTechnicians.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.people_outline,
+                        size: 40,
+                        color: Colors.grey[300],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        AppLocalizations.of(context)!.noRecipientsSelected,
+                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        onPressed: _showRecipientBottomSheet,
+                        icon: const Icon(Icons.add, color: Colors.white),
+                        label: Text(
+                          AppLocalizations.of(context)!.addRecipients,
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: selectedTechnicians.map((tech) {
+                      return Chip(
+                        avatar: CircleAvatar(
+                          backgroundColor: AppColors.primary,
+                          child: Text(
+                            tech.name?.isNotEmpty == true
+                                ? tech.name![0].toUpperCase()
+                                : 'T',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        label: Text(tech.name ?? 'Unknown'),
+                        onDeleted: () {
+                          setState(() {
+                            selectedTechnicianIds.remove(tech.uid);
+                          });
+                        },
+                        deleteIconColor: Colors.grey[600],
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSendButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _isSending ? null : _sendNotifications,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: _isSending
+            ? SizedBox(height: 24, width: 24, child: Loader(size: 20))
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.send, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Text(
+                    AppLocalizations.of(context)!.sendNotification,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+}

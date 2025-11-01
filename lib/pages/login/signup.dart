@@ -16,6 +16,7 @@ import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,6 +36,9 @@ class Signup extends StatefulWidget {
 }
 
 class _SignupState extends State<Signup> {
+  List<PlatformFile> selectedCertifications = [];
+  bool isUploadingCertifications = false;
+
   bool isDetectingLocation = false;
   bool isDeletingUser = false;
 
@@ -55,6 +59,46 @@ class _SignupState extends State<Signup> {
   final TextEditingController districtNameController = TextEditingController();
   final TextEditingController jobRoleController = TextEditingController();
   List<String> selectedJobRoles = [];
+
+  Future pickCertifications() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
+        allowMultiple: true,
+      );
+
+      if (result != null) {
+        // Validate file sizes (e.g., max 5MB per file)
+        List<PlatformFile> validFiles = [];
+        for (var file in result.files) {
+          if (file.size <= 5 * 1024 * 1024) {
+            // 5MB limit
+            validFiles.add(file);
+          } else {
+            // Show error for large files
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  '${file.name} ${AppLocalizations.of(context)?.exceedsMaxSize ?? 'exceeds max size of 5MB'}',
+                ),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+
+        if (validFiles.isNotEmpty) {
+          setState(() {
+            selectedCertifications.addAll(validFiles);
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error picking files: $e');
+    }
+  }
+
   Future pickImage(bool isProfile) async {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (image != null) {
@@ -952,51 +996,46 @@ class _SignupState extends State<Signup> {
                     textInputAction: TextInputAction.done,
                   ),
                   const SizedBox(height: 16),
-                  Stack(
-                    children: [
-                      TextFormWidget(
-                        controller: districtNameController,
-                        label: locale?.districtName ?? '',
-                        onTap: () async {
-                          final location =
-                              await LocationSelectorHelper.showLocationSelector(
-                                context: context,
-                                locations: locations,
-                                selectedLocation: selectedLocation,
-                                onUseCurrentLocation: () async =>
-                                    await _determinePosition(),
-                              );
-                          if (location != null) {
-                            setState(() {
-                              selectedLocation = location;
-                              final isArabic =
-                                  AppLocalizations.of(context)?.localeName ==
-                                  'ar';
-                              districtNameController.text = isArabic
-                                  ? (location.name_ar ?? location.name ?? '')
-                                  : (location.name ?? '');
-                            });
-                          }
-                        },
-                        validator: (value) {
-                          if (selectedLocation == null) {
-                            return locale?.locationIsRequired ?? '';
-                          }
-                          return null;
-                        },
-                        suffix: isDetectingLocation
-                            ? Container(
-                                padding: const EdgeInsets.all(8),
-                                height: 10,
-                                width: 10,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppColors.secondary,
-                                ),
-                              )
-                            : null,
-                      ),
-                    ],
+                  TextFormWidget(
+                    controller: districtNameController,
+                    label: locale?.districtName ?? '',
+                    onTap: () async {
+                      final location =
+                          await LocationSelectorHelper.showLocationSelector(
+                            context: context,
+                            locations: locations,
+                            selectedLocation: selectedLocation,
+                            onUseCurrentLocation: () async =>
+                                await _determinePosition(),
+                          );
+                      if (location != null) {
+                        setState(() {
+                          selectedLocation = location;
+                          final isArabic =
+                              AppLocalizations.of(context)?.localeName == 'ar';
+                          districtNameController.text = isArabic
+                              ? (location.name_ar ?? location.name ?? '')
+                              : (location.name ?? '');
+                        });
+                      }
+                    },
+                    validator: (value) {
+                      if (selectedLocation == null) {
+                        return locale?.locationIsRequired ?? '';
+                      }
+                      return null;
+                    },
+                    suffix: isDetectingLocation
+                        ? Container(
+                            padding: const EdgeInsets.all(8),
+                            height: 10,
+                            width: 10,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.secondary,
+                            ),
+                          )
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   Column(
@@ -1174,6 +1213,158 @@ class _SignupState extends State<Signup> {
                   ),
 
                   const SizedBox(height: 16),
+
+                  const SizedBox(height: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        locale!
+                            .certificationsrelevantExperienceDocumentsOptional,
+                        style: GoogleFonts.dmSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Upload Button
+                      OutlinedButton.icon(
+                        onPressed: pickCertifications,
+                        icon: const Icon(Icons.upload_file),
+                        label: Text(
+                          locale.uploadFiles,
+                          style: GoogleFonts.dmSans(fontSize: 14),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 48),
+                          side: BorderSide(color: AppColors.secondary),
+                          foregroundColor: AppColors.secondary,
+                        ),
+                      ),
+
+                      // Display selected files
+                      if (selectedCertifications.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: AppColors.secondary.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '${selectedCertifications.length} ${locale.filesSelected}',
+                                    style: GoogleFonts.dmSans(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.secondary,
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        selectedCertifications.clear();
+                                      });
+                                    },
+                                    child: Text(
+                                      locale.clearAll,
+                                      style: GoogleFonts.dmSans(
+                                        fontSize: 12,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              // File list
+                              ...selectedCertifications.asMap().entries.map((
+                                entry,
+                              ) {
+                                final index = entry.key;
+                                final file = entry.value;
+                                final fileSize = (file.size / 1024)
+                                    .toStringAsFixed(2); // KB
+
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: AppColors.grey2),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      // File icon based on extension
+                                      Icon(
+                                        _getFileIcon(file.extension ?? ''),
+                                        color: AppColors.secondary,
+                                        size: 32,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      // File info
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              file.name,
+                                              style: GoogleFonts.dmSans(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              '$fileSize KB',
+                                              style: GoogleFonts.dmSans(
+                                                fontSize: 11,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      // Remove button
+                                      IconButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            selectedCertifications.removeAt(
+                                              index,
+                                            );
+                                          });
+                                        },
+                                        icon: const Icon(Icons.close, size: 20),
+                                        color: Colors.red,
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
+                            ],
+                          ),
+                        ),
+                      ],
+                      SizedBox(height: 24),
+                    ],
+                  ),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: FilledButton(
@@ -1309,6 +1500,7 @@ class _SignupState extends State<Signup> {
                                     userModel: user,
                                     idImage: selectedImage,
                                     profileImage: selectedProfileImage,
+                                    certifications: selectedCertifications,
                                   ),
                                 );
                               } catch (e) {
@@ -1336,7 +1528,7 @@ class _SignupState extends State<Signup> {
                       child: isLoading
                           ? Loader(size: 20, color: Colors.white)
                           : Text(
-                              locale?.createAccount ?? '',
+                              locale.createAccount,
                               style: GoogleFonts.dmSans(
                                 color: Colors.white,
                                 fontSize: 17,
@@ -1352,5 +1544,21 @@ class _SignupState extends State<Signup> {
         );
       },
     );
+  }
+
+  IconData _getFileIcon(String extension) {
+    switch (extension.toLowerCase()) {
+      case 'pdf':
+        return Icons.picture_as_pdf;
+      case 'doc':
+      case 'docx':
+        return Icons.description;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+        return Icons.image;
+      default:
+        return Icons.insert_drive_file;
+    }
   }
 }

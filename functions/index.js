@@ -296,10 +296,22 @@ exports.notifyCustomerOnBookingStatusChange = onDocumentWritten(
       return;
     }
 
+    // Check for status change or payment completion change
     const statusChanged =
       beforeData?.bookingStatusCode !== afterData.bookingStatusCode;
-    if (!statusChanged) {
-      console.log("Booking status did not change, skipping...");
+    const paymentCompleted =
+      beforeData?.paymentCompleted !== afterData.paymentCompleted;
+
+    if (!statusChanged && !paymentCompleted) {
+      console.log("No relevant changes detected, skipping...");
+      return;
+    }
+
+    // Only send payment completed notification if status is already "C"
+    if (paymentCompleted && afterData.bookingStatusCode !== "C") {
+      console.log(
+        "Payment completed notification only sent for completed bookings (C)..."
+      );
       return;
     }
 
@@ -309,6 +321,7 @@ exports.notifyCustomerOnBookingStatusChange = onDocumentWritten(
       console.log("No customer found.");
       return;
     }
+
     let customerData;
     try {
       const customerDoc = await admin
@@ -325,6 +338,7 @@ exports.notifyCustomerOnBookingStatusChange = onDocumentWritten(
       console.error("Error fetching customer data:", error);
       return;
     }
+
     const fcmToken = customerData?.fcmToken;
     const lanCode = customerData?.lanCode || "en";
 
@@ -335,8 +349,8 @@ exports.notifyCustomerOnBookingStatusChange = onDocumentWritten(
 
     const service = afterData.service;
     const serviceName = service?.name;
-
     const bookingStatus = afterData.bookingStatusCode;
+    const isPaymentCompleted = afterData.paymentCompleted;
 
     const statusMessages = {
       A: {
@@ -348,18 +362,30 @@ exports.notifyCustomerOnBookingStatusChange = onDocumentWritten(
         ar: "تم رفض حجزك.",
       },
       C: {
-        en: "Your service is complete!\nComplete your payment now.\nWe hope you had a great experience.\nPlease take a moment to rate your service provider.\nIf you'd like, you can also leave a tip to show your appreciation.",
-        ar: "تم الانتهاء من خدمتك!\nأكمل دفعتك الآن.\nنأمل أن تكون قد قضيت وقتًا رائعًا.\nيرجى تقييم مقدم الخدمة الخاص بك.\nوإذا رغبت، يمكنك ترك إكرامية.",
+        // Service complete, awaiting payment
+        en: "Your service is complete!\nComplete your payment now.\nWe hope you had a great experience.",
+        ar: "تم الانتهاء من خدمتك!\nأكمل دفعتك الآن.\nنأمل أن تكون قد قضيت وقتًا رائعًا.",
       },
-      X: {
+      C_PAYMENT_COMPLETED: {
+        // Service complete and payment received
+        en: "Thank you! Your payment has been received.\nWe'd love to hear about your experience.\nPlease share your feedback by rating your service provider.\nYour reviews help us maintain the best service quality.\nIf you'd like, you can also leave a tip to show your appreciation.",
+        ar: "شكراً لك! تم استلام دفعتك.\nنود أن نسمع عن تجربتك.\nيرجى مشاركة آرائك بتقييم مقدم الخدمة الخاص بك.\nتساعدنا تقييماتك في الحفاظ على أفضل جودة للخدمة.\nوإذا رغبت، يمكنك ترك إكرامية.",
+      },
+      XC: {
         en: "Your booking has been canceled.",
         ar: "تم إلغاء حجزك.",
       },
     };
 
+    // Determine which message to use
+    let messageKey = bookingStatus;
+    if (bookingStatus === "C" && isPaymentCompleted) {
+      messageKey = "C_PAYMENT_COMPLETED";
+    }
+
     const notificationBody =
-      statusMessages[bookingStatus]?.[lanCode] ||
-      statusMessages[bookingStatus]?.["en"] ||
+      statusMessages[messageKey]?.[lanCode] ||
+      statusMessages[messageKey]?.["en"] ||
       `Your booking status changed to ${bookingStatus}`;
 
     const message = {
@@ -373,6 +399,7 @@ exports.notifyCustomerOnBookingStatusChange = onDocumentWritten(
         status: bookingStatus,
         serviceName: serviceName || "Service",
         lanCode: lanCode,
+        paymentCompleted: isPaymentCompleted.toString(),
       },
     };
 
@@ -383,6 +410,7 @@ exports.notifyCustomerOnBookingStatusChange = onDocumentWritten(
     }
   }
 );
+
 exports.customerTrackingNotification = onDocumentWritten(
   "bookings/{bookingId}",
   async (event) => {
@@ -500,7 +528,7 @@ exports.onBookingUpdateToTip = onDocumentWritten(
     const isTipPaid = after?.review?.isTipPaid || false;
     const tipAmount = after?.review?.tipAmount || 0;
     const paymentType = after?.review?.paymentType || "cash"; // Get payment type
-    
+
     if (isTipPaid && !wasTipPaid && tipAmount > 0) {
       console.log("New tip detected. Processing...");
     } else {
@@ -520,7 +548,7 @@ exports.onBookingUpdateToTip = onDocumentWritten(
     try {
       await db.runTransaction(async (tx) => {
         const tippingDoc = await tx.get(tippingRef);
-        
+
         // Get existing tip amounts based on new model structure
         const existingCashTip = tippingDoc.exists
           ? tippingDoc.data().cashtip || 0
@@ -530,17 +558,22 @@ exports.onBookingUpdateToTip = onDocumentWritten(
           : 0;
 
         // Determine which tip field to update based on payment type
-        const isCardPayment = paymentType.toLowerCase() === "cards" || 
-                              paymentType.toLowerCase() === "card";
-        
+        const isCardPayment =
+          paymentType.toLowerCase() === "cards" ||
+          paymentType.toLowerCase() === "card";
+
         const updateData = {
           walletId: tippingWalletId,
           agentId: agent.uid,
           agentName: agent.name || "",
           agentPhone: agent.phone || "",
           lastUpdated: FieldValue.serverTimestamp(),
-          cashtip: isCardPayment ? existingCashTip : existingCashTip + tipAmount,
-          cardtip: isCardPayment ? existingCardTip + tipAmount : existingCardTip,
+          cashtip: isCardPayment
+            ? existingCashTip
+            : existingCashTip + tipAmount,
+          cardtip: isCardPayment
+            ? existingCardTip + tipAmount
+            : existingCardTip,
           payoutRequested: false, // Add new field from model
         };
 
@@ -559,11 +592,13 @@ exports.onBookingUpdateToTip = onDocumentWritten(
         const message = {
           notification: {
             title: "New Tip Received",
-            body: `You have received a new ${isCardPayment ? 'card' : 'cash'} tip of ${tipAmount}.`,
+            body: `You have received a new ${
+              isCardPayment ? "card" : "cash"
+            } tip of ${tipAmount}.`,
           },
           token: agentFcmToken,
         };
-        
+
         if (agentFcmToken && agentFcmToken.trim() !== "") {
           try {
             await admin.messaging().send(message);
@@ -584,7 +619,9 @@ exports.onBookingUpdateToTip = onDocumentWritten(
       });
 
       console.log(
-        `Successfully updated ${isCardPayment ? 'card' : 'cash'} tip +${tipAmount} for agent ${agent.name} (${agent.uid})`
+        `Successfully updated ${
+          isCardPayment ? "card" : "cash"
+        } tip +${tipAmount} for agent ${agent.name} (${agent.uid})`
       );
     } catch (error) {
       console.error("Error processing tip update:", error);
@@ -1608,6 +1645,194 @@ exports.notifyWorkerOnTipPayoutProcessed = onDocumentWritten(
       console.log(`Tip payout notification sent to worker ${agentId}`);
     } catch (error) {
       console.error("Error sending FCM notification to worker:", error);
+    }
+  }
+);
+// ============================================
+// Send Custom Notification to Technicians (Bilingual)
+// ============================================
+exports.sendCustomNotificationToTechnicians = onDocumentCreated(
+  "notification_queue/{docId}",
+  async (event) => {
+    const snap = event.data;
+    if (!snap) {
+      console.log("No data associated with the event");
+      return;
+    }
+
+    const data = snap.data();
+    const docId = event.params.docId;
+    const recipientId = data.recipientId;
+
+    // Support both old format (single language) and new format (bilingual)
+    const titleEn = data.titleEn || data.title || null;
+    const bodyEn = data.bodyEn || data.body || null;
+    const titleAr = data.titleAr || null;
+    const bodyAr = data.bodyAr || null;
+
+    if (!recipientId) {
+      console.log("Missing recipientId in notification_queue");
+      await snap.ref.update({
+        processed: true,
+        error: "Missing recipientId",
+        processedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      return;
+    }
+
+    // Validate at least one language has content
+    if ((!titleEn && !titleAr) || (!bodyEn && !bodyAr)) {
+      console.log(
+        "Missing required fields - at least one language must have title and body"
+      );
+      await snap.ref.update({
+        processed: true,
+        error: "Missing content in both languages",
+        processedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      return;
+    }
+
+    try {
+      // Get technician's FCM token and language preference
+      const techDoc = await admin
+        .firestore()
+        .collection("users")
+        .doc(recipientId)
+        .get();
+
+      if (!techDoc.exists) {
+        console.log(`Technician document not found for ID: ${recipientId}`);
+        await snap.ref.update({
+          processed: true,
+          error: "Technician not found",
+          processedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        return;
+      }
+
+      const techData = techDoc.data();
+      const fcmToken = techData?.fcmToken;
+      const lanCode = techData?.lanCode || "en";
+
+      if (!fcmToken || fcmToken.trim() === "") {
+        console.log(`No valid FCM token for technician: ${recipientId}`);
+        await snap.ref.update({
+          processed: true,
+          error: "No valid FCM token",
+          processedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        return;
+      }
+
+      // Select notification text based on technician's language preference
+      let notificationTitle, notificationBody;
+
+      if (lanCode === "ar" && titleAr && bodyAr) {
+        // If technician prefers Arabic and Arabic content is available, send Arabic
+        notificationTitle = titleAr;
+        notificationBody = bodyAr;
+        console.log(`Sending Arabic notification to technician ${recipientId}`);
+      } else if (titleEn && bodyEn) {
+        // Otherwise send English (default fallback)
+        notificationTitle = titleEn;
+        notificationBody = bodyEn;
+        console.log(
+          `Sending English notification to technician ${recipientId}`
+        );
+      } else if (titleAr && bodyAr) {
+        // If only Arabic is available, send Arabic
+        notificationTitle = titleAr;
+        notificationBody = bodyAr;
+        console.log(`Sending Arabic notification to technician ${recipientId}`);
+      } else {
+        throw new Error("No valid notification content available");
+      }
+
+      // Send FCM notification
+      const message = {
+        notification: {
+          title: notificationTitle,
+          body: notificationBody,
+        },
+        data: {
+          type: "custom",
+          sentAt: new Date().toISOString(),
+          recipientId: recipientId,
+          language: lanCode,
+        },
+        token: fcmToken,
+        android: {
+          priority: "high",
+          notification: {
+            sound: "default",
+            channelId: "abo_glumbo_channel",
+            clickAction: "FLUTTER_NOTIFICATION_CLICK",
+          },
+        },
+        apns: {
+          headers: {
+            "apns-priority": "10",
+          },
+          payload: {
+            aps: {
+              alert: {
+                title: notificationTitle,
+                body: notificationBody,
+              },
+              sound: "default",
+              badge: 1,
+            },
+          },
+        },
+      };
+
+      const response = await admin.messaging().send(message);
+
+      // Update notification in Firestore with both language versions
+      const notificationRef = admin
+        .firestore()
+        .collection("users")
+        .doc(recipientId)
+        .collection("notifications")
+        .doc();
+
+      await notificationRef.set({
+        titleEn: titleEn,
+        bodyEn: bodyEn,
+        titleAr: titleAr,
+        bodyAr: bodyAr,
+        // Store the sent notification text for history
+        sentTitle: notificationTitle,
+        sentBody: notificationBody,
+        sentLanguage: lanCode,
+        sentAt: admin.firestore.FieldValue.serverTimestamp(),
+        read: false,
+        type: "custom",
+        fcmMessageId: response,
+      });
+
+      // Mark queue document as processed
+      await snap.ref.update({
+        processed: true,
+        fcmMessageId: response,
+        sentLanguage: lanCode,
+        processedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      console.log(
+        `✅ Custom notification sent to technician ${recipientId} in ${lanCode}. MessageId: ${response}`
+      );
+    } catch (error) {
+      console.error(
+        `❌ Error sending custom notification to ${recipientId}:`,
+        error
+      );
+      await snap.ref.update({
+        processed: true,
+        error: error.message,
+        processedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
     }
   }
 );

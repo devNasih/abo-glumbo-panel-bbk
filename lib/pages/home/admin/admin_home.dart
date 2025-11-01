@@ -213,7 +213,7 @@ class _AdminHomeState extends State<AdminHome> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
                     child: SizedBox(
                       height: 52,
                       child: SingleChildScrollView(
