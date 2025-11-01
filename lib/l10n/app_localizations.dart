@@ -173,7 +173,7 @@ abstract class AppLocalizations {
   /// No description provided for @loadingAgents.
   ///
   /// In en, this message translates to:
-  /// **'Loading agents...'**
+  /// **'Loading workers...'**
   String get loadingAgents;
 
   /// No description provided for @reject.
@@ -251,7 +251,7 @@ abstract class AppLocalizations {
   /// No description provided for @agent.
   ///
   /// In en, this message translates to:
-  /// **'agent'**
+  /// **'Worker'**
   String get agent;
 
   /// No description provided for @assignToUser.
@@ -263,7 +263,7 @@ abstract class AppLocalizations {
   /// No description provided for @noAgentsAvailable.
   ///
   /// In en, this message translates to:
-  /// **'No Agents Available'**
+  /// **'No Worker Available'**
   String get noAgentsAvailable;
 
   /// No description provided for @scheduledFor.
@@ -1115,7 +1115,7 @@ abstract class AppLocalizations {
   /// No description provided for @agentInfo.
   ///
   /// In en, this message translates to:
-  /// **'Agent Info'**
+  /// **'Worker Info'**
   String get agentInfo;
 
   /// No description provided for @reviewInfo.
@@ -1265,7 +1265,7 @@ abstract class AppLocalizations {
   /// No description provided for @manageAgents.
   ///
   /// In en, this message translates to:
-  /// **'Manage Agents'**
+  /// **'Manage Workers'**
   String get manageAgents;
 
   /// No description provided for @pleaseEnterYourEmailToResetPassword.
@@ -1535,7 +1535,7 @@ abstract class AppLocalizations {
   /// No description provided for @agentsAvailable.
   ///
   /// In en, this message translates to:
-  /// **'Agents Available'**
+  /// **'Workers Available'**
   String get agentsAvailable;
 
   /// No description provided for @acceptedAt.
@@ -1751,13 +1751,13 @@ abstract class AppLocalizations {
   /// No description provided for @hasBeenApprovedAsAnAgent.
   ///
   /// In en, this message translates to:
-  /// **'has been approved as an agent'**
+  /// **'has been approved as an worker'**
   String get hasBeenApprovedAsAnAgent;
 
   /// No description provided for @hasBeenDisapprovedAsAnAgent.
   ///
   /// In en, this message translates to:
-  /// **'has been disapproved as an agent'**
+  /// **'has been disapproved as an worker'**
   String get hasBeenDisapprovedAsAnAgent;
 
   /// No description provided for @jobRoles.
@@ -2219,7 +2219,7 @@ abstract class AppLocalizations {
   /// No description provided for @agentId.
   ///
   /// In en, this message translates to:
-  /// **'Agent ID'**
+  /// **'Worker ID'**
   String get agentId;
 
   /// No description provided for @sendAndClearWallet.
@@ -2237,7 +2237,7 @@ abstract class AppLocalizations {
   /// No description provided for @clearWalletWarning.
   ///
   /// In en, this message translates to:
-  /// **'This action cannot be undone. The agent will receive the total amount in their wallet, and it will be reset to zero.'**
+  /// **'This action cannot be undone. The worker will receive the total amount in their wallet, and it will be reset to zero.'**
   String get clearWalletWarning;
 
   /// No description provided for @areYouSureYouWantToSend.
@@ -2915,7 +2915,7 @@ abstract class AppLocalizations {
   /// No description provided for @agents.
   ///
   /// In en, this message translates to:
-  /// **'Agents'**
+  /// **'workers'**
   String get agents;
 
   /// No description provided for @inSelectedLocation.
@@ -2927,7 +2927,7 @@ abstract class AppLocalizations {
   /// No description provided for @totalAgents.
   ///
   /// In en, this message translates to:
-  /// **'Total Agents'**
+  /// **'Total workers'**
   String get totalAgents;
 
   /// No description provided for @filteredBy.
@@ -3185,19 +3185,19 @@ abstract class AppLocalizations {
   /// No description provided for @noAgentsFound.
   ///
   /// In en, this message translates to:
-  /// **'No agents found'**
+  /// **'No worker found'**
   String get noAgentsFound;
 
   /// No description provided for @agentApproved.
   ///
   /// In en, this message translates to:
-  /// **'Agent Approved'**
+  /// **'Worker Approved'**
   String get agentApproved;
 
   /// No description provided for @agentDisapproved.
   ///
   /// In en, this message translates to:
-  /// **'Agent Disapproved'**
+  /// **'Worker Disapproved'**
   String get agentDisapproved;
 
   /// No description provided for @deleteBanner.
@@ -3803,7 +3803,7 @@ abstract class AppLocalizations {
   /// No description provided for @agentUnavailable.
   ///
   /// In en, this message translates to:
-  /// **'Agent Unavailable'**
+  /// **'Worker Unavailable'**
   String get agentUnavailable;
 
   /// No description provided for @timeConflictDetected.
@@ -3833,7 +3833,7 @@ abstract class AppLocalizations {
   /// No description provided for @workerCannotBeAssignedMultipleTimes.
   ///
   /// In en, this message translates to:
-  /// **'A worker cannot be assigned to multiple bookings at the exact same time. Please select a different time slot or choose another agent.'**
+  /// **'A worker cannot be assigned to multiple bookings at the exact same time. Please select a different time slot or choose another worker.'**
   String get workerCannotBeAssignedMultipleTimes;
 
   /// No description provided for @unknownWorker.
@@ -3863,7 +3863,7 @@ abstract class AppLocalizations {
   /// No description provided for @agentCancelledAtTimeSlot.
   ///
   /// In en, this message translates to:
-  /// **'Agent cancelled at this time before'**
+  /// **'Worker cancelled at this time before'**
   String get agentCancelledAtTimeSlot;
 
   /// No description provided for @previouslyCancelledAt.
@@ -3875,7 +3875,7 @@ abstract class AppLocalizations {
   /// No description provided for @chooseDifferentAgent.
   ///
   /// In en, this message translates to:
-  /// **'Choose Different Agent'**
+  /// **'Choose Different worker'**
   String get chooseDifferentAgent;
 
   /// No description provided for @assignAnyway.
@@ -3893,7 +3893,7 @@ abstract class AppLocalizations {
   /// No description provided for @workerCancelledAtTime.
   ///
   /// In en, this message translates to:
-  /// **'This agent previously cancelled a booking at this exact time slot. Consider assigning to a different agent for better reliability.'**
+  /// **'This worker previously cancelled a booking at this exact time slot. Consider assigning to a different worker for better reliability.'**
   String get workerCancelledAtTime;
 
   /// No description provided for @errorCheckingBatteryOptimization.
@@ -3923,7 +3923,7 @@ abstract class AppLocalizations {
   /// No description provided for @workerCancelledRestrictionMessage.
   ///
   /// In en, this message translates to:
-  /// **'This agent has previously cancelled a booking and is now restricted from new assignments. Please choose a different agent.'**
+  /// **'This worker has previously cancelled a booking and is now restricted from new assignments. Please choose a different worker.'**
   String get workerCancelledRestrictionMessage;
 
   /// No description provided for @understood.
@@ -3977,19 +3977,19 @@ abstract class AppLocalizations {
   /// No description provided for @thisBookingAlreadyAssignedToAnotherAgent.
   ///
   /// In en, this message translates to:
-  /// **'This booking has already been assigned to another agent.'**
+  /// **'This booking has already been assigned to another worker.'**
   String get thisBookingAlreadyAssignedToAnotherAgent;
 
   /// No description provided for @failedToAssignAgent.
   ///
   /// In en, this message translates to:
-  /// **'Failed to assign agent. Please try again.'**
+  /// **'Failed to assign worker. Please try again.'**
   String get failedToAssignAgent;
 
   /// No description provided for @thisAgentCancelledSameBookingBefore.
   ///
   /// In en, this message translates to:
-  /// **'This agent cancelled this same booking before'**
+  /// **'This worker cancelled this same booking before'**
   String get thisAgentCancelledSameBookingBefore;
 
   /// No description provided for @gotIt.
@@ -4001,7 +4001,7 @@ abstract class AppLocalizations {
   /// No description provided for @showAllAgents.
   ///
   /// In en, this message translates to:
-  /// **'Show All Agents'**
+  /// **'Show All workers'**
   String get showAllAgents;
 
   /// No description provided for @availableInSelectedLocation.
@@ -4019,13 +4019,13 @@ abstract class AppLocalizations {
   /// No description provided for @previouslyCancelledAgent.
   ///
   /// In en, this message translates to:
-  /// **'Previously Cancelled Agent'**
+  /// **'Previously Cancelled worker'**
   String get previouslyCancelledAgent;
 
   /// No description provided for @agentPreviouslyCancelledWarning.
   ///
   /// In en, this message translates to:
-  /// **'This agent previously cancelled this same booking request. You can still assign them, but consider choosing a more reliable agent.'**
+  /// **'This worker previously cancelled this same booking request. You can still assign them, but consider choosing a more reliable worker.'**
   String get agentPreviouslyCancelledWarning;
 
   /// No description provided for @busyAt.
@@ -4205,7 +4205,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkingAvailability.
   ///
   /// In en, this message translates to:
-  /// **'Checking agent availability...'**
+  /// **'Checking worker availability...'**
   String get checkingAvailability;
 
   /// No description provided for @positionText.
@@ -4391,25 +4391,25 @@ abstract class AppLocalizations {
   /// No description provided for @disapproveAgent.
   ///
   /// In en, this message translates to:
-  /// **'Disapprove Agent'**
+  /// **'Disapprove worker'**
   String get disapproveAgent;
 
   /// No description provided for @approveAgent.
   ///
   /// In en, this message translates to:
-  /// **'Approve Agent'**
+  /// **'Approve worker'**
   String get approveAgent;
 
   /// No description provided for @areYouSureYouWantToDisapproveThisAgent.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure you want to disapprove this agent?'**
+  /// **'Are you sure you want to disapprove this worker?'**
   String get areYouSureYouWantToDisapproveThisAgent;
 
   /// No description provided for @areYouSureYouWantToApproveThisAgent.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure you want to approve this agent?'**
+  /// **'Are you sure you want to approve this worker?'**
   String get areYouSureYouWantToApproveThisAgent;
 
   /// No description provided for @tryAdjustingYourSearchCriteria.

@@ -38,33 +38,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// Load all dashboard data simultaneously
-
-  /// Calculate earnings from transactions and tips
-  // double _calculateEarnings(
-  //   List<TransactionModel> transactions,
-  //   List<AllTipsModel> tips,
-  //   double paidAmounts,
-  // ) {
-  //   double cashPayments = 0.0;
-  //   double cardPayments = 0.0;
-
-  //   // Calculate transaction earnings
-  //   for (var transaction in transactions) {
-  //     final status = transaction.paymentStatus.toLowerCase();
-  //     if (status == 'completed' || status == 'paid') {
-  //       final method = transaction.paymentMethod.toLowerCase();
-  //       if (method == 'cash on hands') {
-  //         cashPayments += transaction.amount;
-  //       } else if (method == 'cards') {
-  //         cardPayments += transaction.amount;
-  //       }
-  //     }
-  //   }
-
-  //   return cashPayments + cardPayments - paidAmounts;
-  // }
-
   /// Get rating quality text
   String _getRatingSubtitle(double rating) {
     final l10n = AppLocalizations.of(context)!;
@@ -239,9 +212,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             _buildStatsSection(data.stats),
             const SizedBox(height: 16),
+            _buildEarningsCard(data.totalEarnings),
+            const SizedBox(height: 16),
             _buildQuickActionsGrid(),
             const SizedBox(height: 16),
-            _buildEarningsCard(data.totalEarnings),
           ],
         ),
       ),
@@ -263,6 +237,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           MaterialPageRoute(builder: (_) => Home(newIndex: 1)),
           (_) => false,
         ),
+      ),
+      _StatData(
+        title: l10n.paymentPending,
+        subtitle: l10n.requests,
+        value: data['paymentPending']?.toString() ?? '0',
+        icon: Icons.monetization_on,
+        color: Colors.teal,
+        onTap: () {},
       ),
       _StatData(
         title: l10n.completed,

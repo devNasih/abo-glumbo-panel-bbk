@@ -62,6 +62,7 @@ class BookingModel {
   String? cancellationReason;
   String? orderId;
   bool paymentCompleted = false;
+  List<String>? cancelledWorkerUids;
 
   BookingModel({
     required this.id,
@@ -87,6 +88,7 @@ class BookingModel {
     this.cancelledAt,
     this.cancellationReason,
     this.orderId,
+    this.cancelledWorkerUids,
     this.paymentCompleted = false,
   });
 
@@ -122,6 +124,9 @@ class BookingModel {
       paymentCompleted = data['paymentCompleted'] ?? false,
       trackingStartedAt = data['trackingStartedAt'],
       orderId = data['orderId'],
+      cancelledWorkerUids = data['cancelledWorkerUids'] != null
+          ? List<String>.from(data['cancelledWorkerUids'])
+          : null,
       cancelledAt = data['cancelledAt'];
 
   factory BookingModel.fromQueryDocumentSnapshot(
@@ -155,6 +160,7 @@ class BookingModel {
       'rejectedAt': rejectedAt,
       'completedAt': completedAt,
       'trackingStartedAt': trackingStartedAt,
+      'cancelledWorkerUids': cancelledWorkerUids,
       'cancelledAt': cancelledAt,
       'cancellationReason': cancellationReason,
       'paymentCompleted': paymentCompleted,

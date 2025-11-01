@@ -342,7 +342,6 @@ class AppServices {
     if (bookingStatusCode == 'X') {
       final workerCancel = AppFirestore.bookingsCollectionRef
           .where('cancelledWorkerUids', arrayContains: workerId)
-          .orderBy('updatedAt', descending: true)
           .snapshots()
           .map((snapshot) {
             return snapshot.docs
@@ -352,16 +351,15 @@ class AppServices {
 
       final adminCancel = AppFirestore.bookingsCollectionRef
           .where('bookingStatusCode', isEqualTo: 'R')
-          .orderBy('updatedAt', descending: true)
           .snapshots()
           .map((snapshot) {
             return snapshot.docs
                 .map((doc) => BookingModel.fromDocumentSnapshot(doc))
                 .toList();
           });
+
       final customerCancel = AppFirestore.bookingsCollectionRef
           .where('bookingStatusCode', isEqualTo: 'XC')
-          .orderBy('updatedAt', descending: true)
           .snapshots()
           .map((snapshot) {
             return snapshot.docs
@@ -374,7 +372,15 @@ class AppServices {
         List<BookingModel> admin,
         List<BookingModel> worker,
       ) {
-        return [...customer, ...admin, ...worker];
+        final combined = [...customer, ...admin, ...worker];
+
+        combined.sort((a, b) {
+          final aTime = _getComparisonTimestamp(a);
+          final bTime = _getComparisonTimestamp(b);
+          return bTime.compareTo(aTime);
+        });
+
+        return combined;
       });
     } else if (bookingStatusCode == 'CP') {
       return AppFirestore.bookingsCollectionRef
@@ -402,6 +408,29 @@ class AppServices {
     }
   }
 
+  static int _getComparisonTimestamp(BookingModel booking) {
+    if (booking.bookingStatusCode == 'XC') {
+      return (booking.cancelledAt?.millisecondsSinceEpoch ?? 0);
+    } else if (booking.bookingStatusCode == 'R') {
+      return (booking.updatedAt?.millisecondsSinceEpoch ?? 0);
+    } else {
+      final workerCancelTime = _getWorkerCancelledAtTimestamp(booking);
+      return workerCancelTime;
+    }
+  }
+
+  static int _getWorkerCancelledAtTimestamp(BookingModel booking) {
+    final currentWorkerId = LocalStore.getUID() ?? '';
+
+    for (var worker in booking.cancelledWorkers) {
+      if (worker.uid == currentWorkerId) {
+        final timestamp = worker.cancelledAt;
+        return timestamp.toDate().millisecondsSinceEpoch;
+      }
+    }
+    return 0;
+  }
+
   static Stream<List<BookingModel>> getBookingsStreamByStatus(
     String bookingStatusCode,
   ) {
@@ -409,29 +438,41 @@ class AppServices {
       final customerCancelled = AppFirestore.bookingsCollectionRef
           .where('bookingStatusCode', isEqualTo: 'XC')
           .snapshots()
-          .map(
-            (snapshot) => snapshot.docs
+          .map((snapshot) {
+            final list = snapshot.docs
                 .map((doc) => BookingModel.fromDocumentSnapshot(doc))
-                .toList(),
-          );
+                .toList();
+            return list;
+          })
+          .startWith([]);
 
       final adminCancelled = AppFirestore.bookingsCollectionRef
           .where('bookingStatusCode', isEqualTo: 'R')
           .snapshots()
-          .map(
-            (snapshot) => snapshot.docs
+          .map((snapshot) {
+            final list = snapshot.docs
                 .map((doc) => BookingModel.fromDocumentSnapshot(doc))
-                .toList(),
-          );
+                .toList();
+            return list;
+          })
+          .startWith([]);
+
       return Rx.combineLatest2(customerCancelled, adminCancelled, (
         List<BookingModel> customer,
         List<BookingModel> admin,
       ) {
-        return [...customer, ...admin];
+        final combined = [...customer, ...admin];
+
+        combined.sort((a, b) {
+          final aTime = _getComparisonTimestamp(a);
+          final bTime = _getComparisonTimestamp(b);
+          return bTime.compareTo(aTime); // Swap to descending
+        });
+
+        return combined;
       });
     }
     if (bookingStatusCode == 'CP') {
-      // Payment Pending: code = 'C' and paymentCompleted = true
       return AppFirestore.bookingsCollectionRef
           .where('bookingStatusCode', isEqualTo: 'c')
           .where('paymentCompleted', isEqualTo: true)
@@ -1477,6 +1518,13 @@ class AppServices {
         .snapshots()
         .map((snapshot) => snapshot.docs.length);
 
+    final paymentPending = AppFirestore.bookingsCollectionRef
+        .where('agent.uid', isEqualTo: uid)
+        .where('bookingStatusCode', isEqualTo: 'C')
+        .where('paymentCompleted', isEqualTo: false)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+
     final Stream<double> rating = AppFirestore.bookingsCollectionRef
         .where('bookingStatusCode', isEqualTo: 'C')
         .where('agent.uid', isEqualTo: uid)
@@ -1502,16 +1550,18 @@ class AppServices {
           return sum / ratings.length;
         });
 
-    return Rx.combineLatest4<
+    return Rx.combineLatest5<
+      int,
       int,
       int,
       int,
       double,
       Map<String, dynamic>
-    >(completed, latest, accepted, rating, (
+    >(completed, latest, accepted, paymentPending, rating, (
       int completedCount,
       int latestCount,
       int acceptedCount,
+      int paymentPendingCount,
       double avgRating,
     ) {
       debugPrint(
@@ -1522,6 +1572,7 @@ class AppServices {
         'completed': completedCount,
         'latest': latestCount,
         'accepted': acceptedCount,
+        'paymentPending': paymentPendingCount,
         'rating': avgRating.toStringAsFixed(1),
       };
     });
@@ -1628,11 +1679,13 @@ class AppServices {
           debugPrint('📊 Dashboard data refresh initiated');
           return Rx.combineLatest4(
             _getStatsStream(uid),
+
             _getTransactionsRealTimeStream(uid),
             _getTipsRealTimeStream(uid),
             _getPaidAmountsStream(uid),
             (
               Map<String, dynamic> stats,
+
               List<TransactionModel> transactions,
               List<AllTipsModel> tips,
               double paidAmounts,

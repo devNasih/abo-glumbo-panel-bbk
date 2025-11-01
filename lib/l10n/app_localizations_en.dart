@@ -47,7 +47,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to reject this order?';
 
   @override
-  String get loadingAgents => 'Loading agents...';
+  String get loadingAgents => 'Loading workers...';
 
   @override
   String get reject => 'Reject';
@@ -88,13 +88,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get assignTo => 'Assign To';
 
   @override
-  String get agent => 'agent';
+  String get agent => 'Worker';
 
   @override
   String get assignToUser => 'Assign to user';
 
   @override
-  String get noAgentsAvailable => 'No Agents Available';
+  String get noAgentsAvailable => 'No Worker Available';
 
   @override
   String get scheduledFor => 'Scheduled For';
@@ -532,7 +532,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookingInfo => 'Booking Info';
 
   @override
-  String get agentInfo => 'Agent Info';
+  String get agentInfo => 'Worker Info';
 
   @override
   String get reviewInfo => 'Review Info';
@@ -607,7 +607,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageHighlightedServices => 'Manage Highlighted Services';
 
   @override
-  String get manageAgents => 'Manage Agents';
+  String get manageAgents => 'Manage Workers';
 
   @override
   String get pleaseEnterYourEmailToResetPassword =>
@@ -748,7 +748,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookedOn => 'Booked On';
 
   @override
-  String get agentsAvailable => 'Agents Available';
+  String get agentsAvailable => 'Workers Available';
 
   @override
   String get acceptedAt => 'Accepted At';
@@ -859,10 +859,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pleaseSelectAnImage => 'Please Select An Image';
 
   @override
-  String get hasBeenApprovedAsAnAgent => 'has been approved as an agent';
+  String get hasBeenApprovedAsAnAgent => 'has been approved as an worker';
 
   @override
-  String get hasBeenDisapprovedAsAnAgent => 'has been disapproved as an agent';
+  String get hasBeenDisapprovedAsAnAgent => 'has been disapproved as an worker';
 
   @override
   String get jobRoles => 'Job Roles';
@@ -1103,7 +1103,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lastUpdated => 'Last updated';
 
   @override
-  String get agentId => 'Agent ID';
+  String get agentId => 'Worker ID';
 
   @override
   String get sendAndClearWallet => 'Send & Clear Wallet';
@@ -1113,7 +1113,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearWalletWarning =>
-      'This action cannot be undone. The agent will receive the total amount in their wallet, and it will be reset to zero.';
+      'This action cannot be undone. The worker will receive the total amount in their wallet, and it will be reset to zero.';
 
   @override
   String get areYouSureYouWantToSend => 'Are you sure you want to send';
@@ -1465,13 +1465,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clearFilter => 'Clear Filter';
 
   @override
-  String get agents => 'Agents';
+  String get agents => 'workers';
 
   @override
   String get inSelectedLocation => 'In Selected Location';
 
   @override
-  String get totalAgents => 'Total Agents';
+  String get totalAgents => 'Total workers';
 
   @override
   String get filteredBy => 'Filtered by';
@@ -1602,13 +1602,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get assignedRoles => 'Assigned Roles';
 
   @override
-  String get noAgentsFound => 'No agents found';
+  String get noAgentsFound => 'No worker found';
 
   @override
-  String get agentApproved => 'Agent Approved';
+  String get agentApproved => 'Worker Approved';
 
   @override
-  String get agentDisapproved => 'Agent Disapproved';
+  String get agentDisapproved => 'Worker Disapproved';
 
   @override
   String get deleteBanner => 'Delete Banner';
@@ -1953,7 +1953,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to delete this item?';
 
   @override
-  String get agentUnavailable => 'Agent Unavailable';
+  String get agentUnavailable => 'Worker Unavailable';
 
   @override
   String get timeConflictDetected => 'Time Conflict Detected';
@@ -1970,7 +1970,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workerCannotBeAssignedMultipleTimes =>
-      'A worker cannot be assigned to multiple bookings at the exact same time. Please select a different time slot or choose another agent.';
+      'A worker cannot be assigned to multiple bookings at the exact same time. Please select a different time slot or choose another worker.';
 
   @override
   String get unknownWorker => 'Unknown Worker';
@@ -1985,13 +1985,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workerPreviouslyCancelled => 'Worker Previously Cancelled';
 
   @override
-  String get agentCancelledAtTimeSlot => 'Agent cancelled at this time before';
+  String get agentCancelledAtTimeSlot => 'Worker cancelled at this time before';
 
   @override
   String get previouslyCancelledAt => 'Previously cancelled at';
 
   @override
-  String get chooseDifferentAgent => 'Choose Different Agent';
+  String get chooseDifferentAgent => 'Choose Different worker';
 
   @override
   String get assignAnyway => 'Assign Anyway';
@@ -2001,7 +2001,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workerCancelledAtTime =>
-      'This agent previously cancelled a booking at this exact time slot. Consider assigning to a different agent for better reliability.';
+      'This worker previously cancelled a booking at this exact time slot. Consider assigning to a different worker for better reliability.';
 
   @override
   String get errorCheckingBatteryOptimization =>
@@ -2018,7 +2018,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workerCancelledRestrictionMessage =>
-      'This agent has previously cancelled a booking and is now restricted from new assignments. Please choose a different agent.';
+      'This worker has previously cancelled a booking and is now restricted from new assignments. Please choose a different worker.';
 
   @override
   String get understood => 'Understood';
@@ -2048,20 +2048,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get thisBookingAlreadyAssignedToAnotherAgent =>
-      'This booking has already been assigned to another agent.';
+      'This booking has already been assigned to another worker.';
 
   @override
-  String get failedToAssignAgent => 'Failed to assign agent. Please try again.';
+  String get failedToAssignAgent =>
+      'Failed to assign worker. Please try again.';
 
   @override
   String get thisAgentCancelledSameBookingBefore =>
-      'This agent cancelled this same booking before';
+      'This worker cancelled this same booking before';
 
   @override
   String get gotIt => 'Got it';
 
   @override
-  String get showAllAgents => 'Show All Agents';
+  String get showAllAgents => 'Show All workers';
 
   @override
   String get availableInSelectedLocation => 'available in selected location';
@@ -2070,11 +2071,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancelledThisBookingOn => 'Cancelled this booking on';
 
   @override
-  String get previouslyCancelledAgent => 'Previously Cancelled Agent';
+  String get previouslyCancelledAgent => 'Previously Cancelled worker';
 
   @override
   String get agentPreviouslyCancelledWarning =>
-      'This agent previously cancelled this same booking request. You can still assign them, but consider choosing a more reliable agent.';
+      'This worker previously cancelled this same booking request. You can still assign them, but consider choosing a more reliable worker.';
 
   @override
   String get busyAt => 'Busy at';
@@ -2166,7 +2167,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unBlockCustomer => 'Un-block Customer';
 
   @override
-  String get checkingAvailability => 'Checking agent availability...';
+  String get checkingAvailability => 'Checking worker availability...';
 
   @override
   String get positionText => 'Position';
@@ -2264,18 +2265,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get all => 'All';
 
   @override
-  String get disapproveAgent => 'Disapprove Agent';
+  String get disapproveAgent => 'Disapprove worker';
 
   @override
-  String get approveAgent => 'Approve Agent';
+  String get approveAgent => 'Approve worker';
 
   @override
   String get areYouSureYouWantToDisapproveThisAgent =>
-      'Are you sure you want to disapprove this agent?';
+      'Are you sure you want to disapprove this worker?';
 
   @override
   String get areYouSureYouWantToApproveThisAgent =>
-      'Are you sure you want to approve this agent?';
+      'Are you sure you want to approve this worker?';
 
   @override
   String get tryAdjustingYourSearchCriteria =>
