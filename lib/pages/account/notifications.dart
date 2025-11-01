@@ -38,11 +38,22 @@ class _NotificationsPageState extends State<NotificationsPage> {
       final oldLanguage = _currentLanguage;
       _currentLanguage = newLanguage;
 
-      // Only reload notifications if language actually changed and we have notifications
       if (oldLanguage != newLanguage && notifications.isNotEmpty) {
         _loadNotifications();
       }
     }
+  }
+
+  @override
+  void dispose() {
+    // Auto-clear read badge when navigating out
+    _markAllAsReadOnExit();
+    super.dispose();
+  }
+
+  Future<void> _markAllAsReadOnExit() async {
+    // Mark all as read when leaving the page
+    await AppServices.markAllNotificationsAsRead();
   }
 
   Future<void> _loadNotifications() async {
@@ -56,7 +67,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
         limit: 50,
       );
 
-      // Wait for translations to complete before showing UI
       final translatedNotifications = await _translateNotifications(
         notificationsList,
       );
@@ -75,12 +85,60 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
+  Future<void> _markAllAsRead() async {
+    // Show loading indicator
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) =>
+          Center(child: Loader(size: 32, color: AppColors.primary)),
+    );
+
+    try {
+      final success = await AppServices.markAllNotificationsAsRead();
+
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading dialog
+
+      if (success) {
+        // Reload notifications
+        await _loadNotifications();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _currentLanguage == 'ar'
+                  ? 'تم وضع علامة على جميع الإشعارات كمقروءة'
+                  : 'All notifications marked as read',
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _currentLanguage == 'ar'
+                  ? 'حدث خطأ أثناء المحاولة'
+                  : 'Error occurred',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
   Future<List<Map<String, dynamic>>> _translateNotifications(
     List<Map<String, dynamic>> notificationsList,
   ) async {
     if (notificationsList.isEmpty) return notificationsList;
 
-    // First, create basic processed notifications
     final processedNotifications = notificationsList.map((notification) {
       return Map<String, dynamic>.from(notification);
     }).toList();
@@ -105,7 +163,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
         if (title.isNotEmpty) {
           final cacheKey = '${title}_$_currentLanguage';
           if (_translationCache.containsKey(cacheKey)) {
-            // Use cached translation
             processedNotifications[i]['title'] = _translationCache[cacheKey];
           } else {
             bool shouldTranslate = false;
@@ -125,7 +182,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
         if (body.isNotEmpty) {
           final cacheKey = '${body}_$_currentLanguage';
           if (_translationCache.containsKey(cacheKey)) {
-            // Use cached translation
             processedNotifications[i]['body'] = _translationCache[cacheKey];
           } else {
             bool shouldTranslate = false;
@@ -157,7 +213,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
         log('Translation completed, got ${translatedTexts.length} results');
       }
 
-      // Apply translations to the processed notifications
       if (translatedTexts.isNotEmpty) {
         for (int i = 0; i < translationMap.length; i++) {
           final item = translationMap[i];
@@ -190,7 +245,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       return processedNotifications;
     } catch (e) {
       log('Error in translation: $e');
-      return processedNotifications; // Return unprocessed notifications on error
+      return processedNotifications;
     }
   }
 
@@ -236,7 +291,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
       }
     } catch (e) {
       log('Batch translation error: $e');
-
       return texts;
     }
 
@@ -252,6 +306,15 @@ class _NotificationsPageState extends State<NotificationsPage> {
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.notifications),
         actions: [
+          // Mark All as Read button
+          IconButton(
+            icon: const Icon(Icons.done_all),
+            onPressed: _markAllAsRead,
+            tooltip: _currentLanguage == 'ar'
+                ? 'وضع علامة الكل كمقروء'
+                : 'Mark all as read',
+          ),
+          // Refresh button
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadNotifications,
@@ -261,7 +324,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
       ),
       body: Column(
         children: [
-          // Debug info (only in development)
           if (kDebugMode)
             Container(
               width: double.infinity,
@@ -344,6 +406,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       final title = notification['title']?.toString().trim();
       final body = notification['body']?.toString().trim();
       final category = notification['category'] ?? 'general';
+      final isRead = notification['isRead'] as bool? ?? false;
 
       final displayTitle = (title?.isNotEmpty == true)
           ? title!
@@ -360,11 +423,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
       return Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         elevation: 2,
+        color: isRead ? Colors.grey[100] : Colors.white,
         child: ListTile(
           leading: Tooltip(
             message: _getCategoryName(category),
             child: CircleAvatar(
-              backgroundColor: Colors.blue,
+              backgroundColor: isRead ? Colors.grey[400] : Colors.blue,
               child: Icon(_getCategoryIcon(category), color: Colors.white),
             ),
           ),
@@ -374,9 +438,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
               Expanded(
                 child: Text(
                   displayTitle,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                  style: TextStyle(
+                    fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                    color: isRead ? Colors.grey[600] : Colors.black,
                   ),
                   textAlign: isRTL ? TextAlign.right : TextAlign.left,
                 ),
@@ -390,14 +454,19 @@ class _NotificationsPageState extends State<NotificationsPage> {
             children: [
               Text(
                 displayBody,
-                style: TextStyle(color: Colors.grey[700]),
+                style: TextStyle(
+                  color: isRead ? Colors.grey[500] : Colors.grey[700],
+                ),
                 textAlign: isRTL ? TextAlign.right : TextAlign.left,
               ),
               if (createdAt != null) ...[
                 const SizedBox(height: 4),
                 Text(
                   _formatTime(createdAt.toDate()),
-                  style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isRead ? Colors.grey[300] : Colors.grey[400],
+                  ),
                   textAlign: isRTL ? TextAlign.right : TextAlign.left,
                 ),
               ],

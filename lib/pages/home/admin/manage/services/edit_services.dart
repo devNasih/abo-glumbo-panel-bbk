@@ -476,9 +476,8 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty || value == '') {
-                      return AppLocalizations.of(
-                        context,
-                      )?.pleaseEnterInspectionFeeAmount;
+                      priceController.text = '0';
+                      return null;
                     }
                     return null;
                   },

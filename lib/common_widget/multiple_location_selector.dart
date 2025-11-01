@@ -372,7 +372,9 @@ class _LocationSelectorWidgetState extends State<LocationSelectorWidget> {
                     ),
                   ),
                   child: Text(
-                    'Done (${selectedLocations.length} selected)',
+                    AppLocalizations.of(
+                      context,
+                    )!.doneSelectedCount(selectedLocations.length),
                     style: GoogleFonts.dmSans(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,

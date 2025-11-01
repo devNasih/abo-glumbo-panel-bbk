@@ -5546,6 +5546,12 @@ abstract class AppLocalizations {
   /// **'Invalid account number length'**
   String get invalidAccountNumberLength;
 
+  /// Done button with selected count
+  ///
+  /// In en, this message translates to:
+  /// **'Done ({count} selected)'**
+  String doneSelectedCount(int count);
+
   /// Message showing number of technicians selected with plural forms
   ///
   /// In en, this message translates to:

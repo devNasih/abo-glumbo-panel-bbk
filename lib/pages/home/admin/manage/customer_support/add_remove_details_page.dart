@@ -263,7 +263,7 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
                               const Divider(height: 1, thickness: 1),
                               const SizedBox(height: 12),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
+                                mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   BlocBuilder<ManageAppBloc, ManageAppState>(
                                     builder: (context, state) {
@@ -577,6 +577,7 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
                         ],
                       ),
                     ),
+                    actionsAlignment: MainAxisAlignment.start,
                     actions: [
                       TextButton(
                         onPressed: isLoading

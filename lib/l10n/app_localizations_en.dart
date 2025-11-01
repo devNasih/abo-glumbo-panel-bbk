@@ -2881,6 +2881,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invalidAccountNumberLength => 'Invalid account number length';
 
   @override
+  String doneSelectedCount(int count) {
+    return 'Done ($count selected)';
+  }
+
+  @override
   String technicianSelected(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

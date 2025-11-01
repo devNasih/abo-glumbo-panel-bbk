@@ -1735,6 +1735,112 @@ class AppServices {
           );
         });
   }
+
+  // Get unread notifications count
+  static Future<int> getUnreadNotificationsCount() async {
+    try {
+      String userId = LocalStore.getUID() ?? '';
+      if (userId.isEmpty) {
+        if (kDebugMode) {
+          print('⚠️ No user logged in, cannot retrieve unread count');
+        }
+        return 0;
+      }
+
+      final querySnapshot = await AppFirestore.notificationsCollectionRef
+          .where('userId', isEqualTo: userId)
+          .where('isRead', isEqualTo: false)
+          .count()
+          .get();
+
+      return querySnapshot.count ?? 0;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error getting unread notifications count: $e');
+      }
+      return 0;
+    }
+  }
+
+  // Stream for real-time unread count
+  static Stream<int> getUnreadNotificationsCountStream() {
+    try {
+      String userId = LocalStore.getUID() ?? '';
+      if (userId.isEmpty) {
+        return Stream.value(0);
+      }
+
+      return AppFirestore.notificationsCollectionRef
+          .where('userId', isEqualTo: userId)
+          .where('isRead', isEqualTo: false)
+          .snapshots()
+          .map((snapshot) => snapshot.docs.length);
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error getting unread notifications stream: $e');
+      }
+      return Stream.value(0);
+    }
+  }
+
+  // Mark single notification as read
+  static Future<bool> markNotificationAsRead(String notificationId) async {
+    try {
+      await AppFirestore.notificationsCollectionRef.doc(notificationId).update({
+        'isRead': true,
+        'readAt': Timestamp.now(),
+      });
+      if (kDebugMode) {
+        print('✅ Notification marked as read: $notificationId');
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error marking notification as read: $e');
+      }
+      return false;
+    }
+  }
+
+  // Mark all notifications as read for current user
+  static Future<bool> markAllNotificationsAsRead() async {
+    try {
+      String userId = LocalStore.getUID() ?? '';
+      if (userId.isEmpty) {
+        if (kDebugMode) {
+          print('⚠️ No user logged in, cannot mark all as read');
+        }
+        return false;
+      }
+
+      final unreadNotifications = await AppFirestore.notificationsCollectionRef
+          .where('userId', isEqualTo: userId)
+          .where('isRead', isEqualTo: false)
+          .get();
+
+      final batch = FirebaseFirestore.instance.batch();
+
+      for (var doc in unreadNotifications.docs) {
+        batch.update(doc.reference, {
+          'isRead': true,
+          'readAt': Timestamp.now(),
+        });
+      }
+
+      await batch.commit();
+      if (kDebugMode) {
+        print(
+          '✅ All notifications marked as read: ${unreadNotifications.docs.length}',
+        );
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error marking all notifications as read: $e');
+      }
+      return false;
+    }
+  }
 }
 
 class DashboardDataStream {

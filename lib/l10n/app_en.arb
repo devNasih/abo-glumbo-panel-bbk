@@ -907,6 +907,17 @@
   "tenpercentBonusOnEarnings": "10% Bonus on Earnings",
   "fivepercentBonusOnEarnings": "5% Bonus on Earnings",
   "invalidAccountNumberLength": "Invalid account number length",
+
+    "doneSelectedCount": "Done ({count} selected)",
+  "@doneSelectedCount": {
+    "description": "Done button with selected count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
    "technicianSelected": "{count, plural, =0{No technicians selected} =1{1 technician selected} other{{count} technicians selected}}",
   "@technicianSelected": {
     "description": "Message showing number of technicians selected with plural forms",

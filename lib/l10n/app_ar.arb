@@ -634,8 +634,8 @@
   "editWhatsapp": "تحرير واتساب",
   "editPhone": "تحرير الهاتف",
   "edit": "تحرير",
-  "setAsPrimary": "ضبط كابري",
-  "primary": "ابري",
+  "setAsPrimary": "ضبط كاساسي",
+  "primary": "اساسي",
   "managefaq": "ادارة السؤالات الشائعة",
   "addEntry": "اضافة سؤال شائع",
   "search": "بحث",
@@ -910,6 +910,16 @@
   "addRecipients": "اضافة المستلمين",
   "loading": "تحميل...",
   "invalidAccountNumberLength": "طول رقم الحساب غير صحيح",
+    "doneSelectedCount": "تم ({count} محدد)",
+  "@doneSelectedCount": {
+    "description": "تم الزر مع عدد المحدد",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
   "technicianSelected": "{count, plural, =0{لم يتم اختيار أي فني} =1{تم اختيار فني واحد} =2{تم اختيار فنيين} other{تم اختيار {count} فنيين}}",
   "@technicianSelected": {
     "description": "Message showing number of technicians selected with plural forms",

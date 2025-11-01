@@ -2220,10 +2220,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get edit => 'تحرير';
 
   @override
-  String get setAsPrimary => 'ضبط كابري';
+  String get setAsPrimary => 'ضبط كاساسي';
 
   @override
-  String get primary => 'ابري';
+  String get primary => 'اساسي';
 
   @override
   String get search => 'بحث';
@@ -2840,6 +2840,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get invalidAccountNumberLength => 'طول رقم الحساب غير صحيح';
+
+  @override
+  String doneSelectedCount(int count) {
+    return 'تم ($count محدد)';
+  }
 
   @override
   String technicianSelected(int count) {

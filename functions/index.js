@@ -1836,3 +1836,500 @@ exports.sendCustomNotificationToTechnicians = onDocumentCreated(
     }
   }
 );
+
+exports.notifyCustomerOnWorkerCancellation = onDocumentUpdated(
+  "bookings/{bookingId}",
+  async (event) => {
+    const beforeSnap = event.data.before;
+    const afterSnap = event.data.after;
+
+    if (!beforeSnap || !afterSnap) {
+      console.log("No data associated with the event");
+      return;
+    }
+
+    const beforeData = beforeSnap.data();
+    const afterData = afterSnap.data();
+
+    // Check if cancelledWorkerUids array changed (new cancellation)
+    const beforeCancelledCount = beforeData.cancelledWorkerUids?.length || 0;
+    const afterCancelledCount = afterData.cancelledWorkerUids?.length || 0;
+
+    // Only proceed if a worker was just added to cancelledWorkerUids
+    if (afterCancelledCount <= beforeCancelledCount) {
+      return;
+    }
+
+    try {
+      // Get the customer data to retrieve FCM token
+      const customerDoc = await db
+        .collection("customers")
+        .doc(afterData.customer.id)
+        .get();
+
+      if (!customerDoc.exists) {
+        console.log("Customer document not found");
+        return;
+      }
+
+      const customerData = customerDoc.data();
+      const customerFcmToken = customerData.fcmToken;
+
+      if (!customerFcmToken) {
+        console.log("Customer FCM token not found");
+        return;
+      }
+
+      // Get the worker details who just cancelled from CancelledWorkers array
+      const cancelledWorkers = afterData.cancelledWorkers || [];
+      const lastCancelledWorker = cancelledWorkers[cancelledWorkers.length - 1];
+
+      if (!lastCancelledWorker) {
+        console.log("No cancelled worker found");
+        return;
+      }
+
+      // Get service name from ServiceModel
+      const serviceData = afterData.service;
+      const serviceName =
+        customerData.lanCode === "ar"
+          ? serviceData.name_ar || serviceData.name
+          : serviceData.name;
+
+      const customerLanCode = customerData.lanCode || "en";
+
+      // Prepare notification content based on language
+      let notificationTitle, notificationBody;
+
+      if (customerLanCode === "ar") {
+        notificationTitle = "تم رفض الحجز";
+        notificationBody = `رفض عامل حجزك ل${serviceName}. في انتظار عامل آخر لقبول الحجز.`;
+      } else {
+        notificationTitle = "Booking Rejected";
+        notificationBody = `A worker rejected your booking for ${serviceName}. Waiting for another worker to accept your booking.`;
+      }
+
+      // Send FCM notification
+      const message = {
+        notification: {
+          title: notificationTitle,
+          body: notificationBody,
+        },
+        data: {
+          bookingId: afterData.id,
+          bookingStatusCode: afterData.bookingStatusCode, // Will be "P"
+          cancelledWorkerName: lastCancelledWorker.agentName,
+          cancelledWorkerCount: afterCancelledCount.toString(),
+          bookingDateTime: afterData.bookingDateTime.toDate().toISOString(),
+        },
+        token: customerFcmToken,
+      };
+
+      await admin.messaging().send(message);
+      console.log(
+        `✅ Customer notification sent for booking ${afterData.id} - Worker ${lastCancelledWorker.agentName} rejected`
+      );
+    } catch (error) {
+      console.error(
+        `❌ Error sending customer cancellation notification: ${error}`
+      );
+    }
+  }
+);
+
+exports.notifyAdminsOnWorkerCancellation = onDocumentUpdated(
+  "bookings/{bookingId}",
+  async (event) => {
+    const beforeSnap = event.data.before;
+    const afterSnap = event.data.after;
+    
+    if (!beforeSnap || !afterSnap) {
+      console.log("No data associated with the event");
+      return;
+    }
+
+    const beforeData = beforeSnap.data();
+    const afterData = afterSnap.data();
+
+    // Check if cancelledWorkerUids array changed (new cancellation)
+    const beforeCancelledCount = beforeData.cancelledWorkerUids?.length || 0;
+    const afterCancelledCount = afterData.cancelledWorkerUids?.length || 0;
+
+    // Only proceed if a worker was just added to cancelledWorkerUids
+    if (afterCancelledCount <= beforeCancelledCount) {
+      return;
+    }
+
+    try {
+      // Get the worker details who just cancelled from CancelledWorkers array
+      const cancelledWorkers = afterData.cancelledWorkers || [];
+      const lastCancelledWorker = cancelledWorkers[cancelledWorkers.length - 1];
+
+      if (!lastCancelledWorker) {
+        console.log("No cancelled worker found");
+        return;
+      }
+
+      // Get service name from ServiceModel
+      const serviceData = afterData.service;
+      const serviceName = serviceData.name;
+      const serviceNameAr = serviceData.name_ar || serviceData.name;
+
+      // Get customer name
+      const customerName = afterData.customer.name;
+
+      // Fetch all admin users with FCM tokens
+      const adminsSnapshot = await db.collection("users")
+        .where("isAdmin", "==", true)
+        .where("fcmToken", "!=", null)
+        .get();
+
+      if (adminsSnapshot.empty) {
+        console.log("No admin users found with FCM tokens");
+        return;
+      }
+
+      // Send notification to each admin
+      const adminNotifications = [];
+      adminsSnapshot.docs.forEach((adminDoc) => {
+        const adminData = adminDoc.data();
+        const adminFcmToken = adminData.fcmToken;
+        const adminLanCode = adminData.lanCode || 'en';
+
+        // Prepare notification content based on admin language preference
+        let notificationTitle, notificationBody;
+
+        if (adminLanCode === 'ar') {
+          notificationTitle = "عامل قام برفض الحجز";
+          notificationBody = `${lastCancelledWorker.agentName} رفض حجزك ل${serviceNameAr} من ${customerName}. يرجى مراجعة وتعيين عامل جديد.`;
+        } else {
+          notificationTitle = "Worker Cancelled A Booking";
+          notificationBody = `${lastCancelledWorker.agentName} rejected booking for ${serviceName} from ${customerName}. Please review and assign a new worker.`;
+        }
+
+        const message = {
+          notification: {
+            title: notificationTitle,
+            body: notificationBody,
+          },
+          data: {
+            bookingId: afterData.id,
+            bookingStatusCode: afterData.bookingStatusCode, // "P"
+            cancelledWorkerName: lastCancelledWorker.agentName,
+            cancelledWorkerUid: lastCancelledWorker.uid,
+            cancelledWorkerCount: afterCancelledCount.toString(),
+            customerName: customerName,
+            serviceName: serviceName,
+            bookingDateTime: afterData.bookingDateTime.toDate().toISOString(),
+            totalCancelledWorkers: afterCancelledCount.toString(),
+          },
+          token: adminFcmToken,
+        };
+
+        adminNotifications.push(admin.messaging().send(message));
+      });
+
+      await Promise.all(adminNotifications);
+      console.log(`✅ Admin notifications sent for booking ${afterData.id} - Worker ${lastCancelledWorker.agentName} rejected`);
+
+    } catch (error) {
+      console.error(`❌ Error sending admin cancellation notification: ${error}`);
+    }
+  }
+);
+exports.notifyAdminsOnWorkerCancellation = onDocumentUpdated(
+  "bookings/{bookingId}",
+  async (event) => {
+    const beforeSnap = event.data.before;
+    const afterSnap = event.data.after;
+    
+    if (!beforeSnap || !afterSnap) {
+      console.log("No data associated with the event");
+      return;
+    }
+
+    const beforeData = beforeSnap.data();
+    const afterData = afterSnap.data();
+
+    // Check if cancelledWorkerUids array changed (new cancellation)
+    const beforeCancelledCount = beforeData.cancelledWorkerUids?.length || 0;
+    const afterCancelledCount = afterData.cancelledWorkerUids?.length || 0;
+
+    // Only proceed if a worker was just added to cancelledWorkerUids
+    if (afterCancelledCount <= beforeCancelledCount) {
+      return;
+    }
+
+    try {
+      // Get the worker details who just cancelled from CancelledWorkers array
+      const cancelledWorkers = afterData.cancelledWorkers || [];
+      const lastCancelledWorker = cancelledWorkers[cancelledWorkers.length - 1];
+
+      if (!lastCancelledWorker) {
+        console.log("No cancelled worker found");
+        return;
+      }
+
+      // Get service name from ServiceModel
+      const serviceData = afterData.service;
+      const serviceName = serviceData.name;
+      const serviceNameAr = serviceData.name_ar || serviceData.name;
+
+      // Get customer name
+      const customerName = afterData.customer.name;
+
+      // Fetch all admin users with FCM tokens
+      const adminsSnapshot = await db.collection("users")
+        .where("isAdmin", "==", true)
+        .where("fcmToken", "!=", null)
+        .get();
+
+      if (adminsSnapshot.empty) {
+        console.log("No admin users found with FCM tokens");
+        return;
+      }
+
+      // Send notification to each admin
+      const adminNotifications = [];
+      adminsSnapshot.docs.forEach((adminDoc) => {
+        const adminData = adminDoc.data();
+        const adminFcmToken = adminData.fcmToken;
+        const adminLanCode = adminData.lanCode || 'en';
+
+        // Prepare notification content based on admin language preference
+        let notificationTitle, notificationBody;
+
+        if (adminLanCode === 'ar') {
+          notificationTitle = "عامل قام برفض الحجز";
+          notificationBody = `${lastCancelledWorker.agentName} رفض حجزك ل${serviceNameAr} من ${customerName}. يرجى مراجعة وتعيين عامل جديد.`;
+        } else {
+          notificationTitle = "Worker Cancelled A Booking";
+          notificationBody = `${lastCancelledWorker.agentName} rejected booking for ${serviceName} from ${customerName}. Please review and assign a new worker.`;
+        }
+
+        const message = {
+          notification: {
+            title: notificationTitle,
+            body: notificationBody,
+          },
+          data: {
+            bookingId: afterData.id,
+            bookingStatusCode: afterData.bookingStatusCode, // "P"
+            cancelledWorkerName: lastCancelledWorker.agentName,
+            cancelledWorkerUid: lastCancelledWorker.uid,
+            cancelledWorkerCount: afterCancelledCount.toString(),
+            customerName: customerName,
+            serviceName: serviceName,
+            bookingDateTime: afterData.bookingDateTime.toDate().toISOString(),
+            totalCancelledWorkers: afterCancelledCount.toString(),
+          },
+          token: adminFcmToken,
+        };
+
+        adminNotifications.push(admin.messaging().send(message));
+      });
+
+      await Promise.all(adminNotifications);
+      console.log(`✅ Admin notifications sent for booking ${afterData.id} - Worker ${lastCancelledWorker.agentName} rejected`);
+
+    } catch (error) {
+      console.error(`❌ Error sending admin cancellation notification: ${error}`);
+    }
+  }
+);
+
+
+exports.notifyWorkersOnCustomerCancellation = onDocumentUpdated(
+  "bookings/{bookingId}",
+  async (event) => {
+    const beforeSnap = event.data.before;
+    const afterSnap = event.data.after;
+    
+    if (!beforeSnap || !afterSnap) {
+      console.log("No data associated with the event");
+      return;
+    }
+
+    const beforeData = beforeSnap.data();
+    const afterData = afterSnap.data();
+
+    // Check if booking status changed to XC (customer cancelled)
+    if (beforeData.bookingStatusCode !== afterData.bookingStatusCode || 
+        afterData.bookingStatusCode !== 'XC') {
+      return;
+    }
+
+    try {
+      // Get service name from ServiceModel
+      const serviceData = afterData.service;
+      const serviceName = serviceData.name;
+      const serviceNameAr = serviceData.name_ar || serviceData.name;
+
+      // Get customer name
+      const customerName = afterData.customer.name;
+
+      // Get list of workers who were assigned or cancelled this booking
+      const cancelledWorkerUids = afterData.cancelledWorkerUids || [];
+      const agent = afterData.agent;
+
+      // Collect all worker UIDs (both cancelled workers and assigned agent)
+      let workerUids = [...cancelledWorkerUids];
+      if (agent && agent.uid && !workerUids.includes(agent.uid)) {
+        workerUids.push(agent.uid);
+      }
+
+      if (workerUids.length === 0) {
+        console.log("No workers to notify");
+        return;
+      }
+
+      // Fetch all workers who were involved with this booking
+      const workersSnapshot = await db.collection("users")
+        .where("__name__", "in", workerUids.slice(0, 10)) // Firestore limits 'in' to 10 items
+        .get();
+
+      if (workersSnapshot.empty) {
+        console.log("No workers found with FCM tokens");
+        return;
+      }
+
+      // Send notification to each worker
+      const workerNotifications = [];
+      workersSnapshot.docs.forEach((workerDoc) => {
+        const workerData = workerDoc.data();
+        const workerFcmToken = workerData.fcmToken;
+        const workerLanCode = workerData.lanCode || 'en';
+
+        if (!workerFcmToken) {
+          return; // Skip if no FCM token
+        }
+
+        // Prepare notification content based on worker language preference
+        let notificationTitle, notificationBody;
+
+        if (workerLanCode === 'ar') {
+          notificationTitle = "تم إلغاء الحجز من قبل العميل";
+          notificationBody = `العميل ${customerName} قام بإلغاء حجز ${serviceNameAr}. لن تتمكن من قبول هذا الحجز.`;
+        } else {
+          notificationTitle = "Booking Cancelled by Customer";
+          notificationBody = `Customer ${customerName} cancelled their booking for ${serviceName}. You can no longer accept this booking.`;
+        }
+
+        const message = {
+          notification: {
+            title: notificationTitle,
+            body: notificationBody,
+          },
+          data: {
+            bookingId: afterData.id,
+            bookingStatusCode: afterData.bookingStatusCode, // "XC"
+            customerName: customerName,
+            serviceName: serviceName,
+            bookingDateTime: afterData.bookingDateTime.toDate().toISOString(),
+            cancelledBy: "customer",
+          },
+          token: workerFcmToken,
+        };
+
+        workerNotifications.push(admin.messaging().send(message));
+      });
+
+      await Promise.all(workerNotifications);
+      console.log(`✅ Worker notifications sent for booking ${afterData.id} - Customer cancelled`);
+
+    } catch (error) {
+      console.error(`❌ Error sending worker cancellation notification: ${error}`);
+    }
+  }
+);
+
+
+exports.notifyAdminsOnCustomerCancellation = onDocumentUpdated(
+  "bookings/{bookingId}",
+  async (event) => {
+    const beforeSnap = event.data.before;
+    const afterSnap = event.data.after;
+    
+    if (!beforeSnap || !afterSnap) {
+      console.log("No data associated with the event");
+      return;
+    }
+
+    const beforeData = beforeSnap.data();
+    const afterData = afterSnap.data();
+
+    // Check if booking status changed to XC (customer cancelled)
+    if (beforeData.bookingStatusCode !== afterData.bookingStatusCode || 
+        afterData.bookingStatusCode !== 'XC') {
+      return;
+    }
+
+    try {
+      // Get service name from ServiceModel
+      const serviceData = afterData.service;
+      const serviceName = serviceData.name;
+      const serviceNameAr = serviceData.name_ar || serviceData.name;
+
+      // Get customer name
+      const customerName = afterData.customer.name;
+
+      // Get cancellation reason if available
+      const cancellationReason = afterData.cancellationReason || "Not provided";
+
+      // Fetch all admin users with FCM tokens
+      const adminsSnapshot = await db.collection("users")
+        .where("isAdmin", "==", true)
+        .where("fcmToken", "!=", null)
+        .get();
+
+      if (adminsSnapshot.empty) {
+        console.log("No admin users found with FCM tokens");
+        return;
+      }
+
+      // Send notification to each admin
+      const adminNotifications = [];
+      adminsSnapshot.docs.forEach((adminDoc) => {
+        const adminData = adminDoc.data();
+        const adminFcmToken = adminData.fcmToken;
+        const adminLanCode = adminData.lanCode || 'en';
+
+        // Prepare notification content based on admin language preference
+        let notificationTitle, notificationBody;
+
+        if (adminLanCode === 'ar') {
+          notificationTitle = "تم إلغاء الحجز من قبل العميل";
+          notificationBody = `العميل ${customerName} قام بإلغاء حجز ${serviceNameAr}. السبب: ${cancellationReason}`;
+        } else {
+          notificationTitle = "Booking Cancelled by Customer";
+          notificationBody = `Customer ${customerName} cancelled their booking for ${serviceName}. Reason: ${cancellationReason}`;
+        }
+
+        const message = {
+          notification: {
+            title: notificationTitle,
+            body: notificationBody,
+          },
+          data: {
+            bookingId: afterData.id,
+            bookingStatusCode: afterData.bookingStatusCode, // "XC"
+            customerName: customerName,
+            serviceName: serviceName,
+            bookingDateTime: afterData.bookingDateTime.toDate().toISOString(),
+            cancellationReason: cancellationReason,
+            cancelledBy: "customer",
+          },
+          token: adminFcmToken,
+        };
+
+        adminNotifications.push(admin.messaging().send(message));
+      });
+
+      await Promise.all(adminNotifications);
+      console.log(`✅ Admin notifications sent for booking ${afterData.id} - Customer cancelled`);
+
+    } catch (error) {
+      console.error(`❌ Error sending admin cancellation notification: ${error}`);
+    }
+  }
+);
