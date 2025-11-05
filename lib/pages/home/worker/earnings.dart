@@ -998,7 +998,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
             ),
             child: Text(
               isCash
-                  ? AppLocalizations.of(context)!.cashOnHands
+                  ? AppLocalizations.of(context)!.paymentInCash
                   : AppLocalizations.of(context)!.card,
               style: TextStyle(
                 fontSize: 10,

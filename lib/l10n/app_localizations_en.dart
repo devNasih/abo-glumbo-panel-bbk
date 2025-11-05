@@ -431,9 +431,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addNotes => 'Add Notes';
 
   @override
-  String get cashInHand => 'Cash In Hand';
-
-  @override
   String get netBankingUpiCard => 'Net banking / UPI /Card';
 
   @override
@@ -767,9 +764,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get applePay => 'Apple Pay';
-
-  @override
-  String get cashOnHands => 'Cash On Hands';
 
   @override
   String get ext => 'Ext';
@@ -2495,6 +2489,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cashTips => 'Cash Tips';
+
+  @override
+  String get paymentInCash => 'Payment in Cash';
 
   @override
   String get cardTips => 'Card Tips';

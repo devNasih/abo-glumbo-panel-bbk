@@ -1680,7 +1680,6 @@ class AppServices {
           debugPrint('📊 Dashboard data refresh initiated');
           return Rx.combineLatest4(
             _getStatsStream(uid),
-
             _getTransactionsRealTimeStream(uid),
             _getTipsRealTimeStream(uid),
             _getPaidAmountsStream(uid),

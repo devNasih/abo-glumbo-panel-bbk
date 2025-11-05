@@ -914,12 +914,6 @@ abstract class AppLocalizations {
   /// **'Add Notes'**
   String get addNotes;
 
-  /// No description provided for @cashInHand.
-  ///
-  /// In en, this message translates to:
-  /// **'Cash In Hand'**
-  String get cashInHand;
-
   /// No description provided for @netBankingUpiCard.
   ///
   /// In en, this message translates to:
@@ -1573,12 +1567,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apple Pay'**
   String get applePay;
-
-  /// No description provided for @cashOnHands.
-  ///
-  /// In en, this message translates to:
-  /// **'Cash On Hands'**
-  String get cashOnHands;
 
   /// No description provided for @ext.
   ///
@@ -4819,6 +4807,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cash Tips'**
   String get cashTips;
+
+  /// No description provided for @paymentInCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment in Cash'**
+  String get paymentInCash;
 
   /// No description provided for @cardTips.
   ///

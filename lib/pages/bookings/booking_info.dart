@@ -10,6 +10,7 @@ import 'package:aboglumbo_bbk_panel/pages/bookings/booking_controllers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -154,6 +155,7 @@ class BookingInfo extends StatelessWidget {
               value: booking.id,
               textTheme: textTheme,
               colorScheme: colorScheme,
+              needCopyButton: true,
             ),
 
             // Service Name
@@ -199,6 +201,7 @@ class BookingInfo extends StatelessWidget {
     required TextTheme textTheme,
     required ColorScheme colorScheme,
     bool isDescription = false,
+    bool needCopyButton = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,6 +216,7 @@ class BookingInfo extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Container(
+          height: isDescription ? null : 55,
           width: double.infinity,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -220,14 +224,41 @@ class BookingInfo extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
           ),
-          child: Text(
-            value,
-            style: GoogleFonts.poppins(
-              fontSize: isDescription ? 14 : 16,
-              fontWeight: FontWeight.w500,
-              color: colorScheme.onSurface,
-              height: isDescription ? 1.4 : 1.2,
-            ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  value,
+                  style: GoogleFonts.poppins(
+                    fontSize: isDescription ? 14 : 16,
+                    fontWeight: FontWeight.w500,
+                    color: colorScheme.onSurface,
+                    height: isDescription ? 1.4 : 1.2,
+                  ),
+                ),
+              ),
+              if (needCopyButton) ...{
+                SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: IconButton(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: value));
+                    },
+                    icon: Icon(Icons.copy),
+                    iconSize: 16,
+                    style: ButtonStyle(
+                      padding: WidgetStatePropertyAll(EdgeInsets.zero),
+                      shape: MaterialStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              },
+            ],
           ),
         ),
       ],
@@ -1281,7 +1312,7 @@ class BookingInfo extends StatelessWidget {
                     ? AppLocalizations.of(context)!.card
                     : booking.paymentModeCode.toLowerCase() == 'a'
                     ? AppLocalizations.of(context)!.applePay
-                    : AppLocalizations.of(context)!.cashOnHands,
+                    : AppLocalizations.of(context)!.paymentInCash,
                 textTheme: textTheme,
                 colorScheme: colorScheme,
               ),

@@ -428,9 +428,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get addNotes => 'إضافة ملاحظات';
 
   @override
-  String get cashInHand => 'نقداً';
-
-  @override
   String get netBankingUpiCard => 'التحويل البنكي الالكتروني / UPI / بطاقة';
 
   @override
@@ -762,9 +759,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get applePay => 'Apple Pay';
-
-  @override
-  String get cashOnHands => 'الدفع عند الحصول';
 
   @override
   String get ext => 'الامتداد البريدي';
@@ -2460,6 +2454,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get cashTips => 'نقاط القبول النقدية';
+
+  @override
+  String get paymentInCash => 'الدفع كاش';
 
   @override
   String get cardTips => 'نقاط القبول البطاقة';

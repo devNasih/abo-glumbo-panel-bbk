@@ -381,9 +381,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
         subtitle: l10n.requests,
         value: data['latest']?.toString() ?? '0',
         icon: Icons.assignment_outlined,
-        color: AppColors.secondary,
+        color: AppColors.primary,
         onTap: () => Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => Home(newIndex: 1)),
+          (_) => false,
+        ),
+      ),
+      _StatData(
+        title: AppLocalizations.of(context)!.accepted,
+        subtitle: AppLocalizations.of(context)!.requests,
+        value: data['accepted']?.toString() ?? '0',
+        icon: Icons.assignment_turned_in,
+        color: AppColors.secondary,
+        onTap: () => Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => Home(newIndex: 1, selectedFilter: "A"),
+          ),
           (_) => false,
         ),
       ),
@@ -393,7 +406,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         value: data['paymentPending']?.toString() ?? '0',
         icon: Icons.monetization_on,
         color: Colors.teal,
-        onTap: () {},
+        onTap: () => Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => Home(newIndex: 1, selectedFilter: "CP"),
+          ),
+          (_) => false,
+        ),
       ),
       _StatData(
         title: l10n.completed,
@@ -430,50 +448,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   /// Build responsive stats grid
-  /// Build responsive stats grid
   Widget _buildStatsGrid(List<_StatData> stats) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isWide = constraints.maxWidth > 600;
-
         // Reorganize: First 2 cards (New & Completed) in a row,
         // Last 2 cards (Payment Pending & Rating) below
-        if (isWide) {
-          return Column(
-            children: [
-              // First row: New and Completed
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(stats[0]), // New
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(stats[2]), // Completed
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Second row: Payment Pending and Rating
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(stats[1]), // Payment Pending
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(stats[3]), // Rating
-                  ),
-                ],
-              ),
-            ],
-          );
-        }
-
-        // Mobile layout: Same structure but stacked
         return Column(
           children: [
-            // First row: New and Completed side by side
+            // First row: New and Completed
             Row(
               children: [
                 Expanded(
@@ -481,16 +463,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _buildStatCard(stats[2]), // Completed
+                  child: _buildStatCard(stats[1]), // Accepted
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            // Payment Pending - full width
-            _buildStatCard(stats[1]),
+            // Second row: Payment Pending and Rating
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(stats[2]), // Payment Pending
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatCard(stats[3]), // Completed
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
-            // Rating - full width
-            _buildStatCard(stats[3]),
+            // Third row: Accepted
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(stats[4]), // Rating
+                ),
+              ],
+            ),
           ],
         );
       },
