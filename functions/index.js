@@ -395,6 +395,8 @@ exports.notifyCustomerOnBookingStatusChange = onDocumentWritten(
       },
       token: fcmToken,
       data: {
+        customerId: customerId,
+        targetRole: "customer",
         bookingId: event.params.bookingId,
         status: bookingStatus,
         serviceName: serviceName || "Service",
@@ -2370,7 +2372,9 @@ exports.notifyWorkerOnPaymentComplete = onDocumentUpdated(
 
     // Only trigger when payment status changes AND booking is completed
     if (!wasPaymentPending || !isPaymentCompleted) {
-      console.log("Payment status unchanged or already completed. Skipping notification.");
+      console.log(
+        "Payment status unchanged or already completed. Skipping notification."
+      );
       return null;
     }
 
@@ -2391,17 +2395,19 @@ exports.notifyWorkerOnPaymentComplete = onDocumentUpdated(
     const workerLanCode = agent.lanCode || "en";
     const customerName = afterData.customer?.name || "Customer";
     const serviceName = afterData.service?.serviceName || "Service";
-    
+
     // Get payment details
     const totalCost = afterData.completionData?.totalCost || 0;
-    const paymentMethod = afterData.completionData?.paymentMethod || afterData.paymentModeCode;
+    const paymentMethod =
+      afterData.completionData?.paymentMethod || afterData.paymentModeCode;
 
     try {
       const message = {
         notification: {
-          title: workerLanCode === "ar" 
-            ? "تم استلام الدفع! 💰" 
-            : "Payment Received! 💰",
+          title:
+            workerLanCode === "ar"
+              ? "تم استلام الدفع! 💰"
+              : "Payment Received! 💰",
           body:
             workerLanCode === "ar"
               ? `${customerName} أكمل الدفع بمبلغ ₹${totalCost.toFixed(2)}`
