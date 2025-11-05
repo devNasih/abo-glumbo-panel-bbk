@@ -316,6 +316,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
             updateData['certifications'] = certificationUrls;
           }
           updateData['updatedAt'] = Timestamp.now();
+          updateData['isOnline'] = true;
 
           await AppFirestore.usersCollectionRef
               .doc(event.userModel.uid)

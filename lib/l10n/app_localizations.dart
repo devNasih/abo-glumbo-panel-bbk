@@ -5546,6 +5546,54 @@ abstract class AppLocalizations {
   /// **'Invalid account number length'**
   String get invalidAccountNumberLength;
 
+  /// No description provided for @online.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get online;
+
+  /// No description provided for @offline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get offline;
+
+  /// No description provided for @youAreNowOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'You are now online'**
+  String get youAreNowOnline;
+
+  /// No description provided for @youAreNowOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'You are now offline'**
+  String get youAreNowOffline;
+
+  /// No description provided for @errorUpdatingStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Error updating status'**
+  String get errorUpdatingStatus;
+
+  /// No description provided for @availabilityStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Availability Status'**
+  String get availabilityStatus;
+
+  /// No description provided for @youAreCurrentlyUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'You are currently unavailable for requests'**
+  String get youAreCurrentlyUnavailable;
+
+  /// No description provided for @youAreAvailableForRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'You are available for requests'**
+  String get youAreAvailableForRequests;
+
   /// Done button with selected count
   ///
   /// In en, this message translates to:

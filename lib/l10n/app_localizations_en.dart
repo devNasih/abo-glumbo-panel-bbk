@@ -2881,6 +2881,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invalidAccountNumberLength => 'Invalid account number length';
 
   @override
+  String get online => 'Online';
+
+  @override
+  String get offline => 'Offline';
+
+  @override
+  String get youAreNowOnline => 'You are now online';
+
+  @override
+  String get youAreNowOffline => 'You are now offline';
+
+  @override
+  String get errorUpdatingStatus => 'Error updating status';
+
+  @override
+  String get availabilityStatus => 'Availability Status';
+
+  @override
+  String get youAreCurrentlyUnavailable =>
+      'You are currently unavailable for requests';
+
+  @override
+  String get youAreAvailableForRequests => 'You are available for requests';
+
+  @override
   String doneSelectedCount(int count) {
     return 'Done ($count selected)';
   }

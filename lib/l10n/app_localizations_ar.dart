@@ -2842,6 +2842,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get invalidAccountNumberLength => 'طول رقم الحساب غير صحيح';
 
   @override
+  String get online => 'متصل';
+
+  @override
+  String get offline => 'غير متصل';
+
+  @override
+  String get youAreNowOnline => 'أنت الآن متصل';
+
+  @override
+  String get youAreNowOffline => 'أنت الآن غير متصل';
+
+  @override
+  String get errorUpdatingStatus => 'خطأ في تحديث الحالة';
+
+  @override
+  String get availabilityStatus => 'حالة التوفر';
+
+  @override
+  String get youAreCurrentlyUnavailable =>
+      'You are currently unavailable for requests';
+
+  @override
+  String get youAreAvailableForRequests => 'انت متوفر للطلبات';
+
+  @override
   String doneSelectedCount(int count) {
     return 'تم ($count محدد)';
   }

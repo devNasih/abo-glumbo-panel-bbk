@@ -819,6 +819,14 @@
   "accountHolderName": "اسم صاحب الحساب",
   "nameMustBeAtLeast3Chars": "يجب أن يكون الاسم أكثر من 3 أحرف",
   "pleaseEnterAccountHolderName": "يرجى إدخال اسم صاحب الحساب",
+  "online": "متصل",
+  "offline": "غير متصل",
+  "youAreNowOnline": "أنت الآن متصل",
+  "youAreNowOffline": "أنت الآن غير متصل",
+  "errorUpdatingStatus": "خطأ في تحديث الحالة",
+  "availabilityStatus": "حالة التوفر",
+  "youAreAvailableForRequests": "انت متوفر للطلبات",
+  "youAreUnavailableForRequests": "انت غير متوفر للطلبات",
   "bankName": "اسم البنك",
   "updateAccount": "تحديث الحساب",
   "setPrimary": "ضبط الرئيسي",
@@ -910,7 +918,7 @@
   "addRecipients": "اضافة المستلمين",
   "loading": "تحميل...",
   "invalidAccountNumberLength": "طول رقم الحساب غير صحيح",
-    "doneSelectedCount": "تم ({count} محدد)",
+  "doneSelectedCount": "تم ({count} محدد)",
   "@doneSelectedCount": {
     "description": "تم الزر مع عدد المحدد",
     "placeholders": {

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 
 import 'package:aboglumbo_bbk_panel/models/user.dart';
@@ -11,6 +12,7 @@ import 'package:aboglumbo_bbk_panel/pages/home/worker/reviews.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/worker/rewards_page.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -28,6 +30,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   late AppServices _appServices;
   bool _isRefreshing = false;
 
+  late ValueNotifier<bool> _isOnlineNotifier;
+
   @override
   void initState() {
     super.initState();
@@ -36,6 +40,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
       widget.workerData.uid ?? "",
       _appServices.dashboardRefreshTrigger,
     );
+    _isOnlineNotifier = ValueNotifier<bool>(
+      widget.workerData.isOnline ?? false,
+    );
+    _listenToOnlineStatus();
+  }
+
+  void _listenToOnlineStatus() {
+    AppServices.getUserStream(widget.workerData.uid ?? "").listen((userData) {
+      if (mounted) {
+        _isOnlineNotifier.value = userData.isOnline ?? false;
+      }
+    });
   }
 
   /// Get rating quality text
@@ -79,6 +95,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void dispose() {
     // Clean up refresh controller
     _appServices.disposeDashboardRefresh();
+    _isOnlineNotifier.dispose(); // Don't forget to dispose
+
     super.dispose();
   }
 
@@ -91,24 +109,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onRefresh: _handleRefresh,
         child: StreamBuilder<DashboardDataStream>(
           stream: _dashboardStream,
-
-          builder: (context, snapshot) {
-            // Coordinated loading state - all shimmer together
-            if (snapshot.connectionState == ConnectionState.waiting) {
+          builder: (context, dashboardSnapshot) {
+            // Show loading if dashboard stream is not ready
+            if (dashboardSnapshot.connectionState == ConnectionState.waiting ||
+                !dashboardSnapshot.hasData) {
               return _buildLoadingState();
             }
 
             // Error state
-            if (snapshot.hasError) {
-              return _buildErrorState(snapshot.error.toString());
+            if (dashboardSnapshot.hasError) {
+              return _buildErrorState(dashboardSnapshot.error.toString());
             }
 
-            // Success state - all data displayed together
-            if (snapshot.hasData) {
-              return _buildSuccessState(snapshot.data!);
-            }
-
-            return _buildLoadingState();
+            // Success state - only dashboard data, toggle has its own stream
+            return _buildSuccessState(dashboardSnapshot.data!);
           },
         ),
       ),
@@ -185,11 +199,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildOnlineStatusShimmer(),
+            const SizedBox(height: 16),
             _buildStatsShimmerSection(),
             const SizedBox(height: 16),
             _buildQuickActionsShimmer(),
             const SizedBox(height: 16),
             _buildStatShimmerCard(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOnlineStatusShimmer() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            _buildShimmerBox(width: 48, height: 48, borderRadius: 12),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildShimmerBox(width: 150, height: 16),
+                  const SizedBox(height: 8),
+                  _buildShimmerBox(width: 200, height: 14),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            _buildShimmerBox(width: 51, height: 31, borderRadius: 16),
           ],
         ),
       ),
@@ -252,6 +305,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildOnlineStatusCard(), // Has its own StreamBuilder
+            const SizedBox(height: 16),
             _buildStatsSection(data.stats),
             const SizedBox(height: 16),
             _buildEarningsCard(data.totalEarnings),
@@ -264,13 +319,65 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildOnlineStatusCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ValueListenableBuilder<bool>(
+        valueListenable: _isOnlineNotifier,
+        builder: (context, isOnline, child) {
+          return SwitchListTile.adaptive(
+            title: Text(
+              AppLocalizations.of(context)!.availabilityStatus,
+              style: TextStyle(
+                color: AppColors.primary,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            subtitle: Text(
+              isOnline
+                  ? AppLocalizations.of(context)!.youAreAvailableForRequests
+                  : AppLocalizations.of(context)!.youAreCurrentlyUnavailable,
+              style: TextStyle(color: const Color(0xFF64748B), fontSize: 14),
+            ),
+            secondary: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: (isOnline ? Colors.green : Colors.grey).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                isOnline ? Icons.check_circle : Icons.cancel,
+                color: isOnline ? Colors.green : Colors.grey,
+                size: 28,
+              ),
+            ),
+            value: isOnline,
+            onChanged: _updateOnlineStatus,
+            activeColor: Colors.green,
+          );
+        },
+      ),
+    );
+  }
+
   /// Build stats section
   Widget _buildStatsSection(Map<String, dynamic> data) {
     final l10n = AppLocalizations.of(context)!;
 
     final stats = [
       _StatData(
-        title: l10n.newtext,
+        title: l10n.pending,
         subtitle: l10n.requests,
         value: data['latest']?.toString() ?? '0',
         icon: Icons.assignment_outlined,
@@ -323,43 +430,68 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   /// Build responsive stats grid
+  /// Build responsive stats grid
   Widget _buildStatsGrid(List<_StatData> stats) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth > 600;
 
+        // Reorganize: First 2 cards (New & Completed) in a row,
+        // Last 2 cards (Payment Pending & Rating) below
         if (isWide) {
-          return Row(
-            children: stats
-                .asMap()
-                .entries
-                .map(
-                  (entry) => Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        right: entry.key == stats.length - 1 ? 0 : 12,
-                      ),
-                      child: _buildStatCard(entry.value),
-                    ),
+          return Column(
+            children: [
+              // First row: New and Completed
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(stats[0]), // New
                   ),
-                )
-                .toList(),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(stats[2]), // Completed
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Second row: Payment Pending and Rating
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(stats[1]), // Payment Pending
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(stats[3]), // Rating
+                  ),
+                ],
+              ),
+            ],
           );
         }
 
+        // Mobile layout: Same structure but stacked
         return Column(
-          children: stats
-              .asMap()
-              .entries
-              .map(
-                (entry) => Padding(
-                  padding: EdgeInsets.only(
-                    bottom: entry.key == stats.length - 1 ? 0 : 12,
-                  ),
-                  child: _buildStatCard(entry.value),
+          children: [
+            // First row: New and Completed side by side
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(stats[0]), // New
                 ),
-              )
-              .toList(),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatCard(stats[2]), // Completed
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Payment Pending - full width
+            _buildStatCard(stats[1]),
+            const SizedBox(height: 12),
+            // Rating - full width
+            _buildStatCard(stats[3]),
+          ],
         );
       },
     );
@@ -583,40 +715,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth > 600;
-        final shimmers = List.generate(3, (_) => _buildStatShimmerCard());
 
         if (isWide) {
-          return Row(
-            children: shimmers
-                .asMap()
-                .entries
-                .map(
-                  (entry) => Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        right: entry.key == shimmers.length - 1 ? 0 : 12,
-                      ),
-                      child: entry.value,
-                    ),
-                  ),
-                )
-                .toList(),
+          return Column(
+            children: [
+              // First row: New and Completed
+              Row(
+                children: [
+                  Expanded(child: _buildStatShimmerCard()),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildStatShimmerCard()),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Second row: Payment Pending and Rating
+              Row(
+                children: [
+                  Expanded(child: _buildStatShimmerCard()),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildStatShimmerCard()),
+                ],
+              ),
+            ],
           );
         }
 
+        // Mobile layout
         return Column(
-          children: shimmers
-              .asMap()
-              .entries
-              .map(
-                (entry) => Padding(
-                  padding: EdgeInsets.only(
-                    bottom: entry.key == shimmers.length - 1 ? 0 : 12,
-                  ),
-                  child: entry.value,
-                ),
-              )
-              .toList(),
+          children: [
+            // First row: New and Completed side by side
+            Row(
+              children: [
+                Expanded(child: _buildStatShimmerCard()),
+                const SizedBox(width: 12),
+                Expanded(child: _buildStatShimmerCard()),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Payment Pending - full width
+            _buildStatShimmerCard(),
+            const SizedBox(height: 12),
+            // Rating - full width
+            _buildStatShimmerCard(),
+          ],
         );
       },
     );
@@ -731,6 +872,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
     );
+  }
+
+  /// Update online/offline status in Firestore
+  Future<void> _updateOnlineStatus(bool isOnline) async {
+    try {
+      debugPrint('🔄 Updating online status to: $isOnline');
+
+      // Optimistically update the UI immediately
+      _isOnlineNotifier.value = isOnline;
+
+      await AppFirestore.usersCollectionRef.doc(widget.workerData.uid).update({
+        'isOnline': isOnline,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      debugPrint('✅ Online status updated successfully');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isOnline
+                  ? AppLocalizations.of(context)!.youAreNowOnline
+                  : AppLocalizations.of(context)!.youAreNowOffline,
+            ),
+            duration: const Duration(seconds: 2),
+            backgroundColor: isOnline ? Colors.green : Colors.grey,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ Error updating online status: $e');
+
+      // Revert on error
+      _isOnlineNotifier.value = !isOnline;
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.errorUpdatingStatus),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
 

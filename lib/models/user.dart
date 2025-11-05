@@ -25,6 +25,7 @@ class UserModel {
   List<String>? certifications; // List of service ids>
   List<PayoutAccountModel>? payoutAccounts = <PayoutAccountModel>[];
   double? paidoutTips;
+  bool? isOnline;
 
   // Optional: Tier summary fields (for quick access on dashboard)
   String? highestTier; // 'Bronze', 'Silver', 'Gold', 'Platinum'
@@ -52,6 +53,7 @@ class UserModel {
     this.profileUrl,
     this.fcmToken,
     this.rating,
+    this.isOnline,
     this.payoutAccounts,
     this.availableBalance,
     this.paidAmounts,
@@ -89,6 +91,7 @@ class UserModel {
     List<String>? certifications,
     Timestamp? lastBonusDate,
     double? paidoutTips,
+    bool? isOnline,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -117,6 +120,7 @@ class UserModel {
       lastBonusDate: lastBonusDate ?? this.lastBonusDate,
       paidoutTips: paidoutTips ?? this.paidoutTips,
       certifications: certifications ?? this.certifications,
+      isOnline: isOnline ?? this.isOnline,
     );
   }
 
@@ -167,6 +171,7 @@ class UserModel {
       certifications: json['certifications'] != null
           ? List<String>.from(json['certifications'])
           : <String>[],
+      isOnline: json['isOnline'],
     );
   }
 
@@ -228,6 +233,7 @@ class UserModel {
       paidoutTips: data?['paidoutTips'] != null
           ? (data!['paidoutTips'] as num).toDouble()
           : null,
+      isOnline: data?['isOnline'],
     );
   }
 
@@ -258,7 +264,7 @@ class UserModel {
       'lastBonusDate': lastBonusDate,
 
       'certifications': certifications,
-
+      'isOnline': isOnline,
       'paidoutTips': paidoutTips,
     };
   }
@@ -288,7 +294,7 @@ class UserModel {
       'highestTier': highestTier,
       'totalMonthlyBonus': totalMonthlyBonus,
       'lastBonusDate': lastBonusDate,
-
+      'isOnline': isOnline,
       'certifications': certifications,
       'paidoutTips': paidoutTips,
     };
@@ -370,10 +376,12 @@ class UserModel {
       json['paidoutTips'] = paidoutTips;
     }
 
+    if (isOnline != previous.isOnline && isOnline != null) {
+      json['isOnline'] = isOnline;
+    }
+
     return json;
   }
-
- 
 }
 
 // Keep your existing LiveLocation and PayoutAccountModel classes unchanged

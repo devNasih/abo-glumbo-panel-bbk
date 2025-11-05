@@ -1503,6 +1503,7 @@ class AppServices {
     final completed = AppFirestore.bookingsCollectionRef
         .where('agent.uid', isEqualTo: uid)
         .where('bookingStatusCode', isEqualTo: 'C')
+        .where('paymentCompleted', isEqualTo: true)
         .snapshots()
         .map((snapshot) => snapshot.docs.length);
 
@@ -1800,6 +1801,17 @@ class AppServices {
       }
       return false;
     }
+  }
+
+  /// Stream user data
+  static Stream<UserModel> getUserStream(String uid) {
+    return AppFirestore.usersCollectionRef
+        .doc(uid)
+        .snapshots()
+        .map(
+          (snapshot) =>
+              UserModel.fromJson(snapshot.data() as Map<String, dynamic>),
+        );
   }
 
   // Mark all notifications as read for current user

@@ -907,8 +907,15 @@
   "tenpercentBonusOnEarnings": "10% Bonus on Earnings",
   "fivepercentBonusOnEarnings": "5% Bonus on Earnings",
   "invalidAccountNumberLength": "Invalid account number length",
-
-    "doneSelectedCount": "Done ({count} selected)",
+  "online": "Online",
+  "offline": "Offline",
+  "youAreNowOnline": "You are now online",
+  "youAreNowOffline": "You are now offline",
+  "errorUpdatingStatus": "Error updating status",
+  "availabilityStatus": "Availability Status",
+  "youAreCurrentlyUnavailable": "You are currently unavailable for requests",
+  "youAreAvailableForRequests": "You are available for requests",
+  "doneSelectedCount": "Done ({count} selected)",
   "@doneSelectedCount": {
     "description": "Done button with selected count",
     "placeholders": {
@@ -918,7 +925,7 @@
       }
     }
   },
-   "technicianSelected": "{count, plural, =0{No technicians selected} =1{1 technician selected} other{{count} technicians selected}}",
+  "technicianSelected": "{count, plural, =0{No technicians selected} =1{1 technician selected} other{{count} technicians selected}}",
   "@technicianSelected": {
     "description": "Message showing number of technicians selected with plural forms",
     "placeholders": {
