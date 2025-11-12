@@ -164,6 +164,7 @@ class BookingModel {
       'cancelledAt': cancelledAt,
       'cancellationReason': cancellationReason,
       'paymentCompleted': paymentCompleted,
+     
     };
 
     map['id'] = id;

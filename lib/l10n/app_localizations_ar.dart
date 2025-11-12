@@ -2857,8 +2857,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get availabilityStatus => 'حالة التوفر';
 
   @override
-  String get youAreCurrentlyUnavailable =>
-      'You are currently unavailable for requests';
+  String get youAreCurrentlyUnavailable => 'انت غير متوفر للطلبات';
 
   @override
   String get youAreAvailableForRequests => 'انت متوفر للطلبات';
