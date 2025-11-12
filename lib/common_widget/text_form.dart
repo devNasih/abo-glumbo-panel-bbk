@@ -1,5 +1,6 @@
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -54,6 +55,10 @@ class TextFormWidget extends StatelessWidget {
             constraints: const BoxConstraints(minHeight: 62),
             fillColor: readOnly == true ? AppColors.black2 : null,
             filled: readOnly,
+            disabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.black12),
+              borderRadius: const BorderRadius.all(Radius.circular(12)),
+            ),
             enabledBorder: const OutlineInputBorder(
               borderSide: BorderSide(color: Colors.black12),
               borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -79,6 +84,9 @@ class TextFormWidget extends StatelessWidget {
           textInputAction: textInputAction,
           validator: isPhoneNumber
               ? (value) {
+                  if (kDebugMode) {
+                    return null;
+                  }
                   if (value == null || value.isEmpty) {
                     return AppLocalizations.of(context)!.phoneNumberRequired;
                   }

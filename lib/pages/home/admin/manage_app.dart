@@ -60,7 +60,7 @@ class _ManageAppState extends State<ManageApp> {
       _TileInfo(
         key: 'manage_agents',
         labelFallback:
-            AppLocalizations.of(context)?.manageWorkers ?? "Manage Workers",
+            AppLocalizations.of(context)?.manageTechnicians ?? "Manage Workers",
         icon: Icons.engineering_outlined,
         onTap: () => _navigateToPage('Manage Workers'),
       ),

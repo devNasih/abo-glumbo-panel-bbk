@@ -713,7 +713,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
             'bookingId': widget.booking.id,
             'workerName':
                 workerDetails?['agentName'] ??
-                AppLocalizations.of(context)?.unknownWorker ??
+                AppLocalizations.of(context)?.unknownTechnician ??
                 'Unknown Worker',
           };
         }
@@ -875,7 +875,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
             'bookingId': widget.booking.id,
             'workerName':
                 workerName ??
-                AppLocalizations.of(context)?.unknownWorker ??
+                AppLocalizations.of(context)?.unknownTechnician ??
                 'Unknown Worker',
           };
         }
@@ -1300,7 +1300,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                               child: Text(
                                 AppLocalizations.of(
                                       context,
-                                    )?.workerCannotBeAssignedMultipleTimes ??
+                                    )?.technicianCannotBeAssignedMultipleTimes ??
                                     'This agent is already booked for another job at this time. Please choose a different agent or reschedule the booking.',
                                 style: textTheme.bodySmall?.copyWith(
                                   color: Colors.blue.shade700,
@@ -1428,7 +1428,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                       Text(
                         AppLocalizations.of(
                               context,
-                            )?.workerPreviouslyCancelled ??
+                            )?.technicianPreviouslyCancelled ??
                             'Worker Previously Cancelled',
                         style: textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
@@ -1747,7 +1747,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                       const SizedBox(height: 12),
 
                       Text(
-                        AppLocalizations.of(context)?.workerRestrictedTitle ??
+                        AppLocalizations.of(context)?.technicianRestrictedTitle ??
                             'Worker Restricted',
                         style: textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
@@ -1759,7 +1759,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                       Text(
                         AppLocalizations.of(
                               context,
-                            )?.cannotAssignCancelledWorker ??
+                            )?.cannotAssignCancelledTechnician ??
                             'Cannot assign cancelled worker',
                         style: textTheme.bodyMedium?.copyWith(
                           color: Colors.red.shade600,
@@ -1935,7 +1935,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                               child: Text(
                                 AppLocalizations.of(
                                       context,
-                                    )?.workerCancelledRestrictionMessage ??
+                                    )?.technicianCancelledRestrictionMessage ??
                                     'This agent has previously cancelled a booking and is now restricted from new assignments. Please choose a different agent.',
                                 style: textTheme.bodySmall?.copyWith(
                                   color: Colors.red.shade700,
@@ -2314,7 +2314,7 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                     ? AppLocalizations.of(context)?.cancelledThisBooking ??
                           'Cancelled This Booking'
                     : conflictType == 'worker_cancelled'
-                    ? AppLocalizations.of(context)?.workerCancelled ??
+                    ? AppLocalizations.of(context)?.technicianCancelled ??
                           'Cancelled Worker'
                     : '${AppLocalizations.of(context)?.busyAt ?? 'Busy at'} $conflictTime',
                 style: TextStyle(

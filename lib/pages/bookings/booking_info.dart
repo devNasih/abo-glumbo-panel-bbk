@@ -768,13 +768,13 @@ class BookingInfo extends StatelessWidget {
       for (var worker in booking.cancelledWorkers) {
         final workerName = worker.agentName.isNotEmpty
             ? worker.agentName
-            : AppLocalizations.of(context)!.unknownWorker;
+            : AppLocalizations.of(context)!.unknownTechnician;
 
         timelineItems.add({
-          'title': AppLocalizations.of(context)!.workerCancelled,
+          'title': AppLocalizations.of(context)!.technicianCancelled,
           'time': _formatDateLocalized(worker.cancelledAt.toDate(), context),
           'description':
-              '${AppLocalizations.of(context)!.cancelledByWorker}: $workerName',
+              '${AppLocalizations.of(context)!.cancelledByTechnician}: $workerName',
           'status': 'cancelled',
           'date': worker.cancelledAt.toDate(),
         });
@@ -1312,7 +1312,7 @@ class BookingInfo extends StatelessWidget {
                     ? AppLocalizations.of(context)!.card
                     : booking.paymentModeCode.toLowerCase() == 'a'
                     ? AppLocalizations.of(context)!.applePay
-                    : AppLocalizations.of(context)!.paymentInCash,
+                    : AppLocalizations.of(context)!.cashInHand,
                 textTheme: textTheme,
                 colorScheme: colorScheme,
               ),

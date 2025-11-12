@@ -1,7 +1,6 @@
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
-import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/otp.dart';

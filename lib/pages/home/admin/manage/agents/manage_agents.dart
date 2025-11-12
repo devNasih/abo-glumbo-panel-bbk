@@ -215,7 +215,7 @@ class _ManageAgentsState extends State<ManageAgents>
         backgroundColor: AppColors.bgWhite,
         appBar: AppBar(
           title: Text(
-            AppLocalizations.of(context)!.manageWorkers,
+            AppLocalizations.of(context)!.manageTechnicians,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           elevation: 0,
@@ -371,7 +371,7 @@ class _ManageAgentsState extends State<ManageAgents>
                           SizedBox(height: 25, child: Loader()),
                           const SizedBox(height: 10),
                           Text(
-                            AppLocalizations.of(context)!.loadingWorkers,
+                            AppLocalizations.of(context)!.loadingTechnicians,
                             style: TextStyle(
                               color: theme.colorScheme.onSurfaceVariant,
                               fontSize: 16,
@@ -436,7 +436,7 @@ class _ManageAgentsState extends State<ManageAgents>
                       icon: Icons.search_off_rounded,
                       title: AppLocalizations.of(
                         context,
-                      )!.noWorkersMatchYourFilters,
+                      )!.noTechniciansMatchYourFilters,
                       subtitle: AppLocalizations.of(
                         context,
                       )!.tryAdjustingYourSearchCriteria,

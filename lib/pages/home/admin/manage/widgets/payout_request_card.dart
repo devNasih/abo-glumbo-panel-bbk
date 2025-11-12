@@ -1039,7 +1039,7 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
 
                             // Worker Information
                             _buildSectionTitle(
-                              AppLocalizations.of(context)!.workerInformation,
+                              AppLocalizations.of(context)!.technicianInformation,
                             ),
                             const SizedBox(height: 16),
                             _buildInfoRow(

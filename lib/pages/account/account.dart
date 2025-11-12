@@ -423,14 +423,10 @@ class _AccountPageState extends State<AccountPage> {
                   ),
                 ),
                 ListTile(
-                  onTap: () =>
-                      AccountActionDialogs.showDeleteAccountConfirmation(
-                        context,
-                        onConfirm: (password) =>
-                            deleteAccount(context, password),
-                      ),
+                  onTap: _showDeleteAccountConfirmation,
                   title: Text(
-                    AppLocalizations.of(context)?.deleteAccount ?? '',
+                    AppLocalizations.of(context)?.deleteAccount ??
+                        'Delete Account',
                     style: GoogleFonts.dmSans(fontSize: 16, color: Colors.red),
                   ),
                   trailing: const Icon(
@@ -447,44 +443,23 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
- Future<void> _handleBiometricToggle(bool value) async {
-  if (value) {
-    // Enabling biometric - authenticate first
-    final authenticated = await BiometricService.authenticate(context);
-    if (authenticated && mounted) {
-      setState(() => _isBiometricEnabled = true);
-      BiometricService.setBiometricEnabled(true);
-      log('Biometric authentication enabled');
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)?.biometricEnabled ??
-                  'Biometric authentication enabled',
-            ),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    }
-  } else {
-    // Disabling biometric - show confirmation dialog
+  Future<void> _showDeleteAccountConfirmation() async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.orange),
+              const Icon(Icons.warning_amber_rounded, color: Colors.red),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  AppLocalizations.of(dialogContext)?.disableBiometric ??
-                      'Disable Biometric?',
+                  AppLocalizations.of(dialogContext)?.deleteAccount ??
+                      'Delete Account?',
                   style: GoogleFonts.dmSans(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: Colors.red,
                   ),
                 ),
               ),
@@ -495,38 +470,67 @@ class _AccountPageState extends State<AccountPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                AppLocalizations.of(dialogContext)?.disableBiometricWarning ??
-                    'Disabling biometric authentication will prevent you from logging in using fingerprint or face recognition.',
-                style: GoogleFonts.dmSans(fontSize: 14),
+                AppLocalizations.of(dialogContext)?.deleteAccountWarning ??
+                    'This action cannot be undone. All your data will be permanently deleted.',
+                style: GoogleFonts.dmSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: Colors.red.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Colors.blue.withOpacity(0.3),
-                  ),
+                  border: Border.all(color: Colors.red.withOpacity(0.3)),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: Colors.blue,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        AppLocalizations.of(dialogContext)
-                                ?.youWillNeedPhoneOtp ??
-                            'You will need to use your phone number and OTP to login.',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 13,
-                          color: Colors.blue.shade700,
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.info_outline,
+                          color: Colors.red,
+                          size: 20,
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            AppLocalizations.of(
+                                  dialogContext,
+                                )?.whatWillBeDeleted ??
+                                'What will be deleted:',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red.shade700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    _buildDeleteItem(
+                      dialogContext,
+                      AppLocalizations.of(dialogContext)?.personalInfo ??
+                          'Personal information',
+                    ),
+                    _buildDeleteItem(
+                      dialogContext,
+                      AppLocalizations.of(dialogContext)?.bookingHistory ??
+                          'Booking history',
+                    ),
+                    _buildDeleteItem(
+                      dialogContext,
+                      AppLocalizations.of(dialogContext)?.documents ??
+                          'Uploaded documents',
+                    ),
+                    _buildDeleteItem(
+                      dialogContext,
+                      AppLocalizations.of(dialogContext)?.allData ??
+                          'All associated data',
                     ),
                   ],
                 ),
@@ -551,10 +555,9 @@ class _AccountPageState extends State<AccountPage> {
                 foregroundColor: Colors.white,
               ),
               child: Text(
-                AppLocalizations.of(dialogContext)?.disable ?? 'Disable',
-                style: GoogleFonts.dmSans(
-                  fontWeight: FontWeight.bold,
-                ),
+                AppLocalizations.of(dialogContext)?.deleteAccount ??
+                    'Delete Account',
+                style: GoogleFonts.dmSans(fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -562,26 +565,324 @@ class _AccountPageState extends State<AccountPage> {
       },
     );
 
-    // If user confirmed, disable biometric
     if (confirmed == true && mounted) {
-      setState(() => _isBiometricEnabled = false);
-      BiometricService.setBiometricEnabled(false);
-      log('Biometric authentication disabled');
-      
+      await _deleteAccount();
+    }
+  }
+
+  Widget _buildDeleteItem(BuildContext context, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, top: 4),
+      child: Row(
+        children: [
+          Icon(Icons.check_circle, size: 16, color: Colors.red.shade700),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.dmSans(
+                fontSize: 12,
+                color: Colors.red.shade700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteAccount() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              AppLocalizations.of(context)?.biometricDisabled ??
-                  'Biometric authentication disabled',
+              AppLocalizations.of(context)?.userNotFound ?? 'User not found',
             ),
-            backgroundColor: Colors.orange,
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    // Show loading dialog
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) {
+          return PopScope(
+            canPop: false,
+            child: AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    height: 24,
+                    child: Loader(size: 24, color: AppColors.primary),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      AppLocalizations.of(dialogContext)?.deletingAccount ??
+                          'Deleting account...',
+                      style: GoogleFonts.dmSans(fontSize: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    try {
+      // Clear FCM tokens
+      try {
+        await AppServices.clearFCMToken();
+        await NotificationServices.deleteFCMToken();
+      } catch (e) {
+        if (kDebugMode) {
+          print('❌ Error clearing FCM tokens during account deletion: $e');
+        }
+      }
+
+      // Delete user document from Firestore
+      await AppFirestore.usersCollectionRef.doc(user.uid).delete();
+
+      // Delete Firebase Auth user
+      // Note: For phone auth, no reauthentication needed
+      await user.delete();
+
+      // Clear all local storage
+      await LocalStore.clearLogoutStatus();
+      await LocalStore.putRememberMe(false);
+      await LocalStore.clearRememberedPhone();
+      await LocalStore.clearUID();
+      await LocalStore.clearCachedUserData();
+
+      if (kDebugMode) {
+        print('✅ Account deleted successfully');
+      }
+
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+
+      // Navigate to login page
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+          (route) => false,
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+
+      String errorMessage;
+      switch (e.code) {
+        case 'requires-recent-login':
+          errorMessage =
+              AppLocalizations.of(context)?.requiresRecentLogin ??
+              'For security reasons, please log out and log back in before deleting your account.';
+          break;
+        case 'too-many-requests':
+          errorMessage =
+              AppLocalizations.of(context)?.tooManyRequests ??
+              'Too many requests. Please try again later.';
+          break;
+        case 'network-request-failed':
+          errorMessage =
+              AppLocalizations.of(context)?.networkError ??
+              'Network error. Please check your connection.';
+          break;
+        case 'user-disabled':
+          errorMessage =
+              AppLocalizations.of(context)?.userDisabled ??
+              'This user account has been disabled.';
+          break;
+        case 'user-not-found':
+          errorMessage =
+              AppLocalizations.of(context)?.userNotFound ??
+              'User account not found.';
+          break;
+        default:
+          errorMessage =
+              AppLocalizations.of(context)?.failedToDeleteAccount ??
+              'Failed to delete account: ${e.message}';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+
+      if (kDebugMode) {
+        print('❌ Error deleting account: $e');
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.failedToDeleteAccount ??
+                  'Failed to delete account: ${e.toString()}',
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
     }
   }
-}
+
+  Future<void> _handleBiometricToggle(bool value) async {
+    if (value) {
+      // Enabling biometric - authenticate first
+      final authenticated = await BiometricService.authenticate(context);
+      if (authenticated && mounted) {
+        setState(() => _isBiometricEnabled = true);
+        BiometricService.setBiometricEnabled(true);
+        log('Biometric authentication enabled');
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)?.biometricEnabled ??
+                    'Biometric authentication enabled',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } else {
+      // Disabling biometric - show confirmation dialog
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            title: Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    AppLocalizations.of(dialogContext)?.disableBiometric ??
+                        'Disable Biometric?',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppLocalizations.of(dialogContext)?.disableBiometricWarning ??
+                      'Disabling biometric authentication will prevent you from logging in using fingerprint or face recognition.',
+                  style: GoogleFonts.dmSans(fontSize: 14),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.blue, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          AppLocalizations.of(
+                                dialogContext,
+                              )?.youWillNeedPhoneOtp ??
+                              'You will need to use your phone number and OTP to login.',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 13,
+                            color: Colors.blue.shade700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text(
+                  AppLocalizations.of(dialogContext)?.cancel ?? 'Cancel',
+                  style: GoogleFonts.dmSans(
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text(
+                  AppLocalizations.of(dialogContext)?.disable ?? 'Disable',
+                  style: GoogleFonts.dmSans(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+
+      // If user confirmed, disable biometric
+      if (confirmed == true && mounted) {
+        setState(() => _isBiometricEnabled = false);
+        BiometricService.setBiometricEnabled(false);
+        log('Biometric authentication disabled');
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)?.biometricDisabled ??
+                    'Biometric authentication disabled',
+              ),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    }
+  }
 
   Future<void> deleteAccount(BuildContext context, String userPassword) async {
     final user = FirebaseAuth.instance.currentUser;

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/text_form.dart';
@@ -5,9 +6,9 @@ import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/location.dart';
+import 'package:aboglumbo_bbk_panel/models/location_selection.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
-import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/services/firestorage.dart';
 import 'package:aboglumbo_bbk_panel/services/notification.dart';
@@ -17,7 +18,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -32,15 +33,24 @@ class Signup extends StatefulWidget {
 }
 
 class _SignupState extends State<Signup> {
+  final emailRegex = RegExp(
+    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+  );
   bool isCreatingAccount = false;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
-  final TextEditingController districtNameController = TextEditingController();
+  final TextEditingController emailController =
+      TextEditingController(); // ✅ Add email field
 
   XFile? profileImage;
   XFile? idImage;
   List<PlatformFile> certifications = [];
+
+  List<Province> provinces = [];
+  Province? selectedProvince;
+  Governorate? selectedGovernorate;
+  Neighborhood? selectedNeighborhood;
 
   String? selectedDistrictName;
   LocationModel? selectedLocation;
@@ -97,119 +107,24 @@ class _SignupState extends State<Signup> {
   Future<void> _loadLocations() async {
     setState(() => isLoadingLocations = true);
     try {
-      var response = await AppFirestore.locationsCollectionRef.get();
+      // Load JSON from assets
+      final jsonString = await rootBundle.loadString(
+        'assets/data/saudi_locations.json',
+      );
+      final List<dynamic> jsonData = json.decode(jsonString);
+
       setState(() {
-        locations = response.docs
-            .map((e) => LocationModel.fromQuerySnapshot(e))
-            .toList();
+        provinces = jsonData.map((p) => Province.fromJson(p)).toList();
       });
     } catch (e) {
       if (kDebugMode) {
         print('Error loading locations: $e');
-      }
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)?.failedToLoadLocations ??
-                  'Failed to load locations',
-            ),
-            action: SnackBarAction(
-              label: AppLocalizations.of(context)?.retry ?? 'Retry',
-              onPressed: _loadLocations,
-            ),
-          ),
-        );
       }
     } finally {
       if (mounted) {
         setState(() => isLoadingLocations = false);
       }
     }
-  }
-
-  void _selectLocationBottomSheet() async {
-    if (locations.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)?.noLocationsAvailable ??
-                'No locations available',
-          ),
-        ),
-      );
-      return;
-    }
-
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        final safePaddings = MediaQuery.of(context).padding;
-        return Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    AppLocalizations.of(context)?.selectLocation ??
-                        'Select Location',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: locations.length,
-                padding: EdgeInsets.only(bottom: safePaddings.bottom + 16),
-                itemBuilder: (context, index) {
-                  final location = locations[index];
-                  final isArabic = LocalStore.getUserlanguage() == 'ar';
-
-                  // ✅ FIXED: Consistent camelCase naming
-                  final locationName = isArabic
-                      ? (location.name_ar ?? location.name ?? '')
-                      : (location.name ?? '');
-
-                  return ListTile(
-                    dense: true,
-                    leading: Icon(
-                      Icons.location_on_rounded,
-                      color: AppColors.primary,
-                    ),
-                    title: Text(
-                      locationName,
-                      style: GoogleFonts.dmSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    onTap: () {
-                      setState(() {
-                        selectedDistrictName = locationName;
-                        selectedLocation = location;
-                        districtNameController.text = locationName;
-                      });
-                      Navigator.pop(context);
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Future<void> _pickProfileImage() async {
@@ -245,7 +160,7 @@ class _SignupState extends State<Signup> {
 
         if (croppedFile != null) {
           final fileSize = await File(croppedFile.path).length();
-          if (fileSize > 20 * 1024 * 1024) {
+          if (fileSize > 10 * 1024 * 1024) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -464,12 +379,37 @@ class _SignupState extends State<Signup> {
   Future<void> _submitSignup() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (selectedLocation == null || selectedDistrictName == null) {
+    // ✅ Validate all location fields are selected
+    if (selectedProvince == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context)?.pleaseSelectLocation ??
-                'Please select a location',
+            AppLocalizations.of(context)?.pleaseSelectProvince ??
+                'Please select a province',
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (selectedGovernorate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)?.pleaseSelectCity ??
+                'Please select a city',
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (selectedNeighborhood == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)?.pleaseSelectNeighborhood ??
+                'Please select a neighborhood',
           ),
         ),
       );
@@ -500,7 +440,41 @@ class _SignupState extends State<Signup> {
       return;
     }
 
-    setState(() => isCreatingAccount = true);
+    // ✅ Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return PopScope(
+          canPop: false,
+          child: AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: 24, child: Loader(color: AppColors.primary)),
+                const SizedBox(height: 16),
+                Text(
+                  AppLocalizations.of(dialogContext)?.creatingAccount ??
+                      'Creating your account...',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  AppLocalizations.of(dialogContext)?.pleaseWait ??
+                      'Please wait, this may take a moment',
+                  style: GoogleFonts.dmSans(fontSize: 12, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
 
     try {
       String? profileImageUrl;
@@ -551,14 +525,29 @@ class _SignupState extends State<Signup> {
         }
       }
 
+      // ✅ Create DetailedLocationModel
+      final detailedLocation = DetailedLocationModel(
+        provinceId: selectedProvince!.provinceId,
+        provinceEn: selectedProvince!.provinceEn,
+        provinceAr: selectedProvince!.provinceAr,
+        governorateId: selectedGovernorate!.govId,
+        governorateEn: selectedGovernorate!.govEn,
+        governorateAr: selectedGovernorate!.govAr,
+        neighborhoodId: selectedNeighborhood!.neighId,
+        neighborhoodEn: selectedNeighborhood!.neighEn,
+        neighborhoodAr: selectedNeighborhood!.neighAr,
+      );
+
       // Create user document
       final userModel = UserModel(
         uid: widget.uid,
         name: nameController.text.trim(),
         phone: phoneController.text.trim(),
+        email: emailController.text.trim().isEmpty
+            ? null
+            : emailController.text.trim(),
         country: "SA",
-        districtName: selectedDistrictName,
-        location: selectedLocation,
+        detailedLocation: detailedLocation,
         jobRoles: selectedJobRoles,
         profileUrl: profileImageUrl,
         docUrl: idImageUrl,
@@ -568,7 +557,6 @@ class _SignupState extends State<Signup> {
         isVerified: false,
         isAdmin: false,
         isOnline: false,
-        email: "",
       );
 
       await AppFirestore.usersCollectionRef
@@ -578,8 +566,13 @@ class _SignupState extends State<Signup> {
       // Save UID to local storage
       await LocalStore.putUID(widget.uid);
 
-      // ✅ FIXED: Refresh FCM token after account creation
+      // Refresh FCM token after account creation
       await NotificationServices.refreshFCMToken();
+
+      // ✅ Close loading dialog
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -592,15 +585,12 @@ class _SignupState extends State<Signup> {
           ),
         );
 
-        // Navigate to home
-        await Future.delayed(const Duration(milliseconds: 300));
-       
+        await Future.delayed(const Duration(milliseconds: 500));
+
         if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(
-              builder: (context) => Home(),
-            ),
+            MaterialPageRoute(builder: (context) => const Home()),
             (route) => false,
           );
         }
@@ -608,6 +598,11 @@ class _SignupState extends State<Signup> {
     } catch (e) {
       if (kDebugMode) {
         print('Signup error: $e');
+      }
+
+      // ✅ Close loading dialog on error
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
       }
 
       if (mounted) {
@@ -621,16 +616,13 @@ class _SignupState extends State<Signup> {
           ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() => isCreatingAccount = false);
-      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final safePadding = MediaQuery.of(context).padding;
+    final isArabic = LocalStore.getUserlanguage() == 'ar';
 
     return Scaffold(
       appBar: AppBar(
@@ -765,21 +757,100 @@ class _SignupState extends State<Signup> {
               enabled: false,
             ),
 
-            // Location Selector
             TextFormWidget(
-              controller: districtNameController,
-              label: AppLocalizations.of(context)?.districtName ?? 'District',
-              onTap: _selectLocationBottomSheet,
-              readOnly: false,
-              suffix: const Icon(Icons.arrow_drop_down),
+              controller: emailController,
+              label:
+                  '${AppLocalizations.of(context)?.email ?? 'Email'} (${AppLocalizations.of(context)?.optional ?? 'Optional'})',
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
               validator: (value) {
-                if (selectedLocation == null) {
-                  return AppLocalizations.of(context)?.locationIsRequired ??
-                      'Location is required';
+                // Only validate if user entered something
+                if (value != null && value.isNotEmpty) {
+                  if (!emailRegex.hasMatch(value)) {
+                    return AppLocalizations.of(
+                          context,
+                        )?.pleaseEnterValidEmail ??
+                        'Please enter a valid email address';
+                  }
                 }
                 return null;
               },
             ),
+
+            // Province Dropdown
+            _buildDropdownField<Province>(
+              label: AppLocalizations.of(context)?.province ?? 'Province',
+              value: selectedProvince,
+              items: provinces,
+              itemLabel: (province) => province.getName(isArabic),
+              onChanged: (province) {
+                setState(() {
+                  selectedProvince = province;
+                  selectedGovernorate = null;
+                  selectedNeighborhood = null;
+                });
+              },
+              validator: (value) {
+                if (value == null) {
+                  return AppLocalizations.of(context)?.pleaseSelectProvince ??
+                      'Please select a province';
+                }
+                return null;
+              },
+            ),
+
+            if (selectedProvince != null) ...[
+              const SizedBox(height: 16),
+
+              // Governorate Dropdown
+              _buildDropdownField<Governorate>(
+                label: AppLocalizations.of(context)?.city ?? 'City',
+                value: selectedGovernorate,
+                items: selectedProvince!.governorates,
+                itemLabel: (gov) => gov.getName(isArabic),
+                onChanged: (gov) {
+                  setState(() {
+                    selectedGovernorate = gov;
+                    selectedNeighborhood = null;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return AppLocalizations.of(context)?.pleaseSelectCity ??
+                        'Please select a city';
+                  }
+                  return null;
+                },
+              ),
+            ],
+
+            if (selectedGovernorate != null) ...[
+              const SizedBox(height: 16),
+
+              // Neighborhood Dropdown
+              _buildDropdownField<Neighborhood>(
+                label:
+                    AppLocalizations.of(context)?.neighborhood ??
+                    'Neighborhood',
+                value: selectedNeighborhood,
+                items: selectedGovernorate!.neighborhoods,
+                itemLabel: (neigh) => neigh.getName(isArabic),
+                onChanged: (neigh) {
+                  setState(() {
+                    selectedNeighborhood = neigh;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return AppLocalizations.of(
+                          context,
+                        )?.pleaseSelectNeighborhood ??
+                        'Please select a neighborhood';
+                  }
+                  return null;
+                },
+              ),
+            ],
 
             const SizedBox(height: 16),
 
@@ -912,7 +983,7 @@ class _SignupState extends State<Signup> {
                     onPressed: () => _removeCertification(index),
                   ),
                 );
-              }).toList(),
+              }),
 
             // Submit Button
             Padding(
@@ -948,11 +1019,53 @@ class _SignupState extends State<Signup> {
     );
   }
 
+  Widget _buildDropdownField<T>({
+    required String label,
+    required T? value,
+    required List<T> items,
+    required String Function(T) itemLabel,
+    required void Function(T?) onChanged,
+    String? Function(T?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<T>(
+          value: value,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+          ),
+          items: items.map((item) {
+            return DropdownMenuItem<T>(
+              value: item,
+              child: Text(
+                itemLabel(item),
+                style: GoogleFonts.dmSans(fontSize: 14),
+              ),
+            );
+          }).toList(),
+          onChanged: onChanged,
+          validator: validator,
+          isExpanded: true,
+        ),
+      ],
+    );
+  }
+
   @override
   void dispose() {
     nameController.dispose();
     phoneController.dispose();
-    districtNameController.dispose();
+    emailController.dispose();
     super.dispose();
   }
 }

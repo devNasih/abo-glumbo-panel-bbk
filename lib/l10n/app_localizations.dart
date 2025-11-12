@@ -137,7 +137,7 @@ abstract class AppLocalizations {
   /// No description provided for @rememberMe.
   ///
   /// In en, this message translates to:
-  /// **'Remember me'**
+  /// **'Remember Me'**
   String get rememberMe;
 
   /// No description provided for @manageOrders.
@@ -173,7 +173,7 @@ abstract class AppLocalizations {
   /// No description provided for @loadingAgents.
   ///
   /// In en, this message translates to:
-  /// **'Loading workers...'**
+  /// **'Loading Technicians...'**
   String get loadingAgents;
 
   /// No description provided for @reject.
@@ -191,7 +191,7 @@ abstract class AppLocalizations {
   /// No description provided for @failedToRejectOrder.
   ///
   /// In en, this message translates to:
-  /// **'Failed to reject order'**
+  /// **'Failed to Reject Order'**
   String get failedToRejectOrder;
 
   /// No description provided for @assigningBookingTo.
@@ -203,7 +203,7 @@ abstract class AppLocalizations {
   /// No description provided for @failedToAssignBookingTo.
   ///
   /// In en, this message translates to:
-  /// **'Failed to assign booking to'**
+  /// **'Failed to Assign booking to'**
   String get failedToAssignBookingTo;
 
   /// No description provided for @completeOrder.
@@ -251,7 +251,7 @@ abstract class AppLocalizations {
   /// No description provided for @agent.
   ///
   /// In en, this message translates to:
-  /// **'Worker'**
+  /// **'Technician'**
   String get agent;
 
   /// No description provided for @assignToUser.
@@ -263,7 +263,7 @@ abstract class AppLocalizations {
   /// No description provided for @noAgentsAvailable.
   ///
   /// In en, this message translates to:
-  /// **'No Worker Available'**
+  /// **'No Technician Available'**
   String get noAgentsAvailable;
 
   /// No description provided for @scheduledFor.
@@ -851,7 +851,7 @@ abstract class AppLocalizations {
   /// No description provided for @failedToSaveBooking.
   ///
   /// In en, this message translates to:
-  /// **'Failed to save booking'**
+  /// **'Failed to Save booking'**
   String get failedToSaveBooking;
 
   /// No description provided for @morning.
@@ -863,7 +863,7 @@ abstract class AppLocalizations {
   /// No description provided for @afterNoon.
   ///
   /// In en, this message translates to:
-  /// **'After noon'**
+  /// **'After Noon'**
   String get afterNoon;
 
   /// No description provided for @evening.
@@ -913,6 +913,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Notes'**
   String get addNotes;
+
+  /// No description provided for @cashInHand.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash payment'**
+  String get cashInHand;
 
   /// No description provided for @netBankingUpiCard.
   ///
@@ -971,7 +977,7 @@ abstract class AppLocalizations {
   /// No description provided for @submitAReview.
   ///
   /// In en, this message translates to:
-  /// **'Submit A Review'**
+  /// **'Submit A Rating'**
   String get submitAReview;
 
   /// No description provided for @overallRating.
@@ -1049,7 +1055,7 @@ abstract class AppLocalizations {
   /// No description provided for @reviewSubmitted.
   ///
   /// In en, this message translates to:
-  /// **'Review Submitted'**
+  /// **'Rating Submitted'**
   String get reviewSubmitted;
 
   /// No description provided for @canceled.
@@ -1109,13 +1115,13 @@ abstract class AppLocalizations {
   /// No description provided for @agentInfo.
   ///
   /// In en, this message translates to:
-  /// **'Worker Info'**
+  /// **'Technician Info'**
   String get agentInfo;
 
   /// No description provided for @reviewInfo.
   ///
   /// In en, this message translates to:
-  /// **'Review Info'**
+  /// **'Rating & Review Info'**
   String get reviewInfo;
 
   /// No description provided for @issueImage.
@@ -1235,7 +1241,7 @@ abstract class AppLocalizations {
   /// No description provided for @reviewedAt.
   ///
   /// In en, this message translates to:
-  /// **'Reviewed On'**
+  /// **'Rating On'**
   String get reviewedAt;
 
   /// No description provided for @manage.
@@ -1259,19 +1265,19 @@ abstract class AppLocalizations {
   /// No description provided for @manageAgents.
   ///
   /// In en, this message translates to:
-  /// **'Manage Workers'**
+  /// **'Manage Technicians'**
   String get manageAgents;
 
   /// No description provided for @pleaseEnterYourEmailToResetPassword.
   ///
   /// In en, this message translates to:
-  /// **'Please enter your email to reset password'**
+  /// **'Please Enter your Email to Reset Password'**
   String get pleaseEnterYourEmailToResetPassword;
 
   /// No description provided for @passwordResetEmailSent.
   ///
   /// In en, this message translates to:
-  /// **'Password reset email sent. Please check your inbox.'**
+  /// **'Password Reset email sent. Please check your Email'**
   String get passwordResetEmailSent;
 
   /// No description provided for @pleaseEnterYourEmail.
@@ -1418,11 +1424,11 @@ abstract class AppLocalizations {
   /// **'Too many requests'**
   String get tooManyRequests;
 
-  /// No description provided for @networkError.
+  /// No description provided for @netTechnicianror.
   ///
   /// In en, this message translates to:
   /// **'Network Error'**
-  String get networkError;
+  String get netTechnicianror;
 
   /// No description provided for @wrongPassword.
   ///
@@ -1529,7 +1535,7 @@ abstract class AppLocalizations {
   /// No description provided for @agentsAvailable.
   ///
   /// In en, this message translates to:
-  /// **'Workers Available'**
+  /// **'Technicians Available'**
   String get agentsAvailable;
 
   /// No description provided for @acceptedAt.
@@ -1567,6 +1573,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apple Pay'**
   String get applePay;
+
+  /// No description provided for @cashOnHands.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash payment'**
+  String get cashOnHands;
 
   /// No description provided for @ext.
   ///
@@ -1739,13 +1751,13 @@ abstract class AppLocalizations {
   /// No description provided for @hasBeenApprovedAsAnAgent.
   ///
   /// In en, this message translates to:
-  /// **'has been approved as an worker'**
+  /// **'has been approved as an Technician'**
   String get hasBeenApprovedAsAnAgent;
 
   /// No description provided for @hasBeenDisapprovedAsAnAgent.
   ///
   /// In en, this message translates to:
-  /// **'has been disapproved as an worker'**
+  /// **'has been disapproved as an Technician'**
   String get hasBeenDisapprovedAsAnAgent;
 
   /// No description provided for @jobRoles.
@@ -2027,7 +2039,7 @@ abstract class AppLocalizations {
   /// No description provided for @accountVerificationPending.
   ///
   /// In en, this message translates to:
-  /// **'Your account is currently under review by our admin team.'**
+  /// **'Your account is currently under Review by our admin team.'**
   String get accountVerificationPending;
 
   /// No description provided for @saving.
@@ -2045,7 +2057,7 @@ abstract class AppLocalizations {
   /// No description provided for @enterAValidPhoneNumber.
   ///
   /// In en, this message translates to:
-  /// **'Please enter a valid phone number'**
+  /// **'Please Enter a valid phone number'**
   String get enterAValidPhoneNumber;
 
   /// No description provided for @manageTips.
@@ -2195,7 +2207,7 @@ abstract class AppLocalizations {
   /// No description provided for @lastTipAmount.
   ///
   /// In en, this message translates to:
-  /// **'Last tip amount'**
+  /// **'Last tip Amount'**
   String get lastTipAmount;
 
   /// No description provided for @lastUpdated.
@@ -2207,7 +2219,7 @@ abstract class AppLocalizations {
   /// No description provided for @agentId.
   ///
   /// In en, this message translates to:
-  /// **'Worker ID'**
+  /// **'Technician ID'**
   String get agentId;
 
   /// No description provided for @sendAndClearWallet.
@@ -2225,7 +2237,7 @@ abstract class AppLocalizations {
   /// No description provided for @clearWalletWarning.
   ///
   /// In en, this message translates to:
-  /// **'This action cannot be undone. The worker will receive the total amount in their wallet, and it will be reset to zero.'**
+  /// **'This action cannot be undone. The Technician will receive the total amount in their wallet, and it will be reset to zero.'**
   String get clearWalletWarning;
 
   /// No description provided for @areYouSureYouWantToSend.
@@ -2336,11 +2348,11 @@ abstract class AppLocalizations {
   /// **'Loading FAQs'**
   String get loadingFaqs;
 
-  /// No description provided for @loadingWorkers.
+  /// No description provided for @loadingTechnicians.
   ///
   /// In en, this message translates to:
-  /// **'Loading workers'**
-  String get loadingWorkers;
+  /// **'Loading Technicians'**
+  String get loadingTechnicians;
 
   /// No description provided for @bookingWasCancelledByCustomer.
   ///
@@ -2903,7 +2915,7 @@ abstract class AppLocalizations {
   /// No description provided for @agents.
   ///
   /// In en, this message translates to:
-  /// **'workers'**
+  /// **'Technicians'**
   String get agents;
 
   /// No description provided for @inSelectedLocation.
@@ -2915,7 +2927,7 @@ abstract class AppLocalizations {
   /// No description provided for @totalAgents.
   ///
   /// In en, this message translates to:
-  /// **'Total workers'**
+  /// **'Total Technicians'**
   String get totalAgents;
 
   /// No description provided for @filteredBy.
@@ -3173,19 +3185,19 @@ abstract class AppLocalizations {
   /// No description provided for @noAgentsFound.
   ///
   /// In en, this message translates to:
-  /// **'No worker found'**
+  /// **'No Technician found'**
   String get noAgentsFound;
 
   /// No description provided for @agentApproved.
   ///
   /// In en, this message translates to:
-  /// **'Worker Approved'**
+  /// **'Technician Approved'**
   String get agentApproved;
 
   /// No description provided for @agentDisapproved.
   ///
   /// In en, this message translates to:
-  /// **'Worker Disapproved'**
+  /// **'Technician Disapproved'**
   String get agentDisapproved;
 
   /// No description provided for @deleteBanner.
@@ -3239,7 +3251,7 @@ abstract class AppLocalizations {
   /// No description provided for @serviceProviderConfirmedAppointment.
   ///
   /// In en, this message translates to:
-  /// **'Service provider confirmed appointment'**
+  /// **'Technician confirmed appointment'**
   String get serviceProviderConfirmedAppointment;
 
   /// No description provided for @serviceTrackingInitiated.
@@ -3257,7 +3269,7 @@ abstract class AppLocalizations {
   /// No description provided for @bookingWasRejectedByServiceProvider.
   ///
   /// In en, this message translates to:
-  /// **'Booking was rejected by service provider'**
+  /// **'Booking was rejected by Technician'**
   String get bookingWasRejectedByServiceProvider;
 
   /// No description provided for @bookingWasCancelled.
@@ -3287,13 +3299,13 @@ abstract class AppLocalizations {
   /// No description provided for @waitingForServiceProvider.
   ///
   /// In en, this message translates to:
-  /// **'Waiting for service provider'**
+  /// **'Waiting for Technician'**
   String get waitingForServiceProvider;
 
   /// No description provided for @waitingForTechnicianToStartService.
   ///
   /// In en, this message translates to:
-  /// **'Waiting for technician to start service'**
+  /// **'Waiting for Technician to start service'**
   String get waitingForTechnicianToStartService;
 
   /// No description provided for @waitingForAcceptance.
@@ -3305,7 +3317,7 @@ abstract class AppLocalizations {
   /// No description provided for @waitingForServiceProviderResponse.
   ///
   /// In en, this message translates to:
-  /// **'Waiting for service provider response'**
+  /// **'Waiting for Technician response'**
   String get waitingForServiceProviderResponse;
 
   /// No description provided for @orderRejected.
@@ -3419,7 +3431,7 @@ abstract class AppLocalizations {
   /// No description provided for @locationPermissionErrorIOS.
   ///
   /// In en, this message translates to:
-  /// **'Location permission error on iOS. Please go to Settings > Privacy & Security > Location Services > Abo Glumbo Worker and select \'Always\' to enable background tracking.'**
+  /// **'Location permission error on iOS. Please go to Settings > Privacy & Security > Location Services > Abo Glumbo Technician and select \'Always\' to enable background tracking.'**
   String get locationPermissionErrorIOS;
 
   /// No description provided for @youHaveAnActiveBookingAlready.
@@ -3458,11 +3470,11 @@ abstract class AppLocalizations {
   /// **'Enter your notification message here'**
   String get enterYourNotificationMessageHere;
 
-  /// No description provided for @aboGlumboWorker.
+  /// No description provided for @aboGlumboTechnician.
   ///
   /// In en, this message translates to:
-  /// **'Abo Glumbo Worker'**
-  String get aboGlumboWorker;
+  /// **'Abo Glumbo Technician'**
+  String get aboGlumboTechnician;
 
   /// No description provided for @now.
   ///
@@ -3791,7 +3803,7 @@ abstract class AppLocalizations {
   /// No description provided for @agentUnavailable.
   ///
   /// In en, this message translates to:
-  /// **'Worker Unavailable'**
+  /// **'Technician Unavailable'**
   String get agentUnavailable;
 
   /// No description provided for @timeConflictDetected.
@@ -3818,40 +3830,40 @@ abstract class AppLocalizations {
   /// **'Current Booking Time'**
   String get currentBookingTime;
 
-  /// No description provided for @workerCannotBeAssignedMultipleTimes.
+  /// No description provided for @technicianCannotBeAssignedMultipleTimes.
   ///
   /// In en, this message translates to:
-  /// **'A worker cannot be assigned to multiple bookings at the exact same time. Please select a different time slot or choose another worker.'**
-  String get workerCannotBeAssignedMultipleTimes;
+  /// **'A Technician cannot be assigned to multiple bookings at the exact same time. Please select a different time slot or choose another Technician.'**
+  String get technicianCannotBeAssignedMultipleTimes;
 
-  /// No description provided for @unknownWorker.
+  /// No description provided for @unknownTechnician.
   ///
   /// In en, this message translates to:
-  /// **'Unknown Worker'**
-  String get unknownWorker;
+  /// **'Unknown Technician'**
+  String get unknownTechnician;
 
-  /// No description provided for @workerCancelled.
+  /// No description provided for @technicianCancelled.
   ///
   /// In en, this message translates to:
-  /// **'Worker Cancelled'**
-  String get workerCancelled;
+  /// **'Technician Cancelled'**
+  String get technicianCancelled;
 
-  /// No description provided for @cancelledByWorker.
+  /// No description provided for @cancelledByTechnician.
   ///
   /// In en, this message translates to:
-  /// **'Cancelled by worker'**
-  String get cancelledByWorker;
+  /// **'Cancelled by Technician'**
+  String get cancelledByTechnician;
 
-  /// No description provided for @workerPreviouslyCancelled.
+  /// No description provided for @technicianPreviouslyCancelled.
   ///
   /// In en, this message translates to:
-  /// **'Worker Previously Cancelled'**
-  String get workerPreviouslyCancelled;
+  /// **'Technician Previously Cancelled'**
+  String get technicianPreviouslyCancelled;
 
   /// No description provided for @agentCancelledAtTimeSlot.
   ///
   /// In en, this message translates to:
-  /// **'Worker cancelled at this time before'**
+  /// **'Technician cancelled at this time before'**
   String get agentCancelledAtTimeSlot;
 
   /// No description provided for @previouslyCancelledAt.
@@ -3863,7 +3875,7 @@ abstract class AppLocalizations {
   /// No description provided for @chooseDifferentAgent.
   ///
   /// In en, this message translates to:
-  /// **'Choose Different worker'**
+  /// **'Choose Different Technician'**
   String get chooseDifferentAgent;
 
   /// No description provided for @assignAnyway.
@@ -3878,11 +3890,11 @@ abstract class AppLocalizations {
   /// **'Cancelled at'**
   String get cancelledAt;
 
-  /// No description provided for @workerCancelledAtTime.
+  /// No description provided for @technicianCancelledAtTime.
   ///
   /// In en, this message translates to:
-  /// **'This worker previously cancelled a booking at this exact time slot. Consider assigning to a different worker for better reliability.'**
-  String get workerCancelledAtTime;
+  /// **'This Technician previously cancelled a booking at this exact time slot. Consider assigning to a different Technician for better reliability.'**
+  String get technicianCancelledAtTime;
 
   /// No description provided for @errorCheckingBatteryOptimization.
   ///
@@ -3890,17 +3902,17 @@ abstract class AppLocalizations {
   /// **'Error checking battery optimization'**
   String get errorCheckingBatteryOptimization;
 
-  /// No description provided for @workerRestrictedTitle.
+  /// No description provided for @technicianRestrictedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Worker Restricted'**
-  String get workerRestrictedTitle;
+  /// **'Technician Restricted'**
+  String get technicianRestrictedTitle;
 
-  /// No description provided for @cannotAssignCancelledWorker.
+  /// No description provided for @cannotAssignCancelledTechnician.
   ///
   /// In en, this message translates to:
-  /// **'Cannot assign cancelled worker'**
-  String get cannotAssignCancelledWorker;
+  /// **'Cannot assign cancelled Technician'**
+  String get cannotAssignCancelledTechnician;
 
   /// No description provided for @lastCancellationOn.
   ///
@@ -3908,11 +3920,11 @@ abstract class AppLocalizations {
   /// **'Last cancellation on'**
   String get lastCancellationOn;
 
-  /// No description provided for @workerCancelledRestrictionMessage.
+  /// No description provided for @technicianCancelledRestrictionMessage.
   ///
   /// In en, this message translates to:
-  /// **'This worker has previously cancelled a booking and is now restricted from new assignments. Please choose a different worker.'**
-  String get workerCancelledRestrictionMessage;
+  /// **'This Technician has previously cancelled a booking and is now restricted from new assignments. Please choose a different Technician.'**
+  String get technicianCancelledRestrictionMessage;
 
   /// No description provided for @understood.
   ///
@@ -3965,19 +3977,19 @@ abstract class AppLocalizations {
   /// No description provided for @thisBookingAlreadyAssignedToAnotherAgent.
   ///
   /// In en, this message translates to:
-  /// **'This booking has already been assigned to another worker.'**
+  /// **'This booking has already been assigned to another Technician.'**
   String get thisBookingAlreadyAssignedToAnotherAgent;
 
   /// No description provided for @failedToAssignAgent.
   ///
   /// In en, this message translates to:
-  /// **'Failed to assign worker. Please try again.'**
+  /// **'Failed to assign Technician. Please try again.'**
   String get failedToAssignAgent;
 
   /// No description provided for @thisAgentCancelledSameBookingBefore.
   ///
   /// In en, this message translates to:
-  /// **'This worker cancelled this same booking before'**
+  /// **'This Technician cancelled this same booking before'**
   String get thisAgentCancelledSameBookingBefore;
 
   /// No description provided for @gotIt.
@@ -3989,7 +4001,7 @@ abstract class AppLocalizations {
   /// No description provided for @showAllAgents.
   ///
   /// In en, this message translates to:
-  /// **'Show All workers'**
+  /// **'Show All Technicians'**
   String get showAllAgents;
 
   /// No description provided for @availableInSelectedLocation.
@@ -4007,13 +4019,13 @@ abstract class AppLocalizations {
   /// No description provided for @previouslyCancelledAgent.
   ///
   /// In en, this message translates to:
-  /// **'Previously Cancelled worker'**
+  /// **'Previously Cancelled Technician'**
   String get previouslyCancelledAgent;
 
   /// No description provided for @agentPreviouslyCancelledWarning.
   ///
   /// In en, this message translates to:
-  /// **'This worker previously cancelled this same booking request. You can still assign them, but consider choosing a more reliable worker.'**
+  /// **'This Technician previously cancelled this same booking request. You can still assign them, but consider choosing a more reliable Technician.'**
   String get agentPreviouslyCancelledWarning;
 
   /// No description provided for @busyAt.
@@ -4193,7 +4205,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkingAvailability.
   ///
   /// In en, this message translates to:
-  /// **'Checking worker availability...'**
+  /// **'Checking Technician availability...'**
   String get checkingAvailability;
 
   /// No description provided for @positionText.
@@ -4214,11 +4226,11 @@ abstract class AppLocalizations {
   /// **'Delete FAQ Entry'**
   String get deleteFaqEntry;
 
-  /// No description provided for @manageWorkers.
+  /// No description provided for @manageTechnicians.
   ///
   /// In en, this message translates to:
-  /// **'Manage Workers'**
-  String get manageWorkers;
+  /// **'Manage Technicians'**
+  String get manageTechnicians;
 
   /// No description provided for @manageCustomerSupport.
   ///
@@ -4379,25 +4391,25 @@ abstract class AppLocalizations {
   /// No description provided for @disapproveAgent.
   ///
   /// In en, this message translates to:
-  /// **'Disapprove worker'**
+  /// **'Disapprove Technician'**
   String get disapproveAgent;
 
   /// No description provided for @approveAgent.
   ///
   /// In en, this message translates to:
-  /// **'Approve worker'**
+  /// **'Approve Technician'**
   String get approveAgent;
 
   /// No description provided for @areYouSureYouWantToDisapproveThisAgent.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure you want to disapprove this worker?'**
+  /// **'Are you sure you want to disapprove this Technician?'**
   String get areYouSureYouWantToDisapproveThisAgent;
 
   /// No description provided for @areYouSureYouWantToApproveThisAgent.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure you want to approve this worker?'**
+  /// **'Are you sure you want to approve this Technician?'**
   String get areYouSureYouWantToApproveThisAgent;
 
   /// No description provided for @tryAdjustingYourSearchCriteria.
@@ -4406,11 +4418,11 @@ abstract class AppLocalizations {
   /// **'Try adjusting your search or filters.'**
   String get tryAdjustingYourSearchCriteria;
 
-  /// No description provided for @noWorkersMatchYourFilters.
+  /// No description provided for @noTechniciansMatchYourFilters.
   ///
   /// In en, this message translates to:
-  /// **'No workers match your search'**
-  String get noWorkersMatchYourFilters;
+  /// **'No Technicians match your search'**
+  String get noTechniciansMatchYourFilters;
 
   /// No description provided for @unblockCustomer.
   ///
@@ -4772,11 +4784,11 @@ abstract class AppLocalizations {
   /// **'Error cropping image'**
   String get errorCroppingImage;
 
-  /// No description provided for @workerInformation.
+  /// No description provided for @technicianInformation.
   ///
   /// In en, this message translates to:
-  /// **'Worker Information'**
-  String get workerInformation;
+  /// **'Technician Information'**
+  String get technicianInformation;
 
   /// No description provided for @noPayoutRequestsYet.
   ///
@@ -4808,347 +4820,11 @@ abstract class AppLocalizations {
   /// **'Cash Tips'**
   String get cashTips;
 
-  /// No description provided for @paymentInCash.
-  ///
-  /// In en, this message translates to:
-  /// **'Payment in Cash'**
-  String get paymentInCash;
-
   /// No description provided for @cardTips.
   ///
   /// In en, this message translates to:
   /// **'Card Tips'**
   String get cardTips;
-
-  /// No description provided for @verifyAndLogin.
-  ///
-  /// In en, this message translates to:
-  /// **'Verify and Login'**
-  String get verifyAndLogin;
-
-  /// No description provided for @sendOTP.
-  ///
-  /// In en, this message translates to:
-  /// **'Send OTP'**
-  String get sendOTP;
-
-  /// No description provided for @loggingIn.
-  ///
-  /// In en, this message translates to:
-  /// **'Logging in...'**
-  String get loggingIn;
-
-  /// No description provided for @orUseBiometric.
-  ///
-  /// In en, this message translates to:
-  /// **'Or use biometric'**
-  String get orUseBiometric;
-
-  /// No description provided for @resendOTP.
-  ///
-  /// In en, this message translates to:
-  /// **'Resend OTP'**
-  String get resendOTP;
-
-  /// No description provided for @didNotReceiveOTP.
-  ///
-  /// In en, this message translates to:
-  /// **'Didn\'t receive OTP?'**
-  String get didNotReceiveOTP;
-
-  /// No description provided for @otpMustBe6Digits.
-  ///
-  /// In en, this message translates to:
-  /// **'OTP must be 6 digits'**
-  String get otpMustBe6Digits;
-
-  /// No description provided for @pleaseEnterOTP.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter OTP'**
-  String get pleaseEnterOTP;
-
-  /// No description provided for @invalidPhoneNumberLength.
-  ///
-  /// In en, this message translates to:
-  /// **'Invalid phone number length'**
-  String get invalidPhoneNumberLength;
-
-  /// No description provided for @phoneNumberMustIncludeCountryCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Phone number must include country code'**
-  String get phoneNumberMustIncludeCountryCode;
-
-  /// No description provided for @pleaseEnterPhoneNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter phone number'**
-  String get pleaseEnterPhoneNumber;
-
-  /// No description provided for @disableBiometric.
-  ///
-  /// In en, this message translates to:
-  /// **'Disable Biometric?'**
-  String get disableBiometric;
-
-  /// No description provided for @disableBiometricWarning.
-  ///
-  /// In en, this message translates to:
-  /// **'Disabling biometric authentication will prevent you from logging in using fingerprint.'**
-  String get disableBiometricWarning;
-
-  /// No description provided for @youWillNeedPhoneOtp.
-  ///
-  /// In en, this message translates to:
-  /// **'You will need to use your phone number and OTP to login.'**
-  String get youWillNeedPhoneOtp;
-
-  /// No description provided for @disable.
-  ///
-  /// In en, this message translates to:
-  /// **'Disable'**
-  String get disable;
-
-  /// No description provided for @biometricEnabled.
-  ///
-  /// In en, this message translates to:
-  /// **'Biometric authentication enabled'**
-  String get biometricEnabled;
-
-  /// No description provided for @biometricDisabled.
-  ///
-  /// In en, this message translates to:
-  /// **'Biometric authentication disabled'**
-  String get biometricDisabled;
-
-  /// No description provided for @phoneNotRegistered.
-  ///
-  /// In en, this message translates to:
-  /// **'Phone not registered'**
-  String get phoneNotRegistered;
-
-  /// No description provided for @otpExpired.
-  ///
-  /// In en, this message translates to:
-  /// **'OTP expired'**
-  String get otpExpired;
-
-  /// No description provided for @invalidOTP.
-  ///
-  /// In en, this message translates to:
-  /// **'Invalid OTP'**
-  String get invalidOTP;
-
-  /// No description provided for @invalidPhoneNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Invalid phone number'**
-  String get invalidPhoneNumber;
-
-  /// No description provided for @otpSentSuccessfully.
-  ///
-  /// In en, this message translates to:
-  /// **'OTP sent successfully'**
-  String get otpSentSuccessfully;
-
-  /// No description provided for @otpCode.
-  ///
-  /// In en, this message translates to:
-  /// **'OTP Code'**
-  String get otpCode;
-
-  /// No description provided for @registerAsTechinicianInfo.
-  ///
-  /// In en, this message translates to:
-  /// **'Register your phone number to create a technician account'**
-  String get registerAsTechinicianInfo;
-
-  /// No description provided for @phoneAlreadyRegistered.
-  ///
-  /// In en, this message translates to:
-  /// **'Phone already registered'**
-  String get phoneAlreadyRegistered;
-
-  /// No description provided for @invalidOtpCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Invalid OTP code'**
-  String get invalidOtpCode;
-
-  /// No description provided for @quotaExceeded.
-  ///
-  /// In en, this message translates to:
-  /// **'Quota exceeded'**
-  String get quotaExceeded;
-
-  /// No description provided for @internalError.
-  ///
-  /// In en, this message translates to:
-  /// **'Internal error'**
-  String get internalError;
-
-  /// No description provided for @resend.
-  ///
-  /// In en, this message translates to:
-  /// **'Resend'**
-  String get resend;
-
-  /// No description provided for @or.
-  ///
-  /// In en, this message translates to:
-  /// **'or'**
-  String get or;
-
-  /// No description provided for @loginWithBiometric.
-  ///
-  /// In en, this message translates to:
-  /// **'Login with biometric'**
-  String get loginWithBiometric;
-
-  /// No description provided for @migratingData.
-  ///
-  /// In en, this message translates to:
-  /// **'Migrating data'**
-  String get migratingData;
-
-  /// No description provided for @weAreMigratingYourData.
-  ///
-  /// In en, this message translates to:
-  /// **'We are migrating your data'**
-  String get weAreMigratingYourData;
-
-  /// No description provided for @pleaseDontCloseTheApp.
-  ///
-  /// In en, this message translates to:
-  /// **'Please don\'t close the app'**
-  String get pleaseDontCloseTheApp;
-
-  /// No description provided for @transferringData.
-  ///
-  /// In en, this message translates to:
-  /// **'Transferring data'**
-  String get transferringData;
-
-  /// No description provided for @fullName.
-  ///
-  /// In en, this message translates to:
-  /// **'Full Name'**
-  String get fullName;
-
-  /// No description provided for @sendingOTP.
-  ///
-  /// In en, this message translates to:
-  /// **'Sending OTP'**
-  String get sendingOTP;
-
-  /// No description provided for @cancelRegistration.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel Registration'**
-  String get cancelRegistration;
-
-  /// No description provided for @cancelRegistrationConfirmation.
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to cancel registration?'**
-  String get cancelRegistrationConfirmation;
-
-  /// No description provided for @registrationSuccessful.
-  ///
-  /// In en, this message translates to:
-  /// **'Registration successful'**
-  String get registrationSuccessful;
-
-  /// No description provided for @pleaseUploadIdDocument.
-  ///
-  /// In en, this message translates to:
-  /// **'Please upload ID document'**
-  String get pleaseUploadIdDocument;
-
-  /// No description provided for @pleaseSelectLocation.
-  ///
-  /// In en, this message translates to:
-  /// **'Please select location'**
-  String get pleaseSelectLocation;
-
-  /// No description provided for @noJobCategoriesAvailable.
-  ///
-  /// In en, this message translates to:
-  /// **'No job categories available'**
-  String get noJobCategoriesAvailable;
-
-  /// No description provided for @fileTooLarge.
-  ///
-  /// In en, this message translates to:
-  /// **'File too large'**
-  String get fileTooLarge;
-
-  /// No description provided for @cropDocument.
-  ///
-  /// In en, this message translates to:
-  /// **'Crop Document'**
-  String get cropDocument;
-
-  /// No description provided for @completeRegistration.
-  ///
-  /// In en, this message translates to:
-  /// **'Complete Registration'**
-  String get completeRegistration;
-
-  /// No description provided for @chooseFromList.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose from list'**
-  String get chooseFromList;
-
-  /// No description provided for @nameTooShort.
-  ///
-  /// In en, this message translates to:
-  /// **'Name too short'**
-  String get nameTooShort;
-
-  /// No description provided for @pleaseEnterYourName.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter your name'**
-  String get pleaseEnterYourName;
-
-  /// No description provided for @uploadCertifications.
-  ///
-  /// In en, this message translates to:
-  /// **'Upload Certifications'**
-  String get uploadCertifications;
-
-  /// No description provided for @certifications.
-  ///
-  /// In en, this message translates to:
-  /// **'Certifications'**
-  String get certifications;
-
-  /// No description provided for @optional.
-  ///
-  /// In en, this message translates to:
-  /// **'Optional'**
-  String get optional;
-
-  /// No description provided for @idDocumentUploaded.
-  ///
-  /// In en, this message translates to:
-  /// **'ID document uploaded'**
-  String get idDocumentUploaded;
-
-  /// No description provided for @uploadIdDocument.
-  ///
-  /// In en, this message translates to:
-  /// **'Upload ID document'**
-  String get uploadIdDocument;
-
-  /// No description provided for @idDocument.
-  ///
-  /// In en, this message translates to:
-  /// **'ID Document'**
-  String get idDocument;
 
   /// No description provided for @am.
   ///
@@ -5870,54 +5546,6 @@ abstract class AppLocalizations {
   /// **'Invalid account number length'**
   String get invalidAccountNumberLength;
 
-  /// No description provided for @online.
-  ///
-  /// In en, this message translates to:
-  /// **'Online'**
-  String get online;
-
-  /// No description provided for @offline.
-  ///
-  /// In en, this message translates to:
-  /// **'Offline'**
-  String get offline;
-
-  /// No description provided for @youAreNowOnline.
-  ///
-  /// In en, this message translates to:
-  /// **'You are now online'**
-  String get youAreNowOnline;
-
-  /// No description provided for @youAreNowOffline.
-  ///
-  /// In en, this message translates to:
-  /// **'You are now offline'**
-  String get youAreNowOffline;
-
-  /// No description provided for @errorUpdatingStatus.
-  ///
-  /// In en, this message translates to:
-  /// **'Error updating status'**
-  String get errorUpdatingStatus;
-
-  /// No description provided for @availabilityStatus.
-  ///
-  /// In en, this message translates to:
-  /// **'Availability Status'**
-  String get availabilityStatus;
-
-  /// No description provided for @youAreCurrentlyUnavailable.
-  ///
-  /// In en, this message translates to:
-  /// **'You are currently unavailable for requests'**
-  String get youAreCurrentlyUnavailable;
-
-  /// No description provided for @youAreAvailableForRequests.
-  ///
-  /// In en, this message translates to:
-  /// **'You are available for requests'**
-  String get youAreAvailableForRequests;
-
   /// Done button with selected count
   ///
   /// In en, this message translates to:
@@ -5947,6 +5575,444 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cannot delete the last {contactType} contact. At least one contact is required.'**
   String cannotDeleteLastContact(String contactType);
+
+  /// No description provided for @personalInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal information'**
+  String get personalInfo;
+
+  /// No description provided for @bookingHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking history'**
+  String get bookingHistory;
+
+  /// No description provided for @documents.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded documents'**
+  String get documents;
+
+  /// No description provided for @allData.
+  ///
+  /// In en, this message translates to:
+  /// **'All associated data'**
+  String get allData;
+
+  /// No description provided for @networkError.
+  ///
+  /// In en, this message translates to:
+  /// **'Network Error'**
+  String get networkError;
+
+  /// No description provided for @biometricEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric authentication enabled'**
+  String get biometricEnabled;
+
+  /// No description provided for @biometricDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric authentication disabled'**
+  String get biometricDisabled;
+
+  /// No description provided for @disableBiometricWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabling biometric authentication will prevent you from logging in using fingerprint.'**
+  String get disableBiometricWarning;
+
+  /// No description provided for @youWillNeedPhoneOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'You will need to use your phone number and OTP to login.'**
+  String get youWillNeedPhoneOtp;
+
+  /// No description provided for @whatWillBeDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'What will be deleted:'**
+  String get whatWillBeDeleted;
+
+  /// No description provided for @disable.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable'**
+  String get disable;
+
+  /// No description provided for @disableBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable Biometric?'**
+  String get disableBiometric;
+
+  /// No description provided for @optional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get optional;
+
+  /// No description provided for @province.
+  ///
+  /// In en, this message translates to:
+  /// **'Province'**
+  String get province;
+
+  /// No description provided for @pleaseSelectCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select city'**
+  String get pleaseSelectCity;
+
+  /// No description provided for @pleaseSelectGovernorate.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select governorate'**
+  String get pleaseSelectGovernorate;
+
+  /// No description provided for @governorate.
+  ///
+  /// In en, this message translates to:
+  /// **'Governorate'**
+  String get governorate;
+
+  /// No description provided for @neighborhood.
+  ///
+  /// In en, this message translates to:
+  /// **'Neighborhood'**
+  String get neighborhood;
+
+  /// No description provided for @pleaseSelectNeighborhood.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select neighborhood'**
+  String get pleaseSelectNeighborhood;
+
+  /// No description provided for @pleaseSelectProvince.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select province'**
+  String get pleaseSelectProvince;
+
+  /// No description provided for @otpExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'OTP expired'**
+  String get otpExpired;
+
+  /// No description provided for @invalidOTP.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid OTP'**
+  String get invalidOTP;
+
+  /// No description provided for @invalidPhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid phone number'**
+  String get invalidPhoneNumber;
+
+  /// No description provided for @otpSentSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'OTP sent successfully'**
+  String get otpSentSuccessfully;
+
+  /// No description provided for @otpCode.
+  ///
+  /// In en, this message translates to:
+  /// **'OTP Code'**
+  String get otpCode;
+
+  /// No description provided for @registerAsTechinicianInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Register your phone number to create a technician account'**
+  String get registerAsTechinicianInfo;
+
+  /// No description provided for @phoneAlreadyRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone already registered'**
+  String get phoneAlreadyRegistered;
+
+  /// No description provided for @invalidOtpCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid OTP code'**
+  String get invalidOtpCode;
+
+  /// No description provided for @quotaExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Quota exceeded'**
+  String get quotaExceeded;
+
+  /// No description provided for @internalError.
+  ///
+  /// In en, this message translates to:
+  /// **'Internal error'**
+  String get internalError;
+
+  /// No description provided for @resend.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend'**
+  String get resend;
+
+  /// No description provided for @or.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get or;
+
+  /// No description provided for @loginWithBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Login with biometric'**
+  String get loginWithBiometric;
+
+  /// No description provided for @migratingData.
+  ///
+  /// In en, this message translates to:
+  /// **'Migrating data'**
+  String get migratingData;
+
+  /// No description provided for @weAreMigratingYourData.
+  ///
+  /// In en, this message translates to:
+  /// **'We are migrating your data'**
+  String get weAreMigratingYourData;
+
+  /// No description provided for @pleaseDontCloseTheApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Please don\'t close the app'**
+  String get pleaseDontCloseTheApp;
+
+  /// No description provided for @transferringData.
+  ///
+  /// In en, this message translates to:
+  /// **'Transferring data'**
+  String get transferringData;
+
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullName;
+
+  /// No description provided for @sendingOTP.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending OTP'**
+  String get sendingOTP;
+
+  /// No description provided for @cancelRegistration.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Registration'**
+  String get cancelRegistration;
+
+  /// No description provided for @loggingIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Logging in...'**
+  String get loggingIn;
+
+  /// No description provided for @didNotReceiveOTP.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t receive OTP?'**
+  String get didNotReceiveOTP;
+
+  /// No description provided for @cancelRegistrationConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel registration?'**
+  String get cancelRegistrationConfirmation;
+
+  /// No description provided for @registrationSuccessful.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration successful'**
+  String get registrationSuccessful;
+
+  /// No description provided for @otpMustBe6Digits.
+  ///
+  /// In en, this message translates to:
+  /// **'OTP must be 6 digits'**
+  String get otpMustBe6Digits;
+
+  /// No description provided for @pleaseEnterOTP.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter OTP'**
+  String get pleaseEnterOTP;
+
+  /// No description provided for @resendOTP.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend OTP'**
+  String get resendOTP;
+
+  /// No description provided for @sendOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'Send OTP'**
+  String get sendOtp;
+
+  /// No description provided for @invalidPhoneNumberLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid phone number length'**
+  String get invalidPhoneNumberLength;
+
+  /// No description provided for @phoneNumberMustIncludeCountryCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number must include country code'**
+  String get phoneNumberMustIncludeCountryCode;
+
+  /// No description provided for @pleaseEnterPhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter phone number'**
+  String get pleaseEnterPhoneNumber;
+
+  /// No description provided for @fileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'File too large (max 10MB)'**
+  String get fileTooLarge;
+
+  /// No description provided for @cropDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Crop Document'**
+  String get cropDocument;
+
+  /// No description provided for @completeRegistration.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Registration'**
+  String get completeRegistration;
+
+  /// No description provided for @chooseFromList.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from list'**
+  String get chooseFromList;
+
+  /// No description provided for @nameTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Name too short'**
+  String get nameTooShort;
+
+  /// No description provided for @pleaseEnterYourName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your name'**
+  String get pleaseEnterYourName;
+
+  /// No description provided for @uploadCertifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Certifications'**
+  String get uploadCertifications;
+
+  /// No description provided for @certifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications'**
+  String get certifications;
+
+  /// No description provided for @idDocumentUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'ID document uploaded'**
+  String get idDocumentUploaded;
+
+  /// No description provided for @uploadIdDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload ID document'**
+  String get uploadIdDocument;
+
+  /// No description provided for @idDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'ID Document'**
+  String get idDocument;
+
+  /// No description provided for @pleaseUploadIdDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Please upload ID document'**
+  String get pleaseUploadIdDocument;
+
+  /// No description provided for @pleaseSelectLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select location'**
+  String get pleaseSelectLocation;
+
+  /// No description provided for @creatingAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating Your Account'**
+  String get creatingAccount;
+
+  /// No description provided for @pleaseWait.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait...'**
+  String get pleaseWait;
+
+  /// No description provided for @noJobCategoriesAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No job categories available'**
+  String get noJobCategoriesAvailable;
+
+  /// No description provided for @availabilityStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Availability Status'**
+  String get availabilityStatus;
+
+  /// No description provided for @youAreNowOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'You are now online'**
+  String get youAreNowOnline;
+
+  /// No description provided for @youAreNowOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'You are now offline'**
+  String get youAreNowOffline;
+
+  /// No description provided for @errorUpdatingStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Error updating status'**
+  String get errorUpdatingStatus;
+
+  /// No description provided for @youAreCurrentlyUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'You are currently unavailable for requests'**
+  String get youAreCurrentlyUnavailable;
+
+  /// No description provided for @youAreAvailableForRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'You are available for requests'**
+  String get youAreAvailableForRequests;
 }
 
 class _AppLocalizationsDelegate

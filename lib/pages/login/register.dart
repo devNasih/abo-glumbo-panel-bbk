@@ -273,7 +273,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                             context,
                                           )?.continueText ??
                                           'Continue')
-                                    : (AppLocalizations.of(context)?.sendOTP ??
+                                    : (AppLocalizations.of(context)?.sendOtp ??
                                           'Send OTP'),
                                 style: GoogleFonts.dmSans(
                                   color: Colors.white,

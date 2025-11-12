@@ -10,7 +10,9 @@ class UserModel {
   String? lanCode;
   Timestamp? createdAt;
   Timestamp? updatedAt;
-  LocationModel? location;
+  LocationModel? location; // ✅ Keep existing LocationModel
+  DetailedLocationModel?
+  detailedLocation; // ✅ NEW: Detailed location with cascading data
   LiveLocation? liveLocation;
   bool? isAdmin;
   bool? isVerified;
@@ -22,16 +24,13 @@ class UserModel {
   double? rating;
   String? availableBalance;
   String? paidAmounts;
-  List<String>? certifications; // List of service ids>
+  List<String>? certifications;
   List<PayoutAccountModel>? payoutAccounts = <PayoutAccountModel>[];
   double? paidoutTips;
   bool? isOnline;
-
-  // Optional: Tier summary fields (for quick access on dashboard)
-  String? highestTier; // 'Bronze', 'Silver', 'Gold', 'Platinum'
-  double?
-  totalMonthlyBonus; // Total bonus earned this month across all categories
-  Timestamp? lastBonusDate; // Last time bonus was received
+  String? highestTier;
+  double? totalMonthlyBonus;
+  Timestamp? lastBonusDate;
 
   UserModel({
     this.uid,
@@ -44,6 +43,7 @@ class UserModel {
     this.createdAt,
     this.updatedAt,
     this.location,
+    this.detailedLocation, // ✅ Add this
     this.liveLocation,
     this.isAdmin,
     this.isVerified,
@@ -71,6 +71,7 @@ class UserModel {
     String? country,
     String? lanCode,
     LocationModel? location,
+    DetailedLocationModel? detailedLocation, // ✅ Add this
     LiveLocation? liveLocation,
     List<String>? favourites,
     Timestamp? createdAt,
@@ -100,6 +101,7 @@ class UserModel {
       phone: phone ?? this.phone,
       districtName: districtName ?? this.districtName,
       location: location ?? this.location,
+      detailedLocation: detailedLocation ?? this.detailedLocation, // ✅ Add this
       liveLocation: liveLocation ?? this.liveLocation,
       lanCode: lanCode ?? this.lanCode,
       country: country ?? this.country,
@@ -124,6 +126,10 @@ class UserModel {
     );
   }
 
+  factory UserModel.fromDocumentSnapshot(DocumentSnapshot doc) {
+    return UserModel.fromJson(doc.data() as Map<String, dynamic>);
+  }
+
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       uid: json['uid'] ?? '',
@@ -143,6 +149,11 @@ class UserModel {
       location: json['location'] != null
           ? LocationModel.fromJson(json['location'])
           : null,
+      detailedLocation:
+          json['detailedLocation'] !=
+              null // ✅ Add this
+          ? DetailedLocationModel.fromJson(json['detailedLocation'])
+          : null,
       jobRoles: json['jobRoles'] != null
           ? List<String>.from(json['jobRoles'])
           : <String>[],
@@ -157,7 +168,6 @@ class UserModel {
               json['payoutAccounts'].map((x) => PayoutAccountModel.fromJson(x)),
             )
           : <PayoutAccountModel>[],
-      // FIX: Convert numeric values to strings
       availableBalance: json['availableBalance']?.toString(),
       paidAmounts: json['paidAmounts']?.toString(),
       highestTier: json['highestTier'],
@@ -175,66 +185,36 @@ class UserModel {
     );
   }
 
-  factory UserModel.fromDocumentSnapshot(DocumentSnapshot snapshot) {
-    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
-    return UserModel.fromJson(data).copyWith(uid: snapshot.id);
-  }
-
-  factory UserModel.fromFirestore(
-    DocumentSnapshot<Map<String, dynamic>> snapshot,
-  ) {
-    final data = snapshot.data();
-    return UserModel(
-      uid: snapshot.id,
-      name: data?['name'],
-      email: data?['email'],
-      phone: data?['phone'],
-      lanCode: data?['lanCode'],
-      country: data?['country'],
-      liveLocation: data?['liveLocation'] != null
-          ? LiveLocation.fromJson(data!['liveLocation'])
-          : null,
-      location: data?['location'] != null
-          ? LocationModel.fromJson(data!['location'])
-          : null,
-      createdAt: data?['createdAt'],
-      updatedAt: data?['updatedAt'],
-      isAdmin: data?['isAdmin'] ?? false,
-      isVerified: data?['isVerified'] ?? false,
-      districtName: data?['districtName'],
-      jobRoles: data?['jobRoles'] != null
-          ? List<String>.from(data!['jobRoles'])
-          : <String>[],
-      docUrl: data?['docUrl'],
-      profileUrl: data?['profileUrl'],
-      fcmToken: data?['fcmToken'],
-      rating: data?['rating'] != null
-          ? (data!['rating'] as num).toDouble()
-          : null,
-
-      certifications: data?['certifications'] != null
-          ? List<String>.from(data!['certifications'])
-          : <String>[],
-      payoutAccounts: data?['payoutAccounts'] != null
-          ? List<PayoutAccountModel>.from(
-              data!['payoutAccounts'].map(
-                (x) => PayoutAccountModel.fromJson(x),
-              ),
-            )
-          : <PayoutAccountModel>[],
-      // FIX: Convert numeric values to strings
-      availableBalance: data?['availableBalance']?.toString(),
-      paidAmounts: data?['paidAmounts']?.toString(),
-      highestTier: data?['highestTier'],
-      totalMonthlyBonus: data?['totalMonthlyBonus'] != null
-          ? (data!['totalMonthlyBonus'] as num).toDouble()
-          : null,
-      lastBonusDate: data?['lastBonusDate'],
-      paidoutTips: data?['paidoutTips'] != null
-          ? (data!['paidoutTips'] as num).toDouble()
-          : null,
-      isOnline: data?['isOnline'],
-    );
+  Map<String, dynamic> toJson() {
+    return {
+      'uid': uid,
+      'name': name,
+      'email': email,
+      'phone': phone,
+      'lanCode': lanCode,
+      'country': country,
+      'createdAt': createdAt,
+      'location': location?.toJson(),
+      'detailedLocation': detailedLocation?.toJson(), // ✅ Add this
+      'updatedAt': updatedAt,
+      'isAdmin': isAdmin ?? false,
+      'isVerified': isVerified ?? false,
+      'districtName': districtName,
+      'jobRoles': jobRoles,
+      'docUrl': docUrl,
+      'profileUrl': profileUrl,
+      'fcmToken': fcmToken,
+      'rating': rating,
+      'payoutAccounts': payoutAccounts,
+      'availableBalance': availableBalance,
+      'paidAmounts': paidAmounts,
+      'highestTier': highestTier,
+      'totalMonthlyBonus': totalMonthlyBonus,
+      'lastBonusDate': lastBonusDate,
+      'isOnline': isOnline,
+      'certifications': certifications,
+      'paidoutTips': paidoutTips,
+    };
   }
 
   Map<String, dynamic> toFirestore() {
@@ -246,6 +226,7 @@ class UserModel {
       'country': country,
       'liveLocation': liveLocation?.toJson(),
       'location': location?.toJson(),
+      'detailedLocation': detailedLocation?.toJson(), // ✅ Add this
       'createdAt': createdAt,
       'updatedAt': updatedAt,
       'isAdmin': isAdmin ?? false,
@@ -262,40 +243,8 @@ class UserModel {
       'highestTier': highestTier,
       'totalMonthlyBonus': totalMonthlyBonus,
       'lastBonusDate': lastBonusDate,
-
       'certifications': certifications,
       'isOnline': isOnline,
-      'paidoutTips': paidoutTips,
-    };
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'uid': uid,
-      'name': name,
-      'email': email,
-      'phone': phone,
-      'lanCode': lanCode,
-      'country': country,
-      'createdAt': createdAt,
-      'location': location?.toJson(),
-      'updatedAt': updatedAt,
-      'isAdmin': isAdmin ?? false,
-      'isVerified': isVerified ?? false,
-      'districtName': districtName,
-      'jobRoles': jobRoles,
-      'docUrl': docUrl,
-      'profileUrl': profileUrl,
-      'fcmToken': fcmToken,
-      'rating': rating,
-      'payoutAccounts': payoutAccounts,
-      'availableBalance': availableBalance,
-      'paidAmounts': paidAmounts,
-      'highestTier': highestTier,
-      'totalMonthlyBonus': totalMonthlyBonus,
-      'lastBonusDate': lastBonusDate,
-      'isOnline': isOnline,
-      'certifications': certifications,
       'paidoutTips': paidoutTips,
     };
   }
@@ -520,5 +469,133 @@ class PayoutAccountModel {
       createdAt: map['createdAt'],
       updatedAt: map['updatedAt'],
     );
+  }
+}
+
+// lib/models/detailed_location.dart
+class DetailedLocationModel {
+  // Province
+  final String? provinceId;
+  final String? provinceEn;
+  final String? provinceAr;
+
+  // Governorate
+  final String? governorateId;
+  final String? governorateEn;
+  final String? governorateAr;
+
+  // ❌ REMOVED: City fields (no longer in JSON)
+
+  // Neighborhood
+  final String? neighborhoodId;
+  final String? neighborhoodEn;
+  final String? neighborhoodAr;
+
+  DetailedLocationModel({
+    this.provinceId,
+    this.provinceEn,
+    this.provinceAr,
+    this.governorateId,
+    this.governorateEn,
+    this.governorateAr,
+    this.neighborhoodId,
+    this.neighborhoodEn,
+    this.neighborhoodAr,
+  });
+
+  factory DetailedLocationModel.fromJson(Map<String, dynamic> json) {
+    return DetailedLocationModel(
+      provinceId: json['provinceId'],
+      provinceEn: json['provinceEn'],
+      provinceAr: json['provinceAr'],
+      governorateId: json['governorateId'],
+      governorateEn: json['governorateEn'],
+      governorateAr: json['governorateAr'],
+      neighborhoodId: json['neighborhoodId'],
+      neighborhoodEn: json['neighborhoodEn'],
+      neighborhoodAr: json['neighborhoodAr'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'provinceId': provinceId,
+      'provinceEn': provinceEn,
+      'provinceAr': provinceAr,
+      'governorateId': governorateId,
+      'governorateEn': governorateEn,
+      'governorateAr': governorateAr,
+      'neighborhoodId': neighborhoodId,
+      'neighborhoodEn': neighborhoodEn,
+      'neighborhoodAr': neighborhoodAr,
+    };
+  }
+
+  DetailedLocationModel copyWith({
+    String? provinceId,
+    String? provinceEn,
+    String? provinceAr,
+    String? governorateId,
+    String? governorateEn,
+    String? governorateAr,
+    String? neighborhoodId,
+    String? neighborhoodEn,
+    String? neighborhoodAr,
+  }) {
+    return DetailedLocationModel(
+      provinceId: provinceId ?? this.provinceId,
+      provinceEn: provinceEn ?? this.provinceEn,
+      provinceAr: provinceAr ?? this.provinceAr,
+      governorateId: governorateId ?? this.governorateId,
+      governorateEn: governorateEn ?? this.governorateEn,
+      governorateAr: governorateAr ?? this.governorateAr,
+      neighborhoodId: neighborhoodId ?? this.neighborhoodId,
+      neighborhoodEn: neighborhoodEn ?? this.neighborhoodEn,
+      neighborhoodAr: neighborhoodAr ?? this.neighborhoodAr,
+    );
+  }
+
+  // Helper methods
+  String getProvinceName(bool isArabic) =>
+      isArabic ? (provinceAr ?? provinceEn ?? '') : (provinceEn ?? '');
+
+  String getGovernorateName(bool isArabic) =>
+      isArabic ? (governorateAr ?? governorateEn ?? '') : (governorateEn ?? '');
+
+  String getNeighborhoodName(bool isArabic) => isArabic
+      ? (neighborhoodAr ?? neighborhoodEn ?? '')
+      : (neighborhoodEn ?? '');
+
+  // Get full address: Neighborhood, Governorate, Province
+  String getFullAddress(bool isArabic) {
+    final parts = <String>[];
+    if (neighborhoodEn != null && neighborhoodEn!.isNotEmpty) {
+      parts.add(getNeighborhoodName(isArabic));
+    }
+    if (governorateEn != null && governorateEn!.isNotEmpty) {
+      parts.add(getGovernorateName(isArabic));
+    }
+    if (provinceEn != null && provinceEn!.isNotEmpty) {
+      parts.add(getProvinceName(isArabic));
+    }
+    return parts.join(', ');
+  }
+
+  // Get short address (Neighborhood, Governorate)
+  String getShortAddress(bool isArabic) {
+    final parts = <String>[];
+    if (neighborhoodEn != null && neighborhoodEn!.isNotEmpty) {
+      parts.add(getNeighborhoodName(isArabic));
+    }
+    if (governorateEn != null && governorateEn!.isNotEmpty) {
+      parts.add(getGovernorateName(isArabic));
+    }
+    return parts.join(', ');
+  }
+
+  @override
+
+  String toString() {
+    return 'DetailedLocationModel(province: $provinceEn, governorate: $governorateEn, neighborhood: $neighborhoodEn)';
   }
 }

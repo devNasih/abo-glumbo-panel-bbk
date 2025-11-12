@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:aboglumbo_bbk_panel/common_widget/crop_confirm_dialog.dart';
@@ -6,15 +7,16 @@ import 'package:aboglumbo_bbk_panel/common_widget/saving_stack.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/text_form.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
-import 'package:aboglumbo_bbk_panel/models/location.dart';
+import 'package:aboglumbo_bbk_panel/models/location_selection.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
-import 'package:aboglumbo_bbk_panel/sheets/locations.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -31,11 +33,19 @@ class EditProfile extends StatefulWidget {
 class _EditProfileState extends State<EditProfile> {
   final _formKey = GlobalKey<FormState>();
   String? profileImageUrl = null;
+
+  final emailRegex = RegExp(
+    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+  );
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
-  final TextEditingController districtNameController = TextEditingController();
-  final List<LocationModel> districts = [];
+
+  List<Province> provinces = [];
+  Province? selectedProvince;
+  Governorate? selectedGovernorate;
+  Neighborhood? selectedNeighborhood;
+  bool isLoadingLocations = true;
   XFile? selectedImage;
   XFile? selectedProfileImage;
 
@@ -50,16 +60,58 @@ class _EditProfileState extends State<EditProfile> {
       nameController.text = widget.workerData!.name ?? '';
       emailController.text = widget.workerData!.email ?? '';
       phoneController.text = widget.workerData!.phone ?? '';
-      districtNameController.text = widget.workerData!.districtName ?? '';
       selectedJobRoles = widget.workerData!.jobRoles ?? [];
+
+      // ✅ Pre-select location from detailedLocation
+      if (widget.workerData!.detailedLocation != null) {
+        final detailedLoc = widget.workerData!.detailedLocation!;
+        // Will be set after provinces are loaded
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _preselectLocation(detailedLoc);
+        });
+      }
     }
+  }
+
+  void _preselectLocation(DetailedLocationModel detailedLoc) {
+    if (provinces.isEmpty) return;
+
+    // Find and select province
+    final province = provinces.firstWhere(
+      (p) => p.provinceId == detailedLoc.provinceId,
+      orElse: () => provinces.first,
+    );
+
+    setState(() {
+      selectedProvince = province;
+
+      // Find and select governorate
+      if (province.governorates.isNotEmpty) {
+        final governorate = province.governorates.firstWhere(
+          (g) => g.govId == detailedLoc.governorateId,
+          orElse: () => province.governorates.first,
+        );
+
+        selectedGovernorate = governorate;
+
+        // Find and select neighborhood
+        if (governorate.neighborhoods.isNotEmpty) {
+          final neighborhood = governorate.neighborhoods.firstWhere(
+            (n) => n.neighId == detailedLoc.neighborhoodId,
+            orElse: () => governorate.neighborhoods.first,
+          );
+
+          selectedNeighborhood = neighborhood;
+        }
+      }
+    });
   }
 
   @override
   void initState() {
     super.initState();
     fillContent();
-    _loadDistricts();
+    _loadLocations();
     loadJobCategories();
   }
 
@@ -95,8 +147,29 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
-  void _loadDistricts() {
-    context.read<AccountBloc>().add(LoadDistrictsEvent());
+  Future<void> _loadLocations() async {
+    setState(() => isLoadingLocations = true);
+    try {
+      final jsonString = await rootBundle.loadString(
+        'assets/data/saudi_locations.json',
+      );
+      final List<dynamic> jsonData = json.decode(jsonString);
+
+      setState(() {
+        provinces = jsonData.map((p) => Province.fromJson(p)).toList();
+        isLoadingLocations = false;
+      });
+
+      // After loading, pre-select if data exists
+      if (widget.workerData?.detailedLocation != null) {
+        _preselectLocation(widget.workerData!.detailedLocation!);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading locations: $e');
+      }
+      setState(() => isLoadingLocations = false);
+    }
   }
 
   String getJobCategoryDisplayName(String key) {
@@ -522,6 +595,7 @@ class _EditProfileState extends State<EditProfile> {
   Widget build(BuildContext context) {
     final safePadding = MediaQuery.of(context).padding;
     final locale = AppLocalizations.of(context);
+    final isArabic = LocalStore.getUserlanguage() == 'ar';
     return Scaffold(
       appBar: AppBar(
         title: Text(locale?.profileManagement ?? 'Profile Management'),
@@ -539,7 +613,18 @@ class _EditProfileState extends State<EditProfile> {
                     name: nameController.text,
                     email: emailController.text,
                     phone: phoneController.text,
-                    districtName: districtNameController.text,
+                    // ✅ Use detailedLocation instead of districtName
+                    detailedLocation: DetailedLocationModel(
+                      provinceId: selectedProvince?.provinceId,
+                      provinceEn: selectedProvince?.provinceEn,
+                      provinceAr: selectedProvince?.provinceAr,
+                      governorateId: selectedGovernorate?.govId,
+                      governorateEn: selectedGovernorate?.govEn,
+                      governorateAr: selectedGovernorate?.govAr,
+                      neighborhoodId: selectedNeighborhood?.neighId,
+                      neighborhoodEn: selectedNeighborhood?.neighEn,
+                      neighborhoodAr: selectedNeighborhood?.neighAr,
+                    ),
                     jobRoles: selectedJobRoles,
                     profileUrl: profileImageUrl,
                     lanCode: widget.workerData?.lanCode,
@@ -578,14 +663,6 @@ class _EditProfileState extends State<EditProfile> {
           }
         },
         builder: (context, state) {
-          if (state is LoadDistrictsSuccess) {
-            districts.clear();
-            districts.addAll(state.districts);
-          } else if (state is LoadDistrictsFailure) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.error)));
-          }
           return SavingStackWidget(
             isSaving: state is UpdateProfileLoading,
             isLoading: state is UpdateProfileLoading,
@@ -695,44 +772,105 @@ class _EditProfileState extends State<EditProfile> {
                   const SizedBox(height: 16),
                   TextFormWidget(
                     controller: emailController,
-                    label: locale?.emailAddress ?? 'Email Address',
+                    label:
+                        "${locale?.emailAddress ?? 'Email Address'} ${locale?.optional ?? "Optional"}",
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.done,
-                    readOnly: true,
+                    readOnly: false,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return locale?.emailIsRequired ?? 'Email is required';
-                      } else if (!value.contains("@")) {
-                        return locale?.enterAValidEmail ??
-                            'Enter a valid email';
+                      if (value != null && value.isNotEmpty) {
+                        if (!emailRegex.hasMatch(value)) {
+                          return AppLocalizations.of(
+                                context,
+                              )?.pleaseEnterValidEmail ??
+                              'Please enter a valid email address';
+                        }
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
                   TextFormWidget(
+                    readOnly: true,
+                    enabled: false,
                     controller: phoneController,
                     keyboardType: TextInputType.phone,
                     isPhoneNumber: true,
                     label: locale?.phoneNumber ?? 'Phone Number',
+                    validator: (value) {
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
-                  TextFormWidget(
-                    controller: districtNameController,
-                    label: locale?.districtName ?? 'District Name',
-                    onTap: () =>
-                        showLocationPicker(context, (selectedDistrict) {
-                          districtNameController.text = selectedDistrict;
-                        }, districts),
+                  _buildDropdownField<Province>(
+                    label: '${locale?.province ?? 'Province'} *',
+                    value: selectedProvince,
+                    items: provinces,
+                    itemLabel: (province) => province.getName(isArabic),
+                    onChanged: (province) {
+                      setState(() {
+                        selectedProvince = province;
+                        selectedGovernorate = null;
+                        selectedNeighborhood = null;
+                      });
+                    },
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return locale?.districtNameIsRequired ??
-                            'District name is required';
+                      if (value == null) {
+                        return locale?.pleaseSelectProvince ??
+                            'Please select a province';
                       }
                       return null;
                     },
-                    suffix: const Icon(Icons.keyboard_arrow_down),
                   ),
+
+                  if (selectedProvince != null) ...[
+                    const SizedBox(height: 16),
+
+                    // ✅ Governorate Dropdown
+                    _buildDropdownField<Governorate>(
+                      label: '${locale?.city ?? 'City'} *',
+                      value: selectedGovernorate,
+                      items: selectedProvince!.governorates,
+                      itemLabel: (gov) => gov.getName(isArabic),
+                      onChanged: (gov) {
+                        setState(() {
+                          selectedGovernorate = gov;
+                          selectedNeighborhood = null;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null) {
+                          return locale?.pleaseSelectCity ??
+                              'Please select a city';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+
+                  if (selectedGovernorate != null) ...[
+                    const SizedBox(height: 16),
+
+                    // ✅ Neighborhood Dropdown
+                    _buildDropdownField<Neighborhood>(
+                      label: '${locale?.neighborhood ?? 'Neighborhood'} *',
+                      value: selectedNeighborhood,
+                      items: selectedGovernorate!.neighborhoods,
+                      itemLabel: (neigh) => neigh.getName(isArabic),
+                      onChanged: (neigh) {
+                        setState(() {
+                          selectedNeighborhood = neigh;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null) {
+                          return locale?.pleaseSelectNeighborhood ??
+                              'Please select a neighborhood';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
                   const SizedBox(height: 16),
 
                   // Replace TextFormWidget with custom job roles container
@@ -865,6 +1003,18 @@ class _EditProfileState extends State<EditProfile> {
                     child: ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState?.validate() ?? false) {
+                          // ✅ Validation for location
+                          if (selectedProvince == null ||
+                              selectedGovernorate == null ||
+                              selectedNeighborhood == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Please select complete address'),
+                              ),
+                            );
+                            return;
+                          }
+
                           // Validation for job roles
                           if (selectedJobRoles.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -878,6 +1028,19 @@ class _EditProfileState extends State<EditProfile> {
                             return;
                           }
 
+                          // ✅ Create DetailedLocationModel
+                          final detailedLocation = DetailedLocationModel(
+                            provinceId: selectedProvince!.provinceId,
+                            provinceEn: selectedProvince!.provinceEn,
+                            provinceAr: selectedProvince!.provinceAr,
+                            governorateId: selectedGovernorate!.govId,
+                            governorateEn: selectedGovernorate!.govEn,
+                            governorateAr: selectedGovernorate!.govAr,
+                            neighborhoodId: selectedNeighborhood!.neighId,
+                            neighborhoodEn: selectedNeighborhood!.neighEn,
+                            neighborhoodAr: selectedNeighborhood!.neighAr,
+                          );
+
                           context.read<AccountBloc>().add(
                             UpdateProfileEvent(
                               user: UserModel(
@@ -885,7 +1048,8 @@ class _EditProfileState extends State<EditProfile> {
                                 name: nameController.text,
                                 email: emailController.text,
                                 phone: phoneController.text,
-                                districtName: districtNameController.text,
+                                detailedLocation:
+                                    detailedLocation, // ✅ Use detailedLocation
                                 jobRoles: selectedJobRoles,
                                 profileUrl: profileImageUrl,
                                 lanCode: widget.workerData?.lanCode,
@@ -932,12 +1096,53 @@ class _EditProfileState extends State<EditProfile> {
     );
   }
 
+  Widget _buildDropdownField<T>({
+    required String label,
+    required T? value,
+    required List<T> items,
+    required String Function(T) itemLabel,
+    required void Function(T?) onChanged,
+    String? Function(T?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<T>(
+          value: value,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+          ),
+          items: items.map((item) {
+            return DropdownMenuItem<T>(
+              value: item,
+              child: Text(
+                itemLabel(item),
+                style: GoogleFonts.dmSans(fontSize: 14),
+              ),
+            );
+          }).toList(),
+          onChanged: onChanged,
+          validator: validator,
+          isExpanded: true,
+        ),
+      ],
+    );
+  }
+
   @override
   void dispose() {
     nameController.dispose();
     emailController.dispose();
     phoneController.dispose();
-    districtNameController.dispose();
     super.dispose();
   }
 }

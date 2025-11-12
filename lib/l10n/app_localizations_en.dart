@@ -28,7 +28,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get termsOfUseAndPrivacyPolicy => ' Terms of use & privacy policy';
 
   @override
-  String get rememberMe => 'Remember me';
+  String get rememberMe => 'Remember Me';
 
   @override
   String get manageOrders => 'Manage Orders';
@@ -47,7 +47,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to reject this order?';
 
   @override
-  String get loadingAgents => 'Loading workers...';
+  String get loadingAgents => 'Loading Technicians...';
 
   @override
   String get reject => 'Reject';
@@ -56,13 +56,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rejectingOrder => 'Rejecting Order';
 
   @override
-  String get failedToRejectOrder => 'Failed to reject order';
+  String get failedToRejectOrder => 'Failed to Reject Order';
 
   @override
   String get assigningBookingTo => 'Assigning Booking to';
 
   @override
-  String get failedToAssignBookingTo => 'Failed to assign booking to';
+  String get failedToAssignBookingTo => 'Failed to Assign booking to';
 
   @override
   String get completeOrder => 'Complete Order';
@@ -88,13 +88,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get assignTo => 'Assign To';
 
   @override
-  String get agent => 'Worker';
+  String get agent => 'Technician';
 
   @override
   String get assignToUser => 'Assign to user';
 
   @override
-  String get noAgentsAvailable => 'No Worker Available';
+  String get noAgentsAvailable => 'No Technician Available';
 
   @override
   String get scheduledFor => 'Scheduled For';
@@ -397,13 +397,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noServicesInYourWishlist => 'No services in your wishlist';
 
   @override
-  String get failedToSaveBooking => 'Failed to save booking';
+  String get failedToSaveBooking => 'Failed to Save booking';
 
   @override
   String get morning => 'Morning';
 
   @override
-  String get afterNoon => 'After noon';
+  String get afterNoon => 'After Noon';
 
   @override
   String get evening => 'Evening';
@@ -429,6 +429,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addNotes => 'Add Notes';
+
+  @override
+  String get cashInHand => 'Cash payment';
 
   @override
   String get netBankingUpiCard => 'Net banking / UPI /Card';
@@ -458,7 +461,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get anErrorOccurred => 'An error occurred.';
 
   @override
-  String get submitAReview => 'Submit A Review';
+  String get submitAReview => 'Submit A Rating';
 
   @override
   String get overallRating => 'Overall Rating';
@@ -499,7 +502,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get writeAReview => 'Write A Review';
 
   @override
-  String get reviewSubmitted => 'Review Submitted';
+  String get reviewSubmitted => 'Rating Submitted';
 
   @override
   String get canceled => 'Canceled';
@@ -529,10 +532,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookingInfo => 'Booking Info';
 
   @override
-  String get agentInfo => 'Worker Info';
+  String get agentInfo => 'Technician Info';
 
   @override
-  String get reviewInfo => 'Review Info';
+  String get reviewInfo => 'Rating & Review Info';
 
   @override
   String get issueImage => 'Issue Image';
@@ -592,7 +595,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get review => 'Review';
 
   @override
-  String get reviewedAt => 'Reviewed On';
+  String get reviewedAt => 'Rating On';
 
   @override
   String get manage => 'Manage';
@@ -604,15 +607,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageHighlightedServices => 'Manage Highlighted Services';
 
   @override
-  String get manageAgents => 'Manage Workers';
+  String get manageAgents => 'Manage Technicians';
 
   @override
   String get pleaseEnterYourEmailToResetPassword =>
-      'Please enter your email to reset password';
+      'Please Enter your Email to Reset Password';
 
   @override
   String get passwordResetEmailSent =>
-      'Password reset email sent. Please check your inbox.';
+      'Password Reset email sent. Please check your Email';
 
   @override
   String get pleaseEnterYourEmail => 'Please Enter Your Email';
@@ -689,7 +692,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tooManyRequests => 'Too many requests';
 
   @override
-  String get networkError => 'Network Error';
+  String get netTechnicianror => 'Network Error';
 
   @override
   String get wrongPassword => 'Wrong password';
@@ -745,7 +748,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookedOn => 'Booked On';
 
   @override
-  String get agentsAvailable => 'Workers Available';
+  String get agentsAvailable => 'Technicians Available';
 
   @override
   String get acceptedAt => 'Accepted At';
@@ -764,6 +767,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get applePay => 'Apple Pay';
+
+  @override
+  String get cashOnHands => 'Cash payment';
 
   @override
   String get ext => 'Ext';
@@ -853,10 +859,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pleaseSelectAnImage => 'Please Select An Image';
 
   @override
-  String get hasBeenApprovedAsAnAgent => 'has been approved as an worker';
+  String get hasBeenApprovedAsAnAgent => 'has been approved as an Technician';
 
   @override
-  String get hasBeenDisapprovedAsAnAgent => 'has been disapproved as an worker';
+  String get hasBeenDisapprovedAsAnAgent =>
+      'has been disapproved as an Technician';
 
   @override
   String get jobRoles => 'Job Roles';
@@ -1007,7 +1014,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountVerificationPending =>
-      'Your account is currently under review by our admin team.';
+      'Your account is currently under Review by our admin team.';
 
   @override
   String get saving => 'Saving...';
@@ -1016,7 +1023,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uploading => 'Uploading...';
 
   @override
-  String get enterAValidPhoneNumber => 'Please enter a valid phone number';
+  String get enterAValidPhoneNumber => 'Please Enter a valid phone number';
 
   @override
   String get manageTips => 'Manage Tips';
@@ -1091,13 +1098,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get totalTips => 'Total tips';
 
   @override
-  String get lastTipAmount => 'Last tip amount';
+  String get lastTipAmount => 'Last tip Amount';
 
   @override
   String get lastUpdated => 'Last updated';
 
   @override
-  String get agentId => 'Worker ID';
+  String get agentId => 'Technician ID';
 
   @override
   String get sendAndClearWallet => 'Send & Clear Wallet';
@@ -1107,7 +1114,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearWalletWarning =>
-      'This action cannot be undone. The worker will receive the total amount in their wallet, and it will be reset to zero.';
+      'This action cannot be undone. The Technician will receive the total amount in their wallet, and it will be reset to zero.';
 
   @override
   String get areYouSureYouWantToSend => 'Are you sure you want to send';
@@ -1165,7 +1172,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loadingFaqs => 'Loading FAQs';
 
   @override
-  String get loadingWorkers => 'Loading workers';
+  String get loadingTechnicians => 'Loading Technicians';
 
   @override
   String get bookingWasCancelledByCustomer =>
@@ -1459,13 +1466,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clearFilter => 'Clear Filter';
 
   @override
-  String get agents => 'workers';
+  String get agents => 'Technicians';
 
   @override
   String get inSelectedLocation => 'In Selected Location';
 
   @override
-  String get totalAgents => 'Total workers';
+  String get totalAgents => 'Total Technicians';
 
   @override
   String get filteredBy => 'Filtered by';
@@ -1596,13 +1603,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get assignedRoles => 'Assigned Roles';
 
   @override
-  String get noAgentsFound => 'No worker found';
+  String get noAgentsFound => 'No Technician found';
 
   @override
-  String get agentApproved => 'Worker Approved';
+  String get agentApproved => 'Technician Approved';
 
   @override
-  String get agentDisapproved => 'Worker Disapproved';
+  String get agentDisapproved => 'Technician Disapproved';
 
   @override
   String get deleteBanner => 'Delete Banner';
@@ -1631,7 +1638,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get serviceProviderConfirmedAppointment =>
-      'Service provider confirmed appointment';
+      'Technician confirmed appointment';
 
   @override
   String get serviceTrackingInitiated => 'Service tracking initiated';
@@ -1642,7 +1649,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookingWasRejectedByServiceProvider =>
-      'Booking was rejected by service provider';
+      'Booking was rejected by Technician';
 
   @override
   String get bookingWasCancelled => 'Booking was cancelled';
@@ -1658,18 +1665,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Service is currently being performed';
 
   @override
-  String get waitingForServiceProvider => 'Waiting for service provider';
+  String get waitingForServiceProvider => 'Waiting for Technician';
 
   @override
   String get waitingForTechnicianToStartService =>
-      'Waiting for technician to start service';
+      'Waiting for Technician to start service';
 
   @override
   String get waitingForAcceptance => 'Waiting for acceptance';
 
   @override
   String get waitingForServiceProviderResponse =>
-      'Waiting for service provider response';
+      'Waiting for Technician response';
 
   @override
   String get orderRejected => 'Order Rejected Successfully';
@@ -1734,7 +1741,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get locationPermissionErrorIOS =>
-      'Location permission error on iOS. Please go to Settings > Privacy & Security > Location Services > Abo Glumbo Worker and select \'Always\' to enable background tracking.';
+      'Location permission error on iOS. Please go to Settings > Privacy & Security > Location Services > Abo Glumbo Technician and select \'Always\' to enable background tracking.';
 
   @override
   String get youHaveAnActiveBookingAlready =>
@@ -1758,7 +1765,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter your notification message here';
 
   @override
-  String get aboGlumboWorker => 'Abo Glumbo Worker';
+  String get aboGlumboTechnician => 'Abo Glumbo Technician';
 
   @override
   String get now => 'Now';
@@ -1947,7 +1954,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to delete this item?';
 
   @override
-  String get agentUnavailable => 'Worker Unavailable';
+  String get agentUnavailable => 'Technician Unavailable';
 
   @override
   String get timeConflictDetected => 'Time Conflict Detected';
@@ -1963,29 +1970,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get currentBookingTime => 'Current Booking Time';
 
   @override
-  String get workerCannotBeAssignedMultipleTimes =>
-      'A worker cannot be assigned to multiple bookings at the exact same time. Please select a different time slot or choose another worker.';
+  String get technicianCannotBeAssignedMultipleTimes =>
+      'A Technician cannot be assigned to multiple bookings at the exact same time. Please select a different time slot or choose another Technician.';
 
   @override
-  String get unknownWorker => 'Unknown Worker';
+  String get unknownTechnician => 'Unknown Technician';
 
   @override
-  String get workerCancelled => 'Worker Cancelled';
+  String get technicianCancelled => 'Technician Cancelled';
 
   @override
-  String get cancelledByWorker => 'Cancelled by worker';
+  String get cancelledByTechnician => 'Cancelled by Technician';
 
   @override
-  String get workerPreviouslyCancelled => 'Worker Previously Cancelled';
+  String get technicianPreviouslyCancelled => 'Technician Previously Cancelled';
 
   @override
-  String get agentCancelledAtTimeSlot => 'Worker cancelled at this time before';
+  String get agentCancelledAtTimeSlot =>
+      'Technician cancelled at this time before';
 
   @override
   String get previouslyCancelledAt => 'Previously cancelled at';
 
   @override
-  String get chooseDifferentAgent => 'Choose Different worker';
+  String get chooseDifferentAgent => 'Choose Different Technician';
 
   @override
   String get assignAnyway => 'Assign Anyway';
@@ -1994,25 +2002,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancelledAt => 'Cancelled at';
 
   @override
-  String get workerCancelledAtTime =>
-      'This worker previously cancelled a booking at this exact time slot. Consider assigning to a different worker for better reliability.';
+  String get technicianCancelledAtTime =>
+      'This Technician previously cancelled a booking at this exact time slot. Consider assigning to a different Technician for better reliability.';
 
   @override
   String get errorCheckingBatteryOptimization =>
       'Error checking battery optimization';
 
   @override
-  String get workerRestrictedTitle => 'Worker Restricted';
+  String get technicianRestrictedTitle => 'Technician Restricted';
 
   @override
-  String get cannotAssignCancelledWorker => 'Cannot assign cancelled worker';
+  String get cannotAssignCancelledTechnician =>
+      'Cannot assign cancelled Technician';
 
   @override
   String get lastCancellationOn => 'Last cancellation on';
 
   @override
-  String get workerCancelledRestrictionMessage =>
-      'This worker has previously cancelled a booking and is now restricted from new assignments. Please choose a different worker.';
+  String get technicianCancelledRestrictionMessage =>
+      'This Technician has previously cancelled a booking and is now restricted from new assignments. Please choose a different Technician.';
 
   @override
   String get understood => 'Understood';
@@ -2042,21 +2051,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get thisBookingAlreadyAssignedToAnotherAgent =>
-      'This booking has already been assigned to another worker.';
+      'This booking has already been assigned to another Technician.';
 
   @override
   String get failedToAssignAgent =>
-      'Failed to assign worker. Please try again.';
+      'Failed to assign Technician. Please try again.';
 
   @override
   String get thisAgentCancelledSameBookingBefore =>
-      'This worker cancelled this same booking before';
+      'This Technician cancelled this same booking before';
 
   @override
   String get gotIt => 'Got it';
 
   @override
-  String get showAllAgents => 'Show All workers';
+  String get showAllAgents => 'Show All Technicians';
 
   @override
   String get availableInSelectedLocation => 'available in selected location';
@@ -2065,11 +2074,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancelledThisBookingOn => 'Cancelled this booking on';
 
   @override
-  String get previouslyCancelledAgent => 'Previously Cancelled worker';
+  String get previouslyCancelledAgent => 'Previously Cancelled Technician';
 
   @override
   String get agentPreviouslyCancelledWarning =>
-      'This worker previously cancelled this same booking request. You can still assign them, but consider choosing a more reliable worker.';
+      'This Technician previously cancelled this same booking request. You can still assign them, but consider choosing a more reliable Technician.';
 
   @override
   String get busyAt => 'Busy at';
@@ -2161,7 +2170,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unBlockCustomer => 'Un-block Customer';
 
   @override
-  String get checkingAvailability => 'Checking worker availability...';
+  String get checkingAvailability => 'Checking Technician availability...';
 
   @override
   String get positionText => 'Position';
@@ -2173,7 +2182,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteFaqEntry => 'Delete FAQ Entry';
 
   @override
-  String get manageWorkers => 'Manage Workers';
+  String get manageTechnicians => 'Manage Technicians';
 
   @override
   String get manageCustomerSupport => 'Manage Customer Support';
@@ -2259,25 +2268,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get all => 'All';
 
   @override
-  String get disapproveAgent => 'Disapprove worker';
+  String get disapproveAgent => 'Disapprove Technician';
 
   @override
-  String get approveAgent => 'Approve worker';
+  String get approveAgent => 'Approve Technician';
 
   @override
   String get areYouSureYouWantToDisapproveThisAgent =>
-      'Are you sure you want to disapprove this worker?';
+      'Are you sure you want to disapprove this Technician?';
 
   @override
   String get areYouSureYouWantToApproveThisAgent =>
-      'Are you sure you want to approve this worker?';
+      'Are you sure you want to approve this Technician?';
 
   @override
   String get tryAdjustingYourSearchCriteria =>
       'Try adjusting your search or filters.';
 
   @override
-  String get noWorkersMatchYourFilters => 'No workers match your search';
+  String get noTechniciansMatchYourFilters =>
+      'No Technicians match your search';
 
   @override
   String get unblockCustomer => 'Unblock Customer';
@@ -2472,7 +2482,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorCroppingImage => 'Error cropping image';
 
   @override
-  String get workerInformation => 'Worker Information';
+  String get technicianInformation => 'Technician Information';
 
   @override
   String get noPayoutRequestsYet => 'No payout requests yet';
@@ -2491,180 +2501,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cashTips => 'Cash Tips';
 
   @override
-  String get paymentInCash => 'Payment in Cash';
-
-  @override
   String get cardTips => 'Card Tips';
-
-  @override
-  String get verifyAndLogin => 'Verify and Login';
-
-  @override
-  String get sendOTP => 'Send OTP';
-
-  @override
-  String get loggingIn => 'Logging in...';
-
-  @override
-  String get orUseBiometric => 'Or use biometric';
-
-  @override
-  String get resendOTP => 'Resend OTP';
-
-  @override
-  String get didNotReceiveOTP => 'Didn\'t receive OTP?';
-
-  @override
-  String get otpMustBe6Digits => 'OTP must be 6 digits';
-
-  @override
-  String get pleaseEnterOTP => 'Please enter OTP';
-
-  @override
-  String get invalidPhoneNumberLength => 'Invalid phone number length';
-
-  @override
-  String get phoneNumberMustIncludeCountryCode =>
-      'Phone number must include country code';
-
-  @override
-  String get pleaseEnterPhoneNumber => 'Please enter phone number';
-
-  @override
-  String get disableBiometric => 'Disable Biometric?';
-
-  @override
-  String get disableBiometricWarning =>
-      'Disabling biometric authentication will prevent you from logging in using fingerprint.';
-
-  @override
-  String get youWillNeedPhoneOtp =>
-      'You will need to use your phone number and OTP to login.';
-
-  @override
-  String get disable => 'Disable';
-
-  @override
-  String get biometricEnabled => 'Biometric authentication enabled';
-
-  @override
-  String get biometricDisabled => 'Biometric authentication disabled';
-
-  @override
-  String get phoneNotRegistered => 'Phone not registered';
-
-  @override
-  String get otpExpired => 'OTP expired';
-
-  @override
-  String get invalidOTP => 'Invalid OTP';
-
-  @override
-  String get invalidPhoneNumber => 'Invalid phone number';
-
-  @override
-  String get otpSentSuccessfully => 'OTP sent successfully';
-
-  @override
-  String get otpCode => 'OTP Code';
-
-  @override
-  String get registerAsTechinicianInfo =>
-      'Register your phone number to create a technician account';
-
-  @override
-  String get phoneAlreadyRegistered => 'Phone already registered';
-
-  @override
-  String get invalidOtpCode => 'Invalid OTP code';
-
-  @override
-  String get quotaExceeded => 'Quota exceeded';
-
-  @override
-  String get internalError => 'Internal error';
-
-  @override
-  String get resend => 'Resend';
-
-  @override
-  String get or => 'or';
-
-  @override
-  String get loginWithBiometric => 'Login with biometric';
-
-  @override
-  String get migratingData => 'Migrating data';
-
-  @override
-  String get weAreMigratingYourData => 'We are migrating your data';
-
-  @override
-  String get pleaseDontCloseTheApp => 'Please don\'t close the app';
-
-  @override
-  String get transferringData => 'Transferring data';
-
-  @override
-  String get fullName => 'Full Name';
-
-  @override
-  String get sendingOTP => 'Sending OTP';
-
-  @override
-  String get cancelRegistration => 'Cancel Registration';
-
-  @override
-  String get cancelRegistrationConfirmation =>
-      'Are you sure you want to cancel registration?';
-
-  @override
-  String get registrationSuccessful => 'Registration successful';
-
-  @override
-  String get pleaseUploadIdDocument => 'Please upload ID document';
-
-  @override
-  String get pleaseSelectLocation => 'Please select location';
-
-  @override
-  String get noJobCategoriesAvailable => 'No job categories available';
-
-  @override
-  String get fileTooLarge => 'File too large';
-
-  @override
-  String get cropDocument => 'Crop Document';
-
-  @override
-  String get completeRegistration => 'Complete Registration';
-
-  @override
-  String get chooseFromList => 'Choose from list';
-
-  @override
-  String get nameTooShort => 'Name too short';
-
-  @override
-  String get pleaseEnterYourName => 'Please enter your name';
-
-  @override
-  String get uploadCertifications => 'Upload Certifications';
-
-  @override
-  String get certifications => 'Certifications';
-
-  @override
-  String get optional => 'Optional';
-
-  @override
-  String get idDocumentUploaded => 'ID document uploaded';
-
-  @override
-  String get uploadIdDocument => 'Upload ID document';
-
-  @override
-  String get idDocument => 'ID Document';
 
   @override
   String get am => 'AM';
@@ -3048,31 +2885,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invalidAccountNumberLength => 'Invalid account number length';
 
   @override
-  String get online => 'Online';
-
-  @override
-  String get offline => 'Offline';
-
-  @override
-  String get youAreNowOnline => 'You are now online';
-
-  @override
-  String get youAreNowOffline => 'You are now offline';
-
-  @override
-  String get errorUpdatingStatus => 'Error updating status';
-
-  @override
-  String get availabilityStatus => 'Availability Status';
-
-  @override
-  String get youAreCurrentlyUnavailable =>
-      'You are currently unavailable for requests';
-
-  @override
-  String get youAreAvailableForRequests => 'You are available for requests';
-
-  @override
   String doneSelectedCount(int count) {
     return 'Done ($count selected)';
   }
@@ -3103,4 +2915,229 @@ class AppLocalizationsEn extends AppLocalizations {
   String cannotDeleteLastContact(String contactType) {
     return 'Cannot delete the last $contactType contact. At least one contact is required.';
   }
+
+  @override
+  String get personalInfo => 'Personal information';
+
+  @override
+  String get bookingHistory => 'Booking history';
+
+  @override
+  String get documents => 'Uploaded documents';
+
+  @override
+  String get allData => 'All associated data';
+
+  @override
+  String get networkError => 'Network Error';
+
+  @override
+  String get biometricEnabled => 'Biometric authentication enabled';
+
+  @override
+  String get biometricDisabled => 'Biometric authentication disabled';
+
+  @override
+  String get disableBiometricWarning =>
+      'Disabling biometric authentication will prevent you from logging in using fingerprint.';
+
+  @override
+  String get youWillNeedPhoneOtp =>
+      'You will need to use your phone number and OTP to login.';
+
+  @override
+  String get whatWillBeDeleted => 'What will be deleted:';
+
+  @override
+  String get disable => 'Disable';
+
+  @override
+  String get disableBiometric => 'Disable Biometric?';
+
+  @override
+  String get optional => 'Optional';
+
+  @override
+  String get province => 'Province';
+
+  @override
+  String get pleaseSelectCity => 'Please select city';
+
+  @override
+  String get pleaseSelectGovernorate => 'Please select governorate';
+
+  @override
+  String get governorate => 'Governorate';
+
+  @override
+  String get neighborhood => 'Neighborhood';
+
+  @override
+  String get pleaseSelectNeighborhood => 'Please select neighborhood';
+
+  @override
+  String get pleaseSelectProvince => 'Please select province';
+
+  @override
+  String get otpExpired => 'OTP expired';
+
+  @override
+  String get invalidOTP => 'Invalid OTP';
+
+  @override
+  String get invalidPhoneNumber => 'Invalid phone number';
+
+  @override
+  String get otpSentSuccessfully => 'OTP sent successfully';
+
+  @override
+  String get otpCode => 'OTP Code';
+
+  @override
+  String get registerAsTechinicianInfo =>
+      'Register your phone number to create a technician account';
+
+  @override
+  String get phoneAlreadyRegistered => 'Phone already registered';
+
+  @override
+  String get invalidOtpCode => 'Invalid OTP code';
+
+  @override
+  String get quotaExceeded => 'Quota exceeded';
+
+  @override
+  String get internalError => 'Internal error';
+
+  @override
+  String get resend => 'Resend';
+
+  @override
+  String get or => 'or';
+
+  @override
+  String get loginWithBiometric => 'Login with biometric';
+
+  @override
+  String get migratingData => 'Migrating data';
+
+  @override
+  String get weAreMigratingYourData => 'We are migrating your data';
+
+  @override
+  String get pleaseDontCloseTheApp => 'Please don\'t close the app';
+
+  @override
+  String get transferringData => 'Transferring data';
+
+  @override
+  String get fullName => 'Full Name';
+
+  @override
+  String get sendingOTP => 'Sending OTP';
+
+  @override
+  String get cancelRegistration => 'Cancel Registration';
+
+  @override
+  String get loggingIn => 'Logging in...';
+
+  @override
+  String get didNotReceiveOTP => 'Didn\'t receive OTP?';
+
+  @override
+  String get cancelRegistrationConfirmation =>
+      'Are you sure you want to cancel registration?';
+
+  @override
+  String get registrationSuccessful => 'Registration successful';
+
+  @override
+  String get otpMustBe6Digits => 'OTP must be 6 digits';
+
+  @override
+  String get pleaseEnterOTP => 'Please enter OTP';
+
+  @override
+  String get resendOTP => 'Resend OTP';
+
+  @override
+  String get sendOtp => 'Send OTP';
+
+  @override
+  String get invalidPhoneNumberLength => 'Invalid phone number length';
+
+  @override
+  String get phoneNumberMustIncludeCountryCode =>
+      'Phone number must include country code';
+
+  @override
+  String get pleaseEnterPhoneNumber => 'Please enter phone number';
+
+  @override
+  String get fileTooLarge => 'File too large (max 10MB)';
+
+  @override
+  String get cropDocument => 'Crop Document';
+
+  @override
+  String get completeRegistration => 'Complete Registration';
+
+  @override
+  String get chooseFromList => 'Choose from list';
+
+  @override
+  String get nameTooShort => 'Name too short';
+
+  @override
+  String get pleaseEnterYourName => 'Please enter your name';
+
+  @override
+  String get uploadCertifications => 'Upload Certifications';
+
+  @override
+  String get certifications => 'Certifications';
+
+  @override
+  String get idDocumentUploaded => 'ID document uploaded';
+
+  @override
+  String get uploadIdDocument => 'Upload ID document';
+
+  @override
+  String get idDocument => 'ID Document';
+
+  @override
+  String get pleaseUploadIdDocument => 'Please upload ID document';
+
+  @override
+  String get pleaseSelectLocation => 'Please select location';
+
+  @override
+  String get creatingAccount => 'Creating Your Account';
+
+  @override
+  String get pleaseWait => 'Please wait...';
+
+  @override
+  String get noJobCategoriesAvailable => 'No job categories available';
+
+  @override
+  String get availabilityStatus => 'Availability Status';
+
+  @override
+  String get youAreNowOnline => 'You are now online';
+
+  @override
+  String get youAreNowOffline => 'You are now offline';
+
+  @override
+  String get errorUpdatingStatus => 'Error updating status';
+
+  @override
+  String get youAreCurrentlyUnavailable =>
+      'You are currently unavailable for requests';
+
+  @override
+  String get youAreAvailableForRequests => 'You are available for requests';
 }
