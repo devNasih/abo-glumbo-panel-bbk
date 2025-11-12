@@ -1,4 +1,5 @@
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
+import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/account.dart';
@@ -38,6 +39,12 @@ class _HomeState extends State<Home> {
     NotificationServices.initializeFCM();
     if (widget.byPassUid != null && widget.byPassUid!.isNotEmpty) {
       _handleBypassLogin();
+    } else {
+      // ✅ ADDED: Load user data if not bypassing
+      final uid = LocalStore.getUID();
+      if (uid != null && uid.isNotEmpty) {
+        context.read<LoginBloc>().add(LoadWorkerData(uid: uid));
+      }
     }
     super.initState();
   }
@@ -113,7 +120,7 @@ class _HomeState extends State<Home> {
           userData = state.user;
         } else {
           return Scaffold(
-            body: Center(child: Loader(color: AppColors.black2)),
+            body: Center(child: Loader(color: AppColors.primary)),
           );
         }
         if (userData.isVerified != true) {

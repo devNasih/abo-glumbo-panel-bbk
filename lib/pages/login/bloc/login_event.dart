@@ -3,82 +3,86 @@ part of 'login_bloc.dart';
 @immutable
 sealed class LoginEvent {}
 
-class LoginButtonPressed extends LoginEvent {
-  final String email;
-  final String password;
-  LoginButtonPressed({required this.email, required this.password});
+class SendOTPPressed extends LoginEvent {
+  final String phoneNumber;
+  final BuildContext context;
+
+  SendOTPPressed({
+    required this.phoneNumber,
+    required this.context,
+  });
+
   @override
-  String toString() =>
-      'LoginButtonPressed { email: $email, password: $password }';
+  String toString() => 'SendOTPPressed { phoneNumber: $phoneNumber }';
 }
 
-class ForrgotPasswordPressed extends LoginEvent {
-  final String email;
-  ForrgotPasswordPressed({required this.email});
+class VerifyOTPPressed extends LoginEvent {
+  final String verificationId;
+  final String smsCode;
+  final BuildContext context;
+
+  VerifyOTPPressed({
+    required this.verificationId,
+    required this.smsCode,
+    required this.context,
+  });
+
   @override
-  String toString() => 'ForrgotPasswordPressed { email: $email }';
+  String toString() =>
+      'VerifyOTPPressed { verificationId: $verificationId, smsCode: [HIDDEN] }';
+}
+
+class VerifyOTPForRegistration extends LoginEvent {
+  final String verificationId;
+  final String smsCode;
+  final String phoneNumber;
+  final BuildContext context;
+
+  VerifyOTPForRegistration({
+    required this.verificationId,
+    required this.smsCode,
+    required this.phoneNumber,
+    required this.context,
+  });
+
+  @override
+  String toString() =>
+      'VerifyOTPForRegistration { phoneNumber: $phoneNumber }';
 }
 
 class RememberMeToggled extends LoginEvent {
   final bool value;
-  final String? email;
-  final String? password;
-  RememberMeToggled(this.value, {this.email, this.password});
-  @override
-  String toString() =>
-      'RememberMeToggled { value: $value, email: $email, password: $password }';
-}
+  final String? phone;
 
-class BypassUsingBiometric extends LoginEvent {}
+  RememberMeToggled(this.value, {this.phone});
+
+  @override
+  String toString() => 'RememberMeToggled { value: $value, phone: $phone }';
+}
 
 class LoadWorkerData extends LoginEvent {
   final String? uid;
+
   LoadWorkerData({this.uid});
+
+  @override
   List<Object?> get props => [uid];
 }
 
 class RefreshUserData extends LoginEvent {
   final String? uid;
+
   RefreshUserData({this.uid});
+
   @override
   List<Object?> get props => [uid];
 }
 
 class RegisterButtonPressed extends LoginEvent {
-  final String email;
-  final String password;
-  final String confirmPassword;
-  RegisterButtonPressed({
-    required this.email,
-    required this.password,
-    required this.confirmPassword,
-  });
-  @override
-  List<Object?> get props => [email, password, confirmPassword];
-}
+  final String phoneNumber;
 
-class SignUpButtonPressed extends LoginEvent {
-  final String email;
-  final String password;
-  final XFile? profileImage;
-  final XFile? idImage;
-  final List<PlatformFile>? certifications;
-  UserModel userModel;
-  SignUpButtonPressed({
-    required this.email,
-    required this.password,
-    this.profileImage,
-    this.idImage,
-    required this.userModel,
-    this.certifications,
-  });
+  RegisterButtonPressed({required this.phoneNumber});
+
   @override
-  List<Object?> get props => [
-    email,
-    password,
-    profileImage,
-    idImage,
-    userModel,
-    certifications,
-  ];
+  List<Object?> get props => [phoneNumber];
 }

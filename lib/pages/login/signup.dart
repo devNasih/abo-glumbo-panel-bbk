@@ -1,66 +1,318 @@
 import 'dart:io';
-import 'package:aboglumbo_bbk_panel/common_widget/crop_confirm_dialog.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
-import 'package:aboglumbo_bbk_panel/common_widget/multiple_location_selector.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/text_form.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
-import 'package:aboglumbo_bbk_panel/helpers/sanitize_number_helper.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/location.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
-import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
+import 'package:aboglumbo_bbk_panel/services/firestorage.dart';
+import 'package:aboglumbo_bbk_panel/services/notification.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
 class Signup extends StatefulWidget {
-  final String email;
-  final String password;
-  const Signup({super.key, required this.email, required this.password});
+  final String uid;
+
+  const Signup({super.key, required this.uid});
 
   @override
   State<Signup> createState() => _SignupState();
 }
 
 class _SignupState extends State<Signup> {
-  List<PlatformFile> selectedCertifications = [];
-  bool isUploadingCertifications = false;
-
-  bool isDetectingLocation = false;
-  bool isDeletingUser = false;
-
-  List<LocationModel> locations = [];
-  LocationModel? selectedLocation;
-  XFile? selectedImage;
-  XFile? selectedProfileImage;
-  bool isSaving = false;
-  double? imageUploadProgress;
-  String? docUrl;
-  String? profileImageUrl;
-  Map<String, Map<String, String>> jobCategories = {};
-  bool isCategoriesLoading = true;
-
-  final _formkey = GlobalKey<FormState>();
+  bool isCreatingAccount = false;
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
-  final TextEditingController phoneNumberController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
   final TextEditingController districtNameController = TextEditingController();
-  final TextEditingController jobRoleController = TextEditingController();
-  List<String> selectedJobRoles = [];
 
-  Future pickCertifications() async {
+  XFile? profileImage;
+  XFile? idImage;
+  List<PlatformFile> certifications = [];
+
+  String? selectedDistrictName;
+  LocationModel? selectedLocation;
+  List<LocationModel> locations = [];
+
+  List<Map<String, dynamic>> jobCategories = [];
+  List<String> selectedJobRoles = [];
+  bool isLoadingCategories = true;
+  bool isLoadingLocations = true;
+
+  @override
+  void initState() {
+    super.initState();
+    phoneController.text = FirebaseAuth.instance.currentUser?.phoneNumber ?? '';
+    _loadJobCategories();
+    _loadLocations();
+  }
+
+  // ✅ FIXED: Proper conversion from AppServices return type
+  Future<void> _loadJobCategories() async {
+    setState(() => isLoadingCategories = true);
+    try {
+      final categoriesMap = await AppServices.fetchJobCategories();
+
+      // Convert Map<String, Map<String, String>> to List<Map<String, dynamic>>
+      jobCategories = categoriesMap.entries.map((entry) {
+        return <String, dynamic>{
+          'id': entry.key,
+          'name': entry.value['en'] ?? '',
+          'nameAr': entry.value['ar'] ?? '',
+        };
+      }).toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading job categories: $e');
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.failedToLoadCategories ??
+                  'Failed to load job categories',
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isLoadingCategories = false);
+      }
+    }
+  }
+
+  Future<void> _loadLocations() async {
+    setState(() => isLoadingLocations = true);
+    try {
+      var response = await AppFirestore.locationsCollectionRef.get();
+      setState(() {
+        locations = response.docs
+            .map((e) => LocationModel.fromQuerySnapshot(e))
+            .toList();
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading locations: $e');
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.failedToLoadLocations ??
+                  'Failed to load locations',
+            ),
+            action: SnackBarAction(
+              label: AppLocalizations.of(context)?.retry ?? 'Retry',
+              onPressed: _loadLocations,
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isLoadingLocations = false);
+      }
+    }
+  }
+
+  void _selectLocationBottomSheet() async {
+    if (locations.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)?.noLocationsAvailable ??
+                'No locations available',
+          ),
+        ),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        final safePaddings = MediaQuery.of(context).padding;
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    AppLocalizations.of(context)?.selectLocation ??
+                        'Select Location',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: locations.length,
+                padding: EdgeInsets.only(bottom: safePaddings.bottom + 16),
+                itemBuilder: (context, index) {
+                  final location = locations[index];
+                  final isArabic = LocalStore.getUserlanguage() == 'ar';
+
+                  // ✅ FIXED: Consistent camelCase naming
+                  final locationName = isArabic
+                      ? (location.name_ar ?? location.name ?? '')
+                      : (location.name ?? '');
+
+                  return ListTile(
+                    dense: true,
+                    leading: Icon(
+                      Icons.location_on_rounded,
+                      color: AppColors.primary,
+                    ),
+                    title: Text(
+                      locationName,
+                      style: GoogleFonts.dmSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    onTap: () {
+                      setState(() {
+                        selectedDistrictName = locationName;
+                        selectedLocation = location;
+                        districtNameController.text = locationName;
+                      });
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _pickProfileImage() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+
+      if (image != null) {
+        final croppedFile = await ImageCropper().cropImage(
+          sourcePath: image.path,
+          aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+          compressQuality: 80,
+          maxWidth: 1024,
+          maxHeight: 1024,
+          uiSettings: [
+            AndroidUiSettings(
+              toolbarTitle:
+                  AppLocalizations.of(context)?.cropImage ?? 'Crop Image',
+              toolbarColor: AppColors.primary,
+              toolbarWidgetColor: Colors.white,
+              initAspectRatio: CropAspectRatioPreset.square,
+              lockAspectRatio: true,
+            ),
+            IOSUiSettings(
+              title: AppLocalizations.of(context)?.cropImage ?? 'Crop Image',
+              aspectRatioLockEnabled: true,
+            ),
+          ],
+        );
+
+        if (croppedFile != null) {
+          final fileSize = await File(croppedFile.path).length();
+          if (fileSize > 20 * 1024 * 1024) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    AppLocalizations.of(context)?.fileTooLarge ??
+                        'File is too large (max 20MB)',
+                  ),
+                ),
+              );
+            }
+            return;
+          }
+
+          setState(() {
+            profileImage = XFile(croppedFile.path);
+          });
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error picking profile image: $e');
+      }
+    }
+  }
+
+  Future<void> _pickIdImage() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+
+      if (image != null) {
+        final croppedFile = await ImageCropper().cropImage(
+          sourcePath: image.path,
+          compressQuality: 80,
+          maxWidth: 2048,
+          maxHeight: 2048,
+          uiSettings: [
+            AndroidUiSettings(
+              toolbarTitle:
+                  AppLocalizations.of(context)?.cropDocument ?? 'Crop Document',
+              toolbarColor: AppColors.primary,
+              toolbarWidgetColor: Colors.white,
+            ),
+            IOSUiSettings(
+              title:
+                  AppLocalizations.of(context)?.cropDocument ?? 'Crop Document',
+            ),
+          ],
+        );
+
+        if (croppedFile != null) {
+          setState(() {
+            idImage = XFile(croppedFile.path);
+          });
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error picking ID image: $e');
+      }
+    }
+  }
+
+  Future<void> _pickCertifications() async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -69,423 +321,114 @@ class _SignupState extends State<Signup> {
       );
 
       if (result != null) {
-        // Validate file sizes (e.g., max 5MB per file)
-        List<PlatformFile> validFiles = [];
+        // Validate file sizes
         for (var file in result.files) {
-          if (file.size <= 5 * 1024 * 1024) {
-            // 5MB limit
-            validFiles.add(file);
-          } else {
-            // Show error for large files
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  '${file.name} ${AppLocalizations.of(context)?.exceedsMaxSize ?? 'exceeds max size of 5MB'}',
+          if (file.size > 5 * 1024 * 1024) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    '${file.name} ${AppLocalizations.of(context)?.fileTooLarge ?? 'is too large (max 5MB)'}',
+                  ),
                 ),
-                backgroundColor: Colors.red,
-              ),
-            );
+              );
+            }
+            return;
           }
         }
-
-        if (validFiles.isNotEmpty) {
-          setState(() {
-            selectedCertifications.addAll(validFiles);
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('Error picking files: $e');
-    }
-  }
-
-  Future pickImage(bool isProfile) async {
-    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      if (!await validateFileSize(image)) {
-        return;
-      }
-
-      if (isProfile) {
-        setState(() => selectedProfileImage = image);
-        cropImage(true);
-      } else {
-        setState(() => selectedImage = image);
-        cropImage(false);
-      }
-    }
-  }
-
-  Future cropImage(bool isProfile) async {
-    final sourcePath = isProfile
-        ? selectedProfileImage!.path
-        : selectedImage!.path;
-    CroppedFile? res = await ImageCropper().cropImage(
-      sourcePath: sourcePath,
-      aspectRatio: isProfile
-          ? const CropAspectRatio(ratioX: 1, ratioY: 1)
-          : null,
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: AppLocalizations.of(context)?.cropImage ?? 'Crop Image',
-          toolbarColor: AppColors.primary,
-          toolbarWidgetColor: Colors.white,
-          lockAspectRatio: isProfile,
-        ),
-      ],
-    );
-
-    if (res != null) {
-      if (isProfile) {
-        setState(() => selectedProfileImage = XFile(res.path));
-      } else {
-        setState(() => selectedImage = XFile(res.path));
-      }
-    } else {
-      final bool? shouldKeepImage = await showCropConfirmDialog(context);
-
-      if (shouldKeepImage != true) {
-        if (isProfile) {
-          setState(() => selectedProfileImage = null);
-        } else {
-          setState(() => selectedImage = null);
-        }
-      }
-    }
-  }
-
-  Future<bool> validateFileSize(XFile file) async {
-    final fileSize = await File(file.path).length();
-    const maxSize = 20 * 1024 * 1024;
-
-    if (fileSize > maxSize) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'File is too large. Please select a smaller image (max 20MB).',
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      return false;
-    }
-    return true;
-  }
-
-  @override
-  void initState() {
-    loadLocations();
-    loadJobCategories();
-    super.initState();
-  }
-
-  Future<void> loadJobCategories() async {
-    setState(() {
-      isCategoriesLoading = true;
-    });
-
-    try {
-      final categories = await AppServices.fetchJobCategories();
-      setState(() {
-        jobCategories = categories;
-        isCategoriesLoading = false;
-      });
-    } catch (e) {
-      debugPrint('Error loading categories: $e');
-      setState(() {
-        isCategoriesLoading = false;
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)?.failedToLoadCategories ??
-                  'Failed to load job categories',
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _determinePosition() async {
-    setState(() => isDetectingLocation = true);
-
-    try {
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  AppLocalizations.of(context)?.locationPermissionsAreDenied ??
-                      'Location permissions are denied.',
-                ),
-              ),
-            );
-          }
-          setState(() => isDetectingLocation = false);
-          return;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(
-                      context,
-                    )?.locationPermissionsArePermanentlyDenied ??
-                    'Location permissions are permanently denied',
-              ),
-            ),
-          );
-        }
-        setState(() => isDetectingLocation = false);
-        return;
-      }
-
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
-      await _getAddressFromLatLng(position);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${AppLocalizations.of(context)?.failedToDetectLocation ?? 'Failed to detect location'}: ${e.toString()}',
-            ),
-          ),
-        );
-      }
-    }
-
-    setState(() => isDetectingLocation = false);
-  }
-
-  Future<void> _getAddressFromLatLng(Position position) async {
-    try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
-
-      if (placemarks.isNotEmpty) {
-        Placemark place = placemarks[0];
-        final localityName = place.locality ?? "Unknown";
 
         setState(() {
-          selectedLocation = LocationModel(
-            name: localityName,
-            name_ar: localityName,
-          );
-          districtNameController.text = localityName;
+          certifications.addAll(result.files);
         });
-        if (districtNameController.text.isEmpty) {
-          setState(() => isDetectingLocation = false);
-        }
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${AppLocalizations.of(context)?.failedToGetAddress ?? 'Failed to get address'}: ${e.toString()}',
-            ),
+      if (kDebugMode) {
+        print('Error picking certifications: $e');
+      }
+    }
+  }
+
+  void _removeCertification(int index) {
+    setState(() {
+      certifications.removeAt(index);
+    });
+  }
+
+  Future<void> _selectJobRoles() async {
+    if (jobCategories.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)?.noJobCategoriesAvailable ??
+                'No job categories available',
           ),
-        );
-      }
+        ),
+      );
+      return;
     }
-  }
 
-  String getJobCategoryDisplayName(String key) {
-    final currentLanguage = AppLocalizations.of(context)?.localeName ?? 'en';
-    final isArabic = currentLanguage == 'ar';
-    return jobCategories[key]?[isArabic ? 'ar' : 'en'] ?? key;
-  }
-
-  String getJobCategoryKey(String displayName) {
-    final currentLanguage = AppLocalizations.of(context)?.localeName ?? 'en';
-    final isArabic = currentLanguage == 'ar';
-
-    for (var entry in jobCategories.entries) {
-      if (entry.value[isArabic ? 'ar' : 'en'] == displayName) {
-        return entry.key;
-      }
-    }
-    return displayName;
-  }
-
-  void selectLocationBottomSheet() async {
-    final TextEditingController searchController = TextEditingController();
-    List<LocationModel> filteredLocations = List.from(locations);
-    final currentLanguage = AppLocalizations.of(context)?.localeName ?? 'en';
-    final isArabic = currentLanguage == 'ar';
-
-    showModalBottomSheet(
+    final selectedRoles = await showModalBottomSheet<List<String>>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        final safePaddings = MediaQuery.of(context).padding;
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.7,
+              padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: 16,
-                      left: 16,
-                      right: 16,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          AppLocalizations.of(context)?.selectLocation ??
-                              'Select Location',
-                          style: GoogleFonts.dmSans(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: TextField(
-                      controller: searchController,
-                      decoration: InputDecoration(
-                        hintText: AppLocalizations.of(context)?.searchLocation,
-                        prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: AppColors.grey2),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                          horizontal: 16,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)?.selectJobRoles ??
+                            'Select Job Roles',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      onChanged: (value) {
-                        setModalState(() {
-                          if (value.isEmpty) {
-                            filteredLocations = List.from(locations);
-                          } else {
-                            filteredLocations = locations.where((location) {
-                              final nameMatch =
-                                  location.name?.toLowerCase().contains(
-                                    value.toLowerCase(),
-                                  ) ??
-                                  false;
-                              final nameArMatch =
-                                  location.name_ar?.toLowerCase().contains(
-                                    value.toLowerCase(),
-                                  ) ??
-                                  false;
-                              return nameMatch || nameArMatch;
-                            }).toList();
-                          }
-                        });
-                      },
-                    ),
-                  ),
-                  ListTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withOpacity(0.1),
-                        shape: BoxShape.circle,
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.pop(context, selectedJobRoles),
+                        child: Text(
+                          AppLocalizations.of(context)?.done ?? 'Done',
+                        ),
                       ),
-                      child: Icon(
-                        Icons.my_location,
-                        color: AppColors.secondary,
-                      ),
-                    ),
-                    title: Text(
-                      AppLocalizations.of(context)?.useCurrentLocation ??
-                          'Use Current Location',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.secondary,
-                      ),
-                    ),
-                    onTap: () async {
-                      Navigator.pop(context);
-                      await _determinePosition();
-                    },
+                    ],
                   ),
                   const Divider(),
                   Expanded(
-                    child: filteredLocations.isEmpty
-                        ? Center(
-                            child: Text(
-                              AppLocalizations.of(context)?.noLocationsFound ??
-                                  'No locations found',
-                              style: GoogleFonts.dmSans(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          )
-                        : ListView.builder(
-                            itemCount: filteredLocations.length,
-                            padding: EdgeInsets.only(
-                              bottom: safePaddings.bottom + 16,
-                            ),
-                            itemBuilder: (context, index) {
-                              final location = filteredLocations[index];
-                              return ListTile(
-                                dense: true,
-                                leading: Icon(
-                                  Icons.location_on_rounded,
-                                  color: AppColors.grey2,
-                                ),
-                                title: Text(
-                                  isArabic
-                                      ? (location.name_ar ??
-                                            location.name ??
-                                            '')
-                                      : (location.name ?? ''),
-                                  style: GoogleFonts.dmSans(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                onTap: () {
-                                  setState(() => selectedLocation = location);
-                                  districtNameController.text = isArabic
-                                      ? (location.name_ar ??
-                                            location.name ??
-                                            '')
-                                      : (location.name ?? '');
-                                  Navigator.pop(context);
-                                },
-                              );
-                            },
-                          ),
+                    child: ListView.builder(
+                      itemCount: jobCategories.length,
+                      itemBuilder: (context, index) {
+                        final category = jobCategories[index];
+                        final categoryName =
+                            LocalStore.getUserlanguage() == 'ar'
+                            ? (category['nameAr'] ?? category['name'])
+                            : category['name'];
+                        final categoryId = category['id'];
+
+                        final isSelected = selectedJobRoles.contains(
+                          categoryId,
+                        );
+
+                        return CheckboxListTile(
+                          title: Text(categoryName),
+                          value: isSelected,
+                          onChanged: (value) {
+                            setModalState(() {
+                              if (value == true) {
+                                selectedJobRoles.add(categoryId);
+                              } else {
+                                selectedJobRoles.remove(categoryId);
+                              }
+                            });
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -494,1071 +437,522 @@ class _SignupState extends State<Signup> {
         );
       },
     );
-  }
 
-  Future loadLocations() async {
-    try {
-      var response = await AppFirestore.locationsCollectionRef.get();
-      final currentLanguage = AppLocalizations.of(context)?.localeName ?? 'en';
-      final isArabic = currentLanguage == 'ar';
-
+    if (selectedRoles != null) {
       setState(() {
-        locations = response.docs
-            .map((e) => LocationModel.fromQuerySnapshot(e))
-            .toList();
-
-        locations.sort((a, b) {
-          final aName = isArabic ? (a.name_ar ?? a.name ?? '') : (a.name ?? '');
-          final bName = isArabic ? (b.name_ar ?? b.name ?? '') : (b.name ?? '');
-          return aName.toLowerCase().compareTo(bName.toLowerCase());
-        });
+        selectedJobRoles = selectedRoles;
       });
-    } catch (e) {
-      return;
     }
   }
 
-  void selectJobRolesBottomSheet() {
-    List<String> tempSelectedJobRoles = List.from(selectedJobRoles);
-    TextEditingController customRolesController = TextEditingController();
+  String _getJobRoleNames() {
+    if (selectedJobRoles.isEmpty) return '';
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            final currentLanguage =
-                AppLocalizations.of(context)?.localeName ?? 'en';
-            final isArabic = currentLanguage == 'ar';
-
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              child: DraggableScrollableSheet(
-                initialChildSize: 0.8,
-                minChildSize: 0.5,
-                maxChildSize: 0.95,
-                expand: false,
-                builder: (context, scrollController) {
-                  return Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          top: 16,
-                          left: 16,
-                          right: 16,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              AppLocalizations.of(context)?.selectJobRoles ??
-                                  'Select Job Roles',
-                              style: GoogleFonts.dmSans(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: () => Navigator.pop(context),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: ListView(
-                          controller: scrollController,
-                          children: [
-                            ...jobCategories.entries.map((entry) {
-                              final displayName =
-                                  entry.value[isArabic ? 'ar' : 'en'] ??
-                                  entry.value['en']!;
-
-                              final isSelected =
-                                  tempSelectedJobRoles.contains(displayName) ||
-                                  tempSelectedJobRoles.contains(
-                                    entry.value['en'],
-                                  ) ||
-                                  tempSelectedJobRoles.contains(
-                                    entry.value['ar'],
-                                  );
-
-                              return CheckboxListTile(
-                                title: Text(
-                                  displayName,
-                                  style: GoogleFonts.dmSans(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                value: isSelected,
-                                activeColor: AppColors.secondary,
-                                onChanged: (bool? value) {
-                                  setModalState(() {
-                                    if (value == true) {
-                                      tempSelectedJobRoles.removeWhere(
-                                        (role) =>
-                                            role == displayName ||
-                                            role == entry.value['en'] ||
-                                            role == entry.value['ar'],
-                                      );
-
-                                      tempSelectedJobRoles.add(displayName);
-                                    } else {
-                                      tempSelectedJobRoles.removeWhere(
-                                        (role) =>
-                                            role == displayName ||
-                                            role == entry.value['en'] ||
-                                            role == entry.value['ar'],
-                                      );
-                                    }
-                                  });
-                                },
-                              );
-                            }),
-                            const SizedBox(height: 16),
-                            // Padding(
-                            //   padding: const EdgeInsets.symmetric(
-                            //     horizontal: 16,
-                            //   ),
-                            //   child: Text(
-                            //     AppLocalizations.of(
-                            //           context,
-                            //         )?.addCustomJobRoles ??
-                            //         'Add Custom Job Roles',
-                            //     style: GoogleFonts.dmSans(
-                            //       fontSize: 16,
-                            //       fontWeight: FontWeight.w500,
-                            //     ),
-                            //   ),
-                            // ),
-                            // const SizedBox(height: 8),
-                            // Padding(
-                            //   padding: const EdgeInsets.symmetric(
-                            //     horizontal: 16,
-                            //   ),
-                            //   child: TextField(
-                            //     controller: customRolesController,
-                            //     decoration: InputDecoration(
-                            //       hintText:
-                            //           AppLocalizations.of(
-                            //             context,
-                            //           )?.enterAdditionalJobRoles ??
-                            //           'Enter additional job roles (comma separated)',
-                            //       hintStyle: GoogleFonts.dmSans(fontSize: 14),
-                            //       border: OutlineInputBorder(
-                            //         borderRadius: BorderRadius.circular(8),
-                            //       ),
-                            //     ),
-                            //     minLines: 1,
-                            //     maxLines: 3,
-                            //   ),
-                            // ),
-                            const SizedBox(height: 24),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.secondary,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    List<String> finalJobRoles = List.from(
-                                      tempSelectedJobRoles,
-                                    );
-
-                                    if (customRolesController.text.isNotEmpty) {
-                                      final customRoles = customRolesController
-                                          .text
-                                          .split(',')
-                                          .map((e) => e.trim())
-                                          .where((e) => e.isNotEmpty)
-                                          .toList();
-
-                                      for (var role in customRoles) {
-                                        if (!finalJobRoles.contains(role)) {
-                                          finalJobRoles.add(role);
-                                        }
-                                      }
-                                    }
-
-                                    setState(() {
-                                      selectedJobRoles.clear();
-                                      selectedJobRoles.addAll(finalJobRoles);
-                                    });
-
-                                    Navigator.pop(context);
-                                  },
-                                  child: Text(
-                                    AppLocalizations.of(context)?.done ??
-                                        'Done',
-                                    style: GoogleFonts.dmSans(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 32),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            );
-          },
-        );
-      },
-    );
+    return selectedJobRoles
+        .map((roleId) {
+          final category = jobCategories.firstWhere(
+            (cat) => cat['id'] == roleId,
+            orElse: () => {'name': roleId, 'nameAr': roleId},
+          );
+          return LocalStore.getUserlanguage() == 'ar'
+              ? (category['nameAr'] ?? category['name'])
+              : category['name'];
+        })
+        .join(', ');
   }
 
-  void _deleteRegistrationForm() async {
-    if (FirebaseAuth.instance.currentUser != null) {
-      final shouldDelete =
-          await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text(AppLocalizations.of(context)?.goBack ?? 'Go Back'),
-              content: Text(
-                AppLocalizations.of(context)?.deleteRegistrationConfirmation ??
-                    'This will delete your registration. Are you sure you want to go back?',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: Text(AppLocalizations.of(context)?.yes ?? 'Yes'),
-                ),
-              ],
-            ),
-          ) ??
-          false;
+  Future<void> _submitSignup() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      if (shouldDelete) {
+    if (selectedLocation == null || selectedDistrictName == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)?.pleaseSelectLocation ??
+                'Please select a location',
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (selectedJobRoles.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)?.pleaseSelectAtLeastOneJobRole ??
+                'Please select at least one job role',
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (idImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)?.pleaseUploadIdDocument ??
+                'Please upload ID document',
+          ),
+        ),
+      );
+      return;
+    }
+
+    setState(() => isCreatingAccount = true);
+
+    try {
+      String? profileImageUrl;
+      String? idImageUrl;
+      List<String>? certificationUrls;
+
+      // Upload profile image
+      if (profileImage != null) {
+        try {
+          profileImageUrl = await UploadToFireStorage().uploadFile(
+            profileImage!,
+            'agents/profiles',
+          );
+        } catch (e) {
+          if (kDebugMode) print('Profile upload failed: $e');
+        }
+      }
+
+      // Upload ID image
+      if (idImage != null) {
+        try {
+          idImageUrl = await UploadToFireStorage().uploadFile(
+            idImage!,
+            'agents/documents',
+          );
+        } catch (e) {
+          if (kDebugMode) print('ID upload failed: $e');
+        }
+      }
+
+      // Upload certifications
+      if (certifications.isNotEmpty) {
+        certificationUrls = [];
+        for (var cert in certifications) {
+          try {
+            if (cert.path != null) {
+              final fileRef = AppFireStorage.agentDocStorageRef.child(
+                'agents/certifications/${DateTime.now().millisecondsSinceEpoch}_${cert.name}',
+              );
+              final uploadTask = fileRef.putFile(File(cert.path!));
+              final snapshot = await uploadTask;
+              final downloadUrl = await snapshot.ref.getDownloadURL();
+              certificationUrls.add(downloadUrl);
+            }
+          } catch (e) {
+            if (kDebugMode) print('Cert upload failed: $e');
+          }
+        }
+      }
+
+      // Create user document
+      final userModel = UserModel(
+        uid: widget.uid,
+        name: nameController.text.trim(),
+        phone: phoneController.text.trim(),
+        country: "SA",
+        districtName: selectedDistrictName,
+        location: selectedLocation,
+        jobRoles: selectedJobRoles,
+        profileUrl: profileImageUrl,
+        docUrl: idImageUrl,
+        certifications: certificationUrls,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+        isVerified: false,
+        isAdmin: false,
+        isOnline: false,
+        email: "",
+      );
+
+      await AppFirestore.usersCollectionRef
+          .doc(widget.uid)
+          .set(userModel.toJson());
+
+      // Save UID to local storage
+      await LocalStore.putUID(widget.uid);
+
+      // ✅ FIXED: Refresh FCM token after account creation
+      await NotificationServices.refreshFCMToken();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.accountCreatedSuccessfully ??
+                  'Account created successfully!',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate to home
+        await Future.delayed(const Duration(milliseconds: 300));
+       
         if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const LoginPage()),
+            MaterialPageRoute(
+              builder: (context) => Home(),
+            ),
             (route) => false,
           );
         }
       }
-    } else {
-      Navigator.of(context).pop();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Signup error: $e');
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.failedToCreateAccount ??
+                  'Failed to create account',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isCreatingAccount = false);
+      }
     }
-  }
-
-  String _getUserFriendlyErrorMessage(String error) {
-    // Convert technical errors to user-friendly messages
-    final errorLower = error.toLowerCase();
-
-    if (errorLower.contains('email-already-in-use')) {
-      return 'This email is already registered. Please use a different email or try logging in.';
-    }
-
-    if (errorLower.contains('weak-password')) {
-      return AppLocalizations.of(context)?.passwordMustBeAtleast6Characters ??
-          'Password is too weak. Please choose a stronger password.';
-    }
-
-    if (errorLower.contains('invalid-email')) {
-      return AppLocalizations.of(context)?.invalidEmailFormat ??
-          'Please enter a valid email address.';
-    }
-
-    if (errorLower.contains('network-request-failed') ||
-        errorLower.contains('network error')) {
-      return AppLocalizations.of(context)?.networkError ??
-          'Network error. Please check your internet connection and try again.';
-    }
-
-    if (errorLower.contains('unauthorized') ||
-        errorLower.contains('permission')) {
-      // Don't show technical authorization errors - these are usually fixed by our reordering
-      return '';
-    }
-
-    if (errorLower.contains('timeout') || errorLower.contains('timed out')) {
-      return 'The operation took too long. Please check your internet connection and try again.';
-    }
-
-    if (errorLower.contains('file') && errorLower.contains('large')) {
-      return 'The selected image is too large. Please choose a smaller image.';
-    }
-
-    if (errorLower.contains('corrupted') ||
-        errorLower.contains('unsupported format')) {
-      return 'The selected image format is not supported. Please choose a different image.';
-    }
-
-    // For any other errors, show a generic message
-    if (error.isNotEmpty) {
-      return 'Something went wrong during account creation. Please try again.';
-    }
-
-    return '';
   }
 
   @override
   Widget build(BuildContext context) {
     final safePadding = MediaQuery.of(context).padding;
-    final locale = AppLocalizations.of(context);
-    return BlocBuilder<LoginBloc, LoginState>(
-      builder: (context, loginState) {
-        final isLoading = loginState is SignUpLoading;
-        return BlocListener<LoginBloc, LoginState>(
-          listener: (context, state) {
-            if (state is SignUpSuccess) {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => Home(byPassUid: LocalStore.getUID()),
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          AppLocalizations.of(context)?.completeRegistration ??
+              'Complete Registration',
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () async {
+            final confirm = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text(
+                  AppLocalizations.of(context)?.cancelRegistration ??
+                      'Cancel Registration?',
                 ),
-                (route) => false,
-              );
-            }
-            if (state is SignUpFailure) {
-              // Filter and provide user-friendly error messages
-              String userFriendlyMessage = _getUserFriendlyErrorMessage(
-                state.error,
-              );
-
-              // Only show the snackbar if it's a meaningful error for the user
-              if (userFriendlyMessage.isNotEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(userFriendlyMessage),
-                    backgroundColor: Colors.red,
-                    duration: const Duration(seconds: 4),
-                  ),
-                );
-              }
-            }
-          },
-          child: Scaffold(
-            body: Form(
-              key: _formkey,
-              child: ListView(
-                padding: EdgeInsets.only(
-                  top: safePadding.top + 16,
-                  left: 16,
-                  right: 16,
-                  bottom: safePadding.bottom + 16,
+                content: Text(
+                  AppLocalizations.of(
+                        context,
+                      )?.cancelRegistrationConfirmation ??
+                      'Are you sure you want to cancel? All entered data will be lost.',
                 ),
-                children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: _deleteRegistrationForm,
-                        icon: const Icon(
-                          Icons.arrow_back_ios_new_rounded,
-                          color: Colors.black,
-                          size: 20,
-                        ),
-                      ),
-                      Text(
-                        locale?.createAccount ?? '',
-                        style: GoogleFonts.dmSans(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 24,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ],
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: Text(AppLocalizations.of(context)?.no ?? 'No'),
                   ),
-                  const SizedBox(height: 9),
-                  Text(
-                    locale?.pleaseFillTheInputBelowHereToContinue ?? '',
-                    style: GoogleFonts.dmSans(
-                      color: Colors.black45,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 34),
-                  Center(
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            color: AppColors.grey2.withOpacity(0.3),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: selectedProfileImage != null
-                              ? ClipOval(
-                                  child: Image.file(
-                                    File(selectedProfileImage!.path),
-                                    fit: BoxFit.cover,
-                                    width: 120,
-                                    height: 120,
-                                  ),
-                                )
-                              : profileImageUrl != null
-                              ? ClipOval(
-                                  child: CachedNetworkImage(
-                                    imageUrl: profileImageUrl!,
-                                    fit: BoxFit.cover,
-                                    width: 120,
-                                    height: 120,
-                                    placeholder: (context, url) => const Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                    errorWidget: (context, url, error) =>
-                                        const Icon(
-                                          Icons.person,
-                                          size: 60,
-                                          color: Colors.grey,
-                                        ),
-                                  ),
-                                )
-                              : const Icon(
-                                  Icons.person,
-                                  size: 60,
-                                  color: Colors.grey,
-                                ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            height: 36,
-                            width: 36,
-                            decoration: BoxDecoration(
-                              color: AppColors.secondary,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                            ),
-                            child: IconButton(
-                              padding: EdgeInsets.zero,
-                              icon: const Icon(
-                                Icons.camera_alt,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                              onPressed: () => pickImage(true),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  TextFormWidget(
-                    controller: nameController,
-                    label: locale?.yourName ?? '',
-                    keyboardType: TextInputType.name,
-                    textInputAction: TextInputAction.next,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return locale?.nameIsRequired ?? '';
-                      } else if (value.length < 3) {
-                        return locale?.enterAValidName ?? '';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormWidget(
-                    controller: phoneNumberController,
-                    label: locale?.phoneNumber ?? '',
-                    isPhoneNumber: true,
-                    keyboardType: TextInputType.phone,
-                    textInputAction: TextInputAction.done,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormWidget(
-                    controller: districtNameController,
-                    label: locale?.districtName ?? '',
-                    onTap: () async {
-                      final location =
-                          await LocationSelectorHelper.showLocationSelector(
-                            context: context,
-                            locations: locations,
-                            selectedLocation: selectedLocation,
-                            onUseCurrentLocation: () async =>
-                                await _determinePosition(),
-                          );
-                      if (location != null) {
-                        setState(() {
-                          selectedLocation = location;
-                          final isArabic =
-                              AppLocalizations.of(context)?.localeName == 'ar';
-                          districtNameController.text = isArabic
-                              ? (location.name_ar ?? location.name ?? '')
-                              : (location.name ?? '');
-                        });
-                      }
-                    },
-                    validator: (value) {
-                      if (selectedLocation == null) {
-                        return locale?.locationIsRequired ?? '';
-                      }
-                      return null;
-                    },
-                    suffix: isDetectingLocation
-                        ? Container(
-                            padding: const EdgeInsets.all(8),
-                            height: 10,
-                            width: 10,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppColors.secondary,
-                            ),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Label
-                      Text(
-                        locale?.jobRoles ?? 'Job Roles',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Container with selected job roles
-                      GestureDetector(
-                        onTap: isCategoriesLoading
-                            ? null
-                            : selectJobRolesBottomSheet,
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(
-                              color: selectedJobRoles.isEmpty
-                                  ? AppColors.grey2
-                                  : AppColors.secondary.withOpacity(0.5),
-                              width: 1.5,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: isCategoriesLoading
-                              ? Row(
-                                  children: [
-                                    SizedBox(
-                                      height: 16,
-                                      width: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: AppColors.secondary,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      'Loading categories...',
-                                      style: GoogleFonts.dmSans(
-                                        fontSize: 14,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : selectedJobRoles.isEmpty
-                              ? Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      locale?.selectJobRoles ??
-                                          'Select job roles',
-                                      style: GoogleFonts.dmSans(
-                                        fontSize: 14,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                    Icon(
-                                      Icons.arrow_forward_ios_rounded,
-                                      size: 16,
-                                      color: Colors.grey,
-                                    ),
-                                  ],
-                                )
-                              : Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Wrap(
-                                      spacing: 8,
-                                      runSpacing: 8,
-                                      children: selectedJobRoles.map((role) {
-                                        final displayName =
-                                            getJobCategoryDisplayName(
-                                              getJobCategoryKey(role),
-                                            );
-
-                                        return Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 6,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.secondary
-                                                .withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                            border: Border.all(
-                                              color: AppColors.secondary
-                                                  .withOpacity(0.3),
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                displayName,
-                                                style: GoogleFonts.dmSans(
-                                                  fontSize: 13,
-                                                  color: AppColors.secondary,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              GestureDetector(
-                                                onTap: () {
-                                                  setState(() {
-                                                    selectedJobRoles.remove(
-                                                      role,
-                                                    );
-                                                  });
-                                                },
-                                                child: Icon(
-                                                  Icons.close,
-                                                  size: 16,
-                                                  color: AppColors.secondary,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }).toList(),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        Icon(
-                                          Icons.edit_outlined,
-                                          size: 14,
-                                          color: AppColors.secondary,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          locale!.editSelection,
-                                          style: GoogleFonts.dmSans(
-                                            fontSize: 12,
-                                            color: AppColors.secondary,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                        ),
-                      ),
-
-                      // Error message (if validation fails)
-                      if (selectedJobRoles.isEmpty &&
-                          _formkey.currentState?.validate() == false)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8, left: 12),
-                          child: Text(
-                            locale?.jobRolesAreRequired ??
-                                'Job Roles are required',
-                            style: GoogleFonts.dmSans(
-                              fontSize: 12,
-                              color: Colors.red,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  const SizedBox(height: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        locale!
-                            .certificationsrelevantExperienceDocumentsOptional,
-                        style: GoogleFonts.dmSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Upload Button
-                      OutlinedButton.icon(
-                        onPressed: pickCertifications,
-                        icon: const Icon(Icons.upload_file),
-                        label: Text(
-                          locale.uploadFiles,
-                          style: GoogleFonts.dmSans(fontSize: 14),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 48),
-                          side: BorderSide(color: AppColors.secondary),
-                          foregroundColor: AppColors.secondary,
-                        ),
-                      ),
-
-                      // Display selected files
-                      if (selectedCertifications.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.secondary.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: AppColors.secondary.withOpacity(0.3),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    '${selectedCertifications.length} ${locale.filesSelected}',
-                                    style: GoogleFonts.dmSans(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.secondary,
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        selectedCertifications.clear();
-                                      });
-                                    },
-                                    child: Text(
-                                      locale.clearAll,
-                                      style: GoogleFonts.dmSans(
-                                        fontSize: 12,
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              // File list
-                              ...selectedCertifications.asMap().entries.map((
-                                entry,
-                              ) {
-                                final index = entry.key;
-                                final file = entry.value;
-                                final fileSize = (file.size / 1024)
-                                    .toStringAsFixed(2); // KB
-
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: AppColors.grey2),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      // File icon based on extension
-                                      Icon(
-                                        _getFileIcon(file.extension ?? ''),
-                                        color: AppColors.secondary,
-                                        size: 32,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      // File info
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              file.name,
-                                              style: GoogleFonts.dmSans(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              '$fileSize KB',
-                                              style: GoogleFonts.dmSans(
-                                                fontSize: 11,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      // Remove button
-                                      IconButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            selectedCertifications.removeAt(
-                                              index,
-                                            );
-                                          });
-                                        },
-                                        icon: const Icon(Icons.close, size: 20),
-                                        color: Colors.red,
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }),
-                            ],
-                          ),
-                        ),
-                      ],
-                      SizedBox(height: 24),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: FilledButton(
-                      onPressed: () => pickImage(false),
-                      child: Text(
-                        AppLocalizations.of(context)?.uploadYourIqama ??
-                            'Upload your iqama',
-                      ),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: selectedImage != null
-                            ? Image.file(File(selectedImage!.path), height: 130)
-                            : docUrl != null
-                            ? CachedNetworkImage(
-                                imageUrl: docUrl ?? "",
-                                height: 130,
-                                fit: BoxFit.cover,
-                              )
-                            : const SizedBox.shrink(),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: double.maxFinite,
-                    height: 55,
-                    child: ElevatedButton(
-                      onPressed: isLoading
-                          ? null
-                          : () async {
-                              try {
-                                if (!_formkey.currentState!.validate()) return;
-                                if (selectedImage == null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        AppLocalizations.of(
-                                              context,
-                                            )?.pleaseSelectYourIdDocument ??
-                                            'Please select your ID document',
-                                      ),
-                                    ),
-                                  );
-                                  return;
-                                }
-                                if (selectedJobRoles.isEmpty
-                                //  &&
-                                //     jobRolesController.text.trim().isEmpty
-                                ) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        AppLocalizations.of(
-                                              context,
-                                            )?.pleaseSelectAtLeastOneJobRole ??
-                                            'Please select at least one job role',
-                                      ),
-                                    ),
-                                  );
-                                  return;
-                                }
-                                bool isPhoneNumberExists =
-                                    await AppServices.checkThePhoneExists(
-                                      SanitizeNumberHelper.sanitizePhoneNumber(
-                                        phoneNumberController.text.trim(),
-                                      ),
-                                    );
-                                if (isPhoneNumberExists) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        AppLocalizations.of(
-                                              context,
-                                            )?.phoneNumberAlreadyExists ??
-                                            'Phone number already exists',
-                                      ),
-                                    ),
-                                  );
-                                  return;
-                                }
-                                List<String> jobRoles = [];
-                                for (String role in selectedJobRoles) {
-                                  String jobKey = getJobCategoryKey(role);
-                                  if (jobCategories.containsKey(jobKey)) {
-                                    jobRoles.add(
-                                      jobCategories[jobKey]!['en']!.trim(),
-                                    );
-                                  } else {
-                                    jobRoles.add(role.trim());
-                                  }
-                                }
-
-                                // if (jobRolesController.text.trim().isNotEmpty) {
-                                //   final customRoles = jobRolesController.text
-                                //       .trim()
-                                //       .split(',')
-                                //       .map((e) => e.trim())
-                                //       .where((e) => e.isNotEmpty)
-                                //       .toList();
-
-                                // for (String customRole in customRoles) {
-                                //   if (!jobRoles.contains(customRole)) {
-                                //     jobRoles.add(customRole.trim());
-                                //   }
-                                // }
-                                // }
-                                jobRoles = jobRoles
-                                    .map((e) => e.trim())
-                                    .toSet()
-                                    .toList();
-                                UserModel user = UserModel(
-                                  name: nameController.text.trim(),
-                                  email: widget.email,
-                                  phone: phoneNumberController.text.trim(),
-                                  country: "SA",
-                                  districtName: districtNameController.text
-                                      .trim(),
-                                  jobRoles: jobRoles,
-                                  createdAt: Timestamp.now(),
-                                  updatedAt: Timestamp.now(),
-                                  isVerified: false,
-                                );
-
-                                context.read<LoginBloc>().add(
-                                  SignUpButtonPressed(
-                                    email: widget.email,
-                                    password: widget.password,
-                                    userModel: user,
-                                    idImage: selectedImage,
-                                    profileImage: selectedProfileImage,
-                                    certifications: selectedCertifications,
-                                  ),
-                                );
-                              } catch (e) {
-                                String userFriendlyMessage =
-                                    _getUserFriendlyErrorMessage(e.toString());
-                                if (userFriendlyMessage.isNotEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(userFriendlyMessage),
-                                      backgroundColor: Colors.red,
-                                      duration: const Duration(seconds: 4),
-                                    ),
-                                  );
-                                }
-                              }
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isLoading
-                            ? AppColors.secondary.withOpacity(0.6)
-                            : AppColors.secondary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: isLoading
-                          ? Loader(size: 20, color: Colors.white)
-                          : Text(
-                              locale.createAccount,
-                              style: GoogleFonts.dmSans(
-                                color: Colors.white,
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: Text(
+                      AppLocalizations.of(context)?.yes ?? 'Yes',
+                      style: const TextStyle(color: Colors.red),
                     ),
                   ),
                 ],
               ),
-            ),
+            );
+
+            if (confirm == true && mounted) {
+              Navigator.pop(context);
+            }
+          },
+        ),
+      ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: EdgeInsets.only(
+            top: 16,
+            left: 16,
+            right: 16,
+            bottom: safePadding.bottom + 16,
           ),
-        );
-      },
+          children: [
+            // Loading indicator
+            if (isLoadingLocations || isLoadingCategories)
+              const LinearProgressIndicator(),
+
+            const SizedBox(height: 16),
+
+            // Profile Image Picker
+            Center(
+              child: GestureDetector(
+                onTap: _pickProfileImage,
+                child: Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 60,
+                      backgroundColor: AppColors.primary.withOpacity(0.1),
+                      backgroundImage: profileImage != null
+                          ? FileImage(File(profileImage!.path))
+                          : null,
+                      child: profileImage == null
+                          ? Icon(
+                              Icons.person,
+                              size: 60,
+                              color: AppColors.primary,
+                            )
+                          : null,
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Name Field
+            TextFormWidget(
+              controller: nameController,
+              label: AppLocalizations.of(context)?.fullName ?? 'Full Name',
+              keyboardType: TextInputType.name,
+              textInputAction: TextInputAction.next,
+              readOnly: false,
+              enabled: true,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return AppLocalizations.of(context)?.pleaseEnterYourName ??
+                      'Please enter your name';
+                }
+                if (value.length < 3) {
+                  return AppLocalizations.of(context)?.nameTooShort ??
+                      'Name must be at least 3 characters';
+                }
+                return null;
+              },
+            ),
+
+            // Phone Field (Read-only)
+            TextFormWidget(
+              controller: phoneController,
+              label:
+                  AppLocalizations.of(context)?.phoneNumber ?? 'Phone Number',
+              keyboardType: TextInputType.phone,
+              enabled: false,
+            ),
+
+            // Location Selector
+            TextFormWidget(
+              controller: districtNameController,
+              label: AppLocalizations.of(context)?.districtName ?? 'District',
+              onTap: _selectLocationBottomSheet,
+              readOnly: false,
+              suffix: const Icon(Icons.arrow_drop_down),
+              validator: (value) {
+                if (selectedLocation == null) {
+                  return AppLocalizations.of(context)?.locationIsRequired ??
+                      'Location is required';
+                }
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            // Job Roles Selector
+            Text(
+              AppLocalizations.of(context)?.jobRoles ?? 'Job Roles',
+              style: GoogleFonts.dmSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            InkWell(
+              onTap: isLoadingCategories ? null : _selectJobRoles,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade400),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        selectedJobRoles.isEmpty
+                            ? (AppLocalizations.of(context)?.selectJobRoles ??
+                                  'Select Job Roles')
+                            : _getJobRoleNames(),
+                        style: GoogleFonts.dmSans(
+                          color: selectedJobRoles.isEmpty
+                              ? Colors.grey
+                              : Colors.black,
+                        ),
+                      ),
+                    ),
+                    const Icon(Icons.arrow_drop_down),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // ID Document Upload
+            Text(
+              '${AppLocalizations.of(context)?.idDocument ?? 'ID Document'} *',
+              style: GoogleFonts.dmSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: _pickIdImage,
+              icon: const Icon(Icons.upload_file),
+              label: Text(
+                idImage == null
+                    ? (AppLocalizations.of(context)?.uploadIdDocument ??
+                          'Upload ID Document')
+                    : (AppLocalizations.of(context)?.idDocumentUploaded ??
+                          'ID Document Uploaded'),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: idImage != null
+                    ? Colors.green
+                    : AppColors.primary,
+              ),
+            ),
+
+            if (idImage != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        File(idImage!.path),
+                        height: 150,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: IconButton(
+                        onPressed: () => setState(() => idImage = null),
+                        icon: const Icon(Icons.close),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            const SizedBox(height: 16),
+
+            // Certifications Upload
+            Text(
+              '${AppLocalizations.of(context)?.certifications ?? 'Certifications'} (${AppLocalizations.of(context)?.optional ?? 'Optional'})',
+              style: GoogleFonts.dmSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: _pickCertifications,
+              icon: const Icon(Icons.attach_file),
+              label: Text(
+                AppLocalizations.of(context)?.uploadCertifications ??
+                    'Upload Certifications',
+              ),
+            ),
+
+            if (certifications.isNotEmpty)
+              ...certifications.asMap().entries.map((entry) {
+                int index = entry.key;
+                PlatformFile file = entry.value;
+                return ListTile(
+                  leading: const Icon(Icons.description),
+                  title: Text(file.name),
+                  subtitle: Text('${(file.size / 1024).toStringAsFixed(2)} KB'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => _removeCertification(index),
+                  ),
+                );
+              }).toList(),
+
+            // Submit Button
+            Padding(
+              padding: const EdgeInsets.only(top: 30.0),
+              child: SizedBox(
+                width: double.maxFinite,
+                height: 55,
+                child: ElevatedButton(
+                  onPressed: isCreatingAccount ? null : _submitSignup,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.secondary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: isCreatingAccount
+                      ? Loader()
+                      : Text(
+                          AppLocalizations.of(context)?.createAccount ??
+                              'Create Account',
+                          style: GoogleFonts.dmSans(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  IconData _getFileIcon(String extension) {
-    switch (extension.toLowerCase()) {
-      case 'pdf':
-        return Icons.picture_as_pdf;
-      case 'doc':
-      case 'docx':
-        return Icons.description;
-      case 'jpg':
-      case 'jpeg':
-      case 'png':
-        return Icons.image;
-      default:
-        return Icons.insert_drive_file;
-    }
+  @override
+  void dispose() {
+    nameController.dispose();
+    phoneController.dispose();
+    districtNameController.dispose();
+    super.dispose();
   }
 }

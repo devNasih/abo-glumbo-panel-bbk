@@ -17,26 +17,39 @@ final class LoginFailure extends LoginState {
   LoginFailure({required this.error});
 }
 
-final class LoginResetPasswordLoading extends LoginState {}
+final class OTPSentSuccess extends LoginState {
+  final String verificationId;
+  final int? resendToken;
+  
+  OTPSentSuccess({
+    required this.verificationId,
+    this.resendToken,
+  });
 
-final class LoginResetPasswordSuccess extends LoginState {
-  final bool isSuccess;
-  LoginResetPasswordSuccess({required this.isSuccess});
+  @override
+  List<Object?> get props => [verificationId, resendToken];
 }
 
-final class LoginResetPasswordFailure extends LoginState {
+final class OTPSentFailure extends LoginState {
   final String error;
-  LoginResetPasswordFailure({required this.error});
+  OTPSentFailure({required this.error});
+
+  @override
+  List<Object?> get props => [error];
+}
+
+final class OTPVerifiedForRegistration extends LoginState {
+  final String uid;
+
+  OTPVerifiedForRegistration({required this.uid});
+
+  @override
+  List<Object?> get props => [uid];
 }
 
 final class LoginRememberMeToggled extends LoginState {
   final bool value;
   LoginRememberMeToggled(this.value);
-}
-
-final class LoginBypassUsingBiometric extends LoginState {
-  final UserModel user;
-  LoginBypassUsingBiometric({required this.user});
 }
 
 final class LoginLoadWorkerData extends LoginState {
@@ -54,6 +67,7 @@ final class RegistrationLoading extends LoginState {}
 final class RegisterSuccess extends LoginState {
   final bool isSuccess;
   RegisterSuccess({required this.isSuccess});
+
   @override
   List<Object?> get props => [isSuccess];
 }
@@ -61,18 +75,4 @@ final class RegisterSuccess extends LoginState {
 final class RegisterFailure extends LoginState {
   final String error;
   RegisterFailure({required this.error});
-}
-
-final class SignUpLoading extends LoginState {}
-
-final class SignUpSuccess extends LoginState {
-  final bool isSuccess;
-  SignUpSuccess({required this.isSuccess});
-  @override
-  List<Object?> get props => [isSuccess];
-}
-
-final class SignUpFailure extends LoginState {
-  final String error;
-  SignUpFailure({required this.error});
 }

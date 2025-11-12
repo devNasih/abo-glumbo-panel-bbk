@@ -1,30 +1,21 @@
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
-import 'package:aboglumbo_bbk_panel/common_widget/login_carousel.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
-import 'package:aboglumbo_bbk_panel/helpers/regex.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
+import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
-import 'package:aboglumbo_bbk_panel/pages/login/register.dart';
-import 'package:aboglumbo_bbk_panel/pages/login/widgets/location_selector.dart';
+import 'package:aboglumbo_bbk_panel/pages/login/otp.dart';
+import 'package:aboglumbo_bbk_panel/pages/login/widgets/language_selector.dart';
 import 'package:aboglumbo_bbk_panel/services/notification.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
+import 'package:aboglumbo_bbk_panel/styles/images.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:local_auth/error_codes.dart' as local_auth_error;
 import 'package:local_auth/local_auth.dart';
-
-class Language {
-  final String name;
-  final String code;
-  final String flag;
-
-  Language({required this.name, required this.code, required this.flag});
-}
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -34,107 +25,75 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  bool _obscurePassword = true;
-  bool rememberMe = false;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _phoneController = TextEditingController();
+  bool _isRememberMeChecked = false;
+  int? _resendToken;
   bool isCheckUserEnableTwoStepVerification = false;
   String? customerLastUid;
   bool isUserLogout = false;
-
-  String currentLanguageCode = 'en';
-
-  @override
-  void initState() {
-    super.initState();
-    customerLastUid = LocalStore.getUID();
-
-    // Check biometric setting using current UID or last valid UID
-    String uidForBiometric =
-        customerLastUid ?? LocalStore.getLastValidUID() ?? '';
-    isCheckUserEnableTwoStepVerification = LocalStore.getBiometricAuthEnabled(
-      uidForBiometric,
-    );
-
-    isUserLogout = LocalStore.getLogoutStatus();
-
-    currentLanguageCode = LocalStore.getUserlanguage();
-
-    // Load remember me state from local storage
-    bool savedRememberMe = LocalStore.getRememberMe();
-    if (kDebugMode) {
-      print('Loading remember me state: $savedRememberMe');
-    }
-
-    if (savedRememberMe) {
-      rememberMe = true;
-      String? savedEmail = LocalStore.getRememberedEmail();
-      String? savedPassword = LocalStore.getRememberedPassword();
-
-      if (savedEmail != null) {
-        emailController.text = savedEmail;
-        if (kDebugMode) {
-          print('Restored email from local storage');
-        }
-      }
-      if (savedPassword != null && savedPassword.isNotEmpty) {
-        passwordController.text = savedPassword;
-        if (kDebugMode) {
-          print('Restored password from local storage');
-        }
-      } else if (kDebugMode) {
-        print(
-          'Password not restored (empty or null) - user will need to re-enter',
-        );
-      }
-
-      if (kDebugMode) {
-        print(
-          'Loaded credentials - Email: ${savedEmail != null ? 'Yes' : 'No'}, Password: ${savedPassword != null && savedPassword.isNotEmpty ? 'Yes' : 'No'}',
-        );
-      }
-    } else {
-      rememberMe = false;
-      emailController.clear();
-      passwordController.clear();
-      if (kDebugMode) {
-        print('Remember me disabled, cleared controllers');
-      }
-    }
-
-    emailController.addListener(_saveCredentialsIfRememberMe);
-    passwordController.addListener(_saveCredentialsIfRememberMe);
-
-    if (kDebugMode) {
-      // emailController.text = "adnanyousufpangat@gmail.com";
-      // passwordController.text = "qwertyuiop";
-      emailController.text = "admin@abogalambo.app";
-      passwordController.text = "testPassword";
-    }
-  }
-
-  void _saveCredentialsIfRememberMe() {
-    if (rememberMe &&
-        emailController.text.trim().isNotEmpty &&
-        passwordController.text.trim().isNotEmpty) {
-      LocalStore.rememberEmailAndPassword(
-        emailController.text.trim(),
-        passwordController.text.trim(),
-      );
-      if (kDebugMode) {
-        print('Auto-saved credentials due to text change');
-      }
-    }
-  }
+  bool _isBiometricLoading = false; // ✅ ADD THIS
 
   @override
   void dispose() {
-    emailController.removeListener(_saveCredentialsIfRememberMe);
-    passwordController.removeListener(_saveCredentialsIfRememberMe);
-    emailController.dispose();
-    passwordController.dispose();
+    _phoneController.dispose();
     super.dispose();
+  }
+
+  void _showSnackBar(String message, Color backgroundColor) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: backgroundColor,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  Future<void> _onLoginPressed() async {
+    if (_formKey.currentState!.validate()) {
+      final phoneNumber = _phoneController.text.trim();
+
+      if (phoneNumber.length < 9) {
+        _showSnackBar(
+          AppLocalizations.of(context)?.pleaseEnterAValidPhoneNumber ??
+              'Please enter a valid phone number',
+          AppColors.yellow,
+        );
+        return;
+      }
+
+      // Save phone if remember me is checked
+      if (_isRememberMeChecked) {
+        await LocalStore.rememberPhone(phoneNumber);
+      } else {
+        await LocalStore.clearRememberedPhone();
+      }
+
+      if (mounted) {
+        context.read<LoginBloc>().add(
+          SendOTPPressed(context: context, phoneNumber: phoneNumber),
+        );
+      }
+    }
+  }
+
+  void _onRememberMeChanged(bool? value) {
+    setState(() {
+      _isRememberMeChecked = value ?? false;
+    });
+
+    LocalStore.putRememberMe(_isRememberMeChecked);
+
+    if (_isRememberMeChecked) {
+      final phone = _phoneController.text.trim();
+      if (phone.isNotEmpty) {
+        LocalStore.rememberPhone(phone);
+      }
+    } else {
+      LocalStore.clearRememberedPhone();
+    }
   }
 
   void _byPassUsingBioAuth(BuildContext context) async {
@@ -144,13 +103,10 @@ class _LoginPageState extends State<LoginPage> {
       bool isDeviceSupported = await auth.isDeviceSupported();
 
       if (!canCheckBiometrics || !isDeviceSupported) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)?.biometricNotSupported ??
-                  'Biometric authentication is not supported on this device.',
-            ),
-          ),
+        _showSnackBar(
+          AppLocalizations.of(context)?.biometricNotSupported ??
+              'Biometric authentication is not supported on this device.',
+          Colors.red,
         );
         return;
       }
@@ -166,29 +122,44 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (didAuthenticate) {
-        if (FirebaseAuth.instance.currentUser == null) {
-          await FirebaseAuth.instance.signInAnonymously();
+        // ✅ Show loading overlay
+        if (mounted) {
+          setState(() {
+            _isBiometricLoading = true;
+          });
         }
 
-        await _refreshFCMTokenForNewUser();
+        try {
+          if (FirebaseAuth.instance.currentUser == null) {
+            await FirebaseAuth.instance.signInAnonymously();
+          }
 
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Home(
-              byPassUid: customerLastUid ?? LocalStore.getLastValidUID(),
-            ),
-          ),
-          (route) => false,
-        );
+          // Refresh FCM token after biometric login
+          await NotificationServices.refreshFCMToken();
+
+          if (mounted) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Home(byPassUid: customerLastUid),
+              ),
+              (route) => false,
+            );
+          }
+        } catch (e) {
+          // ✅ Hide loading on error
+          if (mounted) {
+            setState(() {
+              _isBiometricLoading = false;
+            });
+          }
+          _showSnackBar('Error during login: ${e.toString()}', Colors.red);
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)?.authenticationFailed ??
-                  '❌ Authentication failed',
-            ),
-          ),
+        _showSnackBar(
+          AppLocalizations.of(context)?.authenticationFailed ??
+              '❌ Authentication failed',
+          Colors.red,
         );
       }
     } on PlatformException catch (exception) {
@@ -216,396 +187,417 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       if (message.isNotEmpty) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(message)));
+        _showSnackBar(message, Colors.red);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)?.unexpectedErrorOccurred ??
-                '❌ Unexpected error occurred',
-          ),
-        ),
+      _showSnackBar(
+        AppLocalizations.of(context)?.unexpectedErrorOccurred ??
+            '❌ Unexpected error occurred',
+        Colors.red,
       );
     }
   }
 
-  Future<void> _refreshFCMTokenForNewUser() async {
-    try {
-      if (kDebugMode) {
-        print('🔄 Refreshing FCM token for newly logged in user');
-      }
-      await NotificationServices.refreshFCMToken();
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error refreshing FCM token for new user: $e');
-      }
+  Widget _buildHeaderImage() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 60),
+      child: Center(
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Positioned(
+              child: Container(
+                height: 305,
+                width: 256,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(32),
+                ),
+              ),
+            ),
+            Container(
+              height: 295,
+              width: 278,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(32),
+              ),
+            ),
+            Image.asset(
+              AppImages.workerArtLogin,
+              height: 286,
+              width: 290,
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhoneInputField() {
+    return Container(
+      height: 60,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black.withOpacity(0.1), width: 1),
+      ),
+      alignment: Alignment.center,
+      padding: const EdgeInsets.only(left: 22, right: 22),
+      child: TextFormField(
+        controller: _phoneController,
+        textInputAction: TextInputAction.done,
+        keyboardType: TextInputType.number,
+        inputFormatters: [LengthLimitingTextInputFormatter(9)],
+        style: GoogleFonts.dmSans(
+          color: Colors.black,
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.all(12),
+          prefixIcon: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Directionality(
+                textDirection: TextDirection.ltr,
+                child: Text(
+                  "+966",
+                  style: GoogleFonts.dmSans(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        onFieldSubmitted: (_) => _onLoginPressed(),
+      ),
+    );
+  }
+
+  Widget _buildRememberMeCheckbox() {
+    return Center(
+      child: CheckboxListTile.adaptive(
+        dense: true,
+        controlAffinity: ListTileControlAffinity.leading,
+        contentPadding: const EdgeInsets.all(0),
+        title: Text(
+          AppLocalizations.of(context)?.rememberMe ?? 'Remember Me',
+          style: GoogleFonts.dmSans(color: Colors.white, fontSize: 14),
+        ),
+        side: const BorderSide(color: Colors.white),
+        activeColor: Colors.blue,
+        checkColor: Colors.white,
+        value: _isRememberMeChecked,
+        onChanged: _onRememberMeChanged,
+      ),
+    );
+  }
+
+  Widget _buildFingerprintAuth() {
+    return Center(
+      child: GestureDetector(
+        onTap: () => _byPassUsingBioAuth(context),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white.withOpacity(0.1),
+            border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/images/fingerPrint.png',
+                height: 60,
+                width: 60,
+                color: Colors.white,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoginButton(LoginState state) {
+    final isLoading = state is LoginLoading;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: SizedBox(
+        width: double.maxFinite,
+        height: 50,
+        child: ElevatedButton(
+          onPressed: isLoading ? null : _onLoginPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.secondary,
+            disabledBackgroundColor: AppColors.secondary.withOpacity(0.6),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          child: isLoading
+              ? Loader(size: 20, color: Colors.white)
+              : Text(
+                  AppLocalizations.of(context)?.continueText ?? 'Continue',
+                  style: GoogleFonts.dmSans(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTermsAndPrivacyText() {
+    return Center(
+      child: RichText(
+        textAlign: TextAlign.center,
+        text: TextSpan(
+          children: <TextSpan>[
+            TextSpan(
+              text:
+                  AppLocalizations.of(context)?.byContinuingYouAgreeToOur ?? '',
+              style: GoogleFonts.dmSans(fontSize: 11, color: Colors.white60),
+            ),
+            TextSpan(
+              text:
+                  AppLocalizations.of(context)?.termsOfUseAndPrivacyPolicy ??
+                  '',
+              style: GoogleFonts.dmSans(fontSize: 11, color: Colors.blue),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    // ✅ Get last valid UID
+    customerLastUid = LocalStore.getLastValidUID();
+
+    // ✅ Check biometric with last valid UID
+    isCheckUserEnableTwoStepVerification = LocalStore.getBiometricAuthEnabled(
+      customerLastUid ?? '',
+    );
+
+    isUserLogout = LocalStore.getLogoutStatus();
+    _isRememberMeChecked = LocalStore.getRememberMe();
+
+    // 🔍 DEBUG: Print all values
+    print('🔍 DEBUG LOGIN PAGE INIT:');
+    print('customerLastUid: $customerLastUid');
+    print(
+      'isCheckUserEnableTwoStepVerification: $isCheckUserEnableTwoStepVerification',
+    );
+    print('isUserLogout: $isUserLogout');
+    print('_isRememberMeChecked: $_isRememberMeChecked');
+    print(
+      'Should show biometric: ${isCheckUserEnableTwoStepVerification && isUserLogout && customerLastUid != null && customerLastUid!.isNotEmpty}',
+    );
+
+    if (_isRememberMeChecked) {
+      _phoneController.text = LocalStore.getRememberedPhone() ?? '';
+    } else {
+      _phoneController.clear();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final safePadding = MediaQuery.of(context).padding;
+    return BlocConsumer<LoginBloc, LoginState>(
+      listener: (context, state) {
+        if (state is OTPSentSuccess) {
+          _showSnackBar(
+            AppLocalizations.of(context)?.otpSentSuccessfully ??
+                'OTP sent successfully',
+            Colors.green,
+          );
 
-    return Scaffold(
-      backgroundColor: AppColors.primary,
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: BlocConsumer<LoginBloc, LoginState>(
-        listener: (context, state) {
-          if (state is LoginSuccess) {
-            if (rememberMe) {
-              LocalStore.putRememberMe(true);
-              LocalStore.rememberEmailAndPassword(
-                emailController.text.trim(),
-                passwordController.text.trim(),
-              );
-            } else {
-              LocalStore.putRememberMe(false);
-              LocalStore.clearRememberedCredentials();
-            }
-
-            _refreshFCMTokenForNewUser();
-
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const Home()),
-              (route) => false,
-            );
-          } else if (state is LoginRememberMeToggled) {
-            if (kDebugMode) {
-              print('LoginRememberMeToggled received: ${state.value}');
-            }
-            setState(() {
-              rememberMe = state.value;
-            });
-
-            if (state.value &&
-                emailController.text.trim().isNotEmpty &&
-                passwordController.text.trim().isNotEmpty) {
-              LocalStore.rememberEmailAndPassword(
-                emailController.text.trim(),
-                passwordController.text.trim(),
-              );
-              if (kDebugMode) {
-                print('Saved existing credentials after enabling remember me');
-              }
-            }
-          } else if (state is LoginFailure) {
-            String errorMessage;
-            switch (state.error) {
-              case 'user-not-found':
-                errorMessage = AppLocalizations.of(context)!.emailNotRegistered;
-                break;
-              case 'wrong-password':
-                errorMessage = AppLocalizations.of(context)!.incorrectPassword;
-                break;
-              case 'invalid-email':
-                errorMessage = AppLocalizations.of(context)!.invalidEmailFormat;
-                break;
-              case 'user-disabled':
-                errorMessage = AppLocalizations.of(context)!.accountDisabled;
-                break;
-              case 'too-many-requests':
-                errorMessage = AppLocalizations.of(context)!.tooManyRequests;
-                break;
-              case 'network-request-failed':
-                errorMessage = AppLocalizations.of(context)!.networkError;
-                break;
-              case 'invalid-credential':
-                errorMessage = AppLocalizations.of(context)!.invalidCredentials;
-                break;
-              default:
-                errorMessage = state.error;
-            }
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(errorMessage),
-                backgroundColor: Colors.red,
-                duration: const Duration(seconds: 4),
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OtpPage(
+                phoneNumber: _phoneController.text.trim(),
+                verificationId: state.verificationId,
               ),
-            );
+            ),
+          );
+        } else if (state is OTPSentFailure) {
+          _showSnackBar(state.error, Colors.red);
+        } else if (state is LoginFailure) {
+          String errorMessage;
+          switch (state.error) {
+            case 'too-many-requests':
+              errorMessage =
+                  AppLocalizations.of(context)?.tooManyRequests ??
+                  'Too many attempts. Please wait and try again.';
+              break;
+            case 'invalid-phone-number':
+              errorMessage =
+                  AppLocalizations.of(context)?.pleaseEnterAValidPhoneNumber ??
+                  'Please enter a valid phone number';
+              break;
+            default:
+              errorMessage = state.error;
           }
-          if (state is LoginResetPasswordSuccess) {
-            if (state.isSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    AppLocalizations.of(context)!.passwordResetEmailSent,
-                  ),
-                  backgroundColor: Colors.green,
-                  duration: const Duration(seconds: 3),
-                ),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    AppLocalizations.of(context)!.emailNotRegistered,
-                  ),
-                  backgroundColor: Colors.red,
-                  duration: const Duration(seconds: 3),
-                ),
-              );
-            }
-          } else if (state is LoginResetPasswordFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.error),
-                backgroundColor: Colors.red,
-                duration: const Duration(seconds: 3),
+          _showSnackBar(errorMessage, Colors.red);
+        }
+      },
+      builder: (context, state) {
+        return Stack(
+          children: [
+            Scaffold(
+              backgroundColor: AppColors.primary,
+              extendBodyBehindAppBar: true,
+              appBar: AppBar(
+                backgroundColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
               ),
-            );
-          }
-        },
-        builder: (context, state) {
-          return Form(
-            key: _formKey,
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(
-                top: safePadding.top + 30,
-                bottom: safePadding.bottom + 16,
-              ),
-              children: [
-                LoginCarouselWidget(),
-                const SizedBox(height: 25),
-                Directionality(
-                  textDirection: TextDirection.ltr,
-                  child: LanguageSelectorCard(),
-                ),
-                const SizedBox(height: 25),
-                TextFormField(
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return AppLocalizations.of(context)!.pleaseEnterYourEmail;
-                    } else if (!Regex.emailRegex.hasMatch(value)) {
-                      return AppLocalizations.of(context)!.invalidEmailFormat;
-                    }
-
-                    return null;
-                  },
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  style: GoogleFonts.dmSans(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  decoration: const InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                      borderSide: BorderSide.none,
-                    ),
-                    prefixIcon: Icon(Icons.email_rounded),
-                  ),
-                ),
-                const SizedBox(height: 18),
-                TextFormField(
-                  controller: passwordController,
-                  keyboardType: TextInputType.visiblePassword,
-                  obscureText: _obscurePassword,
-                  style: GoogleFonts.dmSans(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return AppLocalizations.of(
-                        context,
-                      )!.pleaseEnterYourPassword;
-                    }
-                    if (value.length < 6) {
-                      return AppLocalizations.of(
-                        context,
-                      )!.passwordMustBeAtleast6Characters;
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                      borderSide: BorderSide.none,
-                    ),
-                    prefixIcon: const Icon(Icons.password_rounded),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
+              body: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Checkbox(
-                          value: rememberMe,
-                          onChanged: (value) => context.read<LoginBloc>().add(
-                            RememberMeToggled(
-                              value ?? false,
-                              email: emailController.text.trim().isNotEmpty
-                                  ? emailController.text.trim()
-                                  : null,
-                              password:
-                                  passwordController.text.trim().isNotEmpty
-                                  ? passwordController.text.trim()
-                                  : null,
+                        _buildHeaderImage(),
+                        const SizedBox(height: 35),
+                        Center(
+                          child: Text(
+                            AppLocalizations.of(context)?.appLoginCaption ?? '',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.dmSans(
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              fontSize: 24,
                             ),
                           ),
-                          activeColor: AppColors.secondary,
-                          checkColor: Colors.white,
                         ),
+                        const SizedBox(height: 13),
+                        Directionality(
+                          textDirection: TextDirection.ltr,
+                          child: LanguageSelectorCard(isInLoginPage: true),
+                        ),
+                        const SizedBox(height: 23),
                         Text(
-                          AppLocalizations.of(context)!.rememberMe,
+                          AppLocalizations.of(context)?.mobileNumber ?? '',
                           style: GoogleFonts.dmSans(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                            color: Colors.white.withOpacity(.7),
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        _buildPhoneInputField(),
+                        const SizedBox(height: 6),
+                        _buildRememberMeCheckbox(),
+                        const SizedBox(height: 10),
+                        _buildLoginButton(state),
+
+                        if (isCheckUserEnableTwoStepVerification &&
+                            customerLastUid != null &&
+                            customerLastUid!.isNotEmpty) ...[
+                          const SizedBox(height: 20),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Divider(
+                                  color: Colors.white.withOpacity(0.5),
+                                  thickness: 1,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: Text(
+                                  AppLocalizations.of(context)?.or ?? 'OR',
+                                  style: GoogleFonts.dmSans(
+                                    color: Colors.white.withOpacity(0.7),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Divider(
+                                  color: Colors.white.withOpacity(0.5),
+                                  thickness: 1,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          _buildFingerprintAuth(),
+                        ],
+
+                        const SizedBox(height: 20),
+                        _buildTermsAndPrivacyText(),
+                        const SizedBox(height: 30),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // ✅ Alternative: Material Design Loading
+            if (_isBiometricLoading)
+              Material(
+                color: Colors.black.withOpacity(0.7),
+                child: Center(
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 250),
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          height: 32,
+                          child: Loader(size: 28, color: Colors.white),
+                        ),
+                        const SizedBox(height: 16),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            AppLocalizations.of(context)?.loggingIn ??
+                                'Logging in...',
+                            style: GoogleFonts.dmSans(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
                         ),
                       ],
                     ),
-                    TextButton(
-                      onPressed: () {
-                        if (emailController.text.isNotEmpty) {
-                          context.read<LoginBloc>().add(
-                            ForrgotPasswordPressed(
-                              email: emailController.text.trim(),
-                            ),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                AppLocalizations.of(
-                                  context,
-                                )!.pleaseEnterYourEmail,
-                              ),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      },
-                      child: state is LoginResetPasswordLoading
-                          ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Text(
-                              AppLocalizations.of(context)!.forgotPassword,
-                              style: GoogleFonts.dmSans(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                    ),
-                  ],
-                ),
-                if (isCheckUserEnableTwoStepVerification && isUserLogout)
-                  Center(
-                    child: GestureDetector(
-                      onTap: () => _byPassUsingBioAuth(context),
-                      child: Image.asset(
-                        'assets/images/fingerPrint.png',
-                        color: Colors.white,
-                        width: 54,
-                        height: 54,
-                      ),
-                    ),
-                  ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 30.0),
-                  child: SizedBox(
-                    width: double.maxFinite,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          context.read<LoginBloc>().add(
-                            LoginButtonPressed(
-                              email: emailController.text.trim(),
-                              password: passwordController.text.trim(),
-                            ),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.secondary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: state is LoginLoading
-                          ? Loader(size: 20, color: Colors.white)
-                          : Text(
-                              AppLocalizations.of(context)!.continueText,
-                              style: GoogleFonts.dmSans(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 10.0),
-                  child: SizedBox(
-                    width: double.maxFinite,
-                    height: 50,
-                    child: TextButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => RegisterPage()),
-                      ),
-                      style: TextButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: Text(
-                        AppLocalizations.of(context)!.register,
-                        style: GoogleFonts.dmSans(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 50),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

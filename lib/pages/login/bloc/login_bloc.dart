@@ -1,71 +1,181 @@
-import 'dart:io';
-
+import 'dart:async';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
-import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/services/auth_services.dart';
-import 'package:aboglumbo_bbk_panel/services/firestorage.dart';
 import 'package:bloc/bloc.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:flutter/material.dart';
+
 part 'login_event.dart';
 part 'login_state.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
+  final AuthServices _authServices = AuthServices();
+
   LoginBloc() : super(LoginInitial()) {
-    on<LoginButtonPressed>(_loginWorker);
-    on<ForrgotPasswordPressed>(_resetPasswordWorker);
+    on<SendOTPPressed>(_sendOTPWorker);
+    on<VerifyOTPPressed>(_verifyOTPWorker);
+    on<VerifyOTPForRegistration>(_verifyOTPForRegistration);
     on<RememberMeToggled>(_rememberMeToggled);
     on<LoadWorkerData>(_loadWorkerData);
     on<RefreshUserData>(_refreshUserData);
     on<RegisterButtonPressed>(_registerWorker);
-    on<SignUpButtonPressed>(_signUpWorker);
   }
 
-  Future<void> _loginWorker(
-    LoginButtonPressed event,
+  // ✅ FIXED: Use Completer for proper async callback handling
+  Future<void> _sendOTPWorker(
+    SendOTPPressed event,
     Emitter<LoginState> emit,
   ) async {
     emit(LoginLoading());
     try {
-      UserCredential? res = await AuthServices.loginWithEmailAndPassword(
-        event.email,
-        event.password,
+      // ✅ Use Completer to properly wait for callbacks
+      final Completer<Map<String, dynamic>> completer = Completer();
+
+      await _authServices.sendOTP(
+        event.context,
+        phoneNumber: event.phoneNumber,
+        onCodeSent: (String verificationId, {int? resendToken}) {
+          if (!completer.isCompleted) {
+            if (kDebugMode) {
+              print('✅ OTP sent successfully. VerificationId: $verificationId');
+            }
+            completer.complete({
+              'success': true,
+              'verificationId': verificationId,
+              'resendToken': resendToken,
+            });
+          }
+        },
+        onError: (FirebaseAuthException e) {
+          if (!completer.isCompleted) {
+            if (kDebugMode) {
+              print('❌ OTP send failed: ${e.code} - ${e.message}');
+            }
+            completer.complete({'success': false, 'error': e.code});
+          }
+        },
       );
-      if (res?.user != null) {
-        UserModel user = await AuthServices.checkUser(res!.user!.uid);
-        emit(LoginSuccess(user: user));
+
+      // ✅ Wait for the callback to complete (with 30 second timeout)
+      final result = await completer.future.timeout(
+        const Duration(seconds: 30),
+        onTimeout: () => {'success': false, 'error': 'timeout'},
+      );
+
+      if (result['success'] == true) {
+        emit(
+          OTPSentSuccess(
+            verificationId: result['verificationId'] as String,
+            resendToken: result['resendToken'] as int?,
+          ),
+        );
       } else {
         emit(
-          LoginFailure(error: "Login failed, please check your credentials"),
+          OTPSentFailure(
+            error: result['error'] as String? ?? 'Failed to send OTP',
+          ),
         );
       }
-    } on FirebaseAuthException catch (e) {
-      emit(LoginFailure(error: e.message ?? "Firebase Auth error"));
     } catch (e) {
+      if (kDebugMode) {
+        print('❌ Send OTP error: $e');
+      }
+      emit(OTPSentFailure(error: e.toString()));
+    }
+  }
+
+  Future<void> _verifyOTPWorker(
+    VerifyOTPPressed event,
+    Emitter<LoginState> emit,
+  ) async {
+    emit(LoginLoading());
+    try {
+      UserCredential userCredential = await _authServices.verifyOTP(
+        event.context,
+        event.smsCode,
+        verificationId: event.verificationId,
+        smsCode: event.smsCode,
+      );
+
+      if (userCredential.user != null) {
+        if (kDebugMode) {
+          print('✅ OTP verified. UID: ${userCredential.user!.uid}');
+        }
+
+        // Check if user exists in WORKERS collection
+        UserModel? user = await _checkWorkerUser(userCredential.user!.uid);
+
+        if (user != null) {
+          if (kDebugMode) {
+            print('✅ Worker user found: ${user.name}');
+          }
+          emit(LoginSuccess(user: user));
+        } else {
+          if (kDebugMode) {
+            print('❌ User not found in workers collection');
+          }
+          emit(LoginFailure(error: "user-not-found"));
+        }
+      } else {
+        if (kDebugMode) {
+          print('❌ OTP verification returned null');
+        }
+        emit(LoginFailure(error: "invalid-verification-code"));
+      }
+    } on FirebaseAuthException catch (e) {
+      if (kDebugMode) {
+        print('❌ Firebase Auth error: ${e.code}');
+      }
+      emit(LoginFailure(error: e.code));
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Verify OTP error: $e');
+      }
       emit(LoginFailure(error: e.toString()));
     }
   }
 
-  Future<void> _resetPasswordWorker(
-    ForrgotPasswordPressed event,
+  Future<void> _verifyOTPForRegistration(
+    VerifyOTPForRegistration event,
     Emitter<LoginState> emit,
   ) async {
-    emit(LoginResetPasswordLoading());
+    emit(LoginLoading());
     try {
-      bool isAvailable = await AppServices.checkTheMailExists(event.email);
-      if (isAvailable) {
-        await AuthServices.resetPassword(event.email);
-        emit(LoginResetPasswordSuccess(isSuccess: true));
+      UserCredential userCredential = await _authServices.verifyOTP(
+        event.context,
+        event.smsCode,
+        verificationId: event.verificationId,
+        smsCode: event.smsCode,
+      );
+
+      if (userCredential.user != null) {
+        final uid = userCredential.user!.uid;
+
+        if (kDebugMode) {
+          print('✅ OTP verified for registration. UID: $uid');
+        }
+
+        // Emit state with UID to navigate to signup
+        emit(OTPVerifiedForRegistration(uid: uid));
       } else {
-        emit(LoginResetPasswordSuccess(isSuccess: false));
+        if (kDebugMode) {
+          print('❌ OTP verification returned null');
+        }
+        emit(LoginFailure(error: "invalid-verification-code"));
       }
+    } on FirebaseAuthException catch (e) {
+      if (kDebugMode) {
+        print('❌ Firebase Auth error: ${e.code}');
+      }
+      emit(LoginFailure(error: e.code));
     } catch (e) {
-      emit(LoginResetPasswordFailure(error: e.toString()));
+      if (kDebugMode) {
+        print('❌ Verify OTP error: $e');
+      }
+      emit(LoginFailure(error: e.toString()));
     }
   }
 
@@ -74,43 +184,22 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     Emitter<LoginState> emit,
   ) async {
     if (kDebugMode) {
-      print(
-        'RememberMeToggled - value: ${event.value}, email: ${event.email}, password: ${event.password != null ? 'provided' : 'null'}',
-      );
+      print('RememberMeToggled - value: ${event.value}');
     }
 
     if (event.value) {
-      // Always save remember me state when toggled on
       await LocalStore.putRememberMe(true);
-      if (kDebugMode) {
-        print('Remember me enabled and saved to local storage');
-      }
-
-      // Save credentials if both email and password are provided
-      if (event.email != null &&
-          event.password != null &&
-          event.email!.isNotEmpty &&
-          event.password!.isNotEmpty) {
-        await LocalStore.rememberEmailAndPassword(
-          event.email!,
-          event.password!,
-        );
+      if (event.phone != null && event.phone!.isNotEmpty) {
+        await LocalStore.rememberPhone(event.phone!);
         if (kDebugMode) {
-          print('Saved credentials to local storage');
-        }
-      } else {
-        if (kDebugMode) {
-          print(
-            'Email or password is empty, remember me enabled but credentials not saved yet',
-          );
+          print('Saved phone to local storage');
         }
       }
     } else {
-      // Clear remember me state and credentials when toggled off
       await LocalStore.putRememberMe(false);
-      await LocalStore.clearRememberedCredentials();
+      await LocalStore.clearRememberedPhone();
       if (kDebugMode) {
-        print('Cleared remember me and credentials');
+        print('Remember me disabled, cleared phone');
       }
     }
     emit(LoginRememberMeToggled(event.value));
@@ -121,10 +210,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     Emitter<LoginState> emit,
   ) async {
     try {
-      UserModel user = await AuthServices.checkUser(
+      UserModel? user = await _checkWorkerUser(
         event.uid ?? LocalStore.getUID()!,
       );
-      if (user.uid == null || user.uid!.isEmpty) {
+
+      if (user == null || user.uid == null || user.uid!.isEmpty) {
         emit(LoginLoadWorkerDataFailure(error: "User not found"));
       } else {
         emit(LoginLoadWorkerData(user: user));
@@ -147,10 +237,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       }
 
       // If no cached data, fetch from Firebase
-      UserModel user = await AuthServices.checkUser(
+      UserModel? user = await _checkWorkerUser(
         event.uid ?? LocalStore.getUID()!,
       );
-      if (user.uid == null || user.uid!.isEmpty) {
+
+      if (user == null || user.uid == null || user.uid!.isEmpty) {
         emit(LoginLoadWorkerDataFailure(error: "User not found"));
       } else {
         emit(LoginLoadWorkerData(user: user));
@@ -166,8 +257,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   ) async {
     emit(RegistrationLoading());
     try {
-      bool isEmailExists = await AppServices.isEmailRegistered(event.email);
-      if (!isEmailExists) {
+      // Check if phone is already registered as worker
+      bool phoneExists = await _isPhoneRegisteredAsWorker(event.phoneNumber);
+
+      if (!phoneExists) {
         emit(RegisterSuccess(isSuccess: true));
       } else {
         emit(RegisterSuccess(isSuccess: false));
@@ -177,234 +270,59 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     }
   }
 
-  Future<void> _signUpWorker(
-    SignUpButtonPressed event,
-    Emitter<LoginState> emit,
-  ) async {
-    emit(SignUpLoading());
+  // Helper method: Check if user exists in workers collection
+  Future<UserModel?> _checkWorkerUser(String uid) async {
     try {
-      // Add timeout to the entire signup process
-      bool result = await Future.any([
-        _performSignUp(event),
-        Future.delayed(const Duration(minutes: 5), () {
-          throw Exception('Signup process timed out. Please try again.');
-        }),
-      ]);
+      final userDoc = await AppFirestore.usersCollectionRef.doc(uid).get();
 
-      if (result == true) {
-        emit(SignUpSuccess(isSuccess: true));
+      if (userDoc.exists) {
+        final userData = userDoc.data() as Map<String, dynamic>?;
+        LocalStore.putUID(userData?['uid'] ?? uid);
+        LocalStore.putlogoutStatus(false);
+
+        if (kDebugMode) {
+          print('✅ Worker user found: ${userData?['name']}');
+        }
+
+        return UserModel.fromJson(userData ?? {});
       } else {
-        emit(
-          SignUpFailure(error: 'Account creation failed. Please try again.'),
-        );
+        if (kDebugMode) {
+          print('❌ Worker user not found in users collection');
+        }
+        return null;
       }
     } catch (e) {
-      // Filter out technical errors that shouldn't be shown to users
-      String errorMessage = e.toString();
-      if (errorMessage.contains('unauthorized') ||
-          errorMessage.contains('permission denied')) {
-        // These are technical issues that should be handled internally
-        emit(SignUpFailure(error: 'Please try creating your account again.'));
-      } else {
-        emit(SignUpFailure(error: errorMessage));
+      if (kDebugMode) {
+        print('❌ Error fetching worker user: $e');
       }
+      return null;
     }
   }
 
-  Future<bool> _performSignUp(SignUpButtonPressed event) async {
-    String? profileImageUrl;
-    String? idImageUrl;
-    List<String>? certificationUrls;
-
+  // Helper method: Check if phone is registered
+  Future<bool> _isPhoneRegisteredAsWorker(String phone) async {
     try {
-      // Create the user account first to authenticate with Firebase
-      bool userCreated = await AuthServices.registerUser(
-        event.email,
-        event.password,
-        event.userModel,
-      );
+      final querySnapshot = await AppFirestore.usersCollectionRef
+          .where('phone', isEqualTo: phone)
+          .limit(1)
+          .get();
 
-      if (!userCreated) {
-        return false;
-      }
+      bool exists = querySnapshot.docs.isNotEmpty;
 
-      // Wait a moment to ensure Firebase Auth state is fully synced
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      // Verify the user is actually authenticated before proceeding
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) {
-        if (kDebugMode) {
-          print('Error: User account created but not authenticated');
-        }
-        return false;
-      }
-
-      // Now that the user is authenticated, upload the files
-      if (event.profileImage != null) {
-        try {
-          profileImageUrl = await _uploadFileWithRetry(
-            event.profileImage!,
-            'agents/profiles',
-          );
-          if (kDebugMode) {
-            print('Profile image uploaded successfully');
-          }
-        } catch (profileUploadError) {
-          if (kDebugMode) {
-            print('Profile image upload failed: $profileUploadError');
-          }
-          // Continue with signup even if profile image upload fails
-        }
-      }
-
-      if (event.idImage != null) {
-        try {
-          idImageUrl = await _uploadFileWithRetry(
-            event.idImage!,
-            'agents/documents',
-          );
-          if (kDebugMode) {
-            print('ID document uploaded successfully');
-          }
-        } catch (idUploadError) {
-          if (kDebugMode) {
-            print('ID document upload failed: $idUploadError');
-          }
-          // Continue with signup even if ID document upload fails
-        }
-      }
-
-      // Upload certifications if any
-      if (event.certifications != null && event.certifications!.isNotEmpty) {
-        certificationUrls = [];
-        for (var cert in event.certifications!) {
-          try {
-            String certUrl = await _uploadPlatformFileWithRetry(
-              cert,
-              'agents/certifications',
-            );
-            certificationUrls.add(certUrl);
-            if (kDebugMode) {
-              print('Certification ${cert.name} uploaded successfully');
-            }
-          } catch (certUploadError) {
-            if (kDebugMode) {
-              print(
-                'Certification upload failed for ${cert.name}: $certUploadError',
-              );
-            }
-            // Continue with signup even if one certification fails
-            // but remove the failed URL if it was added
-          }
-        }
-      }
-
-      // Update the user document with the image URLs and certifications if they were uploaded
-      if (profileImageUrl != null ||
-          idImageUrl != null ||
-          certificationUrls != null) {
-        try {
-          Map<String, dynamic> updateData = {};
-          if (profileImageUrl != null) {
-            updateData['profileUrl'] = profileImageUrl;
-          }
-          if (idImageUrl != null) {
-            updateData['docUrl'] = idImageUrl;
-          }
-          if (certificationUrls != null && certificationUrls.isNotEmpty) {
-            updateData['certifications'] = certificationUrls;
-          }
-          updateData['updatedAt'] = Timestamp.now();
-          updateData['isOnline'] = true;
-
-          await AppFirestore.usersCollectionRef
-              .doc(event.userModel.uid)
-              .update(updateData);
-
-          if (kDebugMode) {
-            print('User document updated with image URLs and certifications');
-          }
-        } catch (updateError) {
-          if (kDebugMode) {
-            print(
-              'Failed to update user document with image URLs and certifications: $updateError',
-            );
-          }
-          // Continue with signup even if document update fails
-        }
-      }
-
-      return true;
-    } catch (error) {
       if (kDebugMode) {
-        print('Signup error: $error');
+        print(
+          exists
+              ? '⚠️ Phone already registered as worker'
+              : '✅ Phone available for registration',
+        );
       }
 
-      // If this is an authentication-related error, don't retry
-      if (error.toString().contains('email-already-in-use') ||
-          error.toString().contains('weak-password') ||
-          error.toString().contains('invalid-email')) {
-        rethrow; // Let the calling method handle these specific errors
+      return exists;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error checking phone registration: $e');
       }
-
       return false;
     }
-  }
-
-  Future<String> _uploadPlatformFileWithRetry(
-    PlatformFile file,
-    String storagePath, {
-    int maxRetries = 2,
-  }) async {
-    for (int attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        if (file.path == null) {
-          throw Exception('File path is null');
-        }
-
-        final fileRef = AppFireStorage.agentDocStorageRef.child(
-          '$storagePath/${DateTime.now().millisecondsSinceEpoch}_${file.name}',
-        );
-
-        final uploadTask = fileRef.putFile(File(file.path!));
-        final snapshot = await uploadTask;
-        final downloadUrl = await snapshot.ref.getDownloadURL();
-
-        return downloadUrl;
-      } catch (e) {
-        if (attempt == maxRetries) {
-          rethrow; // If final attempt fails, throw the error
-        }
-        // Wait before retrying
-        await Future.delayed(Duration(seconds: (attempt + 1) * 2));
-        if (kDebugMode) {
-          print('File upload attempt ${attempt + 1} failed, retrying...');
-        }
-      }
-    }
-    throw Exception('File upload failed after $maxRetries retries');
-  }
-
-  Future<String?> _uploadFileWithRetry(
-    XFile file,
-    String storagePath, {
-    int maxRetries = 2,
-  }) async {
-    for (int attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        return await UploadToFireStorage().uploadFile(file, storagePath);
-      } catch (e) {
-        if (attempt == maxRetries) {
-          rethrow; // If final attempt fails, throw the error
-        }
-        // Wait before retrying
-        await Future.delayed(Duration(seconds: (attempt + 1) * 2));
-        if (kDebugMode) {
-          print('Upload attempt ${attempt + 1} failed, retrying...');
-        }
-      }
-    }
-    return null;
   }
 }

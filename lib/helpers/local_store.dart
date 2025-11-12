@@ -2,6 +2,9 @@ import 'package:aboglumbo_bbk_panel/main.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 
 class LocalStore {
+  // ============================================
+  // UID Management
+  // ============================================
   static Future<void> putUID(String uid) {
     // Also store as last valid UID for biometric authentication
     MyApp.box.put('last_valid_uid', uid);
@@ -22,7 +25,9 @@ class LocalStore {
     return MyApp.box.delete('uid');
   }
 
-  // WORKER LOGOUT STATUS
+  // ============================================
+  // Logout Status
+  // ============================================
   static Future<void> putlogoutStatus(bool isLoggedOut) async {
     await MyApp.box.put('is_logged_out', isLoggedOut);
   }
@@ -35,7 +40,9 @@ class LocalStore {
     await MyApp.box.delete('is_logged_out');
   }
 
-  // Remember me feature
+  // ============================================
+  // Remember Me Feature
+  // ============================================
   static Future<void> putRememberMe(bool rememberMe) async {
     return MyApp.box.put('remember_me', rememberMe);
   }
@@ -48,27 +55,30 @@ class LocalStore {
     return MyApp.box.delete('remember_me');
   }
 
-  static Future<void> rememberEmailAndPassword(
-    String email,
-    String password,
-  ) async {
-    await MyApp.box.put('remember_email', email);
-    await MyApp.box.put('remember_password', password);
+  // ============================================
+  // Phone Number Storage (NEW - for phone authentication)
+  // ============================================
+
+  /// Save phone number for Remember Me feature
+  static Future<void> rememberPhone(String phone) async {
+    await MyApp.box.put('remember_phone', phone);
+    await MyApp.box.flush();
   }
 
-  static String? getRememberedEmail() {
-    return MyApp.box.get('remember_email');
+  /// Get remembered phone number
+  static String? getRememberedPhone() {
+    return MyApp.box.get('remember_phone');
   }
 
-  static String? getRememberedPassword() {
-    return MyApp.box.get('remember_password');
+  /// Clear remembered phone number
+  static Future<void> clearRememberedPhone() async {
+    await MyApp.box.delete('remember_phone');
+    await MyApp.box.flush();
   }
 
-  static Future<void> clearRememberedCredentials() async {
-    await MyApp.box.delete('remember_email');
-    await MyApp.box.delete('remember_password');
-  }
-
+  // ============================================
+  // Language Preference
+  // ============================================
   static Future<String> putUserlanguage(String lang) async {
     await MyApp.box.put('user_language', lang);
     await MyApp.box.flush();
@@ -79,12 +89,15 @@ class LocalStore {
     return MyApp.box.get('user_language', defaultValue: 'en');
   }
 
-  // Biometric
+  // ============================================
+  // Biometric Authentication (per-user UID)
+  // ============================================
   static Future<bool> setBiometricAuthEnabled(
     bool isEnabled,
     String uid,
   ) async {
     await MyApp.box.put('biometric_auth_enabled_$uid', isEnabled);
+    await MyApp.box.flush();
     return true;
   }
 
@@ -93,15 +106,25 @@ class LocalStore {
         false;
   }
 
+  // ============================================
+  // Active Booking Tracking
+  // ============================================
   static Future<void> setActiveBookingId(String bookingId) async {
     await MyApp.box.put('active_booking_id', bookingId);
+    await MyApp.box.flush();
   }
 
   static String? getActiveBookingId() {
     return MyApp.box.get('active_booking_id');
   }
 
-  // User Data Storage
+  static Future<void> clearActiveBookingId() async {
+    await MyApp.box.delete('active_booking_id');
+  }
+
+  // ============================================
+  // User Data Cache (for offline/quick access)
+  // ============================================
   static Future<void> storeUserData(UserModel user) async {
     await MyApp.box.put('cached_user_data', user.toJson());
     await MyApp.box.flush();
@@ -121,5 +144,26 @@ class LocalStore {
 
   static Future<void> clearCachedUserData() async {
     await MyApp.box.delete('cached_user_data');
+    await MyApp.box.flush();
+  }
+
+  // ============================================
+  // Utility: Clear All Auth Data on Logout
+  // ============================================
+  static Future<void> clearAllAuthData() async {
+    await clearUID();
+    await clearCachedUserData();
+    await clearActiveBookingId();
+
+    // ✅ FIXED: Only clear phone if Remember Me is disabled
+    if (!getRememberMe()) {
+      await clearRememberedPhone();
+      await clearRememberMe();
+    }
+
+    // ✅ Don't clear Remember Me checkbox state
+    // await clearRememberMe(); // Remove this line
+
+    await MyApp.box.flush();
   }
 }

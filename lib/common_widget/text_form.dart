@@ -1,4 +1,3 @@
-
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +18,8 @@ class TextFormWidget extends StatelessWidget {
     this.suffix,
     this.isPhoneNumber = false,
     this.maxLength,
+    this.enabled = true,
+    this.hintText = "",
   });
   final TextEditingController controller;
   final String label;
@@ -30,17 +31,16 @@ class TextFormWidget extends StatelessWidget {
   final bool obscureText;
   final Widget? suffix;
   final bool isPhoneNumber;
+  final bool enabled;
   final int? maxLength;
+  final String? hintText;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.dmSans(fontSize: 16),
-        ),
+        Text(label, style: GoogleFonts.dmSans(fontSize: 16)),
         const SizedBox(height: 5),
         TextFormField(
           obscureText: obscureText,
@@ -48,6 +48,7 @@ class TextFormWidget extends StatelessWidget {
               ? [LengthLimitingTextInputFormatter(maxLength)]
               : null,
           decoration: InputDecoration(
+            hintText: hintText,
             suffixIcon: suffix,
             border: InputBorder.none,
             constraints: const BoxConstraints(minHeight: 62),
@@ -73,6 +74,7 @@ class TextFormWidget extends StatelessWidget {
           ),
           style: GoogleFonts.dmSans(fontSize: 16, color: Colors.black),
           controller: controller,
+          enabled: enabled,
           keyboardType: isPhoneNumber ? TextInputType.number : keyboardType,
           textInputAction: textInputAction,
           validator: isPhoneNumber
@@ -90,7 +92,7 @@ class TextFormWidget extends StatelessWidget {
               : validator,
           onTap: onTap,
           readOnly: readOnly ?? onTap != null,
-        )
+        ),
       ],
     );
   }

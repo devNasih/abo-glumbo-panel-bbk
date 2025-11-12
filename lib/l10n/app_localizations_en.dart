@@ -2497,6 +2497,176 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cardTips => 'Card Tips';
 
   @override
+  String get verifyAndLogin => 'Verify and Login';
+
+  @override
+  String get sendOTP => 'Send OTP';
+
+  @override
+  String get loggingIn => 'Logging in...';
+
+  @override
+  String get orUseBiometric => 'Or use biometric';
+
+  @override
+  String get resendOTP => 'Resend OTP';
+
+  @override
+  String get didNotReceiveOTP => 'Didn\'t receive OTP?';
+
+  @override
+  String get otpMustBe6Digits => 'OTP must be 6 digits';
+
+  @override
+  String get pleaseEnterOTP => 'Please enter OTP';
+
+  @override
+  String get invalidPhoneNumberLength => 'Invalid phone number length';
+
+  @override
+  String get phoneNumberMustIncludeCountryCode =>
+      'Phone number must include country code';
+
+  @override
+  String get pleaseEnterPhoneNumber => 'Please enter phone number';
+
+  @override
+  String get disableBiometric => 'Disable Biometric?';
+
+  @override
+  String get disableBiometricWarning =>
+      'Disabling biometric authentication will prevent you from logging in using fingerprint.';
+
+  @override
+  String get youWillNeedPhoneOtp =>
+      'You will need to use your phone number and OTP to login.';
+
+  @override
+  String get disable => 'Disable';
+
+  @override
+  String get biometricEnabled => 'Biometric authentication enabled';
+
+  @override
+  String get biometricDisabled => 'Biometric authentication disabled';
+
+  @override
+  String get phoneNotRegistered => 'Phone not registered';
+
+  @override
+  String get otpExpired => 'OTP expired';
+
+  @override
+  String get invalidOTP => 'Invalid OTP';
+
+  @override
+  String get invalidPhoneNumber => 'Invalid phone number';
+
+  @override
+  String get otpSentSuccessfully => 'OTP sent successfully';
+
+  @override
+  String get otpCode => 'OTP Code';
+
+  @override
+  String get registerAsTechinicianInfo =>
+      'Register your phone number to create a technician account';
+
+  @override
+  String get phoneAlreadyRegistered => 'Phone already registered';
+
+  @override
+  String get invalidOtpCode => 'Invalid OTP code';
+
+  @override
+  String get quotaExceeded => 'Quota exceeded';
+
+  @override
+  String get internalError => 'Internal error';
+
+  @override
+  String get resend => 'Resend';
+
+  @override
+  String get or => 'or';
+
+  @override
+  String get loginWithBiometric => 'Login with biometric';
+
+  @override
+  String get migratingData => 'Migrating data';
+
+  @override
+  String get weAreMigratingYourData => 'We are migrating your data';
+
+  @override
+  String get pleaseDontCloseTheApp => 'Please don\'t close the app';
+
+  @override
+  String get transferringData => 'Transferring data';
+
+  @override
+  String get fullName => 'Full Name';
+
+  @override
+  String get sendingOTP => 'Sending OTP';
+
+  @override
+  String get cancelRegistration => 'Cancel Registration';
+
+  @override
+  String get cancelRegistrationConfirmation =>
+      'Are you sure you want to cancel registration?';
+
+  @override
+  String get registrationSuccessful => 'Registration successful';
+
+  @override
+  String get pleaseUploadIdDocument => 'Please upload ID document';
+
+  @override
+  String get pleaseSelectLocation => 'Please select location';
+
+  @override
+  String get noJobCategoriesAvailable => 'No job categories available';
+
+  @override
+  String get fileTooLarge => 'File too large';
+
+  @override
+  String get cropDocument => 'Crop Document';
+
+  @override
+  String get completeRegistration => 'Complete Registration';
+
+  @override
+  String get chooseFromList => 'Choose from list';
+
+  @override
+  String get nameTooShort => 'Name too short';
+
+  @override
+  String get pleaseEnterYourName => 'Please enter your name';
+
+  @override
+  String get uploadCertifications => 'Upload Certifications';
+
+  @override
+  String get certifications => 'Certifications';
+
+  @override
+  String get optional => 'Optional';
+
+  @override
+  String get idDocumentUploaded => 'ID document uploaded';
+
+  @override
+  String get uploadIdDocument => 'Upload ID document';
+
+  @override
+  String get idDocument => 'ID Document';
+
+  @override
   String get am => 'AM';
 
   @override

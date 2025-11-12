@@ -4820,6 +4820,336 @@ abstract class AppLocalizations {
   /// **'Card Tips'**
   String get cardTips;
 
+  /// No description provided for @verifyAndLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify and Login'**
+  String get verifyAndLogin;
+
+  /// No description provided for @sendOTP.
+  ///
+  /// In en, this message translates to:
+  /// **'Send OTP'**
+  String get sendOTP;
+
+  /// No description provided for @loggingIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Logging in...'**
+  String get loggingIn;
+
+  /// No description provided for @orUseBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Or use biometric'**
+  String get orUseBiometric;
+
+  /// No description provided for @resendOTP.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend OTP'**
+  String get resendOTP;
+
+  /// No description provided for @didNotReceiveOTP.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t receive OTP?'**
+  String get didNotReceiveOTP;
+
+  /// No description provided for @otpMustBe6Digits.
+  ///
+  /// In en, this message translates to:
+  /// **'OTP must be 6 digits'**
+  String get otpMustBe6Digits;
+
+  /// No description provided for @pleaseEnterOTP.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter OTP'**
+  String get pleaseEnterOTP;
+
+  /// No description provided for @invalidPhoneNumberLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid phone number length'**
+  String get invalidPhoneNumberLength;
+
+  /// No description provided for @phoneNumberMustIncludeCountryCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number must include country code'**
+  String get phoneNumberMustIncludeCountryCode;
+
+  /// No description provided for @pleaseEnterPhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter phone number'**
+  String get pleaseEnterPhoneNumber;
+
+  /// No description provided for @disableBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable Biometric?'**
+  String get disableBiometric;
+
+  /// No description provided for @disableBiometricWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabling biometric authentication will prevent you from logging in using fingerprint.'**
+  String get disableBiometricWarning;
+
+  /// No description provided for @youWillNeedPhoneOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'You will need to use your phone number and OTP to login.'**
+  String get youWillNeedPhoneOtp;
+
+  /// No description provided for @disable.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable'**
+  String get disable;
+
+  /// No description provided for @biometricEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric authentication enabled'**
+  String get biometricEnabled;
+
+  /// No description provided for @biometricDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric authentication disabled'**
+  String get biometricDisabled;
+
+  /// No description provided for @phoneNotRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone not registered'**
+  String get phoneNotRegistered;
+
+  /// No description provided for @otpExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'OTP expired'**
+  String get otpExpired;
+
+  /// No description provided for @invalidOTP.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid OTP'**
+  String get invalidOTP;
+
+  /// No description provided for @invalidPhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid phone number'**
+  String get invalidPhoneNumber;
+
+  /// No description provided for @otpSentSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'OTP sent successfully'**
+  String get otpSentSuccessfully;
+
+  /// No description provided for @otpCode.
+  ///
+  /// In en, this message translates to:
+  /// **'OTP Code'**
+  String get otpCode;
+
+  /// No description provided for @registerAsTechinicianInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Register your phone number to create a technician account'**
+  String get registerAsTechinicianInfo;
+
+  /// No description provided for @phoneAlreadyRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone already registered'**
+  String get phoneAlreadyRegistered;
+
+  /// No description provided for @invalidOtpCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid OTP code'**
+  String get invalidOtpCode;
+
+  /// No description provided for @quotaExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Quota exceeded'**
+  String get quotaExceeded;
+
+  /// No description provided for @internalError.
+  ///
+  /// In en, this message translates to:
+  /// **'Internal error'**
+  String get internalError;
+
+  /// No description provided for @resend.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend'**
+  String get resend;
+
+  /// No description provided for @or.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get or;
+
+  /// No description provided for @loginWithBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Login with biometric'**
+  String get loginWithBiometric;
+
+  /// No description provided for @migratingData.
+  ///
+  /// In en, this message translates to:
+  /// **'Migrating data'**
+  String get migratingData;
+
+  /// No description provided for @weAreMigratingYourData.
+  ///
+  /// In en, this message translates to:
+  /// **'We are migrating your data'**
+  String get weAreMigratingYourData;
+
+  /// No description provided for @pleaseDontCloseTheApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Please don\'t close the app'**
+  String get pleaseDontCloseTheApp;
+
+  /// No description provided for @transferringData.
+  ///
+  /// In en, this message translates to:
+  /// **'Transferring data'**
+  String get transferringData;
+
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullName;
+
+  /// No description provided for @sendingOTP.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending OTP'**
+  String get sendingOTP;
+
+  /// No description provided for @cancelRegistration.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Registration'**
+  String get cancelRegistration;
+
+  /// No description provided for @cancelRegistrationConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel registration?'**
+  String get cancelRegistrationConfirmation;
+
+  /// No description provided for @registrationSuccessful.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration successful'**
+  String get registrationSuccessful;
+
+  /// No description provided for @pleaseUploadIdDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Please upload ID document'**
+  String get pleaseUploadIdDocument;
+
+  /// No description provided for @pleaseSelectLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select location'**
+  String get pleaseSelectLocation;
+
+  /// No description provided for @noJobCategoriesAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No job categories available'**
+  String get noJobCategoriesAvailable;
+
+  /// No description provided for @fileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'File too large'**
+  String get fileTooLarge;
+
+  /// No description provided for @cropDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Crop Document'**
+  String get cropDocument;
+
+  /// No description provided for @completeRegistration.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Registration'**
+  String get completeRegistration;
+
+  /// No description provided for @chooseFromList.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from list'**
+  String get chooseFromList;
+
+  /// No description provided for @nameTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Name too short'**
+  String get nameTooShort;
+
+  /// No description provided for @pleaseEnterYourName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your name'**
+  String get pleaseEnterYourName;
+
+  /// No description provided for @uploadCertifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Certifications'**
+  String get uploadCertifications;
+
+  /// No description provided for @certifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications'**
+  String get certifications;
+
+  /// No description provided for @optional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get optional;
+
+  /// No description provided for @idDocumentUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'ID document uploaded'**
+  String get idDocumentUploaded;
+
+  /// No description provided for @uploadIdDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload ID document'**
+  String get uploadIdDocument;
+
+  /// No description provided for @idDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'ID Document'**
+  String get idDocument;
+
   /// No description provided for @am.
   ///
   /// In en, this message translates to:

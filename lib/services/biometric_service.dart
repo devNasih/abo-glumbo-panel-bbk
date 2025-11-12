@@ -10,7 +10,8 @@ class BiometricService {
     try {
       return await _auth.authenticate(
         localizedReason:
-            AppLocalizations.of(context)?.enableBiometricAuthentication ?? '',
+            AppLocalizations.of(context)?.enableBiometricAuthentication ??
+            'Please authenticate to continue',
         options: const AuthenticationOptions(
           biometricOnly: true,
           stickyAuth: true,
@@ -22,15 +23,15 @@ class BiometricService {
     }
   }
 
+  // ✅ FIXED: Use current UID (when logged in) or last valid UID (after logout)
   static Future<void> setBiometricEnabled(bool enabled) async {
-    await LocalStore.setBiometricAuthEnabled(
-      enabled,
-      LocalStore.getUID() ?? '',
-    );
+    final uid = LocalStore.getUID() ?? LocalStore.getLastValidUID() ?? '';
+    await LocalStore.setBiometricAuthEnabled(enabled, uid);
   }
 
+  // ✅ FIXED: Check last valid UID for biometric status
   static Future<bool> isBiometricEnabled() async {
-    // ignore: await_only_futures
-    return await LocalStore.getBiometricAuthEnabled(LocalStore.getUID() ?? '');
+    final uid = LocalStore.getUID() ?? LocalStore.getLastValidUID() ?? '';
+    return LocalStore.getBiometricAuthEnabled(uid);
   }
 }

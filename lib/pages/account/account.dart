@@ -368,6 +368,7 @@ class _AccountPageState extends State<AccountPage> {
                     context,
                     onConfirm: () async {
                       try {
+                        // Clear FCM tokens
                         await AppServices.clearFCMToken();
                         await NotificationServices.deleteFCMToken();
                       } catch (e) {
@@ -378,40 +379,13 @@ class _AccountPageState extends State<AccountPage> {
                         }
                       }
 
+                      // ✅ FIXED: Set logout status FIRST before clearing data
                       await LocalStore.putlogoutStatus(true);
-                      await LocalStore.clearCachedUserData();
-                      await LocalStore.clearUID();
 
-                      // Handle remember me functionality correctly:
-                      // If remember me is enabled, preserve the email but clear password
-                      // If remember me is disabled, clear both email and password
-                      bool rememberMeEnabled = LocalStore.getRememberMe();
-                      if (rememberMeEnabled) {
-                        // Keep the remember me preference and email, but clear password for security
-                        String? savedEmail = LocalStore.getRememberedEmail();
-                        await LocalStore.clearRememberedCredentials();
-                        if (savedEmail != null) {
-                          await LocalStore.rememberEmailAndPassword(
-                            savedEmail,
-                            '',
-                          );
-                        }
-                        if (kDebugMode) {
-                          print(
-                            'Logout: Remember me enabled - preserved email, cleared password',
-                          );
-                        }
-                      } else {
-                        // User doesn't want to be remembered, clear everything
-                        await LocalStore.putRememberMe(false);
-                        await LocalStore.clearRememberedCredentials();
-                        if (kDebugMode) {
-                          print(
-                            'Logout: Remember me disabled - cleared all credentials',
-                          );
-                        }
-                      }
+                      // ✅ FIXED: Clear auth data (preserves phone if Remember Me is enabled)
+                      await LocalStore.clearAllAuthData();
 
+                      // ✅ Sign out from Firebase
                       try {
                         await FirebaseAuth.instance.signOut();
                       } catch (e) {
@@ -420,15 +394,28 @@ class _AccountPageState extends State<AccountPage> {
                         }
                       }
 
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (context) => LoginPage()),
-                        (route) => false,
-                      );
+                      if (kDebugMode) {
+                        print('✅ Logout complete');
+                        print('Remember Me: ${LocalStore.getRememberMe()}');
+                        print(
+                          'Remembered Phone: ${LocalStore.getRememberedPhone()}',
+                        );
+                      }
+
+                      // Navigate to login
+                      if (context.mounted) {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LoginPage(),
+                          ),
+                          (route) => false,
+                        );
+                      }
                     },
                   ),
                   title: Text(
-                    AppLocalizations.of(context)?.logout ?? '',
+                    AppLocalizations.of(context)?.logout ?? 'Logout',
                     style: GoogleFonts.dmSans(
                       fontSize: 16,
                       color: AppColors.black1,
@@ -460,21 +447,141 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
-  Future<void> _handleBiometricToggle(bool value) async {
-    if (value) {
-      final authenticated = await BiometricService.authenticate(context);
-      if (authenticated && mounted) {
-        setState(() => _isBiometricEnabled = true);
-        BiometricService.setBiometricEnabled(true);
-        log('Biometric authentication enabled');
-      }
-    } else {
+ Future<void> _handleBiometricToggle(bool value) async {
+  if (value) {
+    // Enabling biometric - authenticate first
+    final authenticated = await BiometricService.authenticate(context);
+    if (authenticated && mounted) {
+      setState(() => _isBiometricEnabled = true);
+      BiometricService.setBiometricEnabled(true);
+      log('Biometric authentication enabled');
+      
       if (mounted) {
-        setState(() => _isBiometricEnabled = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.biometricEnabled ??
+                  'Biometric authentication enabled',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
       }
+    }
+  } else {
+    // Disabling biometric - show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  AppLocalizations.of(dialogContext)?.disableBiometric ??
+                      'Disable Biometric?',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppLocalizations.of(dialogContext)?.disableBiometricWarning ??
+                    'Disabling biometric authentication will prevent you from logging in using fingerprint or face recognition.',
+                style: GoogleFonts.dmSans(fontSize: 14),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.blue.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: Colors.blue,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        AppLocalizations.of(dialogContext)
+                                ?.youWillNeedPhoneOtp ??
+                            'You will need to use your phone number and OTP to login.',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 13,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(
+                AppLocalizations.of(dialogContext)?.cancel ?? 'Cancel',
+                style: GoogleFonts.dmSans(
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(
+                AppLocalizations.of(dialogContext)?.disable ?? 'Disable',
+                style: GoogleFonts.dmSans(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    // If user confirmed, disable biometric
+    if (confirmed == true && mounted) {
+      setState(() => _isBiometricEnabled = false);
       BiometricService.setBiometricEnabled(false);
+      log('Biometric authentication disabled');
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.biometricDisabled ??
+                  'Biometric authentication disabled',
+            ),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
     }
   }
+}
 
   Future<void> deleteAccount(BuildContext context, String userPassword) async {
     final user = FirebaseAuth.instance.currentUser;
@@ -543,7 +650,7 @@ class _AccountPageState extends State<AccountPage> {
 
       await LocalStore.clearLogoutStatus();
       await LocalStore.putRememberMe(false);
-      await LocalStore.clearRememberedCredentials();
+      await LocalStore.clearRememberedPhone();
       await LocalStore.clearUID();
       await LocalStore.clearCachedUserData();
 
