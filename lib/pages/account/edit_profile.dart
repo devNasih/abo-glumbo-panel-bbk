@@ -23,6 +23,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class EditProfile extends StatefulWidget {
   final UserModel? workerData;
@@ -102,28 +103,19 @@ class _EditProfileState extends State<EditProfile> {
 
   void fillContent() {
     if (widget.workerData != null) {
+      // Set text controllers and simple fields (no setState needed)
       profileImageUrl = widget.workerData!.profileUrl;
       nameController.text = widget.workerData!.name ?? '';
       emailController.text = widget.workerData!.email ?? '';
       phoneController.text = widget.workerData!.phone ?? '';
       selectedJobRoles = widget.workerData!.jobRoles ?? [];
       selectedCertifications = widget.workerData!.certifications ?? [];
-
-      // ✅ Pre-select location from detailedLocation
-      if (widget.workerData!.detailedLocation != null) {
-        final detailedLoc = widget.workerData!.detailedLocation!;
-        // Will be set after provinces are loaded
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _preselectLocation(detailedLoc);
-        });
-      }
     }
   }
 
-  void _preselectLocation(DetailedLocationModel detailedLoc) {
-    if (regions.isEmpty) return;
+  void preselectLocation(DetailedLocationModel detailedLoc) {
+    if (regions.isEmpty || !mounted) return;
 
-    // Find and select region
     final region = regions.firstWhere(
       (r) => r.regionId == detailedLoc.regionId,
       orElse: () => regions.first,
@@ -132,22 +124,18 @@ class _EditProfileState extends State<EditProfile> {
     setState(() {
       selectedRegion = region;
 
-      // Find and select city
       if (region.cities.isNotEmpty) {
         final city = region.cities.firstWhere(
           (c) => c.cityId == detailedLoc.cityId,
           orElse: () => region.cities.first,
         );
-
         selectedCity = city;
 
-        // Find and select district
         if (city.districts.isNotEmpty) {
           final district = city.districts.firstWhere(
             (d) => d.districtId == detailedLoc.neighborhoodId,
             orElse: () => city.districts.first,
           );
-
           selectedDistrict = district;
         }
       }
@@ -157,9 +145,17 @@ class _EditProfileState extends State<EditProfile> {
   @override
   void initState() {
     super.initState();
-    fillContent();
-    _loadLocations();
+
+    // Load data first, then fill content after frame is built
+    loadLocations();
     loadJobCategories();
+
+    // Schedule fillContent after the first frame to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        fillContent();
+      }
+    });
   }
 
   /// Load job categories from Firebase
@@ -194,28 +190,39 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
-  Future<void> _loadLocations() async {
-    setState(() => isLoadingLocations = true);
+  Future<void> loadLocations() async {
+    setState(() {
+      isLoadingLocations = true;
+    });
+
     try {
       final jsonString = await rootBundle.loadString(
         'assets/data/saudi_hierarchical.json',
       );
       final List<dynamic> jsonData = json.decode(jsonString);
 
-      setState(() {
-        regions = jsonData.map((r) => Region.fromJson(r)).toList();
-        isLoadingLocations = false;
-      });
+      if (mounted) {
+        setState(() {
+          regions = jsonData.map((r) => Region.fromJson(r)).toList();
+          isLoadingLocations = false;
+        });
 
-      // After loading, pre-select if data exists
-      if (widget.workerData?.detailedLocation != null) {
-        _preselectLocation(widget.workerData!.detailedLocation!);
+        // Pre-select location AFTER regions are loaded and state is set
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (widget.workerData?.detailedLocation != null && mounted) {
+            preselectLocation(widget.workerData!.detailedLocation!);
+          }
+        });
       }
     } catch (e) {
       if (kDebugMode) {
         print('Error loading locations: $e');
       }
-      setState(() => isLoadingLocations = false);
+      if (mounted) {
+        setState(() {
+          isLoadingLocations = false;
+        });
+      }
     }
   }
 
@@ -671,6 +678,8 @@ class _EditProfileState extends State<EditProfile> {
                       neighborhoodId: selectedDistrict?.districtId,
                       neighborhoodEn: selectedDistrict?.districtEn,
                       neighborhoodAr: selectedDistrict?.districtAr,
+                      lat: selectedDistrict?.latitude,
+                      lon: selectedDistrict?.longitude,
                     ),
                     jobRoles: selectedJobRoles,
                     profileUrl: profileImageUrl,
@@ -686,26 +695,35 @@ class _EditProfileState extends State<EditProfile> {
                     liveLocation: widget.workerData?.liveLocation,
                   );
 
-              LocalStore.storeUserData(updatedUser);
-              context.read<LoginBloc>().add(RefreshUserData());
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  LocalStore.storeUserData(updatedUser);
+                  context.read<LoginBloc>().add(RefreshUserData());
 
-              Navigator.pop(context, updatedUser);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    locale?.profileUpdatedSuccessfully ??
-                        'Profile updated successfully',
-                  ),
-                ),
-              );
+                  Navigator.pop(context, updatedUser);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        locale?.profileUpdatedSuccessfully ??
+                            'Profile updated successfully',
+                      ),
+                    ),
+                  );
+                }
+              });
             } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    locale?.failedToUpdateProfile ?? 'Profile update failed',
-                  ),
-                ),
-              );
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        locale?.failedToUpdateProfile ??
+                            'Profile update failed',
+                      ),
+                    ),
+                  );
+                }
+              });
             }
           }
         },
@@ -1047,7 +1065,6 @@ class _EditProfileState extends State<EditProfile> {
                   const SizedBox(height: 16),
 
                   // Certifications Upload
-                  // Certifications Upload
                   Text(
                     '${AppLocalizations.of(context)?.certifications ?? 'Certifications'} (${AppLocalizations.of(context)?.optional ?? 'Optional'})',
                     style: GoogleFonts.dmSans(
@@ -1067,6 +1084,7 @@ class _EditProfileState extends State<EditProfile> {
                   const SizedBox(height: 10),
 
                   // Display existing certifications (URLs)
+                  // Display existing certifications (URLs) - with tap to view
                   if (widget.workerData!.certifications != null &&
                       widget.workerData!.certifications!.isNotEmpty)
                     ListView.builder(
@@ -1074,28 +1092,112 @@ class _EditProfileState extends State<EditProfile> {
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: widget.workerData!.certifications!.length,
                       itemBuilder: (context, index) {
-                        // final certUrl = widget.user.certifications![index];
-                        return ListTile(
-                          leading: const Icon(
-                            Icons.picture_as_pdf,
-                            color: Colors.red,
-                          ),
-                          title: Text('Certificate ${index + 1}'),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              setState(() {
-                                widget.workerData!.certifications!.removeAt(
-                                  index,
-                                );
-                              });
-                            },
+                        final certUrl =
+                            widget.workerData!.certifications![index];
+                        final isImage =
+                            certUrl.toLowerCase().endsWith('.jpg') ||
+                            certUrl.toLowerCase().endsWith('.jpeg') ||
+                            certUrl.toLowerCase().endsWith('.png');
+
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: InkWell(
+                            onTap: () => _viewCertificate(
+                              certUrl,
+                              'Certificate ${index + 1}',
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                children: [
+                                  // Thumbnail for images
+                                  if (isImage)
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: CachedNetworkImage(
+                                        imageUrl: certUrl,
+                                        width: 50,
+                                        height: 50,
+                                        fit: BoxFit.cover,
+                                        placeholder: (context, url) =>
+                                            const Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            ),
+                                        errorWidget: (context, url, error) =>
+                                            const Icon(Icons.error),
+                                      ),
+                                    )
+                                  else
+                                    Container(
+                                      width: 50,
+                                      height: 50,
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.shade50,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(
+                                        Icons.picture_as_pdf,
+                                        color: Colors.red,
+                                        size: 30,
+                                      ),
+                                    ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Certificate ${index + 1}',
+                                          style: GoogleFonts.dmSans(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          AppLocalizations.of(
+                                                context,
+                                              )?.tapToView ??
+                                              'Tap to view',
+                                          style: GoogleFonts.dmSans(
+                                            fontSize: 12,
+                                            color: AppColors.secondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.visibility_outlined,
+                                    color: AppColors.secondary,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        widget.workerData!.certifications!
+                                            .removeAt(index);
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         );
                       },
                     ),
 
                   // Display newly picked certifications (Local Files)
+                  // Display newly picked certifications (Local Files) - with tap to preview
                   if (certifications.isNotEmpty)
                     ListView.builder(
                       shrinkWrap: true,
@@ -1103,12 +1205,122 @@ class _EditProfileState extends State<EditProfile> {
                       itemCount: certifications.length,
                       itemBuilder: (context, index) {
                         final file = certifications[index];
-                        return ListTile(
-                          leading: const Icon(Icons.insert_drive_file),
-                          title: Text(file.name),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _removeCertification(index),
+                        final isImage =
+                            file.extension == 'jpg' ||
+                            file.extension == 'jpeg' ||
+                            file.extension == 'png';
+
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: InkWell(
+                            onTap: () {
+                              // For local files, you can show in a dialog or navigate
+                              if (isImage && file.path != null) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => Dialog(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        AppBar(
+                                          title: Text(file.name),
+                                          automaticallyImplyLeading: false,
+                                          actions: [
+                                            IconButton(
+                                              icon: const Icon(Icons.close),
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
+                                            ),
+                                          ],
+                                        ),
+                                        Flexible(
+                                          child: InteractiveViewer(
+                                            child: Image.file(
+                                              File(file.path!),
+                                              fit: BoxFit.contain,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                children: [
+                                  // Thumbnail for local images
+                                  if (isImage && file.path != null)
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.file(
+                                        File(file.path!),
+                                        width: 50,
+                                        height: 50,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  else
+                                    Container(
+                                      width: 50,
+                                      height: 50,
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.shade50,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(
+                                        Icons.insert_drive_file,
+                                        color: Colors.blue,
+                                        size: 30,
+                                      ),
+                                    ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          file.name,
+                                          style: GoogleFonts.dmSans(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '${(file.size / 1024).toStringAsFixed(2)} KB',
+                                          style: GoogleFonts.dmSans(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (isImage)
+                                    Icon(
+                                      Icons.visibility_outlined,
+                                      color: AppColors.secondary,
+                                      size: 20,
+                                    ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () =>
+                                        _removeCertification(index),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         );
                       },
@@ -1245,5 +1457,30 @@ class _EditProfileState extends State<EditProfile> {
     emailController.dispose();
     phoneController.dispose();
     super.dispose();
+  }
+
+  Future<void> _viewCertificate(String url, String fileName) async {
+    try {
+      final Uri uri = Uri.parse(url);
+
+      // Remove canLaunchUrl check - just try to launch
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error opening certificate: $e');
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.couldNotOpenFile ??
+                  'Could not open file',
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 }

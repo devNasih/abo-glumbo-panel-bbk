@@ -1746,6 +1746,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recipients => 'المستلمون';
 
   @override
+  String get warrantyClaims => 'طلبات التضامن';
+
+  @override
+  String get tapToView => 'انقر للمشاهدة';
+
+  @override
   String get exceedsMaxSize => 'تجاوز الحد الاقصى';
 
   @override
@@ -1753,6 +1759,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sendNotification => 'إرسال إشعار';
+
+  @override
+  String get couldNotOpenFile => 'لا يمكن فتح الملف';
 
   @override
   String get noTechniciansFound => 'لم يتم العثور على فنيين';

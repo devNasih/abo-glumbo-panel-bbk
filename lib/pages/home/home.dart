@@ -6,6 +6,7 @@ import 'package:aboglumbo_bbk_panel/pages/account/account.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/admin_home.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage_app.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/worker/dashboard.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/worker/warranty_claims.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/worker/worker_home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
@@ -262,6 +263,7 @@ class _HomeState extends State<Home> {
           WorkerHome(
             selectedIndex: selectedBookingStatus,
           ), //swap with dashboard
+          WarrantyClaims(workerData: userData),
 
           AccountPage(workerData: userData),
         ];
@@ -348,6 +350,16 @@ class _HomeState extends State<Home> {
                       color: AppColors.grey,
                     ),
                     label: AppLocalizations.of(context)?.orders ?? 'Orders',
+                  ),
+                },
+                if (userData.isAdmin == false) ...{
+                  NavigationDestination(
+                    icon: Icon(Icons.shield_outlined, color: AppColors.grey),
+                    selectedIcon: Icon(
+                      Icons.shield,
+                      color: AppColors.secondary,
+                    ),
+                    label: locale?.warrantyClaims ?? '',
                   ),
                 },
 

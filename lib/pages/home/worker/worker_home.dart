@@ -15,12 +15,7 @@ class WorkerHome extends StatefulWidget {
   State<WorkerHome> createState() => _WorkerHomeState();
 }
 
-class _WorkerHomeState extends State<WorkerHome>
-    with SingleTickerProviderStateMixin {
-  late String selectedBookingStatus;
-  Stream<List<BookingModel>>? _bookingsStream;
-  late AnimationController _shimmerController;
-
+class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
   static const List<Map<String, String>> _bookingStatuses = [
     {'code': 'P', 'name': 'To Do'},
     {'code': 'A', 'name': 'Accepted'},
@@ -28,37 +23,49 @@ class _WorkerHomeState extends State<WorkerHome>
     {'code': 'C', 'name': 'Completed'},
     {'code': 'X', 'name': 'Cancelled'},
   ];
+  late TabController _tabController;
+  late List<Stream<List<BookingModel>>> _bookingsStreams;
+  late AnimationController _shimmerController;
 
   @override
   void initState() {
     super.initState();
-    selectedBookingStatus = widget.selectedIndex ?? 'P';
-    _initializeStream();
+
+    final initialIndex = _bookingStatuses.indexWhere(
+      (e) => e['code'] == (widget.selectedIndex ?? 'P'),
+    );
+    _tabController = TabController(
+      length: _bookingStatuses.length,
+      vsync: this,
+      initialIndex: initialIndex == -1 ? 0 : initialIndex,
+    );
+
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        setState(() {}); // rebuild to update check mark UI
+      }
+    });
+    // Create a stream for each tab/status
+    _bookingsStreams = _bookingStatuses
+        .map(
+          (status) =>
+              AppServices.getBookingsStream(bookingStatusCode: status['code']!),
+        )
+        .toList();
+
     _shimmerController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat();
+
+    setState(() {});
   }
 
   @override
   void dispose() {
+    _tabController.dispose();
     _shimmerController.dispose();
     super.dispose();
-  }
-
-  void _initializeStream() {
-    _bookingsStream = AppServices.getBookingsStream(
-      bookingStatusCode: selectedBookingStatus,
-    );
-  }
-
-  void _updateBookingStatus(String code) {
-    if (selectedBookingStatus != code) {
-      setState(() {
-        selectedBookingStatus = code;
-        _initializeStream();
-      });
-    }
   }
 
   void _navigateToNotifications() {
@@ -70,14 +77,55 @@ class _WorkerHomeState extends State<WorkerHome>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: _buildAppBar(context),
       body: SafeArea(
         child: Column(
           children: [
-            _buildStatusFilter(context),
+            Container(
+              height: 64,
+              alignment: Alignment.centerLeft,
+              child: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                indicatorColor: Colors.transparent, // Remove default indicator
+                tabAlignment: TabAlignment.start,
+                splashFactory: NoSplash.splashFactory,
+                labelPadding: EdgeInsets.zero,
+                tabs: List.generate(_bookingStatuses.length, (index) {
+                  final status = _bookingStatuses[index];
+                  final isSelected = _tabController.index == index;
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      left: index == 0 ? 12 : 0,
+                      right: index < _bookingStatuses.length - 1 ? 8 : 12,
+                    ),
+                    child: _buildStatusChip(
+                      context,
+                      code: status['code']!,
+                      name: status['name']!,
+                      isSelected: isSelected,
+                      colorScheme: colorScheme,
+                      onPressed: () => _tabController.animateTo(index),
+                    ),
+                  );
+                }),
+              ),
+            ),
             const Divider(height: 1),
-            Expanded(child: _buildBookingsList(context)),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: List.generate(_bookingStatuses.length, (index) {
+                  return _buildBookingsList(
+                    context,
+                    stream: _bookingsStreams[index],
+                    selectedBookingStatus: _bookingStatuses[index]['code']!,
+                  );
+                }),
+              ),
+            ),
           ],
         ),
       ),
@@ -99,44 +147,13 @@ class _WorkerHomeState extends State<WorkerHome>
     );
   }
 
-  Widget _buildStatusFilter(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return SizedBox(
-      height: 64,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-        itemCount: _bookingStatuses.length,
-        itemBuilder: (context, index) {
-          final status = _bookingStatuses[index];
-          final code = status['code']!;
-          final name = status['name']!;
-          final isSelected = selectedBookingStatus == code;
-
-          return Padding(
-            padding: EdgeInsets.only(
-              right: index < _bookingStatuses.length - 1 ? 8 : 12,
-            ),
-            child: _buildStatusChip(
-              context,
-              code: code,
-              name: name,
-              isSelected: isSelected,
-              colorScheme: colorScheme,
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   Widget _buildStatusChip(
     BuildContext context, {
     required String code,
     required String name,
     required bool isSelected,
     required ColorScheme colorScheme,
+    required VoidCallback onPressed,
   }) {
     return ActionChip(
       avatar: Icon(
@@ -152,7 +169,7 @@ class _WorkerHomeState extends State<WorkerHome>
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
         ),
       ),
-      onPressed: () => _updateBookingStatus(code),
+      onPressed: onPressed,
       backgroundColor: isSelected
           ? colorScheme.primary.withOpacity(0.15)
           : null,
@@ -160,10 +177,13 @@ class _WorkerHomeState extends State<WorkerHome>
     );
   }
 
-  Widget _buildBookingsList(BuildContext context) {
+  Widget _buildBookingsList(
+    BuildContext context, {
+    required Stream<List<BookingModel>> stream,
+    required String selectedBookingStatus,
+  }) {
     return StreamBuilder<List<BookingModel>>(
-      key: ValueKey(selectedBookingStatus),
-      stream: _bookingsStream,
+      stream: stream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting &&
             !snapshot.hasData) {
@@ -177,7 +197,7 @@ class _WorkerHomeState extends State<WorkerHome>
         final bookings = snapshot.data ?? [];
 
         if (bookings.isEmpty) {
-          return _buildEmptyState(context);
+          return _buildEmptyState(context, selectedBookingStatus);
         }
 
         return ListView.separated(
@@ -190,6 +210,53 @@ class _WorkerHomeState extends State<WorkerHome>
           },
         );
       },
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context, String selectedBookingStatus) {
+    final textTheme = Theme.of(context).textTheme;
+    final localizations = AppLocalizations.of(context);
+
+    final statusText = selectedBookingStatus == 'P'
+        ? localizations?.pending
+        : selectedBookingStatus == 'A'
+        ? localizations?.accepted
+        : selectedBookingStatus == 'C'
+        ? localizations?.completed
+        : selectedBookingStatus == 'R'
+        ? localizations?.rejected
+        : selectedBookingStatus == 'X'
+        ? localizations?.cancelled
+        : localizations?.pending;
+
+    return Center(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(begin: 0.0, end: 1.0),
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeOutCubic,
+        builder: (context, value, child) {
+          return Transform.scale(
+            scale: 0.8 + (value * 0.2),
+            child: Opacity(opacity: value, child: child),
+          );
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.hourglass_empty,
+              size: 100,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "${localizations?.no ?? 'No'} $statusText ${localizations?.orders ?? 'orders'}",
+              style: textTheme.labelLarge,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -301,53 +368,6 @@ class _WorkerHomeState extends State<WorkerHome>
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final localizations = AppLocalizations.of(context);
-
-    final statusText = selectedBookingStatus == 'P'
-        ? localizations?.pending
-        : selectedBookingStatus == 'A'
-        ? localizations?.accepted
-        : selectedBookingStatus == 'C'
-        ? localizations?.completed
-        : selectedBookingStatus == 'R'
-        ? localizations?.rejected
-        : selectedBookingStatus == 'X'
-        ? localizations?.cancelled
-        : localizations?.pending;
-
-    return Center(
-      child: TweenAnimationBuilder<double>(
-        tween: Tween<double>(begin: 0.0, end: 1.0),
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.easeOutCubic,
-        builder: (context, value, child) {
-          return Transform.scale(
-            scale: 0.8 + (value * 0.2),
-            child: Opacity(opacity: value, child: child),
-          );
-        },
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.hourglass_empty,
-              size: 100,
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              "${localizations?.no ?? 'No'} $statusText ${localizations?.orders ?? 'orders'}",
-              style: textTheme.labelLarge,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
       ),
     );
   }

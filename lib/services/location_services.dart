@@ -564,4 +564,137 @@ class BookingTrackerService {
     }
     BackgroundFetch.stop();
   }
+
+
+  Future<void> stopTrackingWarranty() async {
+    isTracking.value = false;
+
+    _positionStream?.cancel();
+    _positionStream = null;
+
+    _stopBackgroundLocationTimer();
+
+    try {
+      await BackgroundFetch.stop();
+    } catch (e) {
+       debugPrint('Error stopping background fetch: $e');
+    }
+
+    if (_bookingId != null) {
+      try {
+        await AppFirestore.bookingsCollectionRef.doc(_bookingId).update({
+          'isStarted': false,
+          'isStartTracking': false,
+          'trackingStoppedAt': FieldValue.serverTimestamp(),
+          'warranty.isTracking': false
+        });
+      } catch (e) {
+         debugPrint('Error updating booking status: $e');
+      }
+    }
+
+    LocalStore.setActiveBookingId('');
+    _bookingId = null;
+
+     debugPrint('Location tracking stopped');
+  }
+
+
+    Future<void> startWorkingWarranty({
+    required BuildContext context,
+    required String bookingId,
+    required String uid,
+  }) async {
+    final docs = await AppFirestore.bookingsCollectionRef
+        .where('agent.uid', isEqualTo: uid)
+        .where('bookingStatusCode', isEqualTo: 'A')
+        .where('isStarted', isEqualTo: true)
+        .get();
+
+    if (docs.docs.isNotEmpty) {
+      final localizations = AppLocalizations.of(context);
+      throw Exception(
+        localizations?.youHaveAnActiveBookingAlready ??
+            'You have an active booking already',
+      );
+    }
+
+    try {
+      await _requestLocationPermissions(context);
+    } catch (e) {
+      if (Platform.isIOS && e.toString().contains('1')) {
+        final localizations = AppLocalizations.of(context);
+        throw Exception(
+          localizations?.locationPermissionErrorIOS ??
+              'Location permission error on iOS. Please go to Settings > Privacy & Security > Location Services > Abo Glumbo Worker and select \'Always\' to enable background tracking.',
+        );
+      }
+      rethrow;
+    }
+
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      final localizations = AppLocalizations.of(context);
+      throw Exception(
+        localizations?.locationServicesDisabledPleaseEnable ??
+            'Location services are disabled. Please enable them in settings.',
+      );
+    }
+
+    LocationPermission currentPermission = await Geolocator.checkPermission();
+
+    await AppFirestore.bookingsCollectionRef.doc(bookingId).update({
+      'isStarted': true,
+      'isStartTracking': true,
+      'trackingStartedAt': FieldValue.serverTimestamp(),
+      'warranty.isTracking': true
+    });
+
+    LocalStore.setActiveBookingId(bookingId);
+    _bookingId = bookingId;
+
+    LocationSettings settings = _getLocationSettings(context: context);
+
+    if (Platform.isIOS && settings is AppleSettings) {
+      if (currentPermission == LocationPermission.always) {
+        settings = AppleSettings(
+          accuracy: LocationAccuracy.high,
+          activityType: ActivityType.otherNavigation,
+          distanceFilter: 10,
+          pauseLocationUpdatesAutomatically: false,
+          showBackgroundLocationIndicator: true,
+          allowBackgroundLocationUpdates: true,
+        );
+      } else {
+        settings = AppleSettings(
+          accuracy: LocationAccuracy.high,
+          activityType: ActivityType.otherNavigation,
+          distanceFilter: 10,
+          pauseLocationUpdatesAutomatically: false,
+          showBackgroundLocationIndicator: false,
+          allowBackgroundLocationUpdates: false,
+        );
+      }
+    }
+
+    _positionStream = Geolocator.getPositionStream(locationSettings: settings)
+        .listen(
+          (Position position) async {
+            await _updateLocationToFirestore(position, uid, 'foreground');
+          },
+          onError: (error) {
+            if (Platform.isIOS && error.toString().contains('1')) {}
+
+            Timer(const Duration(seconds: 5), () {
+              if (isTracking.value) {
+                _restoreLocationTracking();
+              }
+            });
+          },
+        );
+
+    await _configureBackgroundFetch();
+
+    isTracking.value = true;
+  }
 }

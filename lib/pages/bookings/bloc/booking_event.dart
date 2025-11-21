@@ -29,6 +29,8 @@ class CompleteBooking extends BookingEvent {
   final double serviceCost;
   final List<BookingServiceItem> serviceItems; // Changed to BookingServiceItem
   final double totalCost;
+  final String technicianId;
+  final String customerId;
 
   const CompleteBooking({
     required this.mode,
@@ -37,6 +39,8 @@ class CompleteBooking extends BookingEvent {
     required this.serviceItems,
     required this.totalCost,
     required this.bookingId,
+    required this.technicianId,
+    required this.customerId,
   });
 
   @override
@@ -47,6 +51,8 @@ class CompleteBooking extends BookingEvent {
     serviceCost,
     serviceItems,
     totalCost,
+    technicianId,
+    customerId,
   ];
 }
 

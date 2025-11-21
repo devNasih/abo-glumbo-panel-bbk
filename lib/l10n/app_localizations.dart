@@ -3488,6 +3488,18 @@ abstract class AppLocalizations {
   /// **'Recipients'**
   String get recipients;
 
+  /// No description provided for @warrantyClaims.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty Claims'**
+  String get warrantyClaims;
+
+  /// No description provided for @tapToView.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to view'**
+  String get tapToView;
+
   /// No description provided for @exceedsMaxSize.
   ///
   /// In en, this message translates to:
@@ -3505,6 +3517,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Send Notification'**
   String get sendNotification;
+
+  /// No description provided for @couldNotOpenFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open file'**
+  String get couldNotOpenFile;
 
   /// No description provided for @noTechniciansFound.
   ///

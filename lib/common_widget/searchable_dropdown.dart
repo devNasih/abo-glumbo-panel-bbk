@@ -46,7 +46,12 @@ class _SearchableDropdownState<T extends Object>
           ? widget.itemLabel(widget.value!)
           : '';
       if (_controller.text != newText) {
-        _controller.text = newText;
+        // Schedule the text update after the current frame to avoid setState during build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _controller.text != newText) {
+            _controller.text = newText;
+          }
+        });
       }
     }
   }

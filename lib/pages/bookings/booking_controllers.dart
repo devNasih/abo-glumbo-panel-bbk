@@ -1263,8 +1263,6 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
                   ),
                   const SizedBox(height: 12),
                 ],
-
-                // Confirmation message
               ],
             ),
           ),
@@ -1341,6 +1339,8 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
     Navigator.of(context).pop();
     context.read<BookingBloc>().add(
       CompleteBooking(
+        customerId: widget.booking.customer.uid,
+        technicianId: widget.booking.agent?.uid ?? "",
         mode: _serviceCompleted ? 1 : 0,
         bookingId: widget.booking.id,
         selectedFiles: selectedFiles,

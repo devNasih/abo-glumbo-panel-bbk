@@ -1,4 +1,5 @@
 import 'package:aboglumbo_bbk_panel/models/user.dart';
+import 'package:aboglumbo_bbk_panel/models/warranty.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '/models/customer.dart';
 import '/models/service.dart';
@@ -64,6 +65,8 @@ class BookingModel {
   bool paymentCompleted = false;
   List<String>? cancelledWorkerUids;
 
+  WarrantyModel? warranty;
+
   BookingModel({
     required this.id,
     required this.service,
@@ -90,6 +93,7 @@ class BookingModel {
     this.orderId,
     this.cancelledWorkerUids,
     this.paymentCompleted = false,
+    this.warranty,
   });
 
   BookingModel.fromMap(Map<String, dynamic> data)
@@ -105,6 +109,9 @@ class BookingModel {
       notes = data['notes'],
       id = data['id'] ?? '',
       issueImage = data['issueImage'],
+      warranty = data['warranty'] != null
+          ? WarrantyModel.fromJson(data['warranty'])
+          : null,
       issueVideo = data['issueVideo'],
       customer = CustomerModel.fromJson(data['customer']),
       paymentModeCode = data['paymentModeCode'],
@@ -164,11 +171,12 @@ class BookingModel {
       'cancelledAt': cancelledAt,
       'cancellationReason': cancellationReason,
       'paymentCompleted': paymentCompleted,
-     
     };
 
     map['id'] = id;
-
+    if (warranty != null) {
+      map['warranty'] = warranty!.toJson();
+    }
     if (review != null) {
       map['review'] = review!.toJson();
     }

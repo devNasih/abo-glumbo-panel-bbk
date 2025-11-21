@@ -1,5 +1,7 @@
 import 'package:aboglumbo_bbk_panel/main.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class LocalStore {
   // ============================================
@@ -125,17 +127,37 @@ class LocalStore {
   // ============================================
   // User Data Cache (for offline/quick access)
   // ============================================
+
+  /// Store user data with Timestamp conversion for Hive compatibility
   static Future<void> storeUserData(UserModel user) async {
-    await MyApp.box.put('cached_user_data', user.toJson());
+    final Map<String, dynamic> userData = user.toJson();
+
+    // Convert Timestamp objects to milliseconds for Hive storage
+    final Map<String, dynamic> convertedData = _convertTimestampsToMillis(
+      userData,
+    );
+
+    await MyApp.box.put('cached_user_data', convertedData);
     await MyApp.box.flush();
   }
 
+  /// Get cached user data with Timestamp reconstruction
   static UserModel? getCachedUserData() {
     final userData = MyApp.box.get('cached_user_data');
     if (userData != null && userData is Map) {
       try {
-        return UserModel.fromJson(Map<String, dynamic>.from(userData));
+        final Map<String, dynamic> dataMap = Map<String, dynamic>.from(
+          userData,
+        );
+
+        // Convert milliseconds back to Timestamp objects
+        final Map<String, dynamic> convertedData = _convertMillisToTimestamps(
+          dataMap,
+        );
+
+        return UserModel.fromJson(convertedData);
       } catch (e) {
+        debugPrint('Error parsing cached user data: $e');
         return null;
       }
     }
@@ -145,6 +167,84 @@ class LocalStore {
   static Future<void> clearCachedUserData() async {
     await MyApp.box.delete('cached_user_data');
     await MyApp.box.flush();
+  }
+
+  // ============================================
+  // Helper Methods for Timestamp Conversion
+  // ============================================
+
+  /// Convert Timestamp objects to milliseconds recursively
+  static Map<String, dynamic> _convertTimestampsToMillis(
+    Map<String, dynamic> data,
+  ) {
+    final Map<String, dynamic> converted = {};
+
+    data.forEach((key, value) {
+      if (value is Timestamp) {
+        // Convert Timestamp to milliseconds
+        converted[key] = value.millisecondsSinceEpoch;
+      } else if (value is Map) {
+        // Recursively convert nested maps
+        converted[key] = _convertTimestampsToMillis(
+          Map<String, dynamic>.from(value),
+        );
+      } else if (value is List) {
+        // Handle lists (in case there are timestamps in arrays)
+        converted[key] = value.map((item) {
+          if (item is Timestamp) {
+            return item.millisecondsSinceEpoch;
+          } else if (item is Map) {
+            return _convertTimestampsToMillis(Map<String, dynamic>.from(item));
+          }
+          return item;
+        }).toList();
+      } else {
+        converted[key] = value;
+      }
+    });
+
+    return converted;
+  }
+
+  /// Convert milliseconds back to Timestamp objects recursively
+  static Map<String, dynamic> _convertMillisToTimestamps(
+    Map<String, dynamic> data,
+  ) {
+    final Map<String, dynamic> converted = {};
+
+    // Known timestamp fields in UserModel
+    final List<String> timestampFields = [
+      'createdAt',
+      'updatedAt',
+      'lastLogin',
+      'dateOfBirth',
+      'registrationDate',
+      // Add any other timestamp fields your UserModel has
+    ];
+
+    data.forEach((key, value) {
+      if (value is int && timestampFields.contains(key)) {
+        // Convert milliseconds back to Timestamp
+        converted[key] = Timestamp.fromMillisecondsSinceEpoch(value);
+      } else if (value is Map) {
+        // Recursively convert nested maps
+        converted[key] = _convertMillisToTimestamps(
+          Map<String, dynamic>.from(value),
+        );
+      } else if (value is List) {
+        // Handle lists
+        converted[key] = value.map((item) {
+          if (item is Map) {
+            return _convertMillisToTimestamps(Map<String, dynamic>.from(item));
+          }
+          return item;
+        }).toList();
+      } else {
+        converted[key] = value;
+      }
+    });
+
+    return converted;
   }
 
   // ============================================

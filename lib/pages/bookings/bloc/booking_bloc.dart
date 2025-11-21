@@ -80,7 +80,7 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
       );
 
       // Step 4: Update booking status using existing service
-      bool isSuccess = await AppServices.completeBooking(event.bookingId);
+      bool isSuccess = await AppServices.completeBooking(event.bookingId, event.technicianId, event.customerId, event.mode);
 
       if (isSuccess) {
         emit(BookingCompleteSuccess());

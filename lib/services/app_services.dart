@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:aboglumbo_bbk_panel/models/payout_request.dart';
 import 'package:aboglumbo_bbk_panel/models/transaction.dart';
+import 'package:aboglumbo_bbk_panel/models/warranty.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -850,13 +851,40 @@ class AppServices {
     }
   }
 
-  static Future<bool> completeBooking(String bookingId) async {
+  static Future<bool> completeBooking(
+    String bookingId,
+    String technicianId,
+    String customerId,
+    int mode,
+  ) async {
     try {
       await AppFirestore.bookingsCollectionRef.doc(bookingId).update({
         'bookingStatusCode': 'C',
         'isStarted': false,
         'completedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
+
+        if (mode == 1) ...{
+          'warranty': WarrantyModel(
+            id: Uuid().v4(),
+            availability: false,
+            claimStatus: null,
+            completed: false,
+            isTracking: false,
+            bookingId: bookingId,
+            customerId: customerId,
+            assignedTechnicianId: technicianId,
+            technicianId: technicianId,
+            createdAt: DateTime.utc(
+              DateTime.now().year,
+              DateTime.now().month,
+              DateTime.now().day,
+              DateTime.now().hour,
+              DateTime.now().minute,
+              DateTime.now().second,
+            ),
+          ).toJson(),
+        },
       });
       return true;
     } catch (e) {
@@ -1858,6 +1886,80 @@ class AppServices {
       }
       return false;
     }
+  }
+
+  static Stream<List<WarrantyModel>> getWarrantyClaimRequestsStream(
+    String uid,
+  ) {
+    return AppFirestore.bookingsCollectionRef
+        .where("bookingStatusCode", isEqualTo: "C")
+        .where("paymentCompleted", isEqualTo: true)
+        .where('warranty', isNull: false)
+        .where("warranty.assignedTechnicianId", isEqualTo: uid)
+        .where("warranty.availability", isEqualTo: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) {
+                final warrantyData = doc['warranty'];
+                if (warrantyData != null) {
+                  return WarrantyModel.fromJson(
+                    Map<String, dynamic>.from(warrantyData),
+                  );
+                }
+                return WarrantyModel();
+              })
+              .where((warranty) {
+                // If rejectedTechnicians is null or empty, include the request
+                if (warranty.rejectedTechnicians == null ||
+                    warranty.rejectedTechnicians!.isEmpty) {
+                  return true;
+                }
+                // Otherwise exclude if your UID is in the list
+                final alreadyRejected = warranty.rejectedTechnicians!.any(
+                  (rejectedTech) =>
+                      rejectedTech.uid != null && rejectedTech.uid == uid,
+                );
+                return !alreadyRejected;
+              })
+              .toList(),
+        );
+  }
+
+  static Stream<Map<String, dynamic>> getAllCustomersAndTechniciansStream() {
+    final customer = AppServices.getAllCustomersStream();
+    final technicians = AppServices.getAllAgentsStream();
+
+    return Rx.combineLatest2(customer, technicians, (
+      List customers,
+      List technicians,
+    ) {
+      return {'customers': customers, 'technicians': technicians};
+    });
+  }
+
+  static Future<BookingModel?> getBooking(String bookingId) {
+    return AppFirestore.bookingsCollectionRef
+        .doc(bookingId)
+        .get()
+        .then((doc) => BookingModel.fromDocumentSnapshot(doc));
+  }
+
+  static void rejectWarrantyClaim({
+    required String bookingId,
+    String? technicianUid,
+    String? technicianName,
+  }) async {
+    final rejectedTech = {
+      'uid': technicianUid,
+      'name': technicianName,
+      'rejectedOn': Timestamp.fromDate(DateTime.now()),
+    };
+
+    await AppFirestore.bookingsCollectionRef.doc(bookingId).update({
+      'warranty.rejectedTechnicians': FieldValue.arrayUnion([rejectedTech]),
+      "warranty.updatedAt": FieldValue.serverTimestamp(),
+    });
   }
 }
 

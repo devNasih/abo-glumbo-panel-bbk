@@ -1774,6 +1774,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recipients => 'Recipients';
 
   @override
+  String get warrantyClaims => 'Warranty Claims';
+
+  @override
+  String get tapToView => 'Tap to view';
+
+  @override
   String get exceedsMaxSize => 'Exceeds max size';
 
   @override
@@ -1781,6 +1787,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sendNotification => 'Send Notification';
+
+  @override
+  String get couldNotOpenFile => 'Could not open file';
 
   @override
   String get noTechniciansFound => 'No technicians found';
