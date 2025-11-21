@@ -2438,3 +2438,311 @@ exports.notifyWorkerOnPaymentComplete = onDocumentUpdated(
     }
   }
 );
+  // ============================================
+// Warranty Request Notifications
+// ============================================
+exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
+  "warrantyRequests/{requestId}",
+  async (event) => {
+    const beforeData = event.data?.before?.data();
+    const afterData = event.data?.after?.data();
+    const requestId = event.params.requestId;
+
+    if (!afterData) {
+      console.log("Warranty request document deleted, skipping...");
+      return;
+    }
+
+    // Check if status changed
+    const statusChanged = beforeData?.status !== afterData.status;
+    if (!statusChanged) {
+      console.log("Warranty request status unchanged, skipping...");
+      return;
+    }
+
+    const status = afterData.status; // e.g., "placed", "accepted", "tracking_started", "completed", "cancelled"
+    const customerId = afterData.customerId;
+    const workerId = afterData.workerId || afterData.agent?.uid;
+    const bookingId = afterData.bookingId;
+    const serviceName = afterData.serviceName || "Service";
+
+    // Fetch customer data for notification
+    let customerData;
+    try {
+      const customerDoc = await admin
+        .firestore()
+        .collection("customers")
+        .doc(customerId)
+        .get();
+
+      if (customerDoc.exists) {
+        customerData = customerDoc.data();
+      }
+    } catch (error) {
+      console.error("Error fetching customer data:", error);
+    }
+
+    // Fetch admin users
+    let adminTokens = [];
+    try {
+      const adminSnapshot = await admin
+        .firestore()
+        .collection("users")
+        .where("isAdmin", "==", true)
+        .get();
+
+      adminTokens = adminSnapshot.docs
+        .map((doc) => {
+          const data = doc.data();
+          return data.fcmToken && data.fcmToken.trim() !== ""
+            ? { token: data.fcmToken, lanCode: data.lanCode || "en" }
+            : null;
+        })
+        .filter(Boolean);
+    } catch (error) {
+      console.error("Error fetching admin users:", error);
+    }
+
+    // Status-specific messages
+    const statusMessages = {
+      placed: {
+        customer: {
+          en: "Your warranty request has been submitted successfully.",
+          ar: "تم تقديم طلب الضمان الخاص بك بنجاح.",
+        },
+        admin: {
+          en: "A new warranty request has been placed.",
+          ar: "تم تقديم طلب ضمان جديد.",
+        },
+      },
+      accepted: {
+        customer: {
+          en: "Your warranty request has been accepted. A technician will contact you soon.",
+          ar: "تم قبول طلب الضمان الخاص بك. سيتصل بك فني قريبًا.",
+        },
+        admin: {
+          en: "Warranty request has been accepted by a technician.",
+          ar: "تم قبول طلب الضمان من قبل فني.",
+        },
+      },
+      tracking_started: {
+        customer: {
+          en: "The technician is on the way. You can now track their location.",
+          ar: "الفني في الطريق. يمكنك الآن تتبع موقعه.",
+        },
+        admin: {
+          en: "Technician started tracking for warranty request.",
+          ar: "بدأ الفني التتبع لطلب الضمان.",
+        },
+      },
+      completed: {
+        customer: {
+          en: "Your warranty service has been completed successfully. We hope you're satisfied with the service!",
+          ar: "تم إكمال خدمة الضمان الخاصة بك بنجاح. نأمل أن تكون راضيًا عن الخدمة!",
+        },
+        admin: {
+          en: "Warranty request has been completed.",
+          ar: "تم إكمال طلب الضمان.",
+        },
+      },
+      cancelled: {
+        customer: {
+          en: "Your warranty request has been cancelled.",
+          ar: "تم إلغاء طلب الضمان الخاص بك.",
+        },
+        admin: {
+          en: "A warranty request has been cancelled.",
+          ar: "تم إلغاء طلب ضمان.",
+        },
+      },
+    };
+
+    // Notify customer
+    if (customerData?.fcmToken && customerData.fcmToken.trim() !== "") {
+      const customerLanCode = customerData.lanCode || "en";
+      const customerMessage =
+        statusMessages[status]?.customer?.[customerLanCode] ||
+        statusMessages[status]?.customer?.["en"] ||
+        `Your warranty request status has been updated to ${status}`;
+
+      try {
+        await admin.messaging().send({
+          notification: {
+            title:
+              customerLanCode === "ar"
+                ? "تحديث طلب الضمان"
+                : "Warranty Request Update",
+            body: `${customerMessage} (${serviceName})`,
+          },
+          data: {
+            targetRole: "customer",
+            category: "warranty",
+            requestId: requestId,
+            bookingId: bookingId,
+            status: status,
+            serviceName: serviceName,
+          },
+          token: customerData.fcmToken,
+        });
+        console.log(
+          `Warranty notification sent to customer ${customerId} for status: ${status}`
+        );
+      } catch (error) {
+        console.error("Error sending customer warranty notification:", error);
+      }
+    }
+
+    // Notify admins
+    if (adminTokens.length > 0) {
+      const adminMessages = adminTokens.map(({ token, lanCode }) => ({
+        notification: {
+          title:
+            lanCode === "ar"
+              ? "تحديث طلب الضمان"
+              : "Warranty Request Update",
+          body:
+            statusMessages[status]?.admin?.[lanCode] ||
+            statusMessages[status]?.admin?.["en"] ||
+            `Warranty request ${requestId} status updated to ${status}`,
+        },
+        token,
+        data: {
+          targetRole: "admin",
+          category: "warranty",
+          requestId: requestId,
+          bookingId: bookingId,
+          customerId: customerId,
+          workerId: workerId || "",
+          status: status,
+          serviceName: serviceName,
+        },
+      }));
+
+      try {
+        await Promise.all(
+          adminMessages.map((msg) => admin.messaging().send(msg))
+        );
+        console.log(
+          `Warranty notification sent to ${adminTokens.length} admins for status: ${status}`
+        );
+      } catch (error) {
+        console.error("Error sending admin warranty notifications:", error);
+      }
+    }
+
+    return null;
+  }
+);
+
+// ============================================
+// Update Warranty Availability After 7 Days
+// ============================================
+exports.updateWarrantyAvailability = onSchedule(
+  {
+    schedule: "0 2 * * *", // Runs daily at 2:00 AM Saudi Arabia Time
+    timeZone: "Asia/Riyadh",
+  },
+  async (event) => {
+    logger.info("Starting warranty availability update check...");
+
+    try {
+      // Calculate the date 7 days ago from now
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      sevenDaysAgo.setHours(0, 0, 0, 0); // Start of the day
+
+      const eightDaysAgo = new Date();
+      eightDaysAgo.setDate(eightDaysAgo.getDate() - 8);
+      eightDaysAgo.setHours(0, 0, 0, 0);
+
+      logger.info(
+        `Checking bookings completed between ${eightDaysAgo.toISOString()} and ${sevenDaysAgo.toISOString()}`
+      );
+
+      // Query completed bookings that have warranty enabled and completed exactly 7 days ago
+      const bookingsSnapshot = await db
+        .collection("bookings")
+        .where("bookingStatusCode", "==", "C") // Completed bookings
+        .where("warranty.availability", "==", true) // Warranty still available
+        .where(
+          "completedAt",
+          ">=",
+          admin.firestore.Timestamp.fromDate(eightDaysAgo)
+        )
+        .where(
+          "completedAt",
+          "<=",
+          admin.firestore.Timestamp.fromDate(sevenDaysAgo)
+        )
+        .get();
+
+      if (bookingsSnapshot.empty) {
+        logger.info("No bookings found with warranty expiring today.");
+        return null;
+      }
+
+      let updatedCount = 0;
+      const batch = db.batch();
+      const batchSize = 500; // Firestore batch limit
+      let batchCount = 0;
+
+      for (const bookingDoc of bookingsSnapshot.docs) {
+        const bookingData = bookingDoc.data();
+        const completedAt = bookingData.completedAt?.toDate();
+
+        if (!completedAt) {
+          logger.warn(
+            `Booking ${bookingDoc.id} has no completedAt timestamp, skipping.`
+          );
+          continue;
+        }
+
+        // Calculate days since completion
+        const daysSinceCompletion = Math.floor(
+          (new Date() - completedAt) / (1000 * 60 * 60 * 24)
+        );
+
+        // Only update if exactly 7 or more days have passed
+        if (daysSinceCompletion >= 7) {
+          const bookingRef = bookingDoc.ref;
+
+          // Update warranty availability to false
+          batch.update(bookingRef, {
+            "warranty.availability": false,
+            "warranty.expiredAt": admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+
+          updatedCount++;
+          batchCount++;
+
+          logger.info(
+            `Scheduled warranty expiration for booking ${bookingDoc.id} (completed ${daysSinceCompletion} days ago)`
+          );
+
+          // Commit batch every 500 operations
+          if (batchCount >= batchSize) {
+            await batch.commit();
+            logger.info(`Committed batch of ${batchCount} updates`);
+            batchCount = 0;
+          }
+        }
+      }
+
+      // Commit remaining updates
+      if (batchCount > 0) {
+        await batch.commit();
+        logger.info(`Committed final batch of ${batchCount} updates`);
+      }
+
+      logger.info(
+        `Warranty availability update completed. Total bookings updated: ${updatedCount}`
+      );
+      return null;
+    } catch (error) {
+      logger.error("Error updating warranty availability:", error);
+      throw error;
+    }
+  }
+);
+
