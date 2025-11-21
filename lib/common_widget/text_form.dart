@@ -21,6 +21,7 @@ class TextFormWidget extends StatelessWidget {
     this.maxLength,
     this.enabled = true,
     this.hintText = "",
+    this.forceLtr = false,
   });
   final TextEditingController controller;
   final String label;
@@ -35,6 +36,7 @@ class TextFormWidget extends StatelessWidget {
   final bool enabled;
   final int? maxLength;
   final String? hintText;
+  final bool forceLtr;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +46,8 @@ class TextFormWidget extends StatelessWidget {
         Text(label, style: GoogleFonts.dmSans(fontSize: 16)),
         const SizedBox(height: 5),
         TextFormField(
+          textDirection: forceLtr ? TextDirection.ltr : null,
+          textAlign: forceLtr ? TextAlign.end : TextAlign.start,
           obscureText: obscureText,
           inputFormatters: maxLength != null
               ? [LengthLimitingTextInputFormatter(maxLength)]

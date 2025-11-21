@@ -687,7 +687,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tooManyRequests => 'عدد كبير جدا من الطلبات';
 
   @override
-  String get netTechnicianror => 'Network Error';
+  String get netTechnicianror => 'حدث خطأ في تحميل الفنيين';
 
   @override
   String get wrongPassword => 'كلمة المرور خاطئة';
@@ -1164,7 +1164,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loadingFaqs => 'جارٍ تحميل الأسئلة الشائعة';
 
   @override
-  String get loadingTechnicians => 'Loading Technicians';
+  String get loadingTechnicians => 'جاري تحميل الفنيين';
 
   @override
   String get bookingWasCancelledByCustomer => 'تم إلغاء الحجز من قبل العميل';
@@ -1737,7 +1737,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enterYourNotificationMessageHere => 'أدخل رسالة الإشعار هنا';
 
   @override
-  String get aboGlumboTechnician => 'Abo Glumbo Technician';
+  String get aboGlumboTechnician => 'لم يتم العثور على فنيين';
 
   @override
   String get now => 'الان';
@@ -1942,19 +1942,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get technicianCannotBeAssignedMultipleTimes =>
-      'A Technician cannot be assigned to multiple bookings at the exact same time. Please select a different time slot or choose another Technician.';
+      'لا يمكن تعيين فني لعدة حجوزات في نفس الوقت تمامًا. يرجى اختيار وقت مختلف أو اختيار فني آخر.';
 
   @override
-  String get unknownTechnician => 'Unknown Technician';
+  String get unknownTechnician => 'فني غير معروف';
 
   @override
-  String get technicianCancelled => 'Technician Cancelled';
+  String get technicianCancelled => 'تم إلغاء الفني';
 
   @override
-  String get cancelledByTechnician => 'Cancelled by Technician';
+  String get cancelledByTechnician => 'تم الغاء بواسطة الفني';
 
   @override
-  String get technicianPreviouslyCancelled => 'Technician Previously Cancelled';
+  String get technicianPreviouslyCancelled => 'تم إلغاء الفني مسبقاً';
 
   @override
   String get agentCancelledAtTimeSlot => 'الفني ألغى هذا الوقت مسبقًا';
@@ -1973,24 +1973,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get technicianCancelledAtTime =>
-      'This Technician previously cancelled a booking at this exact time slot. Consider assigning to a different Technician for better reliability.';
+      'هذا الفني قام سابقًا بإلغاء حجز في نفس الوقت تمامًا. يُرجى التفكير في تعيين فني آخر لضمان موثوقية أفضل.';
 
   @override
   String get errorCheckingBatteryOptimization => 'خطأ في فحص تحسين البطارية';
 
   @override
-  String get technicianRestrictedTitle => 'Technician Restricted';
+  String get technicianRestrictedTitle => 'تم تقييد الفني';
 
   @override
   String get cannotAssignCancelledTechnician =>
-      'Cannot assign cancelled Technician';
+      'لا يمكن تعيين فني تم إلغاء تعيينه سابقًا';
 
   @override
   String get lastCancellationOn => 'آخر إلغاء في';
 
   @override
   String get technicianCancelledRestrictionMessage =>
-      'This Technician has previously cancelled a booking and is now restricted from new assignments. Please choose a different Technician.';
+      'هذا الفني قام سابقًا بإلغاء حجز، وهو الآن مُقيَّد من استلام مهام جديدة. يرجى اختيار فني آخر.';
 
   @override
   String get understood => 'فهمت';
@@ -2150,7 +2150,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get deleteFaqEntry => 'حذف السؤال الشائع';
 
   @override
-  String get manageTechnicians => 'Manage Technicians';
+  String get manageTechnicians => 'ادارة الفنيين';
 
   @override
   String get manageCustomerSupport => 'ادارة خدمة العملاء';
@@ -2251,8 +2251,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'حاول تعديل معايير البحث الخاصة بك';
 
   @override
-  String get noTechniciansMatchYourFilters =>
-      'No Technicians match your search';
+  String get noTechniciansMatchYourFilters => 'لا يوجد فنيين يطابقون فلتراتك';
 
   @override
   String get unblockCustomer => 'فك حظر العميل';
@@ -2444,7 +2443,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get errorCroppingImage => 'حدث خطأ في القص';
 
   @override
-  String get technicianInformation => 'Technician Information';
+  String get technicianInformation => 'معلومات الفني';
 
   @override
   String get noPayoutRequestsYet => 'لا توجد طلبات دفع حتى الآن';
@@ -2874,227 +2873,225 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get personalInfo => 'Personal information';
+  String get personalInfo => 'معلومات شخصية';
 
   @override
-  String get bookingHistory => 'Booking history';
+  String get bookingHistory => 'تاريخ الحجز';
 
   @override
-  String get documents => 'Uploaded documents';
+  String get documents => 'وثائق';
 
   @override
-  String get allData => 'All associated data';
+  String get allData => 'جميع البيانات المرتبطة';
 
   @override
   String get networkError => 'خطأ في الشبكة';
 
   @override
-  String get biometricEnabled => 'Biometric authentication enabled';
+  String get biometricEnabled => 'تم تفعيل البيوميتريك';
 
   @override
-  String get biometricDisabled => 'Biometric authentication disabled';
+  String get biometricDisabled => 'تم تعطيل البيوميتريك';
 
   @override
   String get disableBiometricWarning =>
-      'Disabling biometric authentication will prevent you from logging in using fingerprint.';
+      'تعطيل البيوميتريك سوف يمنعك من تسجيل الدخول باستخدام البيوميتريك';
 
   @override
   String get youWillNeedPhoneOtp =>
-      'You will need to use your phone number and OTP to login.';
+      'سوف تحتاج إلى استخدام رقم الهاتف وOTP لتسجيل الدخول';
 
   @override
-  String get whatWillBeDeleted => 'What will be deleted:';
+  String get whatWillBeDeleted => 'سوف يتم حذف:';
 
   @override
-  String get disable => 'Disable';
+  String get disable => 'تعطيل';
 
   @override
-  String get disableBiometric => 'Disable Biometric?';
+  String get disableBiometric => 'تعطيل البيوميتريك';
 
   @override
-  String get optional => 'Optional';
+  String get optional => 'اختياري';
 
   @override
-  String get province => 'Province';
+  String get province => 'المحافظة';
 
   @override
-  String get pleaseSelectCity => 'Please select city';
+  String get pleaseSelectCity => 'يرجى تحديد المدينة';
 
   @override
-  String get pleaseSelectGovernorate => 'Please select governorate';
+  String get pleaseSelectGovernorate => 'يرجى تحديد المحافظة';
 
   @override
-  String get governorate => 'Governorate';
+  String get governorate => 'المحافظة';
 
   @override
-  String get neighborhood => 'Neighborhood';
+  String get neighborhood => 'الحي';
 
   @override
-  String get pleaseSelectNeighborhood => 'Please select neighborhood';
+  String get pleaseSelectNeighborhood => 'يرجى تحديد الحي';
 
   @override
-  String get pleaseSelectProvince => 'Please select province';
+  String get pleaseSelectProvince => 'يرجى تحديد المحافظة';
 
   @override
-  String get otpExpired => 'OTP expired';
+  String get otpExpired => 'OTP منتهي الصلاحية';
 
   @override
-  String get invalidOTP => 'Invalid OTP';
+  String get invalidOTP => 'OTP غير صحيح';
 
   @override
-  String get invalidPhoneNumber => 'Invalid phone number';
+  String get invalidPhoneNumber => 'رقم الهاتف غير صحيح';
 
   @override
-  String get otpSentSuccessfully => 'OTP sent successfully';
+  String get otpSentSuccessfully => 'تم إرسال OTP بنجاح';
 
   @override
-  String get otpCode => 'OTP Code';
+  String get otpCode => 'رمز OTP';
 
   @override
-  String get registerAsTechinicianInfo =>
-      'Register your phone number to create a technician account';
+  String get registerAsTechinicianInfo => 'سجّل رقم هاتفك لإنشاء حساب فني';
 
   @override
-  String get phoneAlreadyRegistered => 'Phone already registered';
+  String get phoneAlreadyRegistered => 'رقم الهاتف مسجل مسبقاً';
 
   @override
-  String get invalidOtpCode => 'Invalid OTP code';
+  String get invalidOtpCode => 'رمز OTP غير صحيح';
 
   @override
-  String get quotaExceeded => 'Quota exceeded';
+  String get quotaExceeded => 'تم تجاوز الكوتا';
 
   @override
-  String get internalError => 'Internal error';
+  String get internalError => 'خطأ داخلي';
 
   @override
-  String get resend => 'Resend';
+  String get resend => 'إعادة إرسال';
 
   @override
-  String get or => 'or';
+  String get or => 'أو';
 
   @override
-  String get loginWithBiometric => 'Login with biometric';
+  String get loginWithBiometric => 'تسجيل الدخول باستخدام البيوميتريك';
 
   @override
-  String get migratingData => 'Migrating data';
+  String get migratingData => 'تحويل البيانات';
 
   @override
-  String get weAreMigratingYourData => 'We are migrating your data';
+  String get weAreMigratingYourData => 'نحن نقوم بتحويل بياناتك';
 
   @override
-  String get pleaseDontCloseTheApp => 'Please don\'t close the app';
+  String get pleaseDontCloseTheApp => 'يرجى لا تقطع التطبيق';
 
   @override
-  String get transferringData => 'Transferring data';
+  String get transferringData => 'تحويل البيانات';
 
   @override
-  String get fullName => 'Full Name';
+  String get fullName => 'الاسم الكامل';
 
   @override
-  String get sendingOTP => 'Sending OTP';
+  String get sendingOTP => 'إرسال OTP';
 
   @override
-  String get cancelRegistration => 'Cancel Registration';
+  String get cancelRegistration => 'إلغاء التسجيل';
 
   @override
-  String get loggingIn => 'Logging in...';
+  String get loggingIn => 'تسجيل الدخول';
 
   @override
-  String get didNotReceiveOTP => 'Didn\'t receive OTP?';
+  String get didNotReceiveOTP => 'لم يتم استلام OTP؟';
 
   @override
   String get cancelRegistrationConfirmation =>
-      'Are you sure you want to cancel registration?';
+      'هل أنت متأكد أنك تريد إلغاء التسجيل؟';
 
   @override
-  String get registrationSuccessful => 'Registration successful';
+  String get registrationSuccessful => 'تم التسجيل بنجاح';
 
   @override
-  String get otpMustBe6Digits => 'OTP must be 6 digits';
+  String get otpMustBe6Digits => 'OTP يجب أن يكون 6 أرقام';
 
   @override
-  String get pleaseEnterOTP => 'Please enter OTP';
+  String get pleaseEnterOTP => 'يرجى إدخال OTP';
 
   @override
-  String get resendOTP => 'Resend OTP';
+  String get resendOTP => 'إعادة إرسال OTP';
 
   @override
-  String get sendOtp => 'Send OTP';
+  String get sendOtp => 'إرسال OTP';
 
   @override
-  String get invalidPhoneNumberLength => 'Invalid phone number length';
+  String get invalidPhoneNumberLength => 'طول رقم الهاتف غير صحيح';
 
   @override
   String get phoneNumberMustIncludeCountryCode =>
-      'Phone number must include country code';
+      'يجب أن يتضمن رقم الهاتف رمز الدولة';
 
   @override
-  String get pleaseEnterPhoneNumber => 'Please enter phone number';
+  String get pleaseEnterPhoneNumber => 'يرجى إدخال رقم الهاتف';
 
   @override
-  String get fileTooLarge => 'File too large (max 10MB)';
+  String get fileTooLarge => 'الملف كبير جداً';
 
   @override
-  String get cropDocument => 'Crop Document';
+  String get cropDocument => 'قص الوثائق';
 
   @override
-  String get completeRegistration => 'Complete Registration';
+  String get completeRegistration => 'إكمال التسجيل';
 
   @override
-  String get chooseFromList => 'Choose from list';
+  String get chooseFromList => 'اختر من القائمة';
 
   @override
-  String get nameTooShort => 'Name too short';
+  String get nameTooShort => 'اسم قصير جداً';
 
   @override
-  String get pleaseEnterYourName => 'Please enter your name';
+  String get pleaseEnterYourName => 'يرجى إدخال اسمك';
 
   @override
-  String get uploadCertifications => 'Upload Certifications';
+  String get uploadCertifications => 'تحميل الشهادات';
 
   @override
-  String get certifications => 'Certifications';
+  String get certifications => 'الشهادات';
 
   @override
-  String get idDocumentUploaded => 'ID document uploaded';
+  String get idDocumentUploaded => 'تم تحميل الوثيقة الشخصية';
 
   @override
-  String get uploadIdDocument => 'Upload ID document';
+  String get uploadIdDocument => 'تحميل وثيقة شخصية';
 
   @override
-  String get idDocument => 'ID Document';
+  String get idDocument => 'وثيقة شخصية';
 
   @override
-  String get pleaseUploadIdDocument => 'Please upload ID document';
+  String get pleaseUploadIdDocument => 'يرجى تحميل وثيقة شخصية';
 
   @override
-  String get pleaseSelectLocation => 'Please select location';
+  String get pleaseSelectLocation => 'يرجى اختيار الموقع';
 
   @override
-  String get creatingAccount => 'Creating Your Account';
+  String get creatingAccount => 'إنشاء حساب';
 
   @override
-  String get pleaseWait => 'Please wait...';
+  String get pleaseWait => 'يرجى الانتظار';
 
   @override
-  String get noJobCategoriesAvailable => 'No job categories available';
+  String get noJobCategoriesAvailable => 'لا توجد فئات وظائف متاحة';
 
   @override
-  String get availabilityStatus => 'Availability Status';
+  String get availabilityStatus => 'حالة المتاحية';
 
   @override
-  String get youAreNowOnline => 'You are now online';
+  String get youAreNowOnline => 'أنت الآن متصل';
 
   @override
-  String get youAreNowOffline => 'You are now offline';
+  String get youAreNowOffline => 'أنت الآن غير متصل';
 
   @override
-  String get errorUpdatingStatus => 'Error updating status';
+  String get errorUpdatingStatus => 'خطأ في تحديث الحالة';
 
   @override
-  String get youAreCurrentlyUnavailable =>
-      'You are currently unavailable for requests';
+  String get youAreCurrentlyUnavailable => 'أنت حالياً غير متاح للطلبات';
 
   @override
-  String get youAreAvailableForRequests => 'You are available for requests';
+  String get youAreAvailableForRequests => 'أنت متاح للطلبات';
 }

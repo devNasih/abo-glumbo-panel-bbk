@@ -28,69 +28,37 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.aboglumbo.cPanel"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24
         targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
-       signingConfigs {
-    // Avoid creating a signingConfig with the same name twice (some Gradle setups
-    // may already supply a 'debug' SigningConfig). Check first, then create only
-    // if it doesn't exist.
-    if (findByName("debug") == null) {
-        create("debug") {
+    signingConfigs {
+        create("upload") {
             keyAlias = keystoreProperties["keyAlias"] as String
             keyPassword = keystoreProperties["keyPassword"] as String
             storeFile = file(keystoreProperties["storeFile"] as String)
             storePassword = keystoreProperties["storePassword"] as String
         }
-    } else {
-        // If a debug config already exists, optionally configure it with values
-        // from key.properties so debug builds use the provided keystore when
-        // available.
-        val cfg = getByName("debug")
-        cfg.keyAlias = keystoreProperties["keyAlias"] as String
-        cfg.keyPassword = keystoreProperties["keyPassword"] as String
-        cfg.storeFile = file(keystoreProperties["storeFile"] as String)
-        cfg.storePassword = keystoreProperties["storePassword"] as String
     }
 
-    if (findByName("release") == null) {
-        create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = file(keystoreProperties["storeFile"] as String)
-            storePassword = keystoreProperties["storePassword"] as String
+    buildTypes {
+        getByName("debug") {
+            signingConfig = signingConfigs.getByName("upload")
+            isDebuggable = true
         }
-    } else {
-        val cfg = getByName("release")
-        cfg.keyAlias = keystoreProperties["keyAlias"] as String
-        cfg.keyPassword = keystoreProperties["keyPassword"] as String
-        cfg.storeFile = file(keystoreProperties["storeFile"] as String)
-        cfg.storePassword = keystoreProperties["storePassword"] as String
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("upload")
+            isMinifyEnabled = false
+            isShrinkResources = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
     }
-}
-
-buildTypes {
-    getByName("debug") {
-        signingConfig = signingConfigs.getByName("debug")
-        isDebuggable = true
-    }
-    getByName("release") {
-        signingConfig = signingConfigs.getByName("release")
-        isMinifyEnabled = false
-        isShrinkResources = false
-        proguardFiles(
-            getDefaultProguardFile("proguard-android-optimize.txt"),
-            "proguard-rules.pro"
-        )
-    }
-}
 
 }
 

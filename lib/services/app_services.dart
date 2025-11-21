@@ -176,6 +176,7 @@ class AppServices {
     UserModel user, {
     bool updateProfileUrl = false,
     bool updateDocUrl = false,
+    bool updateCertifications = false,
   }) async {
     try {
       String userId = user.uid ?? '';
@@ -188,6 +189,8 @@ class AppServices {
           'districtName': user.districtName,
           'jobRoles': user.jobRoles,
           'updatedAt': Timestamp.now(),
+          'detailedLocation': user.detailedLocation
+              ?.toJson(), // ✅ Ensure detailedLocation is updated
         };
 
         // Only add image URLs if they were actually updated
@@ -197,6 +200,10 @@ class AppServices {
 
         if (updateDocUrl && user.docUrl != null) {
           userData['docUrl'] = user.docUrl;
+        }
+
+        if (updateCertifications && user.certifications != null) {
+          userData['certifications'] = user.certifications;
         }
 
         await AppFirestore.usersCollectionRef.doc(userId).update(userData);

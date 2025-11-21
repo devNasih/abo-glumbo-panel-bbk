@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:aboglumbo_bbk_panel/common_widget/crop_confirm_dialog.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/saving_stack.dart';
+import 'package:aboglumbo_bbk_panel/common_widget/searchable_dropdown.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/text_form.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
@@ -14,6 +15,7 @@ import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -41,18 +43,62 @@ class _EditProfileState extends State<EditProfile> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
 
-  List<Province> provinces = [];
-  Province? selectedProvince;
-  Governorate? selectedGovernorate;
-  Neighborhood? selectedNeighborhood;
+  List<Region> regions = [];
+  Region? selectedRegion;
+  City? selectedCity;
+  District? selectedDistrict;
   bool isLoadingLocations = true;
   XFile? selectedImage;
   XFile? selectedProfileImage;
+  List<String> selectedCertifications = [];
+  List<PlatformFile> certifications = [];
 
   // Job categories and selected job roles
   Map<String, Map<String, String>> jobCategories = {};
   List<String> selectedJobRoles = [];
   bool isCategoriesLoading = true;
+
+  Future<void> _pickCertifications() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
+        allowMultiple: true,
+      );
+
+      if (result != null) {
+        // Validate file sizes
+        for (var file in result.files) {
+          if (file.size > 5 * 1024 * 1024) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    '${file.name} ${AppLocalizations.of(context)?.fileTooLarge ?? 'is too large (max 5MB)'}',
+                  ),
+                ),
+              );
+            }
+            return;
+          }
+        }
+
+        setState(() {
+          certifications.addAll(result.files);
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error picking certifications: $e');
+      }
+    }
+  }
+
+  void _removeCertification(int index) {
+    setState(() {
+      certifications.removeAt(index);
+    });
+  }
 
   void fillContent() {
     if (widget.workerData != null) {
@@ -61,6 +107,7 @@ class _EditProfileState extends State<EditProfile> {
       emailController.text = widget.workerData!.email ?? '';
       phoneController.text = widget.workerData!.phone ?? '';
       selectedJobRoles = widget.workerData!.jobRoles ?? [];
+      selectedCertifications = widget.workerData!.certifications ?? [];
 
       // ✅ Pre-select location from detailedLocation
       if (widget.workerData!.detailedLocation != null) {
@@ -74,34 +121,34 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   void _preselectLocation(DetailedLocationModel detailedLoc) {
-    if (provinces.isEmpty) return;
+    if (regions.isEmpty) return;
 
-    // Find and select province
-    final province = provinces.firstWhere(
-      (p) => p.provinceId == detailedLoc.provinceId,
-      orElse: () => provinces.first,
+    // Find and select region
+    final region = regions.firstWhere(
+      (r) => r.regionId == detailedLoc.regionId,
+      orElse: () => regions.first,
     );
 
     setState(() {
-      selectedProvince = province;
+      selectedRegion = region;
 
-      // Find and select governorate
-      if (province.governorates.isNotEmpty) {
-        final governorate = province.governorates.firstWhere(
-          (g) => g.govId == detailedLoc.governorateId,
-          orElse: () => province.governorates.first,
+      // Find and select city
+      if (region.cities.isNotEmpty) {
+        final city = region.cities.firstWhere(
+          (c) => c.cityId == detailedLoc.cityId,
+          orElse: () => region.cities.first,
         );
 
-        selectedGovernorate = governorate;
+        selectedCity = city;
 
-        // Find and select neighborhood
-        if (governorate.neighborhoods.isNotEmpty) {
-          final neighborhood = governorate.neighborhoods.firstWhere(
-            (n) => n.neighId == detailedLoc.neighborhoodId,
-            orElse: () => governorate.neighborhoods.first,
+        // Find and select district
+        if (city.districts.isNotEmpty) {
+          final district = city.districts.firstWhere(
+            (d) => d.districtId == detailedLoc.neighborhoodId,
+            orElse: () => city.districts.first,
           );
 
-          selectedNeighborhood = neighborhood;
+          selectedDistrict = district;
         }
       }
     });
@@ -151,12 +198,12 @@ class _EditProfileState extends State<EditProfile> {
     setState(() => isLoadingLocations = true);
     try {
       final jsonString = await rootBundle.loadString(
-        'assets/data/saudi_locations.json',
+        'assets/data/saudi_hierarchical.json',
       );
       final List<dynamic> jsonData = json.decode(jsonString);
 
       setState(() {
-        provinces = jsonData.map((p) => Province.fromJson(p)).toList();
+        regions = jsonData.map((r) => Region.fromJson(r)).toList();
         isLoadingLocations = false;
       });
 
@@ -615,15 +662,15 @@ class _EditProfileState extends State<EditProfile> {
                     phone: phoneController.text,
                     // ✅ Use detailedLocation instead of districtName
                     detailedLocation: DetailedLocationModel(
-                      provinceId: selectedProvince?.provinceId,
-                      provinceEn: selectedProvince?.provinceEn,
-                      provinceAr: selectedProvince?.provinceAr,
-                      governorateId: selectedGovernorate?.govId,
-                      governorateEn: selectedGovernorate?.govEn,
-                      governorateAr: selectedGovernorate?.govAr,
-                      neighborhoodId: selectedNeighborhood?.neighId,
-                      neighborhoodEn: selectedNeighborhood?.neighEn,
-                      neighborhoodAr: selectedNeighborhood?.neighAr,
+                      regionId: selectedRegion?.regionId,
+                      regionEn: selectedRegion?.regionEn,
+                      regionAr: selectedRegion?.regionAr,
+                      cityId: selectedCity?.cityId,
+                      cityEn: selectedCity?.cityEn,
+                      cityAr: selectedCity?.cityAr,
+                      neighborhoodId: selectedDistrict?.districtId,
+                      neighborhoodEn: selectedDistrict?.districtEn,
+                      neighborhoodAr: selectedDistrict?.districtAr,
                     ),
                     jobRoles: selectedJobRoles,
                     profileUrl: profileImageUrl,
@@ -793,6 +840,7 @@ class _EditProfileState extends State<EditProfile> {
                   TextFormWidget(
                     readOnly: true,
                     enabled: false,
+                    forceLtr: isArabic,
                     controller: phoneController,
                     keyboardType: TextInputType.phone,
                     isPhoneNumber: true,
@@ -802,40 +850,40 @@ class _EditProfileState extends State<EditProfile> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  _buildDropdownField<Province>(
-                    label: '${locale?.province ?? 'Province'} *',
-                    value: selectedProvince,
-                    items: provinces,
-                    itemLabel: (province) => province.getName(isArabic),
-                    onChanged: (province) {
+                  _buildDropdownField<Region>(
+                    label: '${locale?.province ?? 'Region'} *',
+                    value: selectedRegion,
+                    items: regions,
+                    itemLabel: (region) => region.getName(isArabic),
+                    onChanged: (region) {
                       setState(() {
-                        selectedProvince = province;
-                        selectedGovernorate = null;
-                        selectedNeighborhood = null;
+                        selectedRegion = region;
+                        selectedCity = null;
+                        selectedDistrict = null;
                       });
                     },
                     validator: (value) {
                       if (value == null) {
                         return locale?.pleaseSelectProvince ??
-                            'Please select a province';
+                            'Please select a region';
                       }
                       return null;
                     },
                   ),
 
-                  if (selectedProvince != null) ...[
+                  if (selectedRegion != null) ...[
                     const SizedBox(height: 16),
 
-                    // ✅ Governorate Dropdown
-                    _buildDropdownField<Governorate>(
+                    // ✅ City Dropdown
+                    _buildDropdownField<City>(
                       label: '${locale?.city ?? 'City'} *',
-                      value: selectedGovernorate,
-                      items: selectedProvince!.governorates,
-                      itemLabel: (gov) => gov.getName(isArabic),
-                      onChanged: (gov) {
+                      value: selectedCity,
+                      items: selectedRegion!.cities,
+                      itemLabel: (city) => city.getName(isArabic),
+                      onChanged: (city) {
                         setState(() {
-                          selectedGovernorate = gov;
-                          selectedNeighborhood = null;
+                          selectedCity = city;
+                          selectedDistrict = null;
                         });
                       },
                       validator: (value) {
@@ -848,24 +896,24 @@ class _EditProfileState extends State<EditProfile> {
                     ),
                   ],
 
-                  if (selectedGovernorate != null) ...[
+                  if (selectedCity != null) ...[
                     const SizedBox(height: 16),
 
-                    // ✅ Neighborhood Dropdown
-                    _buildDropdownField<Neighborhood>(
-                      label: '${locale?.neighborhood ?? 'Neighborhood'} *',
-                      value: selectedNeighborhood,
-                      items: selectedGovernorate!.neighborhoods,
-                      itemLabel: (neigh) => neigh.getName(isArabic),
-                      onChanged: (neigh) {
+                    // ✅ District Dropdown
+                    _buildDropdownField<District>(
+                      label: '${locale?.neighborhood ?? 'District'} *',
+                      value: selectedDistrict,
+                      items: selectedCity!.districts,
+                      itemLabel: (district) => district.getName(isArabic),
+                      onChanged: (district) {
                         setState(() {
-                          selectedNeighborhood = neigh;
+                          selectedDistrict = district;
                         });
                       },
                       validator: (value) {
                         if (value == null) {
                           return locale?.pleaseSelectNeighborhood ??
-                              'Please select a neighborhood';
+                              'Please select a district';
                         }
                         return null;
                       },
@@ -996,6 +1044,76 @@ class _EditProfileState extends State<EditProfile> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 16),
+
+                  // Certifications Upload
+                  // Certifications Upload
+                  Text(
+                    '${AppLocalizations.of(context)?.certifications ?? 'Certifications'} (${AppLocalizations.of(context)?.optional ?? 'Optional'})',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: _pickCertifications,
+                    icon: const Icon(Icons.upload_file),
+                    label: Text(
+                      AppLocalizations.of(context)?.uploadCertifications ??
+                          'Upload Certifications',
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Display existing certifications (URLs)
+                  if (widget.workerData!.certifications != null &&
+                      widget.workerData!.certifications!.isNotEmpty)
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: widget.workerData!.certifications!.length,
+                      itemBuilder: (context, index) {
+                        // final certUrl = widget.user.certifications![index];
+                        return ListTile(
+                          leading: const Icon(
+                            Icons.picture_as_pdf,
+                            color: Colors.red,
+                          ),
+                          title: Text('Certificate ${index + 1}'),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              setState(() {
+                                widget.workerData!.certifications!.removeAt(
+                                  index,
+                                );
+                              });
+                            },
+                          ),
+                        );
+                      },
+                    ),
+
+                  // Display newly picked certifications (Local Files)
+                  if (certifications.isNotEmpty)
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: certifications.length,
+                      itemBuilder: (context, index) {
+                        final file = certifications[index];
+                        return ListTile(
+                          leading: const Icon(Icons.insert_drive_file),
+                          title: Text(file.name),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _removeCertification(index),
+                          ),
+                        );
+                      },
+                    ),
+
                   const SizedBox(height: 30),
                   SizedBox(
                     width: double.maxFinite,
@@ -1004,9 +1122,9 @@ class _EditProfileState extends State<EditProfile> {
                       onPressed: () {
                         if (_formKey.currentState?.validate() ?? false) {
                           // ✅ Validation for location
-                          if (selectedProvince == null ||
-                              selectedGovernorate == null ||
-                              selectedNeighborhood == null) {
+                          if (selectedRegion == null ||
+                              selectedCity == null ||
+                              selectedDistrict == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Please select complete address'),
@@ -1030,15 +1148,17 @@ class _EditProfileState extends State<EditProfile> {
 
                           // ✅ Create DetailedLocationModel
                           final detailedLocation = DetailedLocationModel(
-                            provinceId: selectedProvince!.provinceId,
-                            provinceEn: selectedProvince!.provinceEn,
-                            provinceAr: selectedProvince!.provinceAr,
-                            governorateId: selectedGovernorate!.govId,
-                            governorateEn: selectedGovernorate!.govEn,
-                            governorateAr: selectedGovernorate!.govAr,
-                            neighborhoodId: selectedNeighborhood!.neighId,
-                            neighborhoodEn: selectedNeighborhood!.neighEn,
-                            neighborhoodAr: selectedNeighborhood!.neighAr,
+                            regionId: selectedRegion!.regionId,
+                            regionEn: selectedRegion!.regionEn,
+                            regionAr: selectedRegion!.regionAr,
+                            cityId: selectedCity!.cityId,
+                            cityEn: selectedCity!.cityEn,
+                            cityAr: selectedCity!.cityAr,
+                            neighborhoodId: selectedDistrict!.districtId,
+                            neighborhoodEn: selectedDistrict!.districtEn,
+                            neighborhoodAr: selectedDistrict!.districtAr,
+                            lat: selectedDistrict!.latitude,
+                            lon: selectedDistrict!.longitude,
                           );
 
                           context.read<AccountBloc>().add(
@@ -1062,9 +1182,14 @@ class _EditProfileState extends State<EditProfile> {
                                 fcmToken: widget.workerData?.fcmToken,
                                 location: widget.workerData?.location,
                                 liveLocation: widget.workerData?.liveLocation,
+                                certifications: widget
+                                    .workerData!
+                                    .certifications, // Pass existing (modified) certifications
                               ),
                               selectedIqamaImage: selectedImage,
                               selectedProfileImage: selectedProfileImage,
+                              newCertifications:
+                                  certifications, // Pass new certifications
                             ),
                           );
                         }
@@ -1096,7 +1221,7 @@ class _EditProfileState extends State<EditProfile> {
     );
   }
 
-  Widget _buildDropdownField<T>({
+  Widget _buildDropdownField<T extends Object>({
     required String label,
     required T? value,
     required List<T> items,
@@ -1104,37 +1229,13 @@ class _EditProfileState extends State<EditProfile> {
     required void Function(T?) onChanged,
     String? Function(T?)? validator,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<T>(
-          value: value,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-          ),
-          items: items.map((item) {
-            return DropdownMenuItem<T>(
-              value: item,
-              child: Text(
-                itemLabel(item),
-                style: GoogleFonts.dmSans(fontSize: 14),
-              ),
-            );
-          }).toList(),
-          onChanged: onChanged,
-          validator: validator,
-          isExpanded: true,
-        ),
-      ],
+    return SearchableDropdown<T>(
+      label: label,
+      value: value,
+      items: items,
+      itemLabel: itemLabel,
+      onChanged: onChanged,
+      validator: validator,
     );
   }
 
