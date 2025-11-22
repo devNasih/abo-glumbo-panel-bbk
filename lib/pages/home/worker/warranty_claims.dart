@@ -86,7 +86,7 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
 
         onRejectOrder: (WarrantyModel warranty) {
           AppFirestore.bookingsCollectionRef.doc(booking.id).update({
-            'warranty.avaliability': false,
+            'warranty.availability': false,
           });
         },
       ),
@@ -100,6 +100,7 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
     required String message,
     String? confirmText,
     String? cancelText,
+    bool isCancel = true,
     bool requireReason = false, // NEW: flag to show reason field
   }) async {
     final reasonController = TextEditingController();
@@ -126,8 +127,10 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                     maxLength: 300,
                     autofocus: true,
                     decoration: InputDecoration(
-                      labelText: 'Reason',
-                      hintText: 'Enter reason for ${title.toLowerCase()}...',
+                      labelText: AppLocalizations.of(context)!.reason,
+                      hintText: isCancel
+                          ? AppLocalizations.of(context)!.enterReasonForCancel
+                          : AppLocalizations.of(context)!.enterReasonForReject,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -409,7 +412,11 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                   final custId = claim.customerId;
                   final customerData = customerList.firstWhere(
                     (cust) => cust.uid == custId,
-                    orElse: () => CustomerModel(uid: '', name: 'Unknown',role: 'technician'),
+                    orElse: () => CustomerModel(
+                      uid: '',
+                      name: 'Unknown',
+                      role: 'technician',
+                    ),
                   );
 
                   if (claim.bookingId == null || claim.bookingId!.isEmpty) {
@@ -434,8 +441,11 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                           technicianList
                               .firstWhere(
                                 (tech) => tech.uid == claim.technicianId,
-                                orElse: () =>
-                                    UserModel(name: 'Unknown', uid: '',role: 'technician'),
+                                orElse: () => UserModel(
+                                  name: 'Unknown',
+                                  uid: '',
+                                  role: 'technician',
+                                ),
                               )
                               .name ??
                           '',
@@ -477,8 +487,11 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                               technicianList
                                   .firstWhere(
                                     (tech) => tech.uid == claim.technicianId,
-                                    orElse: () =>
-                                        UserModel(name: "Unknown", uid: "",role: 'technician'),
+                                    orElse: () => UserModel(
+                                      name: "Unknown",
+                                      uid: "",
+                                      role: 'technician',
+                                    ),
                                   )
                                   .name ??
                               "",
@@ -486,12 +499,18 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                         );
                       }
                       final booking = bookingSnapshot.data!;
-                      final technicianName = technicianList
-                          .firstWhere(
-                            (tech) => tech.uid == claim.technicianId,
-                            orElse: () => UserModel(name: 'Unknown', uid: '',role: 'technician'),
-                          )
-                          .name;
+                      final technicianName =
+                          technicianList
+                              .firstWhere(
+                                (tech) => tech.uid == claim.technicianId,
+                                orElse: () => UserModel(
+                                  name: 'Unknown',
+                                  uid: '',
+                                  role: 'technician',
+                                ),
+                              )
+                              .name ??
+                          'Unknown';
 
                       return warrantyClaimCard(
                         isAdmin: isAdmin,
@@ -500,10 +519,15 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                         isTrackingStarted: claim.isTracking,
                         onCompleteWork: () async {
                           final confirmed = await _showConfirmationDialog(
+                            isCancel: false,
                             context: context,
-                            title: 'Complete Work',
+                            title: AppLocalizations.of(
+                              context,
+                            )!.completeWork,
                             message:
-                                'Are you sure you want to mark this warranty work as completed?',
+                                AppLocalizations.of(
+                              context,
+                            )!.completeWorkMessage,
                           );
                           if (confirmed["confirmed"] == true) {
                             await widget.bookingTrackerService
@@ -519,10 +543,15 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                         },
                         onStartWork: () async {
                           final confirmed = await _showConfirmationDialog(
+                            isCancel: false,
                             context: context,
-                            title: 'Start Work',
+                            title: AppLocalizations.of(
+                              context,
+                            )!.startWork,
                             message:
-                                'Are you ready to start working on this warranty claim?',
+                                AppLocalizations.of(
+                              context,
+                            )!.startWorkMessage,
                           );
                           if (confirmed["confirmed"] == true) {
                             final uid = LocalStore.getUID();
@@ -544,26 +573,37 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                         },
                         onCancel: () async {
                           final result = await _showConfirmationDialog(
+                            isCancel: true,
                             context: context,
-                            title: 'Cancel Warranty Claim',
-                            message:
-                                'Please provide a reason for cancelling this warranty work',
+                            title: AppLocalizations.of(
+                              context,
+                            )!.cancelWarrantyClaim,
+                            message: AppLocalizations.of(
+                              context,
+                            )!.cancelWarrantyClaimMessage,
+
                             requireReason: true, // Enable reason field
-                            confirmText: 'Cancel Work',
+                            confirmText: AppLocalizations.of(
+                              context,
+                            )!.cancelWork,
                           );
 
                           if (result['confirmed'] == true) {
                             final reason = result['reason'] as String;
                             AppServices.rejectWarrantyClaim(
                               bookingId: claim.bookingId ?? "",
-                              technicianUid: claim.technicianId,
+                              technicianUid: claim.technicianId ?? '',
                               technicianName: technicianName,
                               reason: reason, // Pass the reason
                             );
 
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Warranty claim cancelled'),
+                              SnackBar(
+                                content: Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.warrantyClaimCancelled,
+                                ),
                               ),
                             );
                           }
@@ -572,10 +612,15 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                             ? null
                             : () async {
                                 final confirmed = await _showConfirmationDialog(
+                                  isCancel: false,
                                   context: context,
-                                  title: 'Stop Tracking',
+                                  title: AppLocalizations.of(
+                                    context,
+                                  )!.stopTracking,
                                   message:
-                                      'Do you want to stop tracking for this warranty work?',
+                                      AppLocalizations.of(
+                                    context,
+                                  )!.stopTrackingMessage,
                                 );
                                 if (confirmed["confirmed"] == true) {
                                   await widget.bookingTrackerService
@@ -584,10 +629,14 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                               },
                         onAccept: () async {
                           final confirmed = await _showConfirmationDialog(
+                            isCancel: false,
                             context: context,
-                            title: 'Accept Warranty Claim',
-                            message:
-                                'Do you want to accept this warranty claim?',
+                            title: AppLocalizations.of(
+                              context,
+                            )!.acceptWarrantyClaim,
+                            message: AppLocalizations.of(
+                              context,
+                            )!.acceptWarrantyClaimMessage,
                           );
                           if (confirmed["confirmed"] == true) {
                             AppFirestore.bookingsCollectionRef
@@ -604,26 +653,34 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                         context: context,
                         onReject: () async {
                           final result = await _showConfirmationDialog(
+                            isCancel: false,
                             context: context,
-                            title: 'Reject Warranty Claim',
-                            message:
-                                'Please provide a reason for rejecting this warranty claim',
+                            title: AppLocalizations.of(
+                              context,
+                            )!.rejectWarrantyClaim,
+                            message: AppLocalizations.of(
+                              context,
+                            )!.rejectWarrantyClaimMessage,
                             requireReason: true, // Enable reason field
-                            confirmText: 'Reject',
+                            confirmText: AppLocalizations.of(context)!.reject,
                           );
 
                           if (result['confirmed'] == true) {
                             final reason = result['reason'] as String;
                             AppServices.rejectWarrantyClaim(
                               bookingId: claim.bookingId ?? "",
-                              technicianUid: claim.technicianId,
+                              technicianUid: claim.technicianId ?? '',
                               technicianName: technicianName,
                               reason: reason, // Pass the reason
                             );
 
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Warranty claim rejected'),
+                              SnackBar(
+                                content: Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.warrantyClaimRejected,
+                                ),
                               ),
                             );
                           }
@@ -634,7 +691,7 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                             ? booking.service.name_ar ?? ""
                             : booking.service.name ?? "",
                         customerName: customerData.name ?? "",
-                        technicianName: technicianName ?? "",
+                        technicianName: technicianName,
                         serviceCompletedDate: claim.createdAt,
                       );
                     },
@@ -666,7 +723,7 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                 Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
                 const SizedBox(height: 16),
                 Text(
-                  'Error: ${snapshot.error}',
+                  'Errors: ${snapshot.error}',
                   style: TextStyle(color: Colors.red[700]),
                 ),
               ],
@@ -707,7 +764,7 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                     Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
                     const SizedBox(height: 16),
                     Text(
-                      'Error: ${snapshot.error}',
+                      'Errors: ${snapshot.error}',
                       style: TextStyle(color: Colors.red[700]),
                     ),
                   ],
@@ -752,7 +809,11 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                   final custId = claim.customerId;
                   final customerData = customerList.firstWhere(
                     (cust) => cust.uid == custId,
-                    orElse: () => CustomerModel(uid: '', name: 'Unknown',role: 'technician'),
+                    orElse: () => CustomerModel(
+                      uid: '',
+                      name: 'Unknown',
+                      role: 'technician',
+                    ),
                   );
 
                   if (claim.bookingId == null || claim.bookingId!.isEmpty) {
@@ -777,8 +838,11 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                           technicianList
                               .firstWhere(
                                 (tech) => tech.uid == claim.technicianId,
-                                orElse: () =>
-                                    UserModel(name: 'Unknown', uid: '',role: 'technician'),
+                                orElse: () => UserModel(
+                                  name: 'Unknown',
+                                  uid: '',
+                                  role: 'technician',
+                                ),
                               )
                               .name ??
                           '',
@@ -820,8 +884,11 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                               technicianList
                                   .firstWhere(
                                     (tech) => tech.uid == claim.technicianId,
-                                    orElse: () =>
-                                        UserModel(name: "Unknown", uid: "",role: 'technician'),
+                                    orElse: () => UserModel(
+                                      name: "Unknown",
+                                      uid: "",
+                                      role: 'technician',
+                                    ),
                                   )
                                   .name ??
                               "",
@@ -829,12 +896,18 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                         );
                       }
                       final booking = bookingSnapshot.data!;
-                      final technicianName = technicianList
-                          .firstWhere(
-                            (tech) => tech.uid == claim.technicianId,
-                            orElse: () => UserModel(name: 'Unknown', uid: '',role: 'technician'),
-                          )
-                          .name;
+                      final technicianName =
+                          technicianList
+                              .firstWhere(
+                                (tech) => tech.uid == claim.technicianId,
+                                orElse: () => UserModel(
+                                  name: 'Unknown',
+                                  uid: '',
+                                  role: 'technician',
+                                ),
+                              )
+                              .name ??
+                          'Unknown';
 
                       return warrantyClaimCard(
                         isAdmin: isAdmin,
@@ -857,7 +930,7 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                             ? booking.service.name_ar ?? ""
                             : booking.service.name ?? "",
                         customerName: customerData.name ?? "",
-                        technicianName: technicianName ?? "",
+                        technicianName: technicianName,
                         serviceCompletedDate: claim.createdAt,
                       );
                     },

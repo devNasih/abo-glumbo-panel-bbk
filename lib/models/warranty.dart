@@ -48,7 +48,11 @@ class WarrantyModel {
           : (json['updatedAt'] as DateTime?),
       rejectedTechnicians: json['rejectedTechnicians'] != null
           ? (json['rejectedTechnicians'] as List)
-                .map((e) => RejectedTechnicianModel.fromJson(e))
+                .map(
+                  (e) => RejectedTechnicianModel.fromJson(
+                    e as Map<String, dynamic>,
+                  ),
+                )
                 .toList()
           : null,
     );

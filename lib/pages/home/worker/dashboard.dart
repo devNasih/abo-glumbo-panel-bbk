@@ -49,7 +49,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _listenToOnlineStatus() {
     AppServices.getUserStream(widget.workerData.uid ?? "").listen((userData) {
       if (mounted) {
-        _isOnlineNotifier.value = userData.isOnline ?? false;
+        _isOnlineNotifier.value = userData?.isOnline ?? false;
       }
     });
   }

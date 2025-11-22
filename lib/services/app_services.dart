@@ -403,6 +403,18 @@ class AppServices {
                 .map((doc) => BookingModel.fromDocumentSnapshot(doc))
                 .toList();
           });
+    } else if (bookingStatusCode == 'C') {
+      return AppFirestore.bookingsCollectionRef
+          .where('agent.uid', isEqualTo: workerId)
+          .where('bookingStatusCode', isEqualTo: bookingStatusCode)
+          .where('paymentCompleted', isEqualTo: true)
+          .orderBy('createdAt', descending: true)
+          .snapshots()
+          .map((snapshot) {
+            return snapshot.docs
+                .map((doc) => BookingModel.fromDocumentSnapshot(doc))
+                .toList();
+          });
     } else {
       return AppFirestore.bookingsCollectionRef
           .where('agent.uid', isEqualTo: workerId)
@@ -588,9 +600,17 @@ class AppServices {
         .snapshots()
         .map((snapshot) {
           return snapshot.docs
-              .map(
-                (doc) => UserModel.fromJson(doc.data() as Map<String, dynamic>),
-              )
+              .map((doc) {
+                try {
+                  return UserModel.fromJson(doc.data() as Map<String, dynamic>);
+                } catch (e) {
+                  if (kDebugMode) {
+                    print('⚠️ Error parsing user document ${doc.id}: $e');
+                  }
+                  return null;
+                }
+              })
+              .whereType<UserModel>() // Filter out nulls
               .toList();
         });
   }
@@ -965,10 +985,19 @@ class AppServices {
         .snapshots()
         .map((snapshot) {
           return snapshot.docs
-              .map(
-                (doc) =>
-                    CustomerModel.fromJson(doc.data() as Map<String, dynamic>),
-              )
+              .map((doc) {
+                try {
+                  return CustomerModel.fromJson(
+                    doc.data() as Map<String, dynamic>,
+                  );
+                } catch (e) {
+                  if (kDebugMode) {
+                    print('⚠️ Error parsing customer document ${doc.id}: $e');
+                  }
+                  return null;
+                }
+              })
+              .whereType<CustomerModel>() // Filter out nulls
               .toList();
         });
   }
@@ -1839,14 +1868,12 @@ class AppServices {
   }
 
   /// Stream user data
-  static Stream<UserModel> getUserStream(String uid) {
-    return AppFirestore.usersCollectionRef
-        .doc(uid)
-        .snapshots()
-        .map(
-          (snapshot) =>
-              UserModel.fromJson(snapshot.data() as Map<String, dynamic>),
-        );
+  static Stream<UserModel?> getUserStream(String uid) {
+    return AppFirestore.usersCollectionRef.doc(uid).snapshots().map((snapshot) {
+      final data = snapshot.data();
+      if (!snapshot.exists || data == null) return null;
+      return UserModel.fromJson(data as Map<String, dynamic>);
+    });
   }
 
   // Mark all notifications as read for current user
@@ -1894,7 +1921,6 @@ class AppServices {
   ) {
     return AppFirestore.bookingsCollectionRef
         .where("bookingStatusCode", isEqualTo: "C")
-        .where("paymentCompleted", isEqualTo: true)
         .where('warranty', isNull: false)
         .where("warranty.assignedTechnicianId", isEqualTo: uid)
         .where("warranty.availability", isEqualTo: true)

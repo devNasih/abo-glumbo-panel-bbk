@@ -3132,7 +3132,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resendOTP => 'Resend OTP';
 
   @override
+  String get enterReasonForCancel => 'Enter reason for cancellation';
+
+  @override
+  String get enterReasonForReject => 'Enter reason for rejection';
+
+  @override
+  String get areYouSureYouWantToDeleteThisFile =>
+      'Are you sure you want to delete this file?';
+
+  @override
   String get sendOtp => 'Send OTP';
+
+  @override
+  String get rejectWarrantyClaimMessage =>
+      'Please provide a reason for rejecting this warranty claim';
 
   @override
   String get invalidPhoneNumberLength => 'Invalid phone number length';
@@ -3148,7 +3162,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fileTooLarge => 'File too large (max 10MB)';
 
   @override
+  String get warrantyClaimRejected => 'Warranty claim rejected';
+
+  @override
+  String get rejectWarrantyClaim => 'Reject Warranty Claim';
+
+  @override
+  String get workCompleted => 'Work Completed';
+
+  @override
+  String get acceptWarrantyClaim => 'Accept Warranty Claim';
+
+  @override
+  String get acceptWarrantyClaimMessage =>
+      'Do you want to accept this warranty claim?';
+
+  @override
+  String get pauseTracking => 'Pause Tracking';
+
+  @override
+  String get completeWorkMessage =>
+      'Are you sure you want to mark this warranty work as completed?';
+
+  @override
+  String get startWorkMessage =>
+      'Are you ready to start working on this warranty claim?';
+
+  @override
+  String get stopTrackingMessage =>
+      'Do you want to stop tracking for this warranty work?';
+
+  @override
+  String get warrantyClaimCancelled => 'Warranty claim cancelled';
+
+  @override
+  String get cancelWarrantyClaim => 'Cancel Warranty Claim';
+
+  @override
+  String get cancelWork => 'Cancel Work';
+
+  @override
+  String get cancelWarrantyClaimMessage =>
+      'Please provide a reason for cancelling this warranty work';
+
+  @override
   String get cropDocument => 'Crop Document';
+
+  @override
+  String get tapToRetry => 'Tap to retry';
 
   @override
   String get completeRegistration => 'Complete Registration';

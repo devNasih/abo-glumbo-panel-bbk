@@ -5996,11 +5996,35 @@ abstract class AppLocalizations {
   /// **'Resend OTP'**
   String get resendOTP;
 
+  /// No description provided for @enterReasonForCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter reason for cancellation'**
+  String get enterReasonForCancel;
+
+  /// No description provided for @enterReasonForReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter reason for rejection'**
+  String get enterReasonForReject;
+
+  /// No description provided for @areYouSureYouWantToDeleteThisFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this file?'**
+  String get areYouSureYouWantToDeleteThisFile;
+
   /// No description provided for @sendOtp.
   ///
   /// In en, this message translates to:
   /// **'Send OTP'**
   String get sendOtp;
+
+  /// No description provided for @rejectWarrantyClaimMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please provide a reason for rejecting this warranty claim'**
+  String get rejectWarrantyClaimMessage;
 
   /// No description provided for @invalidPhoneNumberLength.
   ///
@@ -6026,11 +6050,95 @@ abstract class AppLocalizations {
   /// **'File too large (max 10MB)'**
   String get fileTooLarge;
 
+  /// No description provided for @warrantyClaimRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty claim rejected'**
+  String get warrantyClaimRejected;
+
+  /// No description provided for @rejectWarrantyClaim.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject Warranty Claim'**
+  String get rejectWarrantyClaim;
+
+  /// No description provided for @workCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Work Completed'**
+  String get workCompleted;
+
+  /// No description provided for @acceptWarrantyClaim.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept Warranty Claim'**
+  String get acceptWarrantyClaim;
+
+  /// No description provided for @acceptWarrantyClaimMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to accept this warranty claim?'**
+  String get acceptWarrantyClaimMessage;
+
+  /// No description provided for @pauseTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause Tracking'**
+  String get pauseTracking;
+
+  /// No description provided for @completeWorkMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to mark this warranty work as completed?'**
+  String get completeWorkMessage;
+
+  /// No description provided for @startWorkMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you ready to start working on this warranty claim?'**
+  String get startWorkMessage;
+
+  /// No description provided for @stopTrackingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to stop tracking for this warranty work?'**
+  String get stopTrackingMessage;
+
+  /// No description provided for @warrantyClaimCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty claim cancelled'**
+  String get warrantyClaimCancelled;
+
+  /// No description provided for @cancelWarrantyClaim.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Warranty Claim'**
+  String get cancelWarrantyClaim;
+
+  /// No description provided for @cancelWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Work'**
+  String get cancelWork;
+
+  /// No description provided for @cancelWarrantyClaimMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please provide a reason for cancelling this warranty work'**
+  String get cancelWarrantyClaimMessage;
+
   /// No description provided for @cropDocument.
   ///
   /// In en, this message translates to:
   /// **'Crop Document'**
   String get cropDocument;
+
+  /// No description provided for @tapToRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to retry'**
+  String get tapToRetry;
 
   /// No description provided for @completeRegistration.
   ///

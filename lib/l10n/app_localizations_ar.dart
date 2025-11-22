@@ -1743,28 +1743,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get now => 'الان';
 
   @override
-  String get assigningTechnician => 'Assigning Technician';
+  String get assigningTechnician => 'تعيين الفني';
 
   @override
-  String get selectProvince => 'Select Province';
+  String get selectProvince => 'اختر المحافظة';
 
   @override
-  String get selectCity => 'Select City';
+  String get selectCity => 'اختر المدينة';
 
   @override
-  String get rejectionHistory => 'Rejection History';
+  String get rejectionHistory => 'تاريخ الرفض';
 
   @override
-  String get selectNeighborhood => 'Select Neighborhood';
+  String get selectNeighborhood => 'اختر الحي';
 
   @override
   String get recipients => 'المستلمون';
 
   @override
-  String get techniciansRejectedThisClaim => 'Technicians rejected this claim';
+  String get techniciansRejectedThisClaim => 'تم رفض هذا الطلب من قبل الفنيين';
 
   @override
-  String get technicianRejectedThisClaim => 'Technician rejected this claim';
+  String get technicianRejectedThisClaim => 'تم رفض هذا الطلب من قبل الفني';
 
   @override
   String get warrantyClaims => 'طلبات التضامن';
@@ -1773,7 +1773,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tapToView => 'انقر للمشاهدة';
 
   @override
-  String get rejections => 'Rejections';
+  String get rejections => 'الرفضات';
 
   @override
   String get exceedsMaxSize => 'تجاوز الحد الاقصى';
@@ -1853,19 +1853,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get startChat => 'بدء الدردشة';
 
   @override
-  String get today => 'Today';
+  String get today => 'اليوم';
 
   @override
-  String get yesterday => 'Yesterday';
+  String get yesterday => 'الامس';
 
   @override
   String get amountPaid => 'المبلغ المدفوع';
 
   @override
-  String get continueChat => 'Continue Chat';
+  String get continueChat => 'مواصلة الدردشة';
 
   @override
-  String get failedToStartChat => 'Failed to start chat';
+  String get failedToStartChat => 'فشل بدء الدردشة';
 
   @override
   String get creatingChatRoom => 'جاري انشاء غرفة الدردشة';
@@ -1874,10 +1874,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loadingChat => 'جاري تحميل الدردشة';
 
   @override
-  String get noMessages => 'No messages';
+  String get noMessages => 'لا توجد رسائل';
 
   @override
-  String get errorLoadingMessages => 'Error loading messages';
+  String get errorLoadingMessages => 'خطأ في تحميل الرسائل';
 
   @override
   String get transactionId => 'رقم المعاملة';
@@ -3086,7 +3086,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get resendOTP => 'إعادة إرسال OTP';
 
   @override
+  String get enterReasonForCancel => 'الرجاء ادخال سبب الإلغاء';
+
+  @override
+  String get enterReasonForReject => 'الرجاء ادخال سبب الرفض';
+
+  @override
+  String get areYouSureYouWantToDeleteThisFile =>
+      'هل أنت متأكد أنك تريد حذف هذا الملف؟';
+
+  @override
   String get sendOtp => 'إرسال OTP';
+
+  @override
+  String get rejectWarrantyClaimMessage =>
+      'هل أنت متأكد من رغبتك في رفض هذا الطلب؟';
 
   @override
   String get invalidPhoneNumberLength => 'طول رقم الهاتف غير صحيح';
@@ -3102,7 +3116,51 @@ class AppLocalizationsAr extends AppLocalizations {
   String get fileTooLarge => 'الملف كبير جداً';
 
   @override
+  String get warrantyClaimRejected => 'تم رفض الطلب';
+
+  @override
+  String get rejectWarrantyClaim => 'رفض الطلب';
+
+  @override
+  String get workCompleted => 'تم إكمال العمل';
+
+  @override
+  String get acceptWarrantyClaim => 'قبول الطلب';
+
+  @override
+  String get acceptWarrantyClaimMessage =>
+      'هل أنت متأكد من رغبتك في قبول هذا الطلب؟';
+
+  @override
+  String get pauseTracking => 'إيقاف تتبع';
+
+  @override
+  String get completeWorkMessage => 'هل أنت متأكد من رغبتك في إكمال هذا العمل؟';
+
+  @override
+  String get startWorkMessage => 'هل أنت متأكد من رغبتك في بدء العمل؟';
+
+  @override
+  String get stopTrackingMessage =>
+      'هل أنت متأكد من رغبتك في إيقاف تتبع هذا العمل؟';
+
+  @override
+  String get warrantyClaimCancelled => 'تم إلغاء الطلب';
+
+  @override
+  String get cancelWarrantyClaim => 'إلغاء الطلب';
+
+  @override
+  String get cancelWork => 'إلغاء العمل';
+
+  @override
+  String get cancelWarrantyClaimMessage => 'الرجاء ادخال سبب الإلغاء';
+
+  @override
   String get cropDocument => 'قص الوثائق';
+
+  @override
+  String get tapToRetry => 'اضغط للاعادة';
 
   @override
   String get completeRegistration => 'إكمال التسجيل';

@@ -10,6 +10,7 @@ import 'package:aboglumbo_bbk_panel/models/location.dart';
 import 'package:aboglumbo_bbk_panel/models/location_selection.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
+import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/services/firestorage.dart';
 import 'package:aboglumbo_bbk_panel/services/notification.dart';
@@ -207,6 +208,7 @@ class _SignupState extends State<Signup> {
                   AppLocalizations.of(context)?.cropDocument ?? 'Crop Document',
               toolbarColor: AppColors.primary,
               toolbarWidgetColor: Colors.white,
+              statusBarColor: AppColors.primary,
             ),
             IOSUiSettings(
               title:
@@ -264,10 +266,69 @@ class _SignupState extends State<Signup> {
     }
   }
 
-  void _removeCertification(int index) {
-    setState(() {
-      certifications.removeAt(index);
-    });
+  Future<void> _removeCertification(int index) async {
+    final confirm = await _showDeleteConfirmation();
+    if (confirm) {
+      setState(() {
+        certifications.removeAt(index);
+      });
+    }
+  }
+
+  Future<bool> _showDeleteConfirmation() async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(AppLocalizations.of(context)?.delete ?? 'Delete'),
+            content: Text(
+              AppLocalizations.of(context)?.areYouSureYouWantToDeleteThisFile ??
+                  'Are you sure you want to remove this file?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(AppLocalizations.of(context)?.no ?? 'No'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(
+                  AppLocalizations.of(context)?.yes ?? 'Yes',
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  void _viewCertification(PlatformFile file) {
+    if (file.path == null) return;
+    final ext = file.extension?.toLowerCase();
+    if (['jpg', 'jpeg', 'png'].contains(ext)) {
+      showDialog(
+        context: context,
+        builder: (context) => Dialog(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppBar(
+                title: Text(file.name),
+                leading: IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+              InteractiveViewer(child: Image.file(File(file.path!))),
+            ],
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Cannot preview ${file.extension}')),
+      );
+    }
   }
 
   Future<void> _selectJobRoles() async {
@@ -628,393 +689,386 @@ class _SignupState extends State<Signup> {
     final safePadding = MediaQuery.of(context).padding;
     final isArabic = LocalStore.getUserlanguage() == 'ar';
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          AppLocalizations.of(context)?.completeRegistration ??
-              'Complete Registration',
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () async {
-            final confirm = await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text(
-                  AppLocalizations.of(context)?.cancelRegistration ??
-                      'Cancel Registration?',
-                ),
-                content: Text(
-                  AppLocalizations.of(
-                        context,
-                      )?.cancelRegistrationConfirmation ??
-                      'Are you sure you want to cancel? All entered data will be lost.',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: Text(AppLocalizations.of(context)?.no ?? 'No'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: Text(
-                      AppLocalizations.of(context)?.yes ?? 'Yes',
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ),
-                ],
-              ),
-            );
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (!didPop) {
+          await _handleCancelRegistration(); // ✅ We control navigation
+        }
+      },
 
-            if (confirm == true && mounted) {
-              Navigator.pop(context);
-            }
-          },
-        ),
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: EdgeInsets.only(
-            top: 16,
-            left: 16,
-            right: 16,
-            bottom: safePadding.bottom + 16,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            AppLocalizations.of(context)?.completeRegistration ??
+                'Complete Registration',
           ),
-          children: [
-            // Loading indicator
-            if (isLoadingLocations || isLoadingCategories)
-              const LinearProgressIndicator(),
-
-            const SizedBox(height: 16),
-
-            // Profile Image Picker
-            Center(
-              child: GestureDetector(
-                onTap: _pickProfileImage,
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 60,
-                      backgroundColor: AppColors.primary.withOpacity(0.1),
-                      backgroundImage: profileImage != null
-                          ? FileImage(File(profileImage!.path))
-                          : null,
-                      child: profileImage == null
-                          ? Icon(
-                              Icons.person,
-                              size: 60,
-                              color: AppColors.primary,
-                            )
-                          : null,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.secondary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.camera_alt,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: _handleCancelRegistration,
+          ),
+        ),
+        body: Form(
+          key: _formKey,
+          child: ListView(
+            padding: EdgeInsets.only(
+              top: 16,
+              left: 16,
+              right: 16,
+              bottom: safePadding.bottom + 16,
             ),
+            children: [
+              // Loading indicator
+              if (isLoadingLocations || isLoadingCategories)
+                const LinearProgressIndicator(),
 
-            const SizedBox(height: 24),
-
-            // Name Field
-            TextFormWidget(
-              controller: nameController,
-              label: AppLocalizations.of(context)?.fullName ?? 'Full Name',
-              keyboardType: TextInputType.name,
-              textInputAction: TextInputAction.next,
-              readOnly: false,
-              enabled: true,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return AppLocalizations.of(context)?.pleaseEnterYourName ??
-                      'Please enter your name';
-                }
-                if (value.length < 3) {
-                  return AppLocalizations.of(context)?.nameTooShort ??
-                      'Name must be at least 3 characters';
-                }
-                return null;
-              },
-            ),
-
-            // Phone Field (Read-only)
-            TextFormWidget(
-              controller: phoneController,
-              label:
-                  AppLocalizations.of(context)?.phoneNumber ?? 'Phone Number',
-              keyboardType: TextInputType.phone,
-              enabled: false,
-            ),
-
-            TextFormWidget(
-              controller: emailController,
-              label:
-                  '${AppLocalizations.of(context)?.email ?? 'Email'} (${AppLocalizations.of(context)?.optional ?? 'Optional'})',
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              validator: (value) {
-                // Only validate if user entered something
-                if (value != null && value.isNotEmpty) {
-                  if (!emailRegex.hasMatch(value)) {
-                    return AppLocalizations.of(
-                          context,
-                        )?.pleaseEnterValidEmail ??
-                        'Please enter a valid email address';
-                  }
-                }
-                return null;
-              },
-            ),
-
-            // Region Dropdown
-            _buildDropdownField<Region>(
-              label: AppLocalizations.of(context)?.province ?? 'Region',
-              value: selectedRegion,
-              items: regions,
-              itemLabel: (region) => region.getName(isArabic),
-              onChanged: (region) {
-                setState(() {
-                  selectedRegion = region;
-                  selectedCity = null;
-                  selectedDistrict = null;
-                });
-              },
-              validator: (value) {
-                if (value == null) {
-                  return AppLocalizations.of(context)?.pleaseSelectProvince ??
-                      'Please select a region';
-                }
-                return null;
-              },
-            ),
-
-            if (selectedRegion != null) ...[
               const SizedBox(height: 16),
 
-              // City Dropdown
-              _buildDropdownField<City>(
-                label: AppLocalizations.of(context)?.city ?? 'City',
-                value: selectedCity,
-                items: selectedRegion!.cities,
-                itemLabel: (city) => city.getName(isArabic),
-                onChanged: (city) {
+              // Profile Image Picker
+              Center(
+                child: GestureDetector(
+                  onTap: _pickProfileImage,
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 60,
+                        backgroundColor: AppColors.primary.withOpacity(0.1),
+                        backgroundImage: profileImage != null
+                            ? FileImage(File(profileImage!.path))
+                            : null,
+                        child: profileImage == null
+                            ? Icon(
+                                Icons.person,
+                                size: 60,
+                                color: AppColors.primary,
+                              )
+                            : null,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Name Field
+              TextFormWidget(
+                controller: nameController,
+                label: AppLocalizations.of(context)?.fullName ?? 'Full Name',
+                keyboardType: TextInputType.name,
+                textInputAction: TextInputAction.next,
+                readOnly: false,
+                enabled: true,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return AppLocalizations.of(context)?.pleaseEnterYourName ??
+                        'Please enter your name';
+                  }
+                  if (value.length < 3) {
+                    return AppLocalizations.of(context)?.nameTooShort ??
+                        'Name must be at least 3 characters';
+                  }
+                  return null;
+                },
+              ),
+
+              // Phone Field (Read-only)
+              TextFormWidget(
+                controller: phoneController,
+                label:
+                    AppLocalizations.of(context)?.phoneNumber ?? 'Phone Number',
+                keyboardType: TextInputType.phone,
+                enabled: false,
+              ),
+
+              TextFormWidget(
+                controller: emailController,
+                label:
+                    '${AppLocalizations.of(context)?.email ?? 'Email'} (${AppLocalizations.of(context)?.optional ?? 'Optional'})',
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                validator: (value) {
+                  // Only validate if user entered something
+                  if (value != null && value.isNotEmpty) {
+                    if (!emailRegex.hasMatch(value)) {
+                      return AppLocalizations.of(
+                            context,
+                          )?.pleaseEnterValidEmail ??
+                          'Please enter a valid email address';
+                    }
+                  }
+                  return null;
+                },
+              ),
+
+              // Region Dropdown
+              _buildDropdownField<Region>(
+                label: AppLocalizations.of(context)?.province ?? 'Region',
+                value: selectedRegion,
+                items: regions,
+                itemLabel: (region) => region.getName(isArabic),
+                onChanged: (region) {
                   setState(() {
-                    selectedCity = city;
+                    selectedRegion = region;
+                    selectedCity = null;
                     selectedDistrict = null;
                   });
                 },
                 validator: (value) {
                   if (value == null) {
-                    return AppLocalizations.of(context)?.pleaseSelectCity ??
-                        'Please select a city';
+                    return AppLocalizations.of(context)?.pleaseSelectProvince ??
+                        'Please select a region';
                   }
                   return null;
                 },
               ),
-            ],
 
-            if (selectedCity != null) ...[
+              if (selectedRegion != null) ...[
+                const SizedBox(height: 16),
+
+                // City Dropdown
+                _buildDropdownField<City>(
+                  label: AppLocalizations.of(context)?.city ?? 'City',
+                  value: selectedCity,
+                  items: selectedRegion!.cities,
+                  itemLabel: (city) => city.getName(isArabic),
+                  onChanged: (city) {
+                    setState(() {
+                      selectedCity = city;
+                      selectedDistrict = null;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return AppLocalizations.of(context)?.pleaseSelectCity ??
+                          'Please select a city';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+
+              if (selectedCity != null) ...[
+                const SizedBox(height: 16),
+                // District Dropdown
+                _buildDropdownField<District>(
+                  label:
+                      AppLocalizations.of(context)?.neighborhood ?? 'District',
+                  value: selectedDistrict,
+                  items: selectedCity!.districts,
+                  itemLabel: (district) => district.getName(isArabic),
+                  onChanged: (district) {
+                    setState(() {
+                      selectedDistrict = district;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return AppLocalizations.of(
+                            context,
+                          )?.pleaseSelectNeighborhood ??
+                          'Please select a district';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+
               const SizedBox(height: 16),
-              // District Dropdown
-              _buildDropdownField<District>(
-                label: AppLocalizations.of(context)?.neighborhood ?? 'District',
-                value: selectedDistrict,
-                items: selectedCity!.districts,
-                itemLabel: (district) => district.getName(isArabic),
-                onChanged: (district) {
-                  setState(() {
-                    selectedDistrict = district;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return AppLocalizations.of(
-                          context,
-                        )?.pleaseSelectNeighborhood ??
-                        'Please select a district';
-                  }
-                  return null;
-                },
-              ),
-            ],
 
-            const SizedBox(height: 16),
-
-            // Job Roles Selector
-            Text(
-              AppLocalizations.of(context)?.jobRoles ?? 'Job Roles',
-              style: GoogleFonts.dmSans(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            InkWell(
-              onTap: isLoadingCategories ? null : _selectJobRoles,
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade400),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        selectedJobRoles.isEmpty
-                            ? (AppLocalizations.of(context)?.selectJobRoles ??
-                                  'Select Job Roles')
-                            : _getJobRoleNames(),
-                        style: GoogleFonts.dmSans(
-                          color: selectedJobRoles.isEmpty
-                              ? Colors.grey
-                              : Colors.black,
-                        ),
-                      ),
-                    ),
-                    const Icon(Icons.arrow_drop_down),
-                  ],
+              // Job Roles Selector
+              Text(
+                AppLocalizations.of(context)?.jobRoles ?? 'Job Roles',
+                style: GoogleFonts.dmSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // ID Document Upload
-            Text(
-              '${AppLocalizations.of(context)?.idDocument ?? 'ID Document'} *',
-              style: GoogleFonts.dmSans(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _pickIdImage,
-              icon: const Icon(Icons.upload_file),
-              label: Text(
-                idImage == null
-                    ? (AppLocalizations.of(context)?.uploadIdDocument ??
-                          'Upload ID Document')
-                    : (AppLocalizations.of(context)?.idDocumentUploaded ??
-                          'ID Document Uploaded'),
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: idImage != null
-                    ? Colors.green
-                    : AppColors.primary,
-              ),
-            ),
-
-            if (idImage != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(
-                        File(idImage!.path),
-                        height: 150,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: IconButton(
-                        onPressed: () => setState(() => idImage = null),
-                        icon: const Icon(Icons.close),
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            const SizedBox(height: 16),
-
-            // Certifications Upload
-            Text(
-              '${AppLocalizations.of(context)?.certifications ?? 'Certifications'} (${AppLocalizations.of(context)?.optional ?? 'Optional'})',
-              style: GoogleFonts.dmSans(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _pickCertifications,
-              icon: const Icon(Icons.attach_file),
-              label: Text(
-                AppLocalizations.of(context)?.uploadCertifications ??
-                    'Upload Certifications',
-              ),
-            ),
-
-            if (certifications.isNotEmpty)
-              ...certifications.asMap().entries.map((entry) {
-                int index = entry.key;
-                PlatformFile file = entry.value;
-                return ListTile(
-                  leading: const Icon(Icons.description),
-                  title: Text(file.name),
-                  subtitle: Text('${(file.size / 1024).toStringAsFixed(2)} KB'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => _removeCertification(index),
+              const SizedBox(height: 8),
+              InkWell(
+                onTap: isLoadingCategories ? null : _selectJobRoles,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade400),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                );
-              }),
-
-            // Submit Button
-            Padding(
-              padding: const EdgeInsets.only(top: 30.0),
-              child: SizedBox(
-                width: double.maxFinite,
-                height: 55,
-                child: ElevatedButton(
-                  onPressed: isCreatingAccount ? null : _submitSignup,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.secondary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: isCreatingAccount
-                      ? Loader()
-                      : Text(
-                          AppLocalizations.of(context)?.createAccount ??
-                              'Create Account',
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          selectedJobRoles.isEmpty
+                              ? (AppLocalizations.of(context)?.selectJobRoles ??
+                                    'Select Job Roles')
+                              : _getJobRoleNames(),
                           style: GoogleFonts.dmSans(
-                            color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
+                            color: selectedJobRoles.isEmpty
+                                ? Colors.grey
+                                : Colors.black,
                           ),
                         ),
+                      ),
+                      const Icon(Icons.arrow_drop_down),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 16),
+
+              // ID Document Upload
+              Text(
+                '${AppLocalizations.of(context)?.idDocument ?? 'ID Document'} *',
+                style: GoogleFonts.dmSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: _pickIdImage,
+                icon: const Icon(Icons.upload_file),
+                label: Text(
+                  idImage == null
+                      ? (AppLocalizations.of(context)?.uploadIdDocument ??
+                            'Upload ID Document')
+                      : (AppLocalizations.of(context)?.idDocumentUploaded ??
+                            'ID Document Uploaded'),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: idImage != null
+                      ? Colors.green
+                      : AppColors.primary,
+                ),
+              ),
+
+              if (idImage != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          File(idImage!.path),
+                          height: 150,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: IconButton(
+                          onPressed: () async {
+                            final confirm = await _showDeleteConfirmation();
+                            if (confirm) {
+                              setState(() => idImage = null);
+                            }
+                          },
+                          icon: const Icon(Icons.close),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              const SizedBox(height: 16),
+
+              // Certifications Upload
+              Text(
+                '${AppLocalizations.of(context)?.certifications ?? 'Certifications'} (${AppLocalizations.of(context)?.optional ?? 'Optional'})',
+                style: GoogleFonts.dmSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: _pickCertifications,
+                icon: const Icon(Icons.attach_file),
+                label: Text(
+                  AppLocalizations.of(context)?.uploadCertifications ??
+                      'Upload Certifications',
+                ),
+              ),
+
+              if (certifications.isNotEmpty)
+                ...certifications.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  PlatformFile file = entry.value;
+                  return ListTile(
+                    onTap: () => _viewCertification(file),
+                    leading: const Icon(Icons.description),
+                    title: Text(file.name),
+                    subtitle: Align(
+                      alignment: isArabic
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Directionality(
+                        textDirection: TextDirection.ltr,
+                        child: Text(
+                          '${(file.size / 1024).toStringAsFixed(2)} KB',
+                        ),
+                      ),
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => _removeCertification(index),
+                    ),
+                  );
+                }),
+
+              // Submit Button
+              Padding(
+                padding: const EdgeInsets.only(top: 30.0),
+                child: SizedBox(
+                  width: double.maxFinite,
+                  height: 55,
+                  child: ElevatedButton(
+                    onPressed: isCreatingAccount ? null : _submitSignup,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.secondary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: isCreatingAccount
+                        ? Loader()
+                        : Text(
+                            AppLocalizations.of(context)?.createAccount ??
+                                'Create Account',
+                            style: GoogleFonts.dmSans(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1044,5 +1098,55 @@ class _SignupState extends State<Signup> {
     phoneController.dispose();
     emailController.dispose();
     super.dispose();
+  }
+
+  Future<bool> _handleCancelRegistration() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          AppLocalizations.of(context)?.cancelRegistration ??
+              'Cancel Registration?',
+        ),
+        content: Text(
+          AppLocalizations.of(context)?.cancelRegistrationConfirmation ??
+              'Are you sure you want to cancel? All entered data will be lost.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppLocalizations.of(context)?.no ?? 'No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              AppLocalizations.of(context)?.yes ?? 'Yes',
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && mounted) {
+      try {
+        await FirebaseAuth.instance.currentUser?.delete();
+      } catch (_) {
+        await FirebaseAuth.instance.signOut();
+      }
+
+      await LocalStore.clearUID();
+      await LocalStore.putlogoutStatus(true);
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+        (route) => false,
+      );
+
+      return false; // ✅ allow pop after handling
+    }
+
+    return false; // ✅ prevent default pop
   }
 }

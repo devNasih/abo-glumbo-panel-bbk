@@ -5,7 +5,7 @@ import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' show DateFormat;
 
 class TechnicianChatScreen extends StatefulWidget {
   final String chatId;
@@ -616,22 +616,25 @@ class _TechnicianChatScreenState extends State<TechnicianChatScreen> {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    _formatTime(timestamp),
-                    style: GoogleFonts.dmSans(
-                      fontSize: 11,
-                      color: status == 'failed'
-                          ? Colors.red[700]
-                          : (isMe
-                                ? Colors.white.withOpacity(0.8)
-                                : Colors.grey[600]),
+                  Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: Text(
+                      _formatTime(timestamp),
+                      style: GoogleFonts.dmSans(
+                        fontSize: 11,
+                        color: status == 'failed'
+                            ? Colors.red[700]
+                            : (isMe
+                                  ? Colors.white.withOpacity(0.8)
+                                  : Colors.grey[600]),
+                      ),
                     ),
                   ),
                   if (isMe) ...[const SizedBox(width: 4), statusIcon],
                   if (status == 'failed') ...[
                     const SizedBox(width: 8),
                     Text(
-                      'Tap to retry',
+                      AppLocalizations.of(context)!.tapToRetry,
                       style: GoogleFonts.dmSans(
                         fontSize: 10,
                         color: Colors.red[700],

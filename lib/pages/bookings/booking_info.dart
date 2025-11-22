@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:aboglumbo_bbk_panel/common_widget/cached_video_player.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
@@ -11,6 +10,7 @@ import 'package:aboglumbo_bbk_panel/models/booking.dart';
 import 'package:aboglumbo_bbk_panel/pages/bookings/booking_controllers.dart';
 import 'package:aboglumbo_bbk_panel/pages/chat_screen.dart';
 import 'package:aboglumbo_bbk_panel/services/chat_services.dart';
+import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -299,14 +299,14 @@ class _BookingInfoState extends State<BookingInfo> {
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
+          colors: [AppColors.primary, AppColors.primary],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.primary.withOpacity(0.3),
+            color: AppColors.primary.withOpacity(0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -614,9 +614,7 @@ class _BookingInfoState extends State<BookingInfo> {
               icon: Icons.person,
               label: AppLocalizations.of(context)!.customerName,
               value:
-                  //  selectedAddress != null
-                  // ? (selectedAddress.fullName)
-                  // :
+             
                   (widget.booking.customer.name ?? 'N/A'),
               textTheme: textTheme,
               colorScheme: colorScheme,

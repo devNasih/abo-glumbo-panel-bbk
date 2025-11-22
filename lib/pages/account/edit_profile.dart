@@ -1084,7 +1084,6 @@ class _EditProfileState extends State<EditProfile> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Display existing certifications (URLs)
                   // Display existing certifications (URLs) - with tap to view
                   if (widget.workerData!.certifications != null &&
                       widget.workerData!.certifications!.isNotEmpty)

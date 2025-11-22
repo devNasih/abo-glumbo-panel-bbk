@@ -63,7 +63,7 @@ Widget warrantyClaimCard({
         child: ElevatedButton.icon(
           onPressed: onAccept,
           icon: const Icon(Icons.check_circle_outline, size: 20),
-          label: const Text('Accept'),
+          label: Text(AppLocalizations.of(context)?.accept ?? 'Accept'),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF4CAF50),
             foregroundColor: Colors.white,
@@ -80,7 +80,7 @@ Widget warrantyClaimCard({
         child: OutlinedButton.icon(
           onPressed: onReject,
           icon: const Icon(Icons.close_rounded, size: 20),
-          label: const Text('Reject'),
+          label: Text(AppLocalizations.of(context)?.reject ?? 'Reject'),
           style: OutlinedButton.styleFrom(
             foregroundColor: const Color(0xFFE53935),
             side: const BorderSide(color: Color(0xFFE53935), width: 1.5),
@@ -99,7 +99,7 @@ Widget warrantyClaimCard({
         child: ElevatedButton.icon(
           onPressed: onStartWork,
           icon: const Icon(Icons.play_arrow_rounded, size: 20),
-          label: const Text('Start Work'),
+          label: Text(AppLocalizations.of(context)?.startWork ?? 'Start Work'),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF2196F3),
             foregroundColor: Colors.white,
@@ -116,7 +116,7 @@ Widget warrantyClaimCard({
         child: OutlinedButton.icon(
           onPressed: onCancel,
           icon: const Icon(Icons.cancel_outlined, size: 20),
-          label: const Text('Cancel'),
+          label: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
           style: OutlinedButton.styleFrom(
             foregroundColor: Colors.grey[700],
             side: BorderSide(color: Colors.grey[400]!, width: 1.5),
@@ -135,7 +135,7 @@ Widget warrantyClaimCard({
         child: OutlinedButton.icon(
           onPressed: onStopTracking,
           icon: const Icon(Icons.pause_circle_outline, size: 20),
-          label: const Text('Pause'),
+          label: Text(AppLocalizations.of(context)?.pauseTracking ?? 'Pause'),
           style: OutlinedButton.styleFrom(
             foregroundColor: const Color(0xFFFF9800),
             side: const BorderSide(color: Color(0xFFFF9800), width: 1.5),
@@ -151,7 +151,7 @@ Widget warrantyClaimCard({
         child: ElevatedButton.icon(
           onPressed: onCompleteWork,
           icon: const Icon(Icons.task_alt_rounded, size: 20),
-          label: const Text('Complete'),
+          label: Text(AppLocalizations.of(context)?.complete ?? 'Complete'),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF4CAF50),
             foregroundColor: Colors.white,
@@ -180,7 +180,7 @@ Widget warrantyClaimCard({
               Icon(Icons.check_circle, color: Colors.grey[600], size: 20),
               const SizedBox(width: 8),
               Text(
-                'Work Completed',
+                AppLocalizations.of(context)!.workCompleted ?? 'Work Completed',
                 style: TextStyle(
                   color: Colors.grey[700],
                   fontWeight: FontWeight.w600,

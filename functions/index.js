@@ -5,6 +5,7 @@ const {
 const { onRequest } = require("firebase-functions/v2/https");
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { onValueCreated } = require("firebase-functions/v2/database");
 const { logger } = require("firebase-functions/v2");
 const admin = require("firebase-admin");
 admin.initializeApp();
@@ -189,12 +190,12 @@ exports.notifyAgentOnAssignment = onDocumentWritten(
           notification: {
             title:
               lanCode === "ar"
-                ? "تم تعيين عامل جديد لحجز"
+                ? "تم تعيين فني جديد لحجز"
                 : "New Agent Assigned",
             body:
               lanCode === "ar"
-                ? `تم تعيين العامل لحجز جديد لخدمة "${serviceName}".`
-                : `An agent has been assigned to a new booking for "${serviceName}".`,
+                ? `تم تعيين الفني لحجز جديد لخدمة "${serviceName}".`
+                : `An Technician has been assigned to a new booking for "${serviceName}".`,
           },
           token,
           data: {
@@ -247,12 +248,12 @@ exports.notifyAgentOnAssignment = onDocumentWritten(
             notification: {
               title:
                 lanCode === "ar"
-                  ? "إلغاء حجز من قبل عامل"
-                  : "Booking Cancelled by Worker",
+                  ? "إلغاء الحجز من قبل الفني"
+                  : "Booking Cancelled by Technician",
               body:
                 lanCode === "ar"
-                  ? `تم إلغاء الحجز من قبل العامل ${workerName}.`
-                  : `The booking has been cancelled by worker ${workerName}.`,
+                  ? `تم إلغاء الحجز من قبل الفني ${workerName}.`
+                  : `The booking has been cancelled by Technician ${workerName}.`,
             },
             token,
             data: {
@@ -484,14 +485,14 @@ exports.customerTrackingNotification = onDocumentWritten(
       trackingMessageBody =
         language === "ar"
           ? "يمكنك الآن تتبع حالة حجزك."
-          : "The service provider has started tracking your location for the booking.";
+          : "The Technician has started tracking your location for the booking.";
     } else if (wasStarted && !isStartedNow) {
       trackingMessageTitle =
         language === "ar" ? "إيقاف تتبع الحجز" : "Tracking Stopped";
       trackingMessageBody =
         language === "ar"
-          ? "تم إيقاف تتبع موقعك بواسطة مقدم الخدمة."
-          : "Tracking has been stopped by the service provider.";
+          ? "تم إيقاف تتبع موقعك بواسطة الفني."
+          : "Tracking has been stopped by the Technician.";
     } else {
       console.log("Tracking status unchanged, skipping...");
       return;
@@ -1887,7 +1888,7 @@ exports.notifyCustomerOnWorkerCancellation = onDocumentUpdated(
       const lastCancelledWorker = cancelledWorkers[cancelledWorkers.length - 1];
 
       if (!lastCancelledWorker) {
-        console.log("No cancelled worker found");
+        console.log("No cancelled Technician found");
         return;
       }
 
@@ -1905,10 +1906,10 @@ exports.notifyCustomerOnWorkerCancellation = onDocumentUpdated(
 
       if (customerLanCode === "ar") {
         notificationTitle = "تم رفض الحجز";
-        notificationBody = `رفض عامل حجزك ل${serviceName}. في انتظار عامل آخر لقبول الحجز.`;
+        notificationBody = `لقد قام الفني برفض حجزك ل ${serviceName}.`;
       } else {
         notificationTitle = "Booking Rejected";
-        notificationBody = `A worker rejected your booking for ${serviceName}. Waiting for another worker to accept your booking.`;
+        notificationBody = `A Technician rejected your booking for ${serviceName}.`;
       }
 
       // Send FCM notification
@@ -1968,7 +1969,7 @@ exports.notifyAdminsOnWorkerCancellation = onDocumentUpdated(
       const lastCancelledWorker = cancelledWorkers[cancelledWorkers.length - 1];
 
       if (!lastCancelledWorker) {
-        console.log("No cancelled worker found");
+        console.log("No cancelled Technician found");
         return;
       }
 
@@ -2003,11 +2004,11 @@ exports.notifyAdminsOnWorkerCancellation = onDocumentUpdated(
         let notificationTitle, notificationBody;
 
         if (adminLanCode === "ar") {
-          notificationTitle = "عامل قام برفض الحجز";
-          notificationBody = `${lastCancelledWorker.agentName} رفض حجزك ل${serviceNameAr} من ${customerName}. يرجى مراجعة وتعيين عامل جديد.`;
+          notificationTitle = "الفني قام برفض الحجز";
+          notificationBody = `${lastCancelledWorker.agentName} رفض حجزك ل${serviceNameAr} من ${customerName}. يرجى مراجعة وتعيين فني جديد.`;
         } else {
-          notificationTitle = "Worker Cancelled A Booking";
-          notificationBody = `${lastCancelledWorker.agentName} rejected booking for ${serviceName} from ${customerName}. Please review and assign a new worker.`;
+          notificationTitle = "Technician Cancelled A Booking";
+          notificationBody = `${lastCancelledWorker.agentName} rejected booking for ${serviceName} from ${customerName}. Please review and assign a new Technician.`;
         }
 
         const message = {
@@ -2270,7 +2271,7 @@ exports.notifyAdminsOnNewWorkerSignup = onDocumentCreated(
     // Optional: Check if worker has job roles (indicating they're a worker, not a customer)
     if (!worker.jobRoles || worker.jobRoles.length === 0) {
       console.log(
-        "User has no job roles, might not be a worker yet. Skipping notification."
+        "User has no job roles, might not be a Technician yet. Skipping notification."
       );
       return null;
     }
@@ -2315,11 +2316,13 @@ exports.notifyAdminsOnNewWorkerSignup = onDocumentCreated(
           const message = {
             notification: {
               title:
-                lanCode === "ar" ? "عامل جديد انضم!" : "New Worker Signed Up!",
+                lanCode === "ar"
+                  ? "فني جديد انضم!"
+                  : "New Technician Signed Up!",
               body:
                 lanCode === "ar"
-                  ? `${workerName} قام بالتسجيل كعامل جديد. يرجى مراجعة الملف الشخصي والموافقة عليه`
-                  : `${workerName} has signed up as a new worker. Please review their profile and approve`,
+                  ? `${workerName} قام بالتسجيل كفني جديد. يرجى مراجعة الملف الشخصي والموافقة عليه`
+                  : `${workerName} has signed up as a new Technician. Please review their profile and approve`,
             },
             data: {
               targetRole: "admin",
@@ -2410,8 +2413,8 @@ exports.notifyWorkerOnPaymentComplete = onDocumentUpdated(
               : "Payment Received! 💰",
           body:
             workerLanCode === "ar"
-              ? `${customerName} أكمل الدفع بمبلغ ₹${totalCost.toFixed(2)}`
-              : `${customerName} completed payment of ₹${totalCost.toFixed(2)}`,
+              ? `${customerName} أكمل الدفع بمبلغ ${totalCost.toFixed(2)}`
+              : `${customerName} completed payment of ${totalCost.toFixed(2)}`,
         },
         data: {
           targetRole: "worker",
@@ -2438,48 +2441,94 @@ exports.notifyWorkerOnPaymentComplete = onDocumentUpdated(
     }
   }
 );
-  // ============================================
+// ============================================
 // Warranty Request Notifications
 // ============================================
 exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
-  "warrantyRequests/{requestId}",
+  "bookings/{bookingId}",
   async (event) => {
     const beforeData = event.data?.before?.data();
     const afterData = event.data?.after?.data();
-    const requestId = event.params.requestId;
+    const bookingId = event.params.bookingId;
 
     if (!afterData) {
-      console.log("Warranty request document deleted, skipping...");
+      console.log("Booking document deleted, skipping warranty check...");
       return;
     }
 
-    // Check if status changed
-    const statusChanged = beforeData?.status !== afterData.status;
-    if (!statusChanged) {
-      console.log("Warranty request status unchanged, skipping...");
+    const beforeWarranty = beforeData?.warranty;
+    const afterWarranty = afterData?.warranty;
+
+    // Check if warranty exists in afterData
+    if (!afterWarranty) {
       return;
     }
 
-    const status = afterData.status; // e.g., "placed", "accepted", "tracking_started", "completed", "cancelled"
-    const customerId = afterData.customerId;
-    const workerId = afterData.workerId || afterData.agent?.uid;
-    const bookingId = afterData.bookingId;
-    const serviceName = afterData.serviceName || "Service";
+    // Determine status change
+    let status = null;
+    let isTechnicianRejection = false;
+
+    // 1. Warranty Placed (New warranty object created)
+    if (!beforeWarranty && afterWarranty) {
+      status = "placed";
+    }
+    // 2. Accepted (claimStatus changed to true)
+    else if (!beforeWarranty?.claimStatus && afterWarranty.claimStatus) {
+      status = "accepted";
+    }
+    // 3. Tracking Started (isTracking changed to true)
+    else if (!beforeWarranty?.isTracking && afterWarranty.isTracking) {
+      status = "tracking_started";
+    }
+    // 4. Completed (completed changed to true)
+    else if (!beforeWarranty?.completed && afterWarranty.completed) {
+      status = "completed";
+    }
+    // 5. Technician Rejected (rejectedTechnicians array grew)
+    else if (
+      (beforeWarranty?.rejectedTechnicians?.length || 0) <
+      (afterWarranty.rejectedTechnicians?.length || 0)
+    ) {
+      isTechnicianRejection = true;
+      status = "technician_rejected";
+    }
+    // 6. Cancelled (availability changed to false AND not expired)
+    else if (
+      beforeWarranty?.availability === true &&
+      afterWarranty.availability === false &&
+      !afterWarranty.expiredAt // Avoid triggering on cron job expiration
+    ) {
+      status = "cancelled";
+    }
+
+    if (!status) {
+      return;
+    }
+
+    console.log(
+      `Warranty status changed to ${status} for booking ${bookingId}`
+    );
+
+    const customerId = afterData.customer?.uid;
+    const serviceName = afterData.service?.name || "Service";
+    const workerId = afterWarranty.assignedTechnicianId || afterData.agent?.uid;
 
     // Fetch customer data for notification
     let customerData;
-    try {
-      const customerDoc = await admin
-        .firestore()
-        .collection("customers")
-        .doc(customerId)
-        .get();
+    if (customerId) {
+      try {
+        const customerDoc = await admin
+          .firestore()
+          .collection("customers")
+          .doc(customerId)
+          .get();
 
-      if (customerDoc.exists) {
-        customerData = customerDoc.data();
+        if (customerDoc.exists) {
+          customerData = customerDoc.data();
+        }
+      } catch (error) {
+        console.error("Error fetching customer data:", error);
       }
-    } catch (error) {
-      console.error("Error fetching customer data:", error);
     }
 
     // Fetch admin users
@@ -2545,6 +2594,16 @@ exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
           ar: "تم إكمال طلب الضمان.",
         },
       },
+      technician_rejected: {
+        customer: {
+          en: "A technician rejected your warranty request. We are looking for another one.",
+          ar: "رفض فني طلب الضمان الخاص بك. نحن نبحث عن فني آخر.",
+        },
+        admin: {
+          en: "A technician rejected a warranty request.",
+          ar: "رفض فني طلب ضمان.",
+        },
+      },
       cancelled: {
         customer: {
           en: "Your warranty request has been cancelled.",
@@ -2577,7 +2636,6 @@ exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
           data: {
             targetRole: "customer",
             category: "warranty",
-            requestId: requestId,
             bookingId: bookingId,
             status: status,
             serviceName: serviceName,
@@ -2597,21 +2655,18 @@ exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
       const adminMessages = adminTokens.map(({ token, lanCode }) => ({
         notification: {
           title:
-            lanCode === "ar"
-              ? "تحديث طلب الضمان"
-              : "Warranty Request Update",
+            lanCode === "ar" ? "تحديث طلب الضمان" : "Warranty Request Update",
           body:
             statusMessages[status]?.admin?.[lanCode] ||
             statusMessages[status]?.admin?.["en"] ||
-            `Warranty request ${requestId} status updated to ${status}`,
+            `Warranty request for booking ${bookingId} updated to ${status}`,
         },
         token,
         data: {
           targetRole: "admin",
           category: "warranty",
-          requestId: requestId,
           bookingId: bookingId,
-          customerId: customerId,
+          customerId: customerId || "",
           workerId: workerId || "",
           status: status,
           serviceName: serviceName,
@@ -2746,3 +2801,172 @@ exports.updateWarrantyAvailability = onSchedule(
   }
 );
 
+exports.notifyOnNewChatMessage = onValueCreated(
+  "messages/{chatId}/{messageId}",
+  async (event) => {
+    const chatId = event.params.chatId;
+    const messageId = event.params.messageId;
+    const messageData = event.data.val();
+
+    if (!messageData) {
+      console.log(`[${chatId}] No message data found`);
+      return null;
+    }
+
+    const senderId = messageData.senderId;
+    const senderType = messageData.senderType; // 'technician', 'admin', or 'customer'
+    const messageText = messageData.text || "";
+    const mediaType = messageData.mediaType;
+
+    console.log(
+      `[${chatId}] New message from ${senderType} (${senderId}): ${messageText}`
+    );
+
+    try {
+      // Get chat details from Realtime Database
+      const rtdb = admin.database();
+      const chatSnapshot = await rtdb.ref(`chats/${chatId}`).once("value");
+
+      if (!chatSnapshot.exists()) {
+        console.log(`[${chatId}] Chat not found`);
+        return null;
+      }
+
+      const chatData = chatSnapshot.val();
+      const participants = chatData.participants || {};
+
+      // Determine receiver ID (the participant who is NOT the sender)
+      let receiverId = null;
+      let receiverType = null;
+
+      for (const [userId, userType] of Object.entries(participants)) {
+        if (userId !== senderId) {
+          receiverId = userId;
+          receiverType = userType;
+          break;
+        }
+      }
+
+      if (!receiverId) {
+        console.log(`[${chatId}] No receiver found`);
+        return null;
+      }
+
+      console.log(`[${chatId}] Receiver: ${receiverType} (${receiverId})`);
+
+      // Get sender's name from their user/customer document
+      let senderName = "Someone";
+      try {
+        if (senderType === "customer") {
+          const senderDoc = await db
+            .collection("customers")
+            .doc(senderId)
+            .get();
+          if (senderDoc.exists) {
+            const senderData = senderDoc.data();
+            senderName = senderData.name || senderData.fullName || "Customer";
+          }
+        } else {
+          // technician or admin
+          const senderDoc = await db.collection("users").doc(senderId).get();
+          if (senderDoc.exists) {
+            const senderData = senderDoc.data();
+            senderName = senderData.name || senderData.fullName || "Technician";
+          }
+        }
+      } catch (error) {
+        console.error(`[${chatId}] Error fetching sender name:`, error);
+      }
+
+      // Get receiver's FCM token and language preference
+      let receiverFcmToken = null;
+      let receiverLanCode = "en";
+
+      try {
+        if (receiverType === "customer") {
+          const receiverDoc = await db
+            .collection("customers")
+            .doc(receiverId)
+            .get();
+          if (receiverDoc.exists) {
+            const receiverData = receiverDoc.data();
+            receiverFcmToken = receiverData.fcmToken;
+            receiverLanCode = receiverData.lanCode || "en";
+          }
+        } else {
+          // technician or admin
+          const receiverDoc = await db
+            .collection("users")
+            .doc(receiverId)
+            .get();
+          if (receiverDoc.exists) {
+            const receiverData = receiverDoc.data();
+            receiverFcmToken = receiverData.fcmToken;
+            receiverLanCode = receiverData.lanCode || "en";
+          }
+        }
+      } catch (error) {
+        console.error(`[${chatId}] Error fetching receiver data:`, error);
+        return null;
+      }
+
+      if (!receiverFcmToken || receiverFcmToken.trim() === "") {
+        console.log(`[${chatId}] Receiver has no valid FCM token`);
+        return null;
+      }
+
+      // Prepare notification message
+      let notificationBody = messageText;
+
+      // Handle media messages
+      if (mediaType === "image") {
+        notificationBody = receiverLanCode === "ar" ? "📷 صورة" : "📷 Photo";
+      } else if (mediaType === "video") {
+        notificationBody = receiverLanCode === "ar" ? "🎥 فيديو" : "🎥 Video";
+      }
+
+      // Truncate long messages
+      if (notificationBody.length > 100) {
+        notificationBody = notificationBody.substring(0, 97) + "...";
+      }
+
+      const notificationTitle =
+        receiverLanCode === "ar"
+          ? `رسالة جديدة من ${senderName}`
+          : `New message from ${senderName}`;
+
+      const message = {
+        notification: {
+          title: notificationTitle,
+          body: notificationBody,
+        },
+        data: {
+          type: "chat_message",
+          chatId: chatId,
+          senderId: senderId,
+          senderType: senderType,
+          senderName: senderName,
+          messageId: messageId,
+          bookingId: chatData.bookingId || "",
+          targetRole: receiverType,
+        },
+        token: receiverFcmToken,
+      };
+
+      try {
+        const response = await admin.messaging().send(message);
+        console.log(
+          `[${chatId}] Notification sent successfully to ${receiverType}:`,
+          response
+        );
+      } catch (error) {
+        console.error(`[${chatId}] Error sending notification:`, error);
+      }
+
+      return null;
+    } catch (error) {
+      console.error(`[${chatId}] Error in notifyOnNewChatMessage:`, error);
+      return null;
+    }
+  }
+);
