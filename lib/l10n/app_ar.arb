@@ -929,11 +929,17 @@
       }
     }
   },
+  "typeMessageToCustomer": "اكتب رسالة للعميل...",
+  "startConversationWithCustomer": "ابدأ محادثة مع عميلك",
+  "chatWithCustomer": "الدردشة مع العميل",
+  "startChat": "بدء الدردشة",
   "payoutRequestSuccessfulMessage": "[translate:طلب الدفع ({amount} ر.س) مقدم بنجاح]",
   "cashPaymentsMessage": "[translate:المدفوعات النقدية ({amount} ر.س) معك بالفعل]",
   "cannotDeleteLastContact": "لا يمكن حذف آخر جهة اتصال {contactType}. مطلوب جهة اتصال واحدة على الأقل.",
   "netTechnicianror": "حدث خطأ في تحميل الفنيين",
   "loadingTechnicians": "جاري تحميل الفنيين",
+  "creatingChatRoom": "جاري انشاء غرفة الدردشة",
+  "loadingChat": "جاري تحميل الدردشة",
   "aboGlumboTechnician": "لم يتم العثور على فنيين",
   "technicianCannotBeAssignedMultipleTimes": "لا يمكن تعيين فني لعدة حجوزات في نفس الوقت تمامًا. يرجى اختيار وقت مختلف أو اختيار فني آخر.",
   "unknownTechnician": "فني غير معروف",

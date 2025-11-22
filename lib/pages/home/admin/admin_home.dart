@@ -2409,7 +2409,6 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    log("build called");
     final textTheme = Theme.of(context).textTheme;
 
     String? categoryName = categoryModel?.name;

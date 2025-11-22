@@ -79,14 +79,16 @@ class WarrantyModel {
 class RejectedTechnicianModel {
   String? uid;
   String? name;
+  String? reason;
   DateTime? rejectedOn;
 
-  RejectedTechnicianModel({this.uid, this.name, this.rejectedOn});
+  RejectedTechnicianModel({this.uid, this.name, this.reason, this.rejectedOn});
 
   factory RejectedTechnicianModel.fromJson(Map<String, dynamic> json) {
     return RejectedTechnicianModel(
       uid: json['uid'],
       name: json['name'],
+      reason: json['reason'],
       rejectedOn: (json['rejectedOn'] is Timestamp)
           ? (json['rejectedOn'] as Timestamp).toDate()
           : (json['rejectedOn'] as DateTime?),
@@ -94,6 +96,11 @@ class RejectedTechnicianModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {'uid': uid, 'name': name, 'rejectedOn': rejectedOn};
+    return {
+      'uid': uid,
+      'name': name,
+      'reason': reason,
+      'rejectedOn': rejectedOn,
+    };
   }
 }

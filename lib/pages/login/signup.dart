@@ -543,6 +543,7 @@ class _SignupState extends State<Signup> {
 
       // Create user document
       final userModel = UserModel(
+        role: "technician",
         uid: widget.uid,
         name: nameController.text.trim(),
         phone: phoneController.text.trim(),

@@ -26,6 +26,8 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
   late TabController _tabController;
   late List<Stream<List<BookingModel>>> _bookingsStreams;
   late AnimationController _shimmerController;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -40,12 +42,14 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
       initialIndex: initialIndex == -1 ? 0 : initialIndex,
     );
 
+    // Fixed listener - rebuild on ANY index change
     _tabController.addListener(() {
-      if (_tabController.indexIsChanging) {
+      if (_tabController.index != _tabController.previousIndex) {
         setState(() {}); // rebuild to update check mark UI
       }
     });
-    // Create a stream for each tab/status
+
+    // Rest of your code...
     _bookingsStreams = _bookingStatuses
         .map(
           (status) =>
@@ -58,6 +62,13 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 1500),
     )..repeat();
 
+    // Search listener
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.toLowerCase();
+      });
+    });
+
     setState(() {});
   }
 
@@ -65,6 +76,7 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
   void dispose() {
     _tabController.dispose();
     _shimmerController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -75,6 +87,30 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
     );
   }
 
+  // Filter bookings based on search query
+  List<BookingModel> _filterBookings(List<BookingModel> bookings) {
+    if (_searchQuery.isEmpty) {
+      return bookings;
+    }
+
+    return bookings.where((booking) {
+      // Search by booking ID
+      final bookingId = booking.id.toLowerCase();
+
+      // Search by customer name (adjust field name based on your BookingModel)
+      final customerName = booking.customer.name?.toLowerCase() ?? '';
+
+      // Search by booking name/service name (adjust field name based on your BookingModel)
+      final bookingNameEn = booking.service.name?.toLowerCase() ?? '';
+      final bookingNameAr = booking.service.name_ar?.toLowerCase() ?? '';
+
+      return bookingId.contains(_searchQuery) ||
+          customerName.contains(_searchQuery) ||
+          bookingNameEn.contains(_searchQuery) ||
+          bookingNameAr.contains(_searchQuery);
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -83,13 +119,38 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
       body: SafeArea(
         child: Column(
           children: [
+            // Search Bar
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: SearchBar(
+                controller: _searchController,
+                hintText:
+                    AppLocalizations.of(context)?.search ??
+                    'Search bookings...',
+                leading: const Icon(Icons.search),
+                trailing: _searchQuery.isNotEmpty
+                    ? [
+                        IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                          },
+                        ),
+                      ]
+                    : null,
+                padding: const WidgetStatePropertyAll<EdgeInsets>(
+                  EdgeInsets.symmetric(horizontal: 16.0),
+                ),
+              ),
+            ),
+
             Container(
               height: 64,
               alignment: Alignment.centerLeft,
               child: TabBar(
                 controller: _tabController,
                 isScrollable: true,
-                indicatorColor: Colors.transparent, // Remove default indicator
+                indicatorColor: Colors.transparent,
                 tabAlignment: TabAlignment.start,
                 splashFactory: NoSplash.splashFactory,
                 labelPadding: EdgeInsets.zero,
@@ -113,7 +174,7 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
                 }),
               ),
             ),
-            const Divider(height: 1),
+
             Expanded(
               child: TabBarView(
                 controller: _tabController,
@@ -194,18 +255,23 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
           return _buildErrorState(context, snapshot.error.toString());
         }
 
-        final bookings = snapshot.data ?? [];
+        final allBookings = snapshot.data ?? [];
+        final filteredBookings = _filterBookings(allBookings);
 
-        if (bookings.isEmpty) {
-          return _buildEmptyState(context, selectedBookingStatus);
+        if (filteredBookings.isEmpty) {
+          return _buildEmptyState(
+            context,
+            selectedBookingStatus,
+            isSearching: _searchQuery.isNotEmpty,
+          );
         }
 
         return ListView.separated(
           padding: const EdgeInsets.symmetric(vertical: 8),
-          itemCount: bookings.length,
+          itemCount: filteredBookings.length,
           separatorBuilder: (_, __) => const SizedBox(height: 8),
           itemBuilder: (context, index) {
-            final booking = bookings[index];
+            final booking = filteredBookings[index];
             return BookingCards(key: ValueKey(booking.id), booking: booking);
           },
         );
@@ -213,9 +279,52 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, String selectedBookingStatus) {
+  Widget _buildEmptyState(
+    BuildContext context,
+    String selectedBookingStatus, {
+    bool isSearching = false,
+  }) {
     final textTheme = Theme.of(context).textTheme;
     final localizations = AppLocalizations.of(context);
+
+    if (isSearching) {
+      return Center(
+        child: TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeOutCubic,
+          builder: (context, value, child) {
+            return Transform.scale(
+              scale: 0.8 + (value * 0.2),
+              child: Opacity(opacity: value, child: child),
+            );
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.search_off,
+                size: 100,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                localizations?.noBookingsFound ?? 'No results found',
+                style: textTheme.labelLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                localizations?.tryAdjustingYourSearchCriteria ??
+                    'Try a different search term',
+                style: textTheme.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     final statusText = selectedBookingStatus == 'P'
         ? localizations?.pending

@@ -3482,11 +3482,53 @@ abstract class AppLocalizations {
   /// **'Now'**
   String get now;
 
+  /// No description provided for @assigningTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigning Technician'**
+  String get assigningTechnician;
+
+  /// No description provided for @selectProvince.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Province'**
+  String get selectProvince;
+
+  /// No description provided for @selectCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Select City'**
+  String get selectCity;
+
+  /// No description provided for @rejectionHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejection History'**
+  String get rejectionHistory;
+
+  /// No description provided for @selectNeighborhood.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Neighborhood'**
+  String get selectNeighborhood;
+
   /// No description provided for @recipients.
   ///
   /// In en, this message translates to:
   /// **'Recipients'**
   String get recipients;
+
+  /// No description provided for @techniciansRejectedThisClaim.
+  ///
+  /// In en, this message translates to:
+  /// **'Technicians rejected this claim'**
+  String get techniciansRejectedThisClaim;
+
+  /// No description provided for @technicianRejectedThisClaim.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician rejected this claim'**
+  String get technicianRejectedThisClaim;
 
   /// No description provided for @warrantyClaims.
   ///
@@ -3499,6 +3541,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap to view'**
   String get tapToView;
+
+  /// No description provided for @rejections.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejections'**
+  String get rejections;
 
   /// No description provided for @exceedsMaxSize.
   ///
@@ -3626,11 +3674,83 @@ abstract class AppLocalizations {
   /// **'Booking ID'**
   String get bookingId;
 
+  /// No description provided for @typeMessageToCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a message to customer...'**
+  String get typeMessageToCustomer;
+
+  /// No description provided for @startConversationWithCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a conversation with your customer'**
+  String get startConversationWithCustomer;
+
+  /// No description provided for @chatWithCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with Customer'**
+  String get chatWithCustomer;
+
+  /// No description provided for @startChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Chat'**
+  String get startChat;
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get yesterday;
+
   /// No description provided for @amountPaid.
   ///
   /// In en, this message translates to:
   /// **'Amount Paid'**
   String get amountPaid;
+
+  /// No description provided for @continueChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue Chat'**
+  String get continueChat;
+
+  /// No description provided for @failedToStartChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to start chat'**
+  String get failedToStartChat;
+
+  /// No description provided for @creatingChatRoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating chat room'**
+  String get creatingChatRoom;
+
+  /// No description provided for @loadingChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading chat'**
+  String get loadingChat;
+
+  /// No description provided for @noMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages'**
+  String get noMessages;
+
+  /// No description provided for @errorLoadingMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading messages'**
+  String get errorLoadingMessages;
 
   /// No description provided for @transactionId.
   ///

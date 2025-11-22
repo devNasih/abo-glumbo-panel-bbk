@@ -1743,13 +1743,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get now => 'الان';
 
   @override
+  String get assigningTechnician => 'Assigning Technician';
+
+  @override
+  String get selectProvince => 'Select Province';
+
+  @override
+  String get selectCity => 'Select City';
+
+  @override
+  String get rejectionHistory => 'Rejection History';
+
+  @override
+  String get selectNeighborhood => 'Select Neighborhood';
+
+  @override
   String get recipients => 'المستلمون';
+
+  @override
+  String get techniciansRejectedThisClaim => 'Technicians rejected this claim';
+
+  @override
+  String get technicianRejectedThisClaim => 'Technician rejected this claim';
 
   @override
   String get warrantyClaims => 'طلبات التضامن';
 
   @override
   String get tapToView => 'انقر للمشاهدة';
+
+  @override
+  String get rejections => 'Rejections';
 
   @override
   String get exceedsMaxSize => 'تجاوز الحد الاقصى';
@@ -1817,7 +1841,43 @@ class AppLocalizationsAr extends AppLocalizations {
   String get bookingId => 'رقم الحجز';
 
   @override
+  String get typeMessageToCustomer => 'اكتب رسالة للعميل...';
+
+  @override
+  String get startConversationWithCustomer => 'ابدأ محادثة مع عميلك';
+
+  @override
+  String get chatWithCustomer => 'الدردشة مع العميل';
+
+  @override
+  String get startChat => 'بدء الدردشة';
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get yesterday => 'Yesterday';
+
+  @override
   String get amountPaid => 'المبلغ المدفوع';
+
+  @override
+  String get continueChat => 'Continue Chat';
+
+  @override
+  String get failedToStartChat => 'Failed to start chat';
+
+  @override
+  String get creatingChatRoom => 'جاري انشاء غرفة الدردشة';
+
+  @override
+  String get loadingChat => 'جاري تحميل الدردشة';
+
+  @override
+  String get noMessages => 'No messages';
+
+  @override
+  String get errorLoadingMessages => 'Error loading messages';
 
   @override
   String get transactionId => 'رقم المعاملة';

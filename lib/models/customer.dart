@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CustomerModel {
   final String uid;
+  final String? role;
   final String? name;
   final String? email;
   final String? phone;
@@ -26,6 +27,7 @@ class CustomerModel {
 
   CustomerModel({
     required this.uid,
+    required this.role,
     this.name,
     this.email,
     this.phone,
@@ -51,6 +53,7 @@ class CustomerModel {
     return CustomerModel(
       uid: json['uid'] ?? '',
       name: json['name'],
+      role: json['role'],
       email: json['email'],
       phone: json['phone'],
       fcmToken: json['fcmToken'],
@@ -87,6 +90,7 @@ class CustomerModel {
       'uid': uid,
       'name': name,
       'email': email,
+      'role': role,
       'phone': phone,
       'fcmToken': fcmToken,
       'lanCode': lanCode,
@@ -111,6 +115,7 @@ class CustomerModel {
     String? uid,
     String? name,
     String? email,
+    String? role,
     String? phone,
     String? fcmToken,
     String? lanCode,
@@ -131,6 +136,7 @@ class CustomerModel {
   }) {
     return CustomerModel(
       uid: uid ?? this.uid,
+      role: role ?? this.role,
       name: name ?? this.name,
       email: email ?? this.email,
       phone: phone ?? this.phone,
@@ -165,6 +171,7 @@ class CustomerModel {
     }
 
     checkAndSet('name', name, previous.name);
+    checkAndSet('role', role, previous.role);
     checkAndSet('email', email, previous.email);
     checkAndSet('phone', phone, previous.phone);
     checkAndSet('fcmToken', fcmToken, previous.fcmToken);

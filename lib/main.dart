@@ -10,6 +10,7 @@ import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:background_fetch/background_fetch.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -92,54 +93,90 @@ void backgroundFetchHeadlessTask(HeadlessTask task) async {
 
 final String hiveBoxName = 'myBox';
 GlobalKey<NavigatorState>? navigatorKey = GlobalKey();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await Hive.initFlutter();
-  await Hive.openBox(hiveBoxName);
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-  await NotificationServices.initializeNotifications();
-  await NotificationServices.setupFCMListeners();
-  await NotificationServices.checkForInitialMessage();
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      systemNavigationBarColor: Colors.transparent,
-      statusBarColor: Colors.transparent,
-    ),
-  );
+  
   try {
-    // Register headless background fetch task
-    BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
-
-    // Configure background fetch with platform-specific settings
-    await BackgroundFetch.configure(
-      BackgroundFetchConfig(
-        minimumFetchInterval: Platform.isIOS
-            ? 15
-            : 30, // iOS needs more frequent updates
-        stopOnTerminate: false,
-        enableHeadless: true,
-        startOnBoot: true,
-        requiresBatteryNotLow: false,
-        requiresCharging: false,
-        requiresStorageNotLow: false,
-        requiredNetworkType: NetworkType.ANY,
+    // STEP 1: Initialize Firebase FIRST
+    debugPrint('🚀 Initializing Firebase...');
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    debugPrint('✅ Firebase initialized');
+    
+    // STEP 2: Set Database Persistence IMMEDIATELY after Firebase init
+    // This must be done BEFORE any other Firebase Database usage
+    debugPrint('🔄 Setting Firebase Database persistence...');
+    FirebaseDatabase.instance.setPersistenceEnabled(true);
+    FirebaseDatabase.instance.setPersistenceCacheSizeBytes(10000000); // 10MB cache
+    debugPrint('✅ Firebase Database persistence enabled');
+    
+    // STEP 3: Initialize Hive
+    debugPrint('🔄 Initializing Hive...');
+    await Hive.initFlutter();
+    await Hive.openBox(hiveBoxName);
+    debugPrint('✅ Hive initialized');
+    
+    // STEP 4: Setup FCM Background Handler
+    debugPrint('🔄 Registering FCM background handler...');
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    debugPrint('✅ FCM background handler registered');
+    
+    // STEP 5: Initialize Notifications with delay to avoid permission conflicts
+    debugPrint('🔄 Initializing notifications...');
+    await Future.delayed(const Duration(milliseconds: 500));
+    await NotificationServices.initializeNotifications();
+    await NotificationServices.setupFCMListeners();
+    await NotificationServices.checkForInitialMessage();
+    debugPrint('✅ Notification services initialized');
+    
+    // STEP 6: Setup System UI
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        systemNavigationBarColor: Colors.transparent,
+        statusBarColor: Colors.transparent,
       ),
-      (String taskId) async {
-        debugPrint('Foreground background fetch: $taskId');
-        backgroundFetchHeadlessTask(HeadlessTask(taskId, false));
-      },
-      (String taskId) async {
-        debugPrint('Background fetch timeout: $taskId');
-        backgroundFetchHeadlessTask(HeadlessTask(taskId, true));
-      },
     );
+    debugPrint('✅ System UI configured');
+    
+    // STEP 7: Configure Background Fetch
+    try {
+      debugPrint('🔄 Configuring background fetch...');
+      BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
 
-    debugPrint('Background fetch registration successful');
-  } catch (e) {
-    debugPrint('Background Fetch registration failed: $e');
+      await BackgroundFetch.configure(
+        BackgroundFetchConfig(
+          minimumFetchInterval: Platform.isIOS ? 15 : 30,
+          stopOnTerminate: false,
+          enableHeadless: true,
+          startOnBoot: true,
+          requiresBatteryNotLow: false,
+          requiresCharging: false,
+          requiresStorageNotLow: false,
+          requiredNetworkType: NetworkType.ANY,
+        ),
+        (String taskId) async {
+          debugPrint('Foreground background fetch: $taskId');
+          backgroundFetchHeadlessTask(HeadlessTask(taskId, false));
+        },
+        (String taskId) async {
+          debugPrint('Background fetch timeout: $taskId');
+          backgroundFetchHeadlessTask(HeadlessTask(taskId, true));
+        },
+      );
+
+      debugPrint('✅ Background fetch configured successfully');
+    } catch (e) {
+      debugPrint('⚠️ Background Fetch registration failed: $e');
+    }
+    
+    debugPrint('🎉 All initialization complete! Starting app...');
+    
+  } catch (e, stackTrace) {
+    debugPrint('❌ Error during app initialization: $e');
+    debugPrint('Stack trace: $stackTrace');
   }
+  
   runApp(MyApp(navigatorKey: navigatorKey));
 }
 

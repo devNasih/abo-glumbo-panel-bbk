@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "629201660527",
+    "firebase_url": "https://worker-app-tnext-default-rtdb.firebaseio.com",
     "project_id": "worker-app-tnext",
     "storage_bucket": "worker-app-tnext.appspot.com"
   },

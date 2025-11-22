@@ -54,6 +54,7 @@ class DefaultFirebaseOptions {
     appId: '1:629201660527:android:2e4177f0e86629d12dfb9a',
     messagingSenderId: '629201660527',
     projectId: 'worker-app-tnext',
+    databaseURL: 'https://worker-app-tnext-default-rtdb.firebaseio.com',
     storageBucket: 'worker-app-tnext.appspot.com',
   );
 
@@ -62,7 +63,11 @@ class DefaultFirebaseOptions {
     appId: '1:629201660527:ios:bb1f3d34b1a5dd122dfb9a',
     messagingSenderId: '629201660527',
     projectId: 'worker-app-tnext',
+    databaseURL: 'https://worker-app-tnext-default-rtdb.firebaseio.com',
     storageBucket: 'worker-app-tnext.appspot.com',
+    androidClientId: '629201660527-06j03rhhajgm12puud6vc878ipr5ebh2.apps.googleusercontent.com',
+    iosClientId: '629201660527-g3q673rcg9087klcj1hevmaolktfapsb.apps.googleusercontent.com',
     iosBundleId: 'com.aboglumbo.cPanel',
   );
+
 }

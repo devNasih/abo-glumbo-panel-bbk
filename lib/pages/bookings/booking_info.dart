@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:aboglumbo_bbk_panel/common_widget/cached_video_player.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
@@ -7,6 +9,8 @@ import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/address.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
 import 'package:aboglumbo_bbk_panel/pages/bookings/booking_controllers.dart';
+import 'package:aboglumbo_bbk_panel/pages/chat_screen.dart';
+import 'package:aboglumbo_bbk_panel/services/chat_services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -14,9 +18,165 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-class BookingInfo extends StatelessWidget {
+class BookingInfo extends StatefulWidget {
   final BookingModel booking;
-  const BookingInfo({super.key, required this.booking});
+  final bool isAdmin;
+  const BookingInfo({super.key, required this.booking, required this.isAdmin});
+
+  @override
+  State<BookingInfo> createState() => _BookingInfoState();
+}
+
+class _BookingInfoState extends State<BookingInfo> {
+  bool isInitiatingChat = false;
+  Future<void> handleChatButton() async {
+    if (isInitiatingChat) return;
+
+    setState(() {
+      isInitiatingChat = true;
+    });
+
+    try {
+      final chatService = TechnicianChatService();
+      String chatId;
+
+      // Fetch the latest booking data from Firestore to check chatroomId
+      final bookingDoc = await AppFirestore.bookingsCollectionRef
+          .doc(widget.booking.id)
+          .get();
+
+      String? latestChatroomId;
+      if (bookingDoc.exists) {
+        final data = bookingDoc.data() as Map<String, dynamic>?;
+        latestChatroomId = data?['chatroomId'] as String?;
+      }
+
+      // Check if chatroomId exists in Firestore AND verify it exists in Realtime Database
+      bool chatExists = false;
+      if (latestChatroomId != null && latestChatroomId.isNotEmpty) {
+        // Verify the chat actually exists in Realtime Database using the service method
+        chatExists = await chatService.chatExists(latestChatroomId);
+
+        if (chatExists) {
+          log(
+            '✅ Chat verified in both Firestore and Realtime Database: $latestChatroomId',
+          );
+        } else {
+          log(
+            '⚠️ Chat ID exists in Firestore but not in Realtime Database. Will create new chat.',
+          );
+        }
+      }
+
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => Center(
+            child: AlertDialog(
+              backgroundColor: Colors.white,
+              content: SizedBox(
+                height: 100,
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(height: 24, child: Loader()),
+                      const SizedBox(height: 16),
+                      Text(
+                        chatExists
+                            ? AppLocalizations.of(context)!.loadingChat
+                            : AppLocalizations.of(context)!.creatingChatRoom,
+                        style: GoogleFonts.poppins(fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
+      if (chatExists) {
+        chatId = latestChatroomId!;
+        log('✅ Using existing chat: $chatId');
+        // Small delay to show the message
+        await Future.delayed(const Duration(milliseconds: 300));
+      } else {
+        log('🔄 Initiating new chat...');
+        // Get technician info
+        final technicianName = widget.isAdmin
+            ? "Admin"
+            : widget.booking.agent?.name ?? "Technician";
+        final technicianPhoto = widget.isAdmin
+            ? ""
+            : widget.booking.agent?.profileUrl ?? "";
+
+        // Create new chat
+        chatId = await chatService.initiateChat(
+          bookingId: widget.booking.id,
+          customerId: widget.booking.customer.uid,
+          customerName: widget.booking.customer.name ?? "Customer",
+          customerPhoto: "",
+          technicianName: technicianName,
+          technicianPhoto: technicianPhoto,
+        );
+        log('✅ Chat created with ID: $chatId');
+      }
+
+      // Close loading dialog
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
+      // Navigate to chat screen
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TechnicianChatScreen(
+              isAdmin: widget.isAdmin,
+              chatId: chatId,
+              participantName: widget.booking.customer.name ?? "Customer",
+              participantId: widget.booking.customer.uid,
+              participantPhoto: "",
+              technicianName: widget.isAdmin
+                  ? "Admin"
+                  : widget.booking.agent?.name ?? "Technician",
+              technicianPhoto: widget.isAdmin
+                  ? ""
+                  : widget.booking.agent?.profileUrl ?? "",
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog if open
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "${AppLocalizations.of(context)!.failedToStartChat}: $e",
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      log('❌ Chat error: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          isInitiatingChat = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +190,7 @@ class BookingInfo extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
-          icon: Icon(Icons.close_rounded),
+          icon: const Icon(Icons.arrow_back),
         ),
         title: Text(AppLocalizations.of(context)!.bookingInfo),
       ),
@@ -44,50 +204,143 @@ class BookingInfo extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if ((booking.bookingStatusCode.toLowerCase() == 'a') &&
-                (booking.agent?.uid == LocalStore.getUID()))
+            // 🔥 CHAT BUTTON WITH STREAMBUILDER - Automatically updates
+            StreamBuilder<DocumentSnapshot>(
+              stream: AppFirestore.bookingsCollectionRef
+                  .doc(widget.booking.id)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                String? chatroomId = widget.booking.chatroomId;
+
+                // Update chatroomId from stream if available
+                if (snapshot.hasData && snapshot.data!.exists) {
+                  final data = snapshot.data!.data() as Map<String, dynamic>?;
+                  chatroomId = data?['chatroomId'] as String?;
+                }
+                if (widget.booking.bookingStatusCode.toLowerCase() != 'a') {
+                  return SizedBox.shrink();
+                }
+                return _buildChatWithCustomerButton(
+                  context,
+                  colorScheme,
+                  chatroomId,
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Booking controls
+            if ((widget.booking.bookingStatusCode.toLowerCase() == 'a') &&
+                (widget.booking.agent?.uid == LocalStore.getUID()))
               StreamBuilder<DocumentSnapshot>(
                 stream: AppFirestore.bookingsCollectionRef
-                    .doc(booking.id)
+                    .doc(widget.booking.id)
                     .snapshots(),
                 builder: (context, snapshot) {
-                  bool isTracking = booking.isStartTracking ?? false;
+                  bool isTracking = widget.booking.isStartTracking ?? false;
 
-                  // Use real-time data if available, otherwise fallback to original booking data
                   if (snapshot.hasData && snapshot.data!.exists) {
                     final data = snapshot.data!.data() as Map<String, dynamic>?;
                     isTracking = data?['isStartTracking'] ?? false;
                   }
 
                   return BookingControlsWidget(
-                    booking: booking,
+                    booking: widget.booking,
                     isTracking: isTracking,
                   );
                 },
               ),
+
+            // Service card
             _buildServiceCard(context, locale, textTheme, colorScheme),
             const SizedBox(height: 16),
+
+            // Customer info
             _buildCustomerInfoCard(context, textTheme, colorScheme),
-            if ((booking.issueImage != null &&
-                    booking.issueImage!.isNotEmpty) ||
-                (booking.issueVideo != null && booking.issueVideo!.isNotEmpty))
+
+            // Issue media
+            if ((widget.booking.issueImage != null &&
+                    widget.booking.issueImage!.isNotEmpty) ||
+                (widget.booking.issueVideo != null &&
+                    widget.booking.issueVideo!.isNotEmpty))
               const SizedBox(height: 16),
-            if ((booking.issueImage != null &&
-                    booking.issueImage!.isNotEmpty) ||
-                (booking.issueVideo != null && booking.issueVideo!.isNotEmpty))
+            if ((widget.booking.issueImage != null &&
+                    widget.booking.issueImage!.isNotEmpty) ||
+                (widget.booking.issueVideo != null &&
+                    widget.booking.issueVideo!.isNotEmpty))
               _buildIssueMediaCard(context, textTheme, colorScheme),
             const SizedBox(height: 16),
 
-            // Add this after _buildIssueMediaCard and before _buildBookingTimelineCard
-            if (booking.bookingStatusCode.toLowerCase() == 'c' &&
-                booking.paymentCompleted &&
-                booking.completionData != null) ...[
+            // Completion data
+            if (widget.booking.bookingStatusCode.toLowerCase() == 'c' &&
+                widget.booking.paymentCompleted &&
+                widget.booking.completionData != null) ...[
               _buildCompletionDataCard(context, textTheme, colorScheme),
               const SizedBox(height: 16),
             ],
 
+            // Timeline
             _buildBookingTimelineCard(context, textTheme, colorScheme),
           ],
+        ),
+      ),
+    );
+  }
+
+  // 🔥 UPDATED CHAT BUTTON - Accepts chatroomId parameter from StreamBuilder
+  Widget _buildChatWithCustomerButton(
+    BuildContext context,
+    ColorScheme colorScheme,
+    String? chatroomId,
+  ) {
+    final bool hasChatRoom = chatroomId != null && chatroomId.isNotEmpty;
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isInitiatingChat ? null : handleChatButton,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  hasChatRoom ? Icons.chat_bubble : Icons.chat_bubble_outline,
+                  color: Colors.white,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  hasChatRoom
+                      ? AppLocalizations.of(context)!.continueChat
+                      : AppLocalizations.of(context)!.chatWithCustomer,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -152,7 +405,7 @@ class BookingInfo extends StatelessWidget {
             _buildInfoRow(
               context,
               label: AppLocalizations.of(context)!.bookingId,
-              value: booking.id,
+              value: widget.booking.id,
               textTheme: textTheme,
               colorScheme: colorScheme,
               needCopyButton: true,
@@ -163,8 +416,8 @@ class BookingInfo extends StatelessWidget {
               context,
               label: AppLocalizations.of(context)!.serviceName,
               value: locale == 'en'
-                  ? (booking.service.name ?? '')
-                  : (booking.service.name_ar ?? ''),
+                  ? (widget.booking.service.name ?? '')
+                  : (widget.booking.service.name_ar ?? ''),
               textTheme: textTheme,
               colorScheme: colorScheme,
             ),
@@ -175,8 +428,8 @@ class BookingInfo extends StatelessWidget {
               context,
               label: AppLocalizations.of(context)!.serviceDescription,
               value: locale == 'en'
-                  ? (booking.service.description ?? '')
-                  : (booking.service.description_ar ?? ''),
+                  ? (widget.booking.service.description ?? '')
+                  : (widget.booking.service.description_ar ?? ''),
               textTheme: textTheme,
               colorScheme: colorScheme,
               isDescription: true,
@@ -286,7 +539,7 @@ class BookingInfo extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '${booking.service.price} ${AppLocalizations.of(context)!.sar}',
+              '${widget.booking.service.price} ${AppLocalizations.of(context)!.sar}',
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -304,7 +557,7 @@ class BookingInfo extends StatelessWidget {
     TextTheme textTheme,
     ColorScheme colorScheme,
   ) {
-    final addresses = booking.customer.addresses;
+    final addresses = widget.booking.customer.addresses;
     AddressModel? selectedAddress =
         addresses.where((a) => a.isSelected == true).isNotEmpty
         ? addresses.firstWhere((a) => a.isSelected == true)
@@ -364,7 +617,7 @@ class BookingInfo extends StatelessWidget {
                   //  selectedAddress != null
                   // ? (selectedAddress.fullName)
                   // :
-                  (booking.customer.name ?? 'N/A'),
+                  (widget.booking.customer.name ?? 'N/A'),
               textTheme: textTheme,
               colorScheme: colorScheme,
             ),
@@ -374,11 +627,11 @@ class BookingInfo extends StatelessWidget {
               label: AppLocalizations.of(context)!.phoneNumber,
               value: selectedAddress != null
                   ? (selectedAddress.phoneNumber)
-                  : (booking.customer.phone ?? 'N/A'),
+                  : (widget.booking.customer.phone ?? 'N/A'),
               buttonIcon: Icons.call,
               buttonLabel: AppLocalizations.of(context)!.call,
               onButtonPressed: () => launchUrlString(
-                'tel:${selectedAddress?.phoneNumber ?? booking.customer.phone}',
+                'tel:${selectedAddress?.phoneNumber ?? widget.booking.customer.phone}',
               ),
               textTheme: textTheme,
               colorScheme: colorScheme,
@@ -518,11 +771,13 @@ class BookingInfo extends StatelessWidget {
                 ),
               ],
             ),
-            if (booking.issueImage != null && booking.issueImage!.isNotEmpty)
+            if (widget.booking.issueImage != null &&
+                widget.booking.issueImage!.isNotEmpty)
               const SizedBox(height: 20),
 
             // Images Section
-            if (booking.issueImage != null && booking.issueImage!.isNotEmpty)
+            if (widget.booking.issueImage != null &&
+                widget.booking.issueImage!.isNotEmpty)
               Text(
                 AppLocalizations.of(context)!.image,
                 style: GoogleFonts.poppins(
@@ -532,9 +787,11 @@ class BookingInfo extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 8),
-            if (booking.issueImage != null && booking.issueImage!.isNotEmpty)
+            if (widget.booking.issueImage != null &&
+                widget.booking.issueImage!.isNotEmpty)
               GestureDetector(
-                onTap: () => _showFullScreenImage(booking.issueImage!, context),
+                onTap: () =>
+                    _showFullScreenImage(widget.booking.issueImage!, context),
                 child: Container(
                   height: MediaQuery.of(context).size.width * 0.4,
                   width: double.infinity,
@@ -545,7 +802,7 @@ class BookingInfo extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: CachedNetworkImage(
-                      imageUrl: booking.issueImage!,
+                      imageUrl: widget.booking.issueImage!,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
                         color: Colors.grey[200],
@@ -573,10 +830,12 @@ class BookingInfo extends StatelessWidget {
                   ),
                 ),
               ),
-            if (booking.issueVideo != null && booking.issueVideo!.isNotEmpty)
+            if (widget.booking.issueVideo != null &&
+                widget.booking.issueVideo!.isNotEmpty)
               const SizedBox(height: 16),
 
-            if (booking.issueVideo != null && booking.issueVideo!.isNotEmpty)
+            if (widget.booking.issueVideo != null &&
+                widget.booking.issueVideo!.isNotEmpty)
               Text(
                 AppLocalizations.of(context)!.video,
                 style: GoogleFonts.poppins(
@@ -585,9 +844,11 @@ class BookingInfo extends StatelessWidget {
                   color: colorScheme.onSurface.withOpacity(0.7),
                 ),
               ),
-            if (booking.issueVideo != null && booking.issueVideo!.isNotEmpty)
+            if (widget.booking.issueVideo != null &&
+                widget.booking.issueVideo!.isNotEmpty)
               const SizedBox(height: 8),
-            if (booking.issueVideo != null && booking.issueVideo!.isNotEmpty)
+            if (widget.booking.issueVideo != null &&
+                widget.booking.issueVideo!.isNotEmpty)
               Container(
                 width: double.infinity,
                 height: 200,
@@ -598,7 +859,7 @@ class BookingInfo extends StatelessWidget {
                     color: colorScheme.outline.withOpacity(0.2),
                   ),
                 ),
-                child: CachedVideoPlayer(videoUrl: booking.issueVideo!),
+                child: CachedVideoPlayer(videoUrl: widget.booking.issueVideo!),
               ),
           ],
         ),
@@ -689,83 +950,98 @@ class BookingInfo extends StatelessWidget {
     List<Map<String, dynamic>> timelineItems = [];
 
     // Created
-    if (booking.createdAt != null) {
+    if (widget.booking.createdAt != null) {
       timelineItems.add({
         'title': AppLocalizations.of(context)!.createdAt,
-        'time': _formatDateLocalized(booking.createdAt!.toDate(), context),
+        'time': _formatDateLocalized(
+          widget.booking.createdAt!.toDate(),
+          context,
+        ),
         'description': AppLocalizations.of(
           context,
         )!.customerSubmittedBookingRequest,
         'status': 'completed',
-        'date': booking.createdAt!.toDate(),
+        'date': widget.booking.createdAt!.toDate(),
       });
     }
 
     // Accepted
-    if (booking.acceptedAt != null) {
+    if (widget.booking.acceptedAt != null) {
       timelineItems.add({
         'title': AppLocalizations.of(context)!.acceptedAt,
-        'time': _formatDateLocalized(booking.acceptedAt!.toDate(), context),
+        'time': _formatDateLocalized(
+          widget.booking.acceptedAt!.toDate(),
+          context,
+        ),
         'description': AppLocalizations.of(
           context,
         )!.serviceProviderConfirmedAppointment,
         'status': 'completed',
-        'date': booking.acceptedAt!.toDate(),
+        'date': widget.booking.acceptedAt!.toDate(),
       });
     }
 
     // Tracking started
-    if (booking.trackingStartedAt != null) {
+    if (widget.booking.trackingStartedAt != null) {
       timelineItems.add({
         'title': AppLocalizations.of(context)!.trackingStartedAt,
         'time': _formatDateLocalized(
-          booking.trackingStartedAt!.toDate(),
+          widget.booking.trackingStartedAt!.toDate(),
           context,
         ),
         'description': AppLocalizations.of(context)!.serviceTrackingInitiated,
         'status': 'completed',
-        'date': booking.trackingStartedAt!.toDate(),
+        'date': widget.booking.trackingStartedAt!.toDate(),
       });
     }
 
     // Completed
-    if (booking.completedAt != null) {
+    if (widget.booking.completedAt != null) {
       timelineItems.add({
         'title': AppLocalizations.of(context)!.completedAt,
-        'time': _formatDateLocalized(booking.completedAt!.toDate(), context),
+        'time': _formatDateLocalized(
+          widget.booking.completedAt!.toDate(),
+          context,
+        ),
         'description': AppLocalizations.of(
           context,
         )!.serviceHasBeenSuccessfullyCompleted,
         'status': 'completed',
-        'date': booking.completedAt!.toDate(),
+        'date': widget.booking.completedAt!.toDate(),
       });
     }
-    if (booking.bookingStatusCode.toLowerCase() == 'r') {
+    if (widget.booking.bookingStatusCode.toLowerCase() == 'r') {
       timelineItems.add({
         'title': AppLocalizations.of(context)!.rejectedAt,
-        'time': _formatDateLocalized(booking.rejectedAt!.toDate(), context),
+        'time': _formatDateLocalized(
+          widget.booking.rejectedAt!.toDate(),
+          context,
+        ),
         'description': AppLocalizations.of(
           context,
         )!.bookingWasRejectedByServiceProvider,
         'status': 'rejected',
-        'date': booking.rejectedAt!.toDate(),
+        'date': widget.booking.rejectedAt!.toDate(),
       });
     }
-    if (booking.bookingStatusCode.toLowerCase() == 'xc') {
+    if (widget.booking.bookingStatusCode.toLowerCase() == 'xc') {
       timelineItems.add({
         'title': AppLocalizations.of(context)!.cancelledByCustomer,
-        'time': _formatDateLocalized(booking.cancelledAt!.toDate(), context),
+        'time': _formatDateLocalized(
+          widget.booking.cancelledAt!.toDate(),
+          context,
+        ),
         'description': AppLocalizations.of(
           context,
         )!.bookingWasCancelledByCustomer,
         'status': 'rejected',
-        'date': booking.cancelledAt!.toDate(),
+        'date': widget.booking.cancelledAt!.toDate(),
       });
     }
 
     // Worker cancellations
-    if (booking.cancelledWorkers.isNotEmpty) {
-      for (var worker in booking.cancelledWorkers) {
+    if (widget.booking.cancelledWorkers.isNotEmpty) {
+      for (var worker in widget.booking.cancelledWorkers) {
         final workerName = worker.agentName.isNotEmpty
             ? worker.agentName
             : AppLocalizations.of(context)!.unknownTechnician;
@@ -784,11 +1060,11 @@ class BookingInfo extends StatelessWidget {
     // Admin cancellation
 
     // If no completion/rejection/cancellation, add current status
-    if (booking.completedAt == null &&
-        booking.rejectedAt == null &&
-        booking.bookingStatusCode.toLowerCase() != 'xc' &&
-        booking.bookingStatusCode.toLowerCase() != 'xx') {
-      if (booking.trackingStartedAt != null) {
+    if (widget.booking.completedAt == null &&
+        widget.booking.rejectedAt == null &&
+        widget.booking.bookingStatusCode.toLowerCase() != 'xc' &&
+        widget.booking.bookingStatusCode.toLowerCase() != 'xx') {
+      if (widget.booking.trackingStartedAt != null) {
         timelineItems.add({
           'title': AppLocalizations.of(context)!.serviceInProgress,
           'time': AppLocalizations.of(context)!.current,
@@ -798,7 +1074,7 @@ class BookingInfo extends StatelessWidget {
           'status': 'current',
           'date': DateTime.now(),
         });
-      } else if (booking.acceptedAt != null) {
+      } else if (widget.booking.acceptedAt != null) {
         timelineItems.add({
           'title': AppLocalizations.of(context)!.waitingForServiceProvider,
           'time': AppLocalizations.of(context)!.pending,
@@ -1068,11 +1344,11 @@ class BookingInfo extends StatelessWidget {
     TextTheme textTheme,
     ColorScheme colorScheme,
   ) {
-    if (booking.completionData == null) {
+    if (widget.booking.completionData == null) {
       return const SizedBox.shrink();
     }
 
-    final completionData = booking.completionData!;
+    final completionData = widget.booking.completionData!;
 
     return Container(
       width: double.infinity,
@@ -1126,7 +1402,7 @@ class BookingInfo extends StatelessWidget {
             _buildInfoRow(
               context,
               label: AppLocalizations.of(context)!.transactionId,
-              value: booking.orderId ?? "",
+              value: widget.booking.orderId ?? "",
               textTheme: textTheme,
               colorScheme: colorScheme,
             ),
@@ -1303,14 +1579,14 @@ class BookingInfo extends StatelessWidget {
               ),
             ),
             SizedBox(height: 12),
-            if (booking.bookingStatusCode.toLowerCase() == 'c' &&
-                booking.paymentCompleted) ...{
+            if (widget.booking.bookingStatusCode.toLowerCase() == 'c' &&
+                widget.booking.paymentCompleted) ...{
               _buildInfoRow(
                 context,
                 label: AppLocalizations.of(context)!.paymentMode,
-                value: booking.paymentModeCode.toLowerCase() == 'c'
+                value: widget.booking.paymentModeCode.toLowerCase() == 'c'
                     ? AppLocalizations.of(context)!.card
-                    : booking.paymentModeCode.toLowerCase() == 'a'
+                    : widget.booking.paymentModeCode.toLowerCase() == 'a'
                     ? AppLocalizations.of(context)!.applePay
                     : AppLocalizations.of(context)!.cashInHand,
                 textTheme: textTheme,

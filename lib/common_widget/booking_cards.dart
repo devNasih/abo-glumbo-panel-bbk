@@ -64,7 +64,7 @@ class BookingCards extends StatelessWidget {
           : () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => BookingInfo(booking: booking),
+                builder: (context) => BookingInfo(booking: booking,isAdmin: isAdmin,),
               ),
             ),
       child: Container(

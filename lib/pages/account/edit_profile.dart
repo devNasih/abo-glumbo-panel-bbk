@@ -664,6 +664,7 @@ class _EditProfileState extends State<EditProfile> {
                   state.updatedUser ??
                   UserModel(
                     uid: widget.workerData?.uid ?? '',
+                    role: 'technician',
                     name: nameController.text,
                     email: emailController.text,
                     phone: phoneController.text,
@@ -1376,6 +1377,7 @@ class _EditProfileState extends State<EditProfile> {
                           context.read<AccountBloc>().add(
                             UpdateProfileEvent(
                               user: UserModel(
+                                role: 'technician',
                                 uid: widget.workerData?.uid ?? '',
                                 name: nameController.text,
                                 email: emailController.text,

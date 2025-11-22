@@ -31,6 +31,7 @@ class UserModel {
   String? highestTier;
   double? totalMonthlyBonus;
   Timestamp? lastBonusDate;
+  String role;
 
   UserModel({
     this.uid,
@@ -60,6 +61,7 @@ class UserModel {
     this.highestTier,
     this.totalMonthlyBonus,
     this.lastBonusDate,
+    required this.role,
     this.paidoutTips,
   });
 
@@ -93,6 +95,7 @@ class UserModel {
     Timestamp? lastBonusDate,
     double? paidoutTips,
     bool? isOnline,
+    String role = 'technician',
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -121,6 +124,7 @@ class UserModel {
       totalMonthlyBonus: totalMonthlyBonus ?? this.totalMonthlyBonus,
       lastBonusDate: lastBonusDate ?? this.lastBonusDate,
       paidoutTips: paidoutTips ?? this.paidoutTips,
+      role: role,
       certifications: certifications ?? this.certifications,
       isOnline: isOnline ?? this.isOnline,
     );
@@ -136,6 +140,7 @@ class UserModel {
       name: json['name'],
       email: json['email'],
       phone: json['phone'],
+
       lanCode: json['lanCode'],
       country: json['country'],
       liveLocation: json['liveLocation'] != null
@@ -146,6 +151,7 @@ class UserModel {
       isAdmin: json['isAdmin'] ?? false,
       isVerified: json['isVerified'] ?? false,
       districtName: json['districtName'],
+      role: json['role'],
       location: json['location'] != null
           ? LocationModel.fromJson(json['location'])
           : null,
@@ -203,6 +209,7 @@ class UserModel {
       'jobRoles': jobRoles,
       'docUrl': docUrl,
       'profileUrl': profileUrl,
+      'role': role,
       'fcmToken': fcmToken,
       'rating': rating,
       'payoutAccounts': payoutAccounts,
@@ -236,6 +243,7 @@ class UserModel {
       'docUrl': docUrl,
       'profileUrl': profileUrl,
       'fcmToken': fcmToken,
+      'role': role,
       'rating': rating,
       'payoutAccounts': payoutAccounts,
       'availableBalance': availableBalance,
@@ -275,6 +283,9 @@ class UserModel {
     }
     if (isAdmin != previous.isAdmin && isAdmin != null) {
       json['isAdmin'] = isAdmin;
+    }
+    if (role != previous.role) {
+      json['role'] = role;
     }
     if (isVerified != previous.isVerified && isVerified != null) {
       json['isVerified'] = isVerified;

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
@@ -33,9 +35,14 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
+    log('initState');
+    log('newIndex: ${widget.newIndex}');
     currentIndex = widget.newIndex ?? 0;
+    log('selectedfilter: ${widget.selectedFilter}');
     if (widget.selectedFilter != null) {
       selectedBookingStatus = widget.selectedFilter!;
+    } else {
+      selectedBookingStatus = 'P';
     }
     NotificationServices.initializeFCM();
     if (widget.byPassUid != null && widget.byPassUid!.isNotEmpty) {
@@ -255,9 +262,10 @@ class _HomeState extends State<Home> {
         List<Widget> adminPages = [
           AdminHome(),
           const ManageApp(),
+          WarrantyClaims(),
           AccountPage(workerData: userData),
         ];
-
+        log("adminPages: $selectedBookingStatus");
         List<Widget> workerPages = [
           DashboardScreen(workerData: userData),
           WorkerHome(
@@ -352,16 +360,12 @@ class _HomeState extends State<Home> {
                     label: AppLocalizations.of(context)?.orders ?? 'Orders',
                   ),
                 },
-                if (userData.isAdmin == false) ...{
-                  NavigationDestination(
-                    icon: Icon(Icons.shield_outlined, color: AppColors.grey),
-                    selectedIcon: Icon(
-                      Icons.shield,
-                      color: AppColors.secondary,
-                    ),
-                    label: locale?.warrantyClaims ?? '',
-                  ),
-                },
+
+                NavigationDestination(
+                  icon: Icon(Icons.shield_outlined, color: AppColors.grey),
+                  selectedIcon: Icon(Icons.shield, color: AppColors.secondary),
+                  label: locale?.warrantyClaims ?? '',
+                ),
 
                 NavigationDestination(
                   icon: SvgPicture.asset(

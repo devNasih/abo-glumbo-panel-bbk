@@ -1,1 +1,18 @@
-{}
+{
+  "ar": [
+    "assigningTechnician",
+    "selectProvince",
+    "selectCity",
+    "rejectionHistory",
+    "selectNeighborhood",
+    "techniciansRejectedThisClaim",
+    "technicianRejectedThisClaim",
+    "rejections",
+    "today",
+    "yesterday",
+    "continueChat",
+    "failedToStartChat",
+    "noMessages",
+    "errorLoadingMessages"
+  ]
+}

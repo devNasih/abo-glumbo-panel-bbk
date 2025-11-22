@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as console;
 import 'dart:math';
 import 'package:aboglumbo_bbk_panel/models/payout_request.dart';
 import 'package:aboglumbo_bbk_panel/models/transaction.dart';
@@ -1949,17 +1950,53 @@ class AppServices {
     required String bookingId,
     String? technicianUid,
     String? technicianName,
+    String? reason,
   }) async {
     final rejectedTech = {
       'uid': technicianUid,
       'name': technicianName,
+      'reason': reason,
       'rejectedOn': Timestamp.fromDate(DateTime.now()),
     };
 
     await AppFirestore.bookingsCollectionRef.doc(bookingId).update({
+      'warranty.assignedTechnicianId': "",
       'warranty.rejectedTechnicians': FieldValue.arrayUnion([rejectedTech]),
       "warranty.updatedAt": FieldValue.serverTimestamp(),
     });
+  }
+
+  static Stream<List<WarrantyModel>> getAllWarrantyClaimRequestsStream() {
+    return AppFirestore.bookingsCollectionRef
+        .where("bookingStatusCode", isEqualTo: "C")
+        .where("paymentCompleted", isEqualTo: true)
+        .where("warranty.availability", isEqualTo: true)
+        .snapshots()
+        .map((snapshot) {
+          console.log('Total docs found: ${snapshot.docs.length}');
+          return snapshot.docs
+              .map((doc) {
+                try {
+                  final data = doc.data() as Map<String, dynamic>;
+                  console.log('Processing doc ${doc.id}');
+
+                  // Check if warranty field exists
+                  if (data['warranty'] == null) {
+                    console.log('Skipping doc ${doc.id}: warranty is null');
+                    return null;
+                  }
+
+                  return WarrantyModel.fromJson(
+                    data['warranty'] as Map<String, dynamic>,
+                  );
+                } catch (e) {
+                  console.log('Error processing doc ${doc.id}: $e');
+                  return null;
+                }
+              })
+              .whereType<WarrantyModel>() // Filters out nulls
+              .toList();
+        });
   }
 }
 

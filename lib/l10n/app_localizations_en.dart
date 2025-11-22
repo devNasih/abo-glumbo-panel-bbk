@@ -1771,13 +1771,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get now => 'Now';
 
   @override
+  String get assigningTechnician => 'Assigning Technician';
+
+  @override
+  String get selectProvince => 'Select Province';
+
+  @override
+  String get selectCity => 'Select City';
+
+  @override
+  String get rejectionHistory => 'Rejection History';
+
+  @override
+  String get selectNeighborhood => 'Select Neighborhood';
+
+  @override
   String get recipients => 'Recipients';
+
+  @override
+  String get techniciansRejectedThisClaim => 'Technicians rejected this claim';
+
+  @override
+  String get technicianRejectedThisClaim => 'Technician rejected this claim';
 
   @override
   String get warrantyClaims => 'Warranty Claims';
 
   @override
   String get tapToView => 'Tap to view';
+
+  @override
+  String get rejections => 'Rejections';
 
   @override
   String get exceedsMaxSize => 'Exceeds max size';
@@ -1845,7 +1869,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookingId => 'Booking ID';
 
   @override
+  String get typeMessageToCustomer => 'Type a message to customer...';
+
+  @override
+  String get startConversationWithCustomer =>
+      'Start a conversation with your customer';
+
+  @override
+  String get chatWithCustomer => 'Chat with Customer';
+
+  @override
+  String get startChat => 'Start Chat';
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get yesterday => 'Yesterday';
+
+  @override
   String get amountPaid => 'Amount Paid';
+
+  @override
+  String get continueChat => 'Continue Chat';
+
+  @override
+  String get failedToStartChat => 'Failed to start chat';
+
+  @override
+  String get creatingChatRoom => 'Creating chat room';
+
+  @override
+  String get loadingChat => 'Loading chat';
+
+  @override
+  String get noMessages => 'No messages';
+
+  @override
+  String get errorLoadingMessages => 'Error loading messages';
 
   @override
   String get transactionId => 'Transaction ID';

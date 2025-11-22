@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,6 +6,7 @@ import 'package:aboglumbo_bbk_panel/models/warranty.dart';
 import 'package:intl/intl.dart';
 
 Widget warrantyClaimCard({
+  required bool isAdmin,
   required BuildContext context,
   required WarrantyModel warranty,
   required String bookingId,
@@ -21,6 +23,7 @@ Widget warrantyClaimCard({
   VoidCallback? onStopTracking,
   VoidCallback? onCompleteWork,
   VoidCallback? onCancel,
+  VoidCallback? onAssign,
   UserModel? currentUser,
 }) {
   // Status configuration
@@ -30,12 +33,12 @@ Widget warrantyClaimCard({
   Color statusBgColor;
 
   if (isWorkCompleted) {
-    statusLabel = 'Completed';
+    statusLabel = AppLocalizations.of(context)?.completed ?? 'Completed';
     statusColor = Colors.white;
     statusBgColor = const Color(0xFF4CAF50);
     statusIcon = Icons.check_circle_rounded;
   } else {
-    statusLabel = 'Pending Review';
+    statusLabel = AppLocalizations.of(context)?.pending ?? 'Pending';
     statusColor = Colors.white;
     statusBgColor = const Color(0xFFFF9800);
     statusIcon = Icons.pending_rounded;
@@ -45,6 +48,10 @@ Widget warrantyClaimCard({
   String formattedDate = serviceCompletedDate != null
       ? DateFormat('dd MMM yyyy, HH:mm').format(serviceCompletedDate)
       : "N/A";
+
+  // Calculate rejection count
+  final rejectionCount = warranty.rejectedTechnicians?.length ?? 0;
+  final hasRejectedTechnicians = rejectionCount > 0;
 
   // Button configuration based on workflow state
   List<Widget> buttonWidgets = [];
@@ -186,50 +193,6 @@ Widget warrantyClaimCard({
     );
   }
 
-  // Rejected technicians widget
-  Widget? rejectedTechWidget;
-  if (warranty.rejectedTechnicians != null &&
-      warranty.rejectedTechnicians!.isNotEmpty) {
-    rejectedTechWidget = Container(
-      margin: const EdgeInsets.only(top: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.red[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.red[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.info_outline, size: 16, color: Colors.red[700]),
-              const SizedBox(width: 6),
-              Text(
-                'Rejection History',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                  color: Colors.red[900],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ...warranty.rejectedTechnicians!.map(
-            (technician) => Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                "• ${technician.name} - ${technician.rejectedOn != null ? DateFormat('dd/MM/yyyy').format(technician.rejectedOn!) : 'N/A'}",
-                style: TextStyle(fontSize: 12, color: Colors.red[800]),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   return Card(
     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     elevation: 2,
@@ -264,33 +227,71 @@ Widget warrantyClaimCard({
                 ),
               ),
               const Spacer(),
-              if (isTrackingStarted)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
+              if (isAdmin && hasRejectedTechnicians)
+                GestureDetector(
+                  onTap: () => _showRejectionHistoryBottomSheet(
+                    context,
+                    warranty.rejectedTechnicians!,
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.radio_button_checked,
-                        color: statusColor,
-                        size: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.red.withOpacity(0.3),
+                        width: 1,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Tracking',
-                        style: TextStyle(
-                          color: statusColor,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.history_rounded,
+                          color: Colors.red[900],
+                          size: 14,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 4),
+                        Text(
+                          '$rejectionCount',
+                          style: TextStyle(
+                            color: Colors.red[900],
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              if (isAdmin &&
+                  (warranty.assignedTechnicianId == "" ||
+                      warranty.assignedTechnicianId == null))
+                GestureDetector(
+                  onTap: onAssign,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          AppLocalizations.of(context)!.assign,
+                          style: TextStyle(
+                            color: statusColor,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
             ],
@@ -389,7 +390,7 @@ Widget warrantyClaimCard({
               const SizedBox(height: 10),
 
               // Technician info (admin only)
-              if (currentUser?.isAdmin ?? false) ...[
+              if (isAdmin) ...[
                 _buildInfoRow(
                   icon: Icons.engineering_outlined,
                   label: 'Technician',
@@ -407,13 +408,75 @@ Widget warrantyClaimCard({
                 color: const Color(0xFF9C27B0),
               ),
 
-              // Rejection history (admin only)
-              if ((currentUser?.isAdmin ?? false) && rejectedTechWidget != null)
-                rejectedTechWidget,
+              // Rejection count banner (show for both admin and non-admin if there are rejections)
+              if (hasRejectedTechnicians) ...[
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: isAdmin
+                      ? () => _showRejectionHistoryBottomSheet(
+                          context,
+                          warranty.rejectedTechnicians!,
+                        )
+                      : null,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red[200]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.red[100],
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Icon(
+                            Icons.info_outline,
+                            size: 18,
+                            color: Colors.red[700],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                AppLocalizations.of(context)!.rejections,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                  color: Colors.red[900],
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '$rejectionCount ${rejectionCount == 1 ? AppLocalizations.of(context)!.technicianRejectedThisClaim : AppLocalizations.of(context)!.techniciansRejectedThisClaim}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.red[700],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isAdmin)
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            color: Colors.red[700],
+                            size: 20,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
 
               // Action buttons (non-admin only)
-              if (!(currentUser?.isAdmin ?? false) &&
-                  buttonWidgets.isNotEmpty) ...[
+              if (!isAdmin && buttonWidgets.isNotEmpty) ...[
                 const SizedBox(height: 20),
                 Row(children: buttonWidgets),
               ],
@@ -421,6 +484,209 @@ Widget warrantyClaimCard({
           ),
         ),
       ],
+    ),
+  );
+}
+
+void _showRejectionHistoryBottomSheet(
+  BuildContext context,
+  List<dynamic> rejectedTechnicians,
+) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.7,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle bar
+          Container(
+            margin: const EdgeInsets.only(top: 12, bottom: 8),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+
+          // Header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: Colors.grey[200]!, width: 1),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.history_rounded,
+                    color: Colors.red[700],
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.rejectionHistory,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF212121),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${rejectedTechnicians.length} ${rejectedTechnicians.length == 1 ? 'rejection' : 'rejections'}',
+                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                  color: Colors.grey[600],
+                ),
+              ],
+            ),
+          ),
+
+          // List of rejected technicians
+          Flexible(
+            child: ListView.separated(
+              shrinkWrap: true,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: rejectedTechnicians.length,
+              separatorBuilder: (context, index) => Divider(
+                height: 1,
+                thickness: 1,
+                color: Colors.grey[200],
+                indent: 20,
+                endIndent: 20,
+              ),
+              itemBuilder: (context, index) {
+                final technician = rejectedTechnicians[index];
+                final name = technician.name ?? 'Unknown Technician';
+                final reason = technician.reason ?? 'No reason provided';
+                final rejectedOn = technician.rejectedOn;
+                final formattedDate = rejectedOn != null
+                    ? DateFormat('dd MMM yyyy, HH:mm').format(rejectedOn)
+                    : 'Date not available';
+
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
+                  child: Row(
+                    children: [
+                      // Index badge
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.red[100],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '${index + 1}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red[700],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+
+                      // Technician info
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF212121),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.calendar_today,
+                                  size: 13,
+                                  color: Colors.grey[600],
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  formattedDate,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                Text(
+                                  AppLocalizations.of(context)!.reason,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  reason,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Rejection icon
+                      Icon(
+                        Icons.cancel_rounded,
+                        color: Colors.red[400],
+                        size: 24,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     ),
   );
 }

@@ -35,6 +35,7 @@ class BookingModel {
   CompletionDataModel?
   completionData; // This now contains List<String> imageUrls
   late String paymentModeCode;
+  String? chatroomId = "";
 
   String get paymentModeGen {
     switch (paymentModeCode) {
@@ -62,6 +63,7 @@ class BookingModel {
   Timestamp? cancelledAt;
   String? cancellationReason;
   String? orderId;
+
   bool paymentCompleted = false;
   List<String>? cancelledWorkerUids;
 
@@ -69,6 +71,7 @@ class BookingModel {
 
   BookingModel({
     required this.id,
+
     required this.service,
     required this.bookingDateTime,
     required this.bookingStatusCode,
@@ -80,6 +83,7 @@ class BookingModel {
     required this.paymentModeCode,
     this.isStartTracking,
     this.review,
+    this.chatroomId,
     this.agent,
     this.completionData, // Add this
     this.createdAt,
@@ -108,6 +112,7 @@ class BookingModel {
       isStartTracking = data['isStarted'] ?? false,
       notes = data['notes'],
       id = data['id'] ?? '',
+      chatroomId = data['chatroomId'],
       issueImage = data['issueImage'],
       warranty = data['warranty'] != null
           ? WarrantyModel.fromJson(data['warranty'])
@@ -157,6 +162,7 @@ class BookingModel {
       'issueImage': issueImage,
       'customer': customer.toJson(),
       'orderId': orderId,
+      'chatroomId': chatroomId,
       'issueVideo': issueVideo,
       'cancelledWorkers': cancelledWorkers.map((e) => e.toJson()).toList(),
       'paymentModeCode': paymentModeCode,
