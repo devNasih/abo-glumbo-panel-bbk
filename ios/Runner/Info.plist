@@ -41,7 +41,7 @@
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>FirebaseAppDelegateProxyEnabled</key>
-	<false/>
+	<true/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
@@ -69,6 +69,19 @@
 	<string>This app needs access to photo library to select images for upload.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<key>CFBundleURLTypes</key>
+<array>
+  <dict>
+    <key>CFBundleTypeRole</key>
+    <string>Editor</string>
+    <key>CFBundleURLSchemes</key>
+    <array>
+      <string>com.googleusercontent.apps.629201660527-g3q673rcg9087klcj1hevmaolktfapsb</string>
+    </array>
+  </dict>
+</array>
+
 	<key>UIBackgroundModes</key>
 	<array>
     	<string>location</string>
