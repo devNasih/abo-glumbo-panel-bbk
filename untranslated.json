@@ -1,18 +1,1 @@
-{
-  "ar": [
-    "assigningTechnician",
-    "selectProvince",
-    "uploadIdDocument",
-    "idDocument",
-    "pleaseUploadIdDocument",
-    "pleaseSelectLocation",
-    "creatingAccount",
-    "pleaseWait",
-    "noJobCategoriesAvailable",
-    "availabilityStatus",
-    "youAreNowOnline",
-    "youAreNowOffline",
-    "errorUpdatingStatus",
-    "files"
-  ]
-}
+{}

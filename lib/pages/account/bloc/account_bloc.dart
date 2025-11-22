@@ -9,9 +9,9 @@ import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/services/firestorage.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:meta/meta.dart';
 
 part 'account_event.dart';
 part 'account_state.dart';
@@ -166,7 +166,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
               currentCertifications.add(downloadUrl);
               certificationsUpdated = true;
             } catch (e) {
-              print('Failed to upload certification: ${cert.name}, error: $e');
+              debugPrint('Failed to upload certification: ${cert.name}, error: $e');
             }
           }
         }

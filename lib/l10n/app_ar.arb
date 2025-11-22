@@ -1050,5 +1050,19 @@
   "noMessages": "لا توجد رسائل",
   "errorLoadingMessages": "خطأ في تحميل الرسائل",
   "youAreCurrentlyUnavailable": "أنت حالياً غير متاح للطلبات",
-  "youAreAvailableForRequests": "أنت متاح للطلبات"
+  "youAreAvailableForRequests": "أنت متاح للطلبات",
+  "assigningTechnician": "يتم تعيين الفني",
+  "selectProvince": "اختر المحافظة",
+  "uploadIdDocument": "تحميل الوثيقة الشخصية",
+  "idDocument": "الوثيقة الشخصية",
+  "pleaseUploadIdDocument": "يرجى تحميل الوثيقة الشخصية",
+  "pleaseSelectLocation": "يرجى اختيار الموقع",
+  "creatingAccount": "يتم إنشاء الحساب",
+  "pleaseWait": "يرجى الانتظار",
+  "noJobCategoriesAvailable": "لا توجد فئات عمل متاحة",
+  "availabilityStatus": "حالة المتاحية",
+  "youAreNowOnline": "أنت الآن متاح",
+  "youAreNowOffline": "أنت الآن غير متاح",
+  "errorUpdatingStatus": "حدث خطأ أثناء تحديث الحالة",
+  "files": "الملفات"
 }

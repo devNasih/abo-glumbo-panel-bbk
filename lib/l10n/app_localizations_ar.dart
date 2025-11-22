@@ -1743,10 +1743,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get now => 'الان';
 
   @override
-  String get assigningTechnician => 'Assigning Technician';
+  String get assigningTechnician => 'يتم تعيين الفني';
 
   @override
-  String get selectProvince => 'Select Province';
+  String get selectProvince => 'اختر المحافظة';
 
   @override
   String get selectCity => 'اختر المدينة';
@@ -3197,37 +3197,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get idDocumentUploaded => 'تم تحميل الوثيقة الشخصية';
 
   @override
-  String get uploadIdDocument => 'Upload ID document';
+  String get uploadIdDocument => 'تحميل الوثيقة الشخصية';
 
   @override
-  String get idDocument => 'ID Document';
+  String get idDocument => 'الوثيقة الشخصية';
 
   @override
-  String get pleaseUploadIdDocument => 'Please upload ID document';
+  String get pleaseUploadIdDocument => 'يرجى تحميل الوثيقة الشخصية';
 
   @override
-  String get pleaseSelectLocation => 'Please select location';
+  String get pleaseSelectLocation => 'يرجى اختيار الموقع';
 
   @override
-  String get creatingAccount => 'Creating Your Account';
+  String get creatingAccount => 'يتم إنشاء الحساب';
 
   @override
-  String get pleaseWait => 'Please wait...';
+  String get pleaseWait => 'يرجى الانتظار';
 
   @override
-  String get noJobCategoriesAvailable => 'No job categories available';
+  String get noJobCategoriesAvailable => 'لا توجد فئات عمل متاحة';
 
   @override
-  String get availabilityStatus => 'Availability Status';
+  String get availabilityStatus => 'حالة المتاحية';
 
   @override
-  String get youAreNowOnline => 'You are now online';
+  String get youAreNowOnline => 'أنت الآن متاح';
 
   @override
-  String get youAreNowOffline => 'You are now offline';
+  String get youAreNowOffline => 'أنت الآن غير متاح';
 
   @override
-  String get errorUpdatingStatus => 'Error updating status';
+  String get errorUpdatingStatus => 'حدث خطأ أثناء تحديث الحالة';
 
   @override
   String get youAreCurrentlyUnavailable => 'أنت حالياً غير متاح للطلبات';
@@ -3236,5 +3236,5 @@ class AppLocalizationsAr extends AppLocalizations {
   String get youAreAvailableForRequests => 'أنت متاح للطلبات';
 
   @override
-  String get files => 'Files';
+  String get files => 'الملفات';
 }

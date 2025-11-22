@@ -396,18 +396,6 @@ class _LoginPageState extends State<LoginPage> {
     isUserLogout = LocalStore.getLogoutStatus();
     _isRememberMeChecked = LocalStore.getRememberMe();
 
-    // 🔍 DEBUG: Print all values
-    print('🔍 DEBUG LOGIN PAGE INIT:');
-    print('customerLastUid: $customerLastUid');
-    print(
-      'isCheckUserEnableTwoStepVerification: $isCheckUserEnableTwoStepVerification',
-    );
-    print('isUserLogout: $isUserLogout');
-    print('_isRememberMeChecked: $_isRememberMeChecked');
-    print(
-      'Should show biometric: ${isCheckUserEnableTwoStepVerification && isUserLogout && customerLastUid != null && customerLastUid!.isNotEmpty}',
-    );
-
     if (_isRememberMeChecked) {
       _phoneController.text = LocalStore.getRememberedPhone() ?? '';
     } else {

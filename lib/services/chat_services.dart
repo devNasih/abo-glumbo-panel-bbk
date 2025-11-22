@@ -1,6 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 class TechnicianChatService {
   late final DatabaseReference _rtdb;
@@ -33,7 +34,6 @@ class TechnicianChatService {
       final snapshot = await chatRef.get();
 
       if (!snapshot.exists) {
-        print('🔄 Creating new chat: $chatId');
 
         await chatRef.set({
           'bookingId': bookingId,
@@ -72,9 +72,7 @@ class TechnicianChatService {
           'chatroomId': chatId,
         });
 
-        print('✅ Chat created successfully: $chatId');
       } else {
-        print('✅ Chat already exists: $chatId');
 
         final techUserChatSnapshot = await _rtdb
             .child('userChats/$currentUserId/$chatId')
@@ -124,7 +122,6 @@ class TechnicianChatService {
 
       return chatId;
     } catch (e) {
-      print('❌ Error in initiateChat: $e');
       throw Exception('Failed to initiate chat: $e');
     }
   }
@@ -200,9 +197,7 @@ class TechnicianChatService {
         });
       }
 
-      print('✅ Message sent successfully');
     } catch (e) {
-      print('❌ Error sending message: $e');
       throw Exception('Failed to send message: $e');
     }
   }
@@ -215,9 +210,8 @@ class TechnicianChatService {
     try {
       await _rtdb.child('chats/$chatId/technicianUnreadCount').set(0);
       await _rtdb.child('userChats/$currentUserId/$chatId/unreadCount').set(0);
-      print('✅ Messages marked as read');
     } catch (e) {
-      print('❌ Error marking as read: $e');
+      debugPrint('❌ Error marking as read: $e');
     }
   }
 
@@ -252,7 +246,7 @@ class TechnicianChatService {
       }
       return null;
     } catch (e) {
-      print('Error getting chat by booking ID: $e');
+      debugPrint('Error getting chat by booking ID: $e');
       return null;
     }
   }
