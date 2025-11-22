@@ -1,5 +1,8 @@
+import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
+import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,23 +10,50 @@ import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class AgentInfo extends StatelessWidget {
+class AgentInfo extends StatefulWidget {
   final UserModel agent;
-  AgentInfo({super.key, required this.agent});
+  const AgentInfo({super.key, required this.agent});
+
+  @override
+  State<AgentInfo> createState() => _AgentInfoState();
+}
+
+class _AgentInfoState extends State<AgentInfo> {
+  UserModel get agent => widget.agent;
 
   static Color primary = AppColors.primary;
   static Color secondary = AppColors.secondary;
   static Color cardBackground = AppColors.bgWhite;
 
-  final Map<String, Map<String, String>> jobCategories = {
-    'plumbing': {'en': 'Plumbing', 'ar': 'السباكة'},
-    'ac': {'en': 'A/C', 'ar': 'تكييف الهواء'},
-    'cleaning': {'en': 'Cleaning', 'ar': 'التنظيف'},
-    'electrician': {'en': 'Electrician', 'ar': 'كهربائي'},
-    'flooring': {'en': 'Flooring', 'ar': 'الأرضيات'},
-    'painter': {'en': 'Painter', 'ar': 'دهان'},
-    'other': {'en': 'Other', 'ar': 'أخرى'},
-  };
+  Map<String, Map<String, String>> jobCategories = {};
+  bool isLoadingCategories = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchJobCategories();
+  }
+
+  Future<void> _fetchJobCategories() async {
+    try {
+      final categories = await AppServices.fetchJobCategories();
+      if (mounted) {
+        setState(() {
+          jobCategories = categories;
+          isLoadingCategories = false;
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching job categories: $e');
+      }
+      if (mounted) {
+        setState(() {
+          isLoadingCategories = false;
+        });
+      }
+    }
+  }
 
   Future<void> _makePhoneCall(String phoneNumber) async {
     final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
@@ -42,14 +72,6 @@ class AgentInfo extends StatelessWidget {
 
   void _copyToClipboard(BuildContext context, String text, String label) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '$label ${AppLocalizations.of(context)!.copiedToClipboard}',
-        ),
-        duration: const Duration(seconds: 3),
-      ),
-    );
   }
 
   @override
@@ -163,7 +185,7 @@ class AgentInfo extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Failed to load image',
+                            AppLocalizations.of(context)!.failedToLoadImage,
                             style: TextStyle(color: Colors.grey[600]),
                           ),
                         ],
@@ -279,7 +301,7 @@ class AgentInfo extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Tap to view document',
+                                AppLocalizations.of(context)!.tapToView,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey[600],
@@ -308,15 +330,15 @@ class AgentInfo extends StatelessWidget {
   Future<void> _launchCertificationUrl(String url) async {
     final Uri uri = Uri.parse(url);
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        throw 'Could not launch $url';
-      }
+      await launchUrl(uri, mode: LaunchMode.platformDefault);
     } catch (e) {
       if (kDebugMode) {
         print('Error launching certification URL: $e');
       }
+      // Optionally show a user-friendly error message
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text('Could not open document')),
+      // );
     }
   }
 
@@ -330,8 +352,8 @@ class AgentInfo extends StatelessWidget {
         fileName = Uri.decodeComponent(fileName);
         // If filename is too long, truncate it
         if (fileName.length > 40) {
-          final extension = fileName.split('.').last;
-          fileName = '${fileName.substring(0, 35)}....$extension';
+          final extension = fileName.split('/').last;
+          fileName = extension;
         }
         return fileName;
       }
@@ -506,10 +528,17 @@ class AgentInfo extends StatelessWidget {
                     () async {
                       final Uri emailUri = Uri(
                         scheme: 'mailto',
-                        path: agent.email,
+                        path: agent.email!,
                       );
-                      if (await canLaunchUrl(emailUri)) {
-                        await launchUrl(emailUri);
+                      try {
+                        await launchUrl(
+                          emailUri,
+                          mode: LaunchMode.platformDefault,
+                        );
+                      } catch (e) {
+                        if (kDebugMode) {
+                          print('Error launching email: $e');
+                        }
                       }
                     },
                   ),
@@ -595,6 +624,7 @@ class AgentInfo extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             _buildModernInfoRow(
+              false,
               context,
               Icons.badge_outlined,
               AppLocalizations.of(context)!.name,
@@ -602,6 +632,7 @@ class AgentInfo extends StatelessWidget {
             ),
             _buildDivider(),
             _buildModernInfoRow(
+              false,
               context,
               Icons.email_outlined,
               AppLocalizations.of(context)!.email,
@@ -609,6 +640,7 @@ class AgentInfo extends StatelessWidget {
             ),
             _buildDivider(),
             _buildModernInfoRow(
+              true,
               context,
               Icons.phone_outlined,
               AppLocalizations.of(context)!.phone,
@@ -616,24 +648,13 @@ class AgentInfo extends StatelessWidget {
             ),
             _buildDivider(),
             _buildModernInfoRow(
-              context,
-              Icons.public,
-              AppLocalizations.of(context)!.country,
-              agent.country,
-            ),
-            _buildDivider(),
-            _buildModernInfoRow(
+              false,
               context,
               Icons.location_city_outlined,
-              AppLocalizations.of(context)!.district,
-              agent.districtName,
-            ),
-            _buildDivider(),
-            _buildModernInfoRow(
-              context,
-              Icons.language,
-              AppLocalizations.of(context)!.languageCode,
-              agent.lanCode,
+              AppLocalizations.of(context)!.location,
+              Directionality.of(context) == TextDirection.rtl
+                  ? "${agent.detailedLocation?.neighborhoodAr}, ${agent.detailedLocation?.cityAr}"
+                  : "${agent.detailedLocation?.neighborhoodEn}, ${agent.detailedLocation?.cityEn}",
             ),
           ],
         ),
@@ -680,7 +701,7 @@ class AgentInfo extends StatelessWidget {
               const SizedBox(height: 20),
               Center(
                 child: Text(
-                  'No bank account details available',
+                  AppLocalizations.of(context)!.noBankAccountDetailsAvailable,
                   style: TextStyle(color: Colors.grey[600], fontSize: 15),
                 ),
               ),
@@ -861,52 +882,55 @@ class AgentInfo extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: agent.jobRoles!
-                  .map(
-                    (role) => Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [secondary.withOpacity(0.8), secondary],
+            if (isLoadingCategories)
+              Center(child: SizedBox(height: 24, child: Loader()))
+            else
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: agent.jobRoles!
+                    .map(
+                      (role) => Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
                         ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: secondary.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [secondary.withOpacity(0.8), secondary],
                           ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.verified_user,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            _getLocalizedJobCategory(role, currentLocale),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: secondary.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.verified_user,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _getLocalizedJobCategory(role, currentLocale),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  )
-                  .toList(),
-            ),
+                    )
+                    .toList(),
+              ),
           ],
         ),
       ),
@@ -949,6 +973,7 @@ class AgentInfo extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             _buildModernInfoRow(
+              false,
               context,
               Icons.fingerprint,
               AppLocalizations.of(context)!.userId,
@@ -963,6 +988,7 @@ class AgentInfo extends StatelessWidget {
             ),
             _buildDivider(),
             _buildModernInfoRow(
+              false,
               context,
               Icons.calendar_today,
               AppLocalizations.of(context)!.createdAt,
@@ -970,6 +996,7 @@ class AgentInfo extends StatelessWidget {
             ),
             _buildDivider(),
             _buildModernInfoRow(
+              false,
               context,
               Icons.update,
               AppLocalizations.of(context)!.updatedAt,
@@ -982,6 +1009,7 @@ class AgentInfo extends StatelessWidget {
   }
 
   Widget _buildModernInfoRow(
+    bool noChange,
     BuildContext context,
     IconData icon,
     String label,
@@ -1009,12 +1037,15 @@ class AgentInfo extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
                   ),
                 ),
               ],
@@ -1033,13 +1064,27 @@ class AgentInfo extends StatelessWidget {
   String? _formatTimestamp(Timestamp? timestamp) {
     if (timestamp == null) return null;
     final date = timestamp.toDate();
-    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    final locale = Localizations.localeOf(context).languageCode;
+    return DateFormat('dd/MM/yyyy hh:mm a', locale).format(date);
   }
 
   String _getLocalizedJobCategory(String jobKey, String locale) {
+    // Try exact match first
+    if (jobCategories.containsKey(jobKey)) {
+      return jobCategories[jobKey]![locale] ?? jobKey;
+    }
+    // Try lowercase match
     if (jobCategories.containsKey(jobKey.toLowerCase())) {
       return jobCategories[jobKey.toLowerCase()]![locale] ?? jobKey;
     }
+    // Try finding by value (reverse lookup) if needed, or just return key
+    // Sometimes the key stored in user profile might be the English name instead of ID
+    for (var entry in jobCategories.entries) {
+      if (entry.value['en'] == jobKey || entry.value['ar'] == jobKey) {
+        return entry.value[locale] ?? jobKey;
+      }
+    }
+
     return jobKey;
   }
 }

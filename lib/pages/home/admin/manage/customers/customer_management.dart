@@ -5,25 +5,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:url_launcher/url_launcher.dart';
 
 class CustomerInfo extends StatelessWidget {
   final CustomerModel customer;
-  CustomerInfo({super.key, required this.customer});
+  const CustomerInfo({super.key, required this.customer});
 
   static Color primary = AppColors.primary;
   static Color secondary = AppColors.secondary;
   static Color cardBackground = AppColors.bgWhite;
-
-  final Map<String, Map<String, String>> jobCategories = {
-    'plumbing': {'en': 'Plumbing', 'ar': 'السباكة'},
-    'ac': {'en': 'A/C', 'ar': 'تكييف الهواء'},
-    'cleaning': {'en': 'Cleaning', 'ar': 'التنظيف'},
-    'electrician': {'en': 'Electrician', 'ar': 'كهربائي'},
-    'flooring': {'en': 'Flooring', 'ar': 'الأرضيات'},
-    'painter': {'en': 'Painter', 'ar': 'دهان'},
-    'other': {'en': 'Other', 'ar': 'أخرى'},
-  };
 
   Future<void> _makePhoneCall(String phoneNumber) async {
     final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
@@ -42,16 +33,6 @@ class CustomerInfo extends StatelessWidget {
 
   void _copyToClipboard(BuildContext context, String text, String label) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '$label ${AppLocalizations.of(context)!.copiedToClipboard}',
-        ),
-        duration: const Duration(seconds: 2),
- 
-        
-      ),
-    );
   }
 
   @override
@@ -238,8 +219,15 @@ class CustomerInfo extends StatelessWidget {
                         scheme: 'mailto',
                         path: customer.email,
                       );
-                      if (await canLaunchUrl(emailUri)) {
-                        await launchUrl(emailUri);
+                      try {
+                        await launchUrl(
+                          emailUri,
+                          mode: LaunchMode.platformDefault,
+                        );
+                      } catch (e) {
+                        if (kDebugMode) {
+                          print('Error launching email: $e');
+                        }
                       }
                     },
                   ),
@@ -339,6 +327,7 @@ class CustomerInfo extends StatelessWidget {
             ),
             _buildDivider(),
             _buildModernInfoRow(
+              isPhone: true,
               context,
               Icons.phone_outlined,
               AppLocalizations.of(context)!.phone,
@@ -347,16 +336,11 @@ class CustomerInfo extends StatelessWidget {
             _buildDivider(),
             _buildModernInfoRow(
               context,
-              Icons.public,
-              AppLocalizations.of(context)!.country,
-              customer.country,
-            ),
-            _buildDivider(),
-            _buildModernInfoRow(
-              context,
               Icons.location_city_outlined,
-              AppLocalizations.of(context)!.district,
-              customer.districtName,
+              AppLocalizations.of(context)!.location,
+              Directionality.of(context) == TextDirection.rtl
+                  ? "${customer.detailedLocation?.neighborhoodAr}, ${customer.detailedLocation?.cityAr}"
+                  : "${customer.detailedLocation?.neighborhoodEn}, ${customer.detailedLocation?.cityEn}",
             ),
             _buildDivider(),
             _buildModernInfoRow(
@@ -424,14 +408,14 @@ class CustomerInfo extends StatelessWidget {
               context,
               Icons.calendar_today,
               AppLocalizations.of(context)!.createdAt,
-              _formatTimestamp(customer.createdAt),
+              _formatTimestamp(customer.createdAt, context),
             ),
             _buildDivider(),
             _buildModernInfoRow(
               context,
               Icons.update,
               AppLocalizations.of(context)!.updatedAt,
-              _formatTimestamp(customer.updatedAt),
+              _formatTimestamp(customer.updatedAt, context),
             ),
           ],
         ),
@@ -444,6 +428,7 @@ class CustomerInfo extends StatelessWidget {
     IconData icon,
     String label,
     String? value, {
+    bool isPhone = false,
     Widget? trailing,
   }) {
     if (value == null || value.isEmpty) return const SizedBox.shrink();
@@ -467,14 +452,26 @@ class CustomerInfo extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
+                isPhone
+                    ? Directionality(
+                        textDirection: TextDirection.ltr,
+                        child: Text(
+                          value,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      )
+                    : Text(
+                        value,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
               ],
             ),
           ),
@@ -488,9 +485,10 @@ class CustomerInfo extends StatelessWidget {
     return Divider(color: Colors.grey[300], height: 1, thickness: 1);
   }
 
-  String? _formatTimestamp(Timestamp? timestamp) {
+  String? _formatTimestamp(Timestamp? timestamp, BuildContext context) {
     if (timestamp == null) return null;
     final date = timestamp.toDate();
-    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    final locale = Localizations.localeOf(context).languageCode;
+    return DateFormat('dd/MM/yyyy hh:mm a', locale).format(date);
   }
 }

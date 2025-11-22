@@ -151,7 +151,9 @@ class UserModel {
       isAdmin: json['isAdmin'] ?? false,
       isVerified: json['isVerified'] ?? false,
       districtName: json['districtName'],
-      role: json['role'],
+      role:
+          json['role'] ??
+          'technician', // Provide default value to prevent null error
       location: json['location'] != null
           ? LocationModel.fromJson(json['location'])
           : null,

@@ -6068,11 +6068,35 @@ abstract class AppLocalizations {
   /// **'Work Completed'**
   String get workCompleted;
 
+  /// No description provided for @resetFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Filters'**
+  String get resetFilters;
+
+  /// No description provided for @technician.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician'**
+  String get technician;
+
+  /// No description provided for @noBankAccountDetailsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No bank account details available'**
+  String get noBankAccountDetailsAvailable;
+
   /// No description provided for @acceptWarrantyClaim.
   ///
   /// In en, this message translates to:
   /// **'Accept Warranty Claim'**
   String get acceptWarrantyClaim;
+
+  /// No description provided for @areYouSureYouWantToRejectThisWarrantyClaim.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to reject this warranty claim?'**
+  String get areYouSureYouWantToRejectThisWarrantyClaim;
 
   /// No description provided for @acceptWarrantyClaimMessage.
   ///
@@ -6259,6 +6283,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You are available for requests'**
   String get youAreAvailableForRequests;
+
+  /// No description provided for @files.
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get files;
 }
 
 class _AppLocalizationsDelegate

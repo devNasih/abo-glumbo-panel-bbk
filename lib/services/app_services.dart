@@ -1987,6 +1987,7 @@ class AppServices {
 
     await AppFirestore.bookingsCollectionRef.doc(bookingId).update({
       'warranty.assignedTechnicianId': "",
+      'warranty.claimStatus': false,
       'warranty.rejectedTechnicians': FieldValue.arrayUnion([rejectedTech]),
       "warranty.updatedAt": FieldValue.serverTimestamp(),
     });

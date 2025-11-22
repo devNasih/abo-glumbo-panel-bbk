@@ -1743,10 +1743,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get now => 'الان';
 
   @override
-  String get assigningTechnician => 'تعيين الفني';
+  String get assigningTechnician => 'Assigning Technician';
 
   @override
-  String get selectProvince => 'اختر المحافظة';
+  String get selectProvince => 'Select Province';
 
   @override
   String get selectCity => 'اختر المدينة';
@@ -3125,7 +3125,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get workCompleted => 'تم إكمال العمل';
 
   @override
+  String get resetFilters => 'إعادة التعيين';
+
+  @override
+  String get technician => 'الفني';
+
+  @override
+  String get noBankAccountDetailsAvailable => 'لا توجد تفاصيل حساب بنكي';
+
+  @override
   String get acceptWarrantyClaim => 'قبول الطلب';
+
+  @override
+  String get areYouSureYouWantToRejectThisWarrantyClaim =>
+      'هل أنت متأكد من رغبتك في رفض هذا الطلب؟';
 
   @override
   String get acceptWarrantyClaimMessage =>
@@ -3184,41 +3197,44 @@ class AppLocalizationsAr extends AppLocalizations {
   String get idDocumentUploaded => 'تم تحميل الوثيقة الشخصية';
 
   @override
-  String get uploadIdDocument => 'تحميل وثيقة شخصية';
+  String get uploadIdDocument => 'Upload ID document';
 
   @override
-  String get idDocument => 'وثيقة شخصية';
+  String get idDocument => 'ID Document';
 
   @override
-  String get pleaseUploadIdDocument => 'يرجى تحميل وثيقة شخصية';
+  String get pleaseUploadIdDocument => 'Please upload ID document';
 
   @override
-  String get pleaseSelectLocation => 'يرجى اختيار الموقع';
+  String get pleaseSelectLocation => 'Please select location';
 
   @override
-  String get creatingAccount => 'إنشاء حساب';
+  String get creatingAccount => 'Creating Your Account';
 
   @override
-  String get pleaseWait => 'يرجى الانتظار';
+  String get pleaseWait => 'Please wait...';
 
   @override
-  String get noJobCategoriesAvailable => 'لا توجد فئات وظائف متاحة';
+  String get noJobCategoriesAvailable => 'No job categories available';
 
   @override
-  String get availabilityStatus => 'حالة المتاحية';
+  String get availabilityStatus => 'Availability Status';
 
   @override
-  String get youAreNowOnline => 'أنت الآن متصل';
+  String get youAreNowOnline => 'You are now online';
 
   @override
-  String get youAreNowOffline => 'أنت الآن غير متصل';
+  String get youAreNowOffline => 'You are now offline';
 
   @override
-  String get errorUpdatingStatus => 'خطأ في تحديث الحالة';
+  String get errorUpdatingStatus => 'Error updating status';
 
   @override
   String get youAreCurrentlyUnavailable => 'أنت حالياً غير متاح للطلبات';
 
   @override
   String get youAreAvailableForRequests => 'أنت متاح للطلبات';
+
+  @override
+  String get files => 'Files';
 }

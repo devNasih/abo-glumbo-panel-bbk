@@ -3171,7 +3171,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workCompleted => 'Work Completed';
 
   @override
+  String get resetFilters => 'Reset Filters';
+
+  @override
+  String get technician => 'Technician';
+
+  @override
+  String get noBankAccountDetailsAvailable =>
+      'No bank account details available';
+
+  @override
   String get acceptWarrantyClaim => 'Accept Warranty Claim';
+
+  @override
+  String get areYouSureYouWantToRejectThisWarrantyClaim =>
+      'Are you sure you want to reject this warranty claim?';
 
   @override
   String get acceptWarrantyClaimMessage =>
@@ -3271,4 +3285,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get youAreAvailableForRequests => 'You are available for requests';
+
+  @override
+  String get files => 'Files';
 }

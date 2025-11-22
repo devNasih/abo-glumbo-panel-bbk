@@ -94,7 +94,7 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
   }
 
   // Show confirmation dialog
-  Future<Map<String, dynamic>> _showConfirmationDialog({
+  Future<Map<String, dynamic>> showConfirmationDialog({
     required BuildContext context,
     required String title,
     required String message,
@@ -174,12 +174,17 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                 });
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: requireReason ? Colors.red[600] : null,
+                backgroundColor: requireReason
+                    ? Colors.red[600]
+                    : Colors.green[600],
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: Text(confirmText ?? AppLocalizations.of(context)!.confirm),
+              child: Text(
+                confirmText ?? AppLocalizations.of(context)!.confirm,
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );
@@ -518,14 +523,11 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                         isAccepted: claim.claimStatus ?? false,
                         isTrackingStarted: claim.isTracking,
                         onCompleteWork: () async {
-                          final confirmed = await _showConfirmationDialog(
+                          final confirmed = await showConfirmationDialog(
                             isCancel: false,
                             context: context,
-                            title: AppLocalizations.of(
-                              context,
-                            )!.completeWork,
-                            message:
-                                AppLocalizations.of(
+                            title: AppLocalizations.of(context)!.completeWork,
+                            message: AppLocalizations.of(
                               context,
                             )!.completeWorkMessage,
                           );
@@ -542,14 +544,11 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                           }
                         },
                         onStartWork: () async {
-                          final confirmed = await _showConfirmationDialog(
+                          final confirmed = await showConfirmationDialog(
                             isCancel: false,
                             context: context,
-                            title: AppLocalizations.of(
-                              context,
-                            )!.startWork,
-                            message:
-                                AppLocalizations.of(
+                            title: AppLocalizations.of(context)!.startWork,
+                            message: AppLocalizations.of(
                               context,
                             )!.startWorkMessage,
                           );
@@ -572,7 +571,7 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                           }
                         },
                         onCancel: () async {
-                          final result = await _showConfirmationDialog(
+                          final result = await showConfirmationDialog(
                             isCancel: true,
                             context: context,
                             title: AppLocalizations.of(
@@ -611,14 +610,13 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                         onStopTracking: booking.isStartTracking == false
                             ? null
                             : () async {
-                                final confirmed = await _showConfirmationDialog(
+                                final confirmed = await showConfirmationDialog(
                                   isCancel: false,
                                   context: context,
                                   title: AppLocalizations.of(
                                     context,
                                   )!.stopTracking,
-                                  message:
-                                      AppLocalizations.of(
+                                  message: AppLocalizations.of(
                                     context,
                                   )!.stopTrackingMessage,
                                 );
@@ -628,7 +626,7 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                                 }
                               },
                         onAccept: () async {
-                          final confirmed = await _showConfirmationDialog(
+                          final confirmed = await showConfirmationDialog(
                             isCancel: false,
                             context: context,
                             title: AppLocalizations.of(
@@ -652,7 +650,7 @@ class _WarrantyClaimsState extends State<WarrantyClaims> {
                         },
                         context: context,
                         onReject: () async {
-                          final result = await _showConfirmationDialog(
+                          final result = await showConfirmationDialog(
                             isCancel: false,
                             context: context,
                             title: AppLocalizations.of(
@@ -1048,15 +1046,20 @@ class _AssignAgentBottomSheetState extends State<AssignAgentBottomSheet> {
     final category = categoryCache[categoryId];
     if (category == null) return categoryId; // Fallback to ID if not found
 
-    return isArabic
-        ? (category.name_ar ?? category.name ?? categoryId)
-        : (category.name ?? category.name_ar ?? categoryId);
+    String? name = isArabic
+        ? (category.name_ar ?? category.name)
+        : (category.name ?? category.name_ar);
+
+    return name ?? categoryId; // Ensure we always return a non-null string
   }
 
   List<String> _getJobRoleNames(List<String>? jobRoleIds, bool isArabic) {
     if (jobRoleIds == null || jobRoleIds.isEmpty) return [];
 
-    return jobRoleIds.map((id) => _getCategoryName(id, isArabic)).toList();
+    return jobRoleIds
+        .map((id) => _getCategoryName(id, isArabic))
+        .where((name) => name.isNotEmpty) // Filter out empty strings
+        .toList();
   }
 
   @override
@@ -1101,22 +1104,46 @@ class _AssignAgentBottomSheetState extends State<AssignAgentBottomSheet> {
   Future<void> _showRejectConfirmationDialog() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
+      barrierDismissible: false,
+
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text(AppLocalizations.of(context)!.confirmReject),
-          content: Text(AppLocalizations.of(context)!.confirmRejectMessage),
+          backgroundColor: Colors.white,
+          title: Text(
+            AppLocalizations.of(context)?.rejectWarrantyClaim ??
+                'Reject Warranty Claim',
+          ),
+          content: Text(
+            AppLocalizations.of(
+                  context,
+                )?.areYouSureYouWantToRejectThisWarrantyClaim ??
+                'Are you sure you want to reject this warranty claim?',
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-                Navigator.of(context).pop(false);
-              },
-              child: Text(AppLocalizations.of(context)!.cancel),
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(
+                AppLocalizations.of(context)?.cancel ?? 'Cancel',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
             ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: Text(AppLocalizations.of(context)!.reject),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(true);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red[600],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                AppLocalizations.of(context)?.reject ?? 'Reject',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );
@@ -1124,8 +1151,27 @@ class _AssignAgentBottomSheetState extends State<AssignAgentBottomSheet> {
     );
 
     if (confirmed == true) {
-      widget.onRejectOrder(widget.warranty);
-      Navigator.pop(context);
+      AppFirestore.bookingsCollectionRef.doc(widget.booking.id).update({
+        'warranty.claimStatus': false,
+        'warranty.updatedAt': FieldValue.serverTimestamp(),
+        'warranty.assignedTechnicianId': '',
+        'warranty.availability': false,
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)?.warrantyClaimRejected ??
+                'Warranty claim rejected',
+          ),
+          duration: const Duration(seconds: 2),
+          action: SnackBarAction(
+            label: AppLocalizations.of(context)?.ok ?? 'OK',
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ),
+      );
     }
   }
 
@@ -1764,8 +1810,18 @@ class _AssignAgentBottomSheetState extends State<AssignAgentBottomSheet> {
   Widget _buildUserTile(UserModel user, TextTheme textTheme) {
     final userId = user.uid ?? '';
     final isAssigningThisUser = assigningUsers.contains(userId);
+
+    // Check if this technician has been rejected for this warranty
+    final isRejected =
+        widget.warranty.rejectedTechnicians?.any(
+          (rejected) => rejected.uid == userId,
+        ) ??
+        false;
+
     final isDisabled =
-        isAssigning && !isAssigningThisUser || globalAssignmentLock;
+        isAssigning && !isAssigningThisUser ||
+        globalAssignmentLock ||
+        isRejected;
     final isArabic = Directionality.of(context) == TextDirection.rtl;
 
     // Get translated job role names
@@ -1775,9 +1831,15 @@ class _AssignAgentBottomSheetState extends State<AssignAgentBottomSheet> {
     );
 
     return ListTile(
-      title: Text(
-        user.name ?? '',
-        style: TextStyle(color: isDisabled ? Colors.grey.shade600 : null),
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              user.name ?? '',
+              style: TextStyle(color: isDisabled ? Colors.grey.shade600 : null),
+            ),
+          ),
+        ],
       ),
       subtitle: RichText(
         text: TextSpan(
@@ -1785,7 +1847,7 @@ class _AssignAgentBottomSheetState extends State<AssignAgentBottomSheet> {
             color: isDisabled ? Colors.grey.shade500 : null,
           ),
           children: [
-            if (user.districtName != null) ...[
+            if (user.districtName != null && user.districtName!.isNotEmpty) ...[
               WidgetSpan(
                 child: Icon(
                   Icons.location_city,
@@ -1793,7 +1855,7 @@ class _AssignAgentBottomSheetState extends State<AssignAgentBottomSheet> {
                   color: isDisabled ? Colors.grey.shade500 : null,
                 ),
               ),
-              TextSpan(text: ' ${user.districtName ?? ''}  '),
+              TextSpan(text: ' ${user.districtName}  '),
             ],
             if (jobRoleNames.isNotEmpty) ...[
               WidgetSpan(
@@ -1815,10 +1877,29 @@ class _AssignAgentBottomSheetState extends State<AssignAgentBottomSheet> {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : isDisabled
-          ? const Icon(Icons.hourglass_empty, color: Colors.grey, size: 20)
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Text(
+                AppLocalizations.of(context)?.rejected ?? 'Rejected',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.red.shade700,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            )
           : null,
       enabled: !isDisabled,
-      tileColor: isDisabled ? Colors.grey.withOpacity(0.05) : null,
+      tileColor: isDisabled
+          ? (isRejected
+                ? Colors.red.withOpacity(0.03)
+                : Colors.grey.withOpacity(0.05))
+          : null,
       onTap: isDisabled ? null : () => _handleAssignAgent(user),
     );
   }
@@ -1836,6 +1917,22 @@ class _AssignAgentBottomSheetState extends State<AssignAgentBottomSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: SizedBox(
+              width: double.infinity,
+              child: Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade400,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  width: 75,
+                  height: 5,
+                ),
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -1927,7 +2024,7 @@ class _AssignAgentBottomSheetState extends State<AssignAgentBottomSheet> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          '${AppLocalizations.of(context)?.error ?? 'Error'}: ${snapshot.error}',
+                          '${AppLocalizations.of(context)?.error ?? 'Error'}: ${snapshot.error.toString()}',
                         ),
                         TextButton(
                           onPressed: () {

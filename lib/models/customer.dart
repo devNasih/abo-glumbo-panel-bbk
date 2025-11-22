@@ -1,5 +1,6 @@
 import 'package:aboglumbo_bbk_panel/models/address.dart';
 import 'package:aboglumbo_bbk_panel/models/location.dart';
+import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CustomerModel {
@@ -23,6 +24,7 @@ class CustomerModel {
   final String? cityName;
   final String? postcode;
   final bool? isBlocked;
+  final DetailedLocationModel? detailedLocation;
   final String? extensionNumber;
 
   CustomerModel({
@@ -42,6 +44,7 @@ class CustomerModel {
     this.isAdmin,
     this.buildingNumber,
     this.streetName,
+    this.detailedLocation,
     this.districtName,
     this.cityName,
     this.isBlocked,
@@ -72,6 +75,11 @@ class CustomerModel {
               ?.map((e) => e.toString())
               .toList() ??
           [],
+      detailedLocation: json['detailedLocation'] != null
+          ? DetailedLocationModel.fromJson(
+              json['detailedLocation'] as Map<String, dynamic>,
+            )
+          : null,
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
       isAdmin: json['isAdmin'],
@@ -98,6 +106,7 @@ class CustomerModel {
       'location': location?.toJson(),
       'addresses': addresses.map((e) => e.toJson()).toList(),
       'favourites': favourites,
+      'detailedLocation': detailedLocation?.toJson(),
       'createdAt': createdAt,
       'updatedAt': updatedAt,
       'isAdmin': isAdmin,
@@ -133,6 +142,7 @@ class CustomerModel {
     String? cityName,
     String? postcode,
     String? extensionNumber,
+    DetailedLocationModel? detailedLocation,
   }) {
     return CustomerModel(
       uid: uid ?? this.uid,
@@ -156,6 +166,7 @@ class CustomerModel {
       postcode: postcode ?? this.postcode,
       isBlocked: isBlocked ?? this.isBlocked,
       extensionNumber: extensionNumber ?? this.extensionNumber,
+      detailedLocation: detailedLocation ?? this.detailedLocation,
     );
   }
 
@@ -182,6 +193,11 @@ class CustomerModel {
       'addresses',
       addresses.map((e) => e.toJson()).toList(),
       previous.addresses.map((e) => e.toJson()).toList(),
+    );
+    checkAndSet(
+      'detailedLocation',
+      detailedLocation?.toJson(),
+      previous.detailedLocation?.toJson(),
     );
     checkAndSet('favourites', favourites, previous.favourites);
     checkAndSet('createdAt', createdAt, previous.createdAt);

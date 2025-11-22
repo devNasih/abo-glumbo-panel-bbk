@@ -46,7 +46,7 @@ Widget warrantyClaimCard({
 
   // Format date
   String formattedDate = serviceCompletedDate != null
-      ? DateFormat('dd MMM yyyy, HH:mm').format(serviceCompletedDate)
+      ? DateFormat('dd MMM yyyy, HH:mm a').format(serviceCompletedDate)
       : "N/A";
 
   // Calculate rejection count
@@ -180,7 +180,7 @@ Widget warrantyClaimCard({
               Icon(Icons.check_circle, color: Colors.grey[600], size: 20),
               const SizedBox(width: 8),
               Text(
-                AppLocalizations.of(context)!.workCompleted ?? 'Work Completed',
+                AppLocalizations.of(context)?.workCompleted ?? 'Work Completed',
                 style: TextStyle(
                   color: Colors.grey[700],
                   fontWeight: FontWeight.w600,
@@ -228,47 +228,43 @@ Widget warrantyClaimCard({
               ),
               const Spacer(),
               if (isAdmin && hasRejectedTechnicians)
-                GestureDetector(
-                  onTap: () => _showRejectionHistoryBottomSheet(
-                    context,
-                    warranty.rejectedTechnicians!,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
                   ),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.red.withOpacity(0.3),
+                      width: 1,
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.red.withOpacity(0.3),
-                        width: 1,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.history_rounded,
+                        color: Colors.red[900],
+                        size: 14,
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.history_rounded,
+                      const SizedBox(width: 4),
+                      Text(
+                        '$rejectionCount',
+                        style: TextStyle(
                           color: Colors.red[900],
-                          size: 14,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '$rejectionCount',
-                          style: TextStyle(
-                            color: Colors.red[900],
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
+
               if (isAdmin &&
                   (warranty.assignedTechnicianId == "" ||
-                      warranty.assignedTechnicianId == null))
+                      warranty.assignedTechnicianId == null)) ...{
+                SizedBox(width: 5),
                 GestureDetector(
                   onTap: onAssign,
                   child: Container(
@@ -294,6 +290,7 @@ Widget warrantyClaimCard({
                     ),
                   ),
                 ),
+              },
             ],
           ),
         ),
@@ -332,7 +329,7 @@ Widget warrantyClaimCard({
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'ID: $bookingId',
+                        '${AppLocalizations.of(context)!.id}: $bookingId',
                         style: TextStyle(
                           fontSize: 13,
                           color: Colors.grey[800],
@@ -343,27 +340,6 @@ Widget warrantyClaimCard({
                     InkWell(
                       onTap: () {
                         Clipboard.setData(ClipboardData(text: bookingId));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Row(
-                              children: [
-                                Icon(
-                                  Icons.check_circle,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                                SizedBox(width: 8),
-                                Text('Booking ID copied!'),
-                              ],
-                            ),
-                            backgroundColor: const Color(0xFF4CAF50),
-                            duration: const Duration(seconds: 2),
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        );
                       },
                       borderRadius: BorderRadius.circular(6),
                       child: Container(
@@ -383,7 +359,7 @@ Widget warrantyClaimCard({
               // Customer info
               _buildInfoRow(
                 icon: Icons.person_outline_rounded,
-                label: 'Customer',
+                label: AppLocalizations.of(context)!.customer,
                 value: customerName,
                 color: const Color(0xFF2196F3),
               ),
@@ -393,7 +369,7 @@ Widget warrantyClaimCard({
               if (isAdmin) ...[
                 _buildInfoRow(
                   icon: Icons.engineering_outlined,
-                  label: 'Technician',
+                  label: AppLocalizations.of(context)!.technician,
                   value: technicianName,
                   color: const Color(0xFFFF9800),
                 ),
@@ -403,7 +379,7 @@ Widget warrantyClaimCard({
               // Date
               _buildInfoRow(
                 icon: Icons.calendar_today_outlined,
-                label: 'Completed',
+                label: AppLocalizations.of(context)!.completedOn,
                 value: formattedDate,
                 color: const Color(0xFF9C27B0),
               ),

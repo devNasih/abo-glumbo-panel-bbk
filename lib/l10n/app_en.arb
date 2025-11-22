@@ -1036,7 +1036,11 @@
   "warrantyClaimRejected": "Warranty claim rejected",
   "rejectWarrantyClaim": "Reject Warranty Claim",
   "workCompleted": "Work Completed",
+  "resetFilters": "Reset Filters",
+  "technician": "Technician",
+  "noBankAccountDetailsAvailable": "No bank account details available",
   "acceptWarrantyClaim": "Accept Warranty Claim",
+  "areYouSureYouWantToRejectThisWarrantyClaim": "Are you sure you want to reject this warranty claim?",
   "acceptWarrantyClaimMessage": "Do you want to accept this warranty claim?",
   "pauseTracking": "Pause Tracking",
   "completeWorkMessage": "Are you sure you want to mark this warranty work as completed?",
@@ -1067,5 +1071,6 @@
   "youAreNowOffline": "You are now offline",
   "errorUpdatingStatus": "Error updating status",
   "youAreCurrentlyUnavailable": "You are currently unavailable for requests",
-  "youAreAvailableForRequests": "You are available for requests"
+  "youAreAvailableForRequests": "You are available for requests",
+  "files": "Files"
 }

@@ -8,8 +8,10 @@ import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/bloc/manage_app_bloc
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shimmer/shimmer.dart';
@@ -131,7 +133,9 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
 
   Future<void> _showApprovalDialog(BuildContext parentContext) async {
     final transactionController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
     PlatformFile? selectedFile;
+    bool showFileError = false;
 
     await showDialog(
       context: parentContext,
@@ -154,7 +158,6 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
                       ],
                     ),
                     backgroundColor: Colors.green.shade600,
-                    
                   ),
                 );
               } else if (state is PayoutApprovalError) {
@@ -168,7 +171,6 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
                       ],
                     ),
                     backgroundColor: Colors.red.shade600,
-                   
                   ),
                 );
               }
@@ -186,381 +188,526 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
                     content: Container(
                       width: MediaQuery.of(context).size.width * 0.9,
                       constraints: const BoxConstraints(maxWidth: 500),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Header
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Colors.green.shade50,
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(20),
-                                topRight: Radius.circular(20),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green.shade100,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    Icons.check_circle_outline_rounded,
-                                    color: Colors.green.shade700,
-                                    size: 28,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.approvePayout,
-                                        style: const TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.pleaseProvideTransactionDetails,
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Content
-                          Flexible(
-                            child: SingleChildScrollView(
+                      child: Form(
+                        key: formKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Header
+                            Container(
                               padding: const EdgeInsets.all(24),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              decoration: BoxDecoration(
+                                color: Colors.green.shade50,
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(20),
+                                  topRight: Radius.circular(20),
+                                ),
+                              ),
+                              child: Row(
                                 children: [
-                                  // Transaction Number Field
-                                  Text(
-                                    AppLocalizations.of(
-                                      context,
-                                    )!.transactionNumber,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black87,
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.shade100,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.check_circle_outline_rounded,
+                                      color: Colors.green.shade700,
+                                      size: 28,
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
-                                  TextField(
-                                    controller: transactionController,
-                                    enabled: !isUploading,
-                                    decoration: InputDecoration(
-                                      hintText: AppLocalizations.of(
-                                        context,
-                                      )!.enterTransactionNumber,
-                                      prefixIcon: const Icon(
-                                        Icons.receipt_long_rounded,
-                                        size: 22,
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide(
-                                          color: Colors.grey.shade300,
-                                        ),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide(
-                                          color: Colors.grey.shade300,
-                                        ),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide(
-                                          color: Colors.green.shade600,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.grey.shade50,
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 16,
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.approvePayout,
+                                          style: const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
                                           ),
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 24),
-
-                                  // File Upload Section
-                                  Text(
-                                    AppLocalizations.of(context)!.uploadProof,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-
-                                  InkWell(
-                                    onTap: isUploading
-                                        ? null
-                                        : () async {
-                                            FilePickerResult? result =
-                                                await FilePicker.platform
-                                                    .pickFiles(
-                                                      type: FileType.custom,
-                                                      allowedExtensions: [
-                                                        'jpg',
-                                                        'jpeg',
-                                                        'png',
-                                                        'pdf',
-                                                      ],
-                                                    );
-
-                                            if (result != null) {
-                                              setDialogState(() {
-                                                selectedFile =
-                                                    result.files.first;
-                                              });
-                                            }
-                                          },
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(20),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: selectedFile != null
-                                              ? Colors.green.shade400
-                                              : Colors.grey.shade300,
-                                          width: 2,
                                         ),
-                                        borderRadius: BorderRadius.circular(12),
-                                        color: selectedFile != null
-                                            ? Colors.green.shade50
-                                            : Colors.grey.shade50,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(12),
-                                            decoration: BoxDecoration(
-                                              color: selectedFile != null
-                                                  ? Colors.green.shade100
-                                                  : Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                            ),
-                                            child: Icon(
-                                              selectedFile != null
-                                                  ? Icons.check_circle_rounded
-                                                  : Icons.upload_file_rounded,
-                                              color: selectedFile != null
-                                                  ? Colors.green.shade700
-                                                  : Colors.grey.shade600,
-                                              size: 28,
-                                            ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.pleaseProvideTransactionDetails,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.grey.shade600,
                                           ),
-                                          const SizedBox(width: 16),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  selectedFile != null
-                                                      ? selectedFile!.name
-                                                      : AppLocalizations.of(
-                                                          context,
-                                                        )!.tapToSelectFile,
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.w600,
-                                                    fontSize: 14,
-                                                    color: selectedFile != null
-                                                        ? Colors.black87
-                                                        : Colors.grey.shade600,
-                                                  ),
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  selectedFile != null
-                                                      ? '${(selectedFile!.size / 1024).toStringAsFixed(2)} KB'
-                                                      : AppLocalizations.of(
-                                                          context,
-                                                        )!.pdfImageOrDocument,
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey.shade600,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          if (selectedFile == null)
-                                            Icon(
-                                              Icons.arrow_forward_ios_rounded,
-                                              size: 16,
-                                              color: Colors.grey.shade400,
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    AppLocalizations.of(
-                                      context,
-                                    )!.supportedFormats,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.grey.shade500,
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          ),
 
-                          // Actions
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade50,
-                              borderRadius: const BorderRadius.only(
-                                bottomLeft: Radius.circular(20),
-                                bottomRight: Radius.circular(20),
+                            // Content
+                            Flexible(
+                              child: SingleChildScrollView(
+                                padding: const EdgeInsets.all(24),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Transaction Number Field
+                                    Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.transactionNumber,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    TextFormField(
+                                      controller: transactionController,
+                                      enabled: !isUploading,
+                                      validator: (value) {
+                                        if (value == null ||
+                                            value.trim().isEmpty) {
+                                          return AppLocalizations.of(
+                                            context,
+                                          )!.transactionNumberRequired;
+                                        }
+                                        return null;
+                                      },
+                                      decoration: InputDecoration(
+                                        hintText: AppLocalizations.of(
+                                          context,
+                                        )!.enterTransactionNumber,
+                                        prefixIcon: const Icon(
+                                          Icons.receipt_long_rounded,
+                                          size: 22,
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.grey.shade300,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.grey.shade300,
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.green.shade600,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        errorBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.red.shade600,
+                                          ),
+                                        ),
+                                        focusedErrorBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.red.shade600,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.grey.shade50,
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 16,
+                                            ),
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 24),
+
+                                    // File Upload Section
+                                    Text(
+                                      AppLocalizations.of(context)!.uploadProof,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+
+                                    InkWell(
+                                      onTap: isUploading
+                                          ? null
+                                          : () async {
+                                              await showModalBottomSheet(
+                                                context: context,
+                                                shape:
+                                                    const RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.vertical(
+                                                            top:
+                                                                Radius.circular(
+                                                                  20,
+                                                                ),
+                                                          ),
+                                                    ),
+                                                builder: (BuildContext context) {
+                                                  return SafeArea(
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: <Widget>[
+                                                        ListTile(
+                                                          leading: const Icon(
+                                                            Icons
+                                                                .camera_alt_rounded,
+                                                          ),
+                                                          title: Text(
+                                                            AppLocalizations.of(
+                                                              context,
+                                                            )!.camera,
+                                                          ),
+                                                          onTap: () async {
+                                                            Navigator.pop(
+                                                              context,
+                                                            );
+                                                            final ImagePicker
+                                                            picker =
+                                                                ImagePicker();
+                                                            final XFile?
+                                                            image = await picker
+                                                                .pickImage(
+                                                                  source:
+                                                                      ImageSource
+                                                                          .camera,
+                                                                );
+
+                                                            if (image != null) {
+                                                              final file = File(
+                                                                image.path,
+                                                              );
+                                                              final platformFile = PlatformFile(
+                                                                name:
+                                                                    image.name,
+                                                                size: await file
+                                                                    .length(),
+                                                                path:
+                                                                    image.path,
+                                                                bytes: await file
+                                                                    .readAsBytes(),
+                                                              );
+                                                              setDialogState(() {
+                                                                selectedFile =
+                                                                    platformFile;
+                                                                showFileError =
+                                                                    false;
+                                                              });
+                                                            }
+                                                          },
+                                                        ),
+                                                        ListTile(
+                                                          leading: const Icon(
+                                                            Icons
+                                                                .folder_open_rounded,
+                                                          ),
+                                                          title: Text(
+                                                            AppLocalizations.of(
+                                                              context,
+                                                            )!.files,
+                                                          ),
+                                                          onTap: () async {
+                                                            Navigator.pop(
+                                                              context,
+                                                            );
+                                                            FilePickerResult?
+                                                            result = await FilePicker
+                                                                .platform
+                                                                .pickFiles(
+                                                                  type: FileType
+                                                                      .custom,
+                                                                  allowedExtensions:
+                                                                      [
+                                                                        'jpg',
+                                                                        'jpeg',
+                                                                        'png',
+                                                                        'pdf',
+                                                                        'doc',
+                                                                        'docx',
+                                                                      ],
+                                                                );
+
+                                                            if (result !=
+                                                                null) {
+                                                              setDialogState(() {
+                                                                selectedFile =
+                                                                    result
+                                                                        .files
+                                                                        .first;
+                                                                showFileError =
+                                                                    false;
+                                                              });
+                                                            }
+                                                          },
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
+                                              );
+                                            },
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(20),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: showFileError
+                                                ? Colors.red.shade600
+                                                : selectedFile != null
+                                                ? Colors.green.shade400
+                                                : Colors.grey.shade300,
+                                            width: showFileError ? 1.5 : 2,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          color: selectedFile != null
+                                              ? Colors.green.shade50
+                                              : Colors.grey.shade50,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                color: selectedFile != null
+                                                    ? Colors.green.shade100
+                                                    : Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                              child: Icon(
+                                                selectedFile != null
+                                                    ? Icons.check_circle_rounded
+                                                    : Icons.upload_file_rounded,
+                                                color: selectedFile != null
+                                                    ? Colors.green.shade700
+                                                    : Colors.grey.shade600,
+                                                size: 28,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    selectedFile != null
+                                                        ? selectedFile!.name
+                                                        : AppLocalizations.of(
+                                                            context,
+                                                          )!.tapToSelectFile,
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      fontSize: 14,
+                                                      color:
+                                                          selectedFile != null
+                                                          ? Colors.black87
+                                                          : Colors
+                                                                .grey
+                                                                .shade600,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    selectedFile != null
+                                                        ? '${(selectedFile!.size / 1024).toStringAsFixed(2)} KB'
+                                                        : AppLocalizations.of(
+                                                            context,
+                                                          )!.pdfImageOrDocument,
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color:
+                                                          Colors.grey.shade600,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            if (selectedFile == null)
+                                              Icon(
+                                                Icons.arrow_forward_ios_rounded,
+                                                size: 16,
+                                                color: Colors.grey.shade400,
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    if (showFileError)
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          top: 8,
+                                          left: 12,
+                                        ),
+                                        child: Text(
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.fileRequired,
+                                          style: TextStyle(
+                                            color: Colors.red.shade700,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.supportedFormats,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.grey.shade500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton(
-                                    onPressed: isUploading
-                                        ? null
-                                        : () =>
-                                              Navigator.of(dialogContext).pop(),
-                                    style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 16,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      side: BorderSide(
-                                        color: Colors.grey.shade300,
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      AppLocalizations.of(context)!.cancel,
-                                      style: TextStyle(
-                                        color: Colors.grey.shade700,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                  ),
+
+                            // Actions
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade50,
+                                borderRadius: const BorderRadius.only(
+                                  bottomLeft: Radius.circular(20),
+                                  bottomRight: Radius.circular(20),
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: ElevatedButton(
-                                    onPressed: isUploading
-                                        ? null
-                                        : () {
-                                            if (transactionController.text
-                                                .trim()
-                                                .isEmpty) {
-                                              ScaffoldMessenger.of(
-                                                dialogContext,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    AppLocalizations.of(
-                                                      context,
-                                                    )!.transactionNumberRequired,
-                                                  ),
-                                                  backgroundColor:
-                                                      Colors.red.shade600,
-                                                ),
-                                              );
-                                              return;
-                                            }
-
-                                            if (selectedFile == null) {
-                                              ScaffoldMessenger.of(
-                                                dialogContext,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    AppLocalizations.of(
-                                                      context,
-                                                    )!.fileRequired,
-                                                  ),
-                                                  backgroundColor:
-                                                      Colors.red.shade600,
-                                                ),
-                                              );
-                                              return;
-                                            }
-
-                                            context.read<ManageAppBloc>().add(
-                                              ApprovePayoutEvent(
-                                                payoutRequestId:
-                                                    widget.payoutRequest.id!,
-                                                transactionNumber:
-                                                    transactionController.text
-                                                        .trim(),
-                                                proofFile: selectedFile!,
-                                              ),
-                                            );
-                                          },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.green.shade600,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 16,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      elevation: 0,
-                                    ),
-                                    child: isUploading
-                                        ? _buildPulsingDots(Colors.white)
-                                        : Text(
-                                            AppLocalizations.of(
-                                              context,
-                                            )!.approve,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 15,
-                                            ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton(
+                                      onPressed: isUploading
+                                          ? null
+                                          : () => Navigator.of(
+                                              dialogContext,
+                                            ).pop(),
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
                                           ),
+                                        ),
+                                        side: BorderSide(
+                                          color: Colors.grey.shade300,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        AppLocalizations.of(context)!.cancel,
+                                        style: TextStyle(
+                                          color: Colors.grey.shade700,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: isUploading
+                                          ? null
+                                          : () {
+                                              final isFormValid = formKey
+                                                  .currentState!
+                                                  .validate();
+                                              final isFileValid =
+                                                  selectedFile != null;
+
+                                              if (!isFileValid) {
+                                                setDialogState(() {
+                                                  showFileError = true;
+                                                });
+                                              }
+
+                                              if (isFormValid && isFileValid) {
+                                                context
+                                                    .read<ManageAppBloc>()
+                                                    .add(
+                                                      ApprovePayoutEvent(
+                                                        payoutRequestId: widget
+                                                            .payoutRequest
+                                                            .id!,
+                                                        transactionNumber:
+                                                            transactionController
+                                                                .text
+                                                                .trim(),
+                                                        proofFile:
+                                                            selectedFile!,
+                                                      ),
+                                                    );
+                                              }
+                                            },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.green.shade600,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        elevation: 0,
+                                      ),
+                                      child: isUploading
+                                          ? _buildPulsingDots(Colors.white)
+                                          : Text(
+                                              AppLocalizations.of(
+                                                context,
+                                              )!.approve,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 15,
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -612,7 +759,6 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
                       ],
                     ),
                     backgroundColor: Colors.red.shade600,
-                  
                   ),
                 );
               } else if (state is PayoutRejectionError) {
@@ -1039,7 +1185,9 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
 
                             // Worker Information
                             _buildSectionTitle(
-                              AppLocalizations.of(context)!.technicianInformation,
+                              AppLocalizations.of(
+                                context,
+                              )!.technicianInformation,
                             ),
                             const SizedBox(height: 16),
                             _buildInfoRow(

@@ -479,8 +479,8 @@ class _ManageAgentsState extends State<ManageAgents>
             foregroundColor: theme.colorScheme.onPrimaryContainer,
             elevation: 4,
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text(
-              'Reset Filters',
+            label: Text(
+              AppLocalizations.of(context)!.resetFilters,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -737,6 +737,7 @@ class _ManageAgentsState extends State<ManageAgents>
                             Padding(
                               padding: const EdgeInsets.only(top: 6),
                               child: _buildInfoRow(
+                                isPhone: true,
                                 context: context,
                                 icon: Icons.phone_outlined,
                                 text: agent.phone!,
@@ -827,6 +828,7 @@ class _ManageAgentsState extends State<ManageAgents>
     required BuildContext context,
     required IconData icon,
     required String text,
+    bool isPhone = false,
   }) {
     final theme = Theme.of(context);
     return Row(
@@ -834,16 +836,33 @@ class _ManageAgentsState extends State<ManageAgents>
         Icon(icon, size: 16, color: theme.colorScheme.primary),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(
-            text,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+          child: isPhone
+              ? Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: Text(
+                    textAlign: Directionality.of(context) == TextDirection.rtl
+                        ? TextAlign.right
+                        : TextAlign.left,
+                    text,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                )
+              : Text(
+                  text,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
         ),
       ],
     );
