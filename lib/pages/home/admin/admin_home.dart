@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:aboglumbo_bbk_panel/common_widget/booking_cards.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
+import 'package:aboglumbo_bbk_panel/common_widget/period_selector.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
@@ -35,11 +36,26 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
   ];
 
   late TabController _tabController;
-  late List<Stream<List<BookingModel>>> _bookingsStreams;
   List<LocationModel> locations = [];
 
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  DateTime? _startDate;
+  DateTime? _endDate;
+
+  Future<void> _selectDateRange(BuildContext context) async {
+    final result = await showDialog<DateTimeRange>(
+      context: context,
+      builder: (context) => const HorizontalDateRangePicker(),
+    );
+
+    if (result != null) {
+      setState(() {
+        _startDate = result.start;
+        _endDate = result.end;
+      });
+    }
+  }
 
   showAssignToUserBottomSheet(BookingModel booking) {
     final adminBloc = context.read<AdminBloc>();
@@ -81,12 +97,6 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
     });
 
     // Initialize streams for each booking status
-    _bookingsStreams = bookingStatus
-        .map(
-          (status) =>
-              AppServices.getBookingsStream(bookingStatusCode: status['code']!),
-        )
-        .toList();
 
     // Search listener
     _searchController.addListener(() {
@@ -216,10 +226,9 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
                         // Badge
                         if (unreadCount > 0)
                           Positioned(
-                            right: 0,
-                            top: 0,
+                            right: 3,
+                            top: 3,
                             child: Container(
-                              padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
                                 color: Colors.red,
                                 shape: BoxShape.circle,
@@ -228,16 +237,18 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
                                 minWidth: 20,
                                 minHeight: 20,
                               ),
-                              child: Text(
-                                unreadCount > 99
-                                    ? '99+'
-                                    : unreadCount.toString(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                              child: Center(
+                                child: Text(
+                                  unreadCount > 99
+                                      ? '99+'
+                                      : unreadCount.toString(),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: unreadCount > 99 ? 8 : 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
                               ),
                             ),
                           ),
@@ -252,34 +263,114 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(12.0),
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value.toLowerCase();
-                        });
-                      },
-                      decoration: InputDecoration(
-                        hintText: AppLocalizations.of(context)!.searchBookings,
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _searchQuery.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  setState(() {
-                                    _searchController.clear();
-                                    _searchQuery = '';
-                                  });
-                                },
-                              )
-                            : null,
-                        border: OutlineInputBorder(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            onChanged: (value) {
+                              setState(() {
+                                _searchQuery = value.toLowerCase();
+                              });
+                            },
+                            decoration: InputDecoration(
+                              hintText: AppLocalizations.of(
+                                context,
+                              )!.searchBookings,
+                              prefixIcon: const Icon(Icons.search),
+                              suffixIcon: _searchQuery.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear),
+                                      onPressed: () {
+                                        setState(() {
+                                          _searchController.clear();
+                                          _searchQuery = '';
+                                        });
+                                      },
+                                    )
+                                  : null,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        InkWell(
+                          onTap: () => _selectDateRange(context),
                           borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: _startDate != null
+                                    ? colorScheme.primary
+                                    : Colors.grey.shade400,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              color: _startDate != null
+                                  ? colorScheme.primary.withOpacity(0.1)
+                                  : null,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.calendar_today_outlined,
+                                  size: 20,
+                                  color: _startDate != null
+                                      ? colorScheme.primary
+                                      : Colors.grey.shade600,
+                                ),
+                                if (_startDate != null && _endDate != null) ...[
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '${DateFormat('MMM dd').format(_startDate!)} - ${DateFormat('MMM dd').format(_endDate!)}',
+                                    style: TextStyle(
+                                      color: colorScheme.primary,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        _startDate = null;
+                                        _endDate = null;
+                                      });
+                                    },
+                                    child: Icon(
+                                      Icons.close,
+                                      size: 18,
+                                      color: colorScheme.primary,
+                                    ),
+                                  ),
+                                ] else ...[
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    AppLocalizations.of(
+                                          context,
+                                        )?.filterByDate ??
+                                        "Filter Date",
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                        ),
-                      ),
+                      ],
                     ),
                   ),
                   Container(
@@ -319,7 +410,7 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
                       children: List.generate(bookingStatus.length, (index) {
                         return _buildBookingsList(
                           context,
-                          stream: _bookingsStreams[index],
+
                           selectedBookingStatus: bookingStatus[index]['code']!,
                         );
                       }),
@@ -364,13 +455,27 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
     );
   }
 
-  // Filter bookings based on search query
+  // Filter bookings based on search query and date range
   List<BookingModel> _filterBookings(List<BookingModel> bookings) {
-    if (_searchQuery.isEmpty) {
-      return bookings;
+    var filtered = bookings;
+
+    // Date filter
+    if (_startDate != null && _endDate != null) {
+      filtered = filtered.where((booking) {
+        if (booking.createdAt == null) return false;
+        final createdAt = booking.createdAt!.toDate();
+        // Compare dates: start date inclusive, end date inclusive (up to end of day)
+        final endDateTime = _endDate!.add(const Duration(days: 1));
+        return createdAt.compareTo(_startDate!) >= 0 &&
+            createdAt.isBefore(endDateTime);
+      }).toList();
     }
 
-    return bookings.where((booking) {
+    if (_searchQuery.isEmpty) {
+      return filtered;
+    }
+
+    return filtered.where((booking) {
       final bookingId = booking.id.toLowerCase();
       final customerName = booking.customer.name?.toLowerCase() ?? '';
       final bookingNameEn = booking.service.name?.toLowerCase() ?? '';
@@ -385,11 +490,12 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
 
   Widget _buildBookingsList(
     BuildContext context, {
-    required Stream<List<BookingModel>> stream,
     required String selectedBookingStatus,
   }) {
     return StreamBuilder<List<BookingModel>>(
-      stream: stream,
+      stream: AppServices.getBookingsStream(
+        bookingStatusCode: selectedBookingStatus,
+      ),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting &&
             !snapshot.hasData) {

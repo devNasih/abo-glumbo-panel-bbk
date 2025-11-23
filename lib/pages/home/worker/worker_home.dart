@@ -17,7 +17,7 @@ class WorkerHome extends StatefulWidget {
 
 class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
   static const List<Map<String, String>> _bookingStatuses = [
-    {'code': 'P', 'name': 'To Do'},
+    {'code': 'P', 'name': 'Pending'},
     {'code': 'A', 'name': 'Accepted'},
     {'code': 'CP', 'name': 'Payment Pending'},
     {'code': 'C', 'name': 'Completed'},

@@ -4568,6 +4568,12 @@ abstract class AppLocalizations {
   /// **'Unblock Customer'**
   String get unblockCustomer;
 
+  /// No description provided for @filterByDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by Date'**
+  String get filterByDate;
+
   /// No description provided for @areYouSureYouWantToUnblockThisCustomer.
   ///
   /// In en, this message translates to:
@@ -4585,6 +4591,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Block'**
   String get block;
+
+  /// No description provided for @startDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Date'**
+  String get startDate;
+
+  /// No description provided for @endDate.
+  ///
+  /// In en, this message translates to:
+  /// **'End Date'**
+  String get endDate;
+
+  /// No description provided for @selectDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Date Range'**
+  String get selectDateRange;
 
   /// No description provided for @unblock.
   ///
@@ -6338,6 +6362,12 @@ abstract class AppLocalizations {
   /// **'Transaction Details'**
   String get transactionDetails;
 
+  /// No description provided for @pleaseSelectAllLocationFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select all location fields'**
+  String get pleaseSelectAllLocationFields;
+
   /// No description provided for @bookingName.
   ///
   /// In en, this message translates to:
@@ -6349,6 +6379,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Technician Name'**
   String get technicianName;
+
+  /// No description provided for @changeIdDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Change ID Document'**
+  String get changeIdDocument;
 
   /// No description provided for @notAssigned.
   ///

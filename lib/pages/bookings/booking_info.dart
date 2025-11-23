@@ -613,9 +613,7 @@ class _BookingInfoState extends State<BookingInfo> {
             _buildCustomerInfoRow(
               icon: Icons.person,
               label: AppLocalizations.of(context)!.customerName,
-              value:
-             
-                  (widget.booking.customer.name ?? 'N/A'),
+              value: (widget.booking.customer.name ?? 'N/A'),
               textTheme: textTheme,
               colorScheme: colorScheme,
             ),
@@ -776,90 +774,110 @@ class _BookingInfoState extends State<BookingInfo> {
             // Images Section
             if (widget.booking.issueImage != null &&
                 widget.booking.issueImage!.isNotEmpty)
-              Text(
-                AppLocalizations.of(context)!.image,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: colorScheme.onSurface.withOpacity(0.7),
-                ),
-              ),
-            const SizedBox(height: 8),
-            if (widget.booking.issueImage != null &&
-                widget.booking.issueImage!.isNotEmpty)
-              GestureDetector(
-                onTap: () =>
-                    _showFullScreenImage(widget.booking.issueImage!, context),
-                child: Container(
-                  height: MediaQuery.of(context).size.width * 0.4,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: CachedNetworkImage(
-                      imageUrl: widget.booking.issueImage!,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey[200],
-                        child: Center(child: Loader(size: 12)),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: Colors.grey[200],
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.broken_image,
-                              size: 50,
-                              color: Colors.grey,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              AppLocalizations.of(context)!.failedToLoadImage,
-                              style: const TextStyle(color: Colors.grey),
-                            ),
-                          ],
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: GestureDetector(
+                  onTap: () =>
+                      _showFullScreenImage(widget.booking.issueImage!, context),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: colorScheme.onSurface.withOpacity(0.7),
                         ),
                       ),
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          AppLocalizations.of(context)!.image,
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                        ),
+                        const Spacer(),
+                        Icon(
+                          Icons.open_in_new,
+                          size: 12,
+                          color: colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
+
             if (widget.booking.issueVideo != null &&
                 widget.booking.issueVideo!.isNotEmpty)
               const SizedBox(height: 16),
 
             if (widget.booking.issueVideo != null &&
                 widget.booking.issueVideo!.isNotEmpty)
-              Text(
-                AppLocalizations.of(context)!.video,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: colorScheme.onSurface.withOpacity(0.7),
-                ),
-              ),
-            if (widget.booking.issueVideo != null &&
-                widget.booking.issueVideo!.isNotEmpty)
-              const SizedBox(height: 8),
-            if (widget.booking.issueVideo != null &&
-                widget.booking.issueVideo!.isNotEmpty)
-              Container(
-                width: double.infinity,
-                height: 200,
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceVariant.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: colorScheme.outline.withOpacity(0.2),
+              GestureDetector(
+                onTap: () =>
+                    _showFullScreenVideo(widget.booking.issueVideo!, context),
+                child: Container(
+                  padding: EdgeInsets.all(8),
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[600]!),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.video,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[600]!,
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(
+                        Icons.open_in_new,
+                        size: 16,
+                        color: Colors.grey[600]!,
+                      ),
+                    ],
                   ),
                 ),
-                child: CachedVideoPlayer(videoUrl: widget.booking.issueVideo!),
               ),
           ],
+        ),
+      ),
+    );
+  }
+
+  _showFullScreenVideo(String videoUrl, BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: AppColors.primary,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            title: Text(
+              AppLocalizations.of(context)!.issueVideo,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          body: Center(
+            child: CachedVideoPlayer(
+              videoUrl: videoUrl,
+              height: double.infinity,
+              width: double.infinity,
+            ),
+          ),
         ),
       ),
     );
@@ -1294,10 +1312,10 @@ class _BookingInfoState extends State<BookingInfo> {
         builder: (context) => Scaffold(
           backgroundColor: Colors.black,
           appBar: AppBar(
-            backgroundColor: Colors.transparent,
+            backgroundColor: AppColors.primary,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.close, color: Colors.white),
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () => Navigator.of(context).pop(),
             ),
             title: Text(
@@ -1314,8 +1332,12 @@ class _BookingInfoState extends State<BookingInfo> {
               child: CachedNetworkImage(
                 imageUrl: imageUrl,
                 fit: BoxFit.contain,
-                placeholder: (context, url) =>
-                    Center(child: Loader(size: 14, color: Colors.white)),
+                placeholder: (context, url) => Center(
+                  child: SizedBox(
+                    width: 24,
+                    child: Loader(size: 14, color: Colors.white),
+                  ),
+                ),
                 errorWidget: (context, url, error) => Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,

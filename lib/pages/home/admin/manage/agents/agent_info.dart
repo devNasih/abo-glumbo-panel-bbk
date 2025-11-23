@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
@@ -9,6 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 class AgentInfo extends StatefulWidget {
   final UserModel agent;
@@ -123,82 +129,272 @@ class _AgentInfoState extends State<AgentInfo> {
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.only(left: 20, right: 20, top: 20),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.only(
+                    left: 10,
+                    right: 10,
+                    top: 10,
+                    bottom: 10,
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
+                    color: Colors.green.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.badge, color: Colors.blue, size: 24),
+                  child: const Icon(
+                    Icons.contact_page_outlined,
+                    color: Colors.green,
+                    size: 24,
+                  ),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  AppLocalizations.of(context)!.iqama,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
+                Expanded(
+                  child: Text(
+                    maxLines: 2,
+                    AppLocalizations.of(context)!.idDocument,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                agent.docUrl!,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(40),
-                      child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                            : null,
-                        color: primary,
+
+            Padding(
+              padding: const EdgeInsets.only(top: 30),
+              child: GestureDetector(
+                onTap: () =>
+                    _showFullScreenImage(widget.agent.docUrl!, context),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border(bottom: BorderSide(color: Colors.green)),
+                    color: Colors.green.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.contact_page,
+                          color: Colors.green,
+                          size: 24,
+                        ),
                       ),
-                    ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 200,
-                    color: Colors.grey[200],
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 48,
-                            color: Colors.grey[400],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            AppLocalizations.of(context)!.failedToLoadImage,
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                        ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              AppLocalizations.of(context)!.idDocument,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              AppLocalizations.of(context)!.tapToView,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                      Icon(
+                        Icons.open_in_new,
+                        color: Colors.green.withOpacity(0.6),
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
+            SizedBox(height: 16),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _showFullScreenImage(
+    String imageUrl,
+    BuildContext context,
+  ) async {
+    // Detect file type from URL
+    final ext = imageUrl.split('.').last.split('?').first.toLowerCase();
+    final isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext);
+
+    if (isImage) {
+      // Show image in full screen
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => Scaffold(
+            backgroundColor: Colors.black,
+            appBar: AppBar(
+              backgroundColor: AppColors.primary,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              title: Text(
+                AppLocalizations.of(context)!.issueImage,
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+            body: Center(
+              child: InteractiveViewer(
+                panEnabled: true,
+                boundaryMargin: EdgeInsets.all(20),
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.contain,
+                  placeholder: (context, url) => Center(
+                    child: SizedBox(
+                      width: 24,
+                      child: Loader(size: 14, color: Colors.white),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.broken_image,
+                          size: 100,
+                          color: Colors.white,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          AppLocalizations.of(context)!.failedToLoadImage,
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      // Handle documents (PDF, DOC, DOCX, etc.)
+      await _openDocument(imageUrl, context);
+    }
+  }
+
+  Future<void> _openDocument(String url, BuildContext context) async {
+    try {
+      // Show loading indicator
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => Center(
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: 24,
+                      child: Loader(color: AppColors.primary),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      AppLocalizations.of(context)!.loading,
+                      style: GoogleFonts.poppins(fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
+      // Download the file
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        // Get temporary directory
+        final dir = await getTemporaryDirectory();
+        final fileName = url.split('/').last.split('?').first;
+        final file = File('${dir.path}/$fileName');
+
+        // Write file
+        await file.writeAsBytes(response.bodyBytes);
+
+        // Close loading dialog
+        if (context.mounted) {
+          Navigator.of(context).pop();
+        }
+
+        // Open file
+        final result = await OpenFilex.open(file.path);
+
+        if (result.type != ResultType.done && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.failedToLoadImage),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } else {
+        // Close loading dialog
+        if (context.mounted) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.failedToLoadImage),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error opening document: $e');
+      }
+
+      // Close loading dialog if still open
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.failedToLoadImage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildCertificationsCard(BuildContext context) {
@@ -328,18 +524,8 @@ class _AgentInfoState extends State<AgentInfo> {
   }
 
   Future<void> _launchCertificationUrl(String url) async {
-    final Uri uri = Uri.parse(url);
-    try {
-      await launchUrl(uri, mode: LaunchMode.platformDefault);
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error launching certification URL: $e');
-      }
-      // Optionally show a user-friendly error message
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   SnackBar(content: Text('Could not open document')),
-      // );
-    }
+    // Use the same logic as _showFullScreenImage to handle both images and documents
+    await _showFullScreenImage(url, context);
   }
 
   String _getFileNameFromUrl(String url) {

@@ -14,7 +14,6 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     on<RejectOrderEvent>(_rejectOrder);
   }
 
-
   Future<void> _assignAgent(
     AssignAgentEvent event,
     Emitter<AdminState> emit,
@@ -45,6 +44,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     try {
       await AppFirestore.bookingsCollectionRef.doc(event.booking.id).update({
         'bookingStatusCode': 'R',
+        'rejectedBy': "Admin",
         'rejectedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });

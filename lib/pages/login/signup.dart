@@ -24,6 +24,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:open_filex/open_filex.dart';
 
 class Signup extends StatefulWidget {
   final String uid;
@@ -188,38 +189,112 @@ class _SignupState extends State<Signup> {
     }
   }
 
-  Future<void> _pickIdImage() async {
-    try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 80,
-      );
-
-      if (image != null) {
-        final croppedFile = await ImageCropper().cropImage(
-          sourcePath: image.path,
-          compressQuality: 80,
-          maxWidth: 2048,
-          maxHeight: 2048,
-          uiSettings: [
-            AndroidUiSettings(
-              toolbarTitle:
-                  AppLocalizations.of(context)?.cropDocument ?? 'Crop Document',
-              toolbarColor: AppColors.primary,
-              toolbarWidgetColor: Colors.white,
-              statusBarColor: AppColors.primary,
+  Future<int?> _showSourceSelector() async {
+    return showModalBottomSheet<int>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: Text(
+                AppLocalizations.of(context)?.selectSource ?? 'Select Source',
+                style: GoogleFonts.dmSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-            IOSUiSettings(
-              title:
-                  AppLocalizations.of(context)?.cropDocument ?? 'Crop Document',
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: Text(AppLocalizations.of(context)?.camera ?? 'Camera'),
+              onTap: () => Navigator.pop(context, 0),
+            ),
+            ListTile(
+              leading: const Icon(Icons.folder),
+              title: Text(AppLocalizations.of(context)?.files ?? 'Files'),
+              onTap: () => Navigator.pop(context, 1),
             ),
           ],
-        );
+        ),
+      ),
+    );
+  }
 
-        if (croppedFile != null) {
+  Future<void> _removeIdImage() async {
+    final confirm = await _showDeleteConfirmation();
+    if (confirm) {
+      setState(() {
+        idImage = null;
+      });
+    }
+  }
+
+  Future<void> _pickIdImage() async {
+    final source = await _showSourceSelector();
+    if (source == null) return;
+
+    try {
+      XFile? image;
+      bool isImage = true;
+
+      if (source == 0) {
+        // Camera
+        final ImagePicker picker = ImagePicker();
+        image = await picker.pickImage(
+          source: ImageSource.camera,
+          imageQuality: 80,
+        );
+      } else {
+        // Files
+        FilePickerResult? result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
+        );
+        if (result != null && result.files.isNotEmpty) {
+          final file = result.files.first;
+          if (file.path != null) {
+            image = XFile(file.path!);
+            final ext = file.extension?.toLowerCase();
+            isImage = ['jpg', 'jpeg', 'png'].contains(ext);
+          }
+        }
+      }
+
+      if (image != null) {
+        if (isImage) {
+          final croppedFile = await ImageCropper().cropImage(
+            sourcePath: image.path,
+            compressQuality: 80,
+            maxWidth: 2048,
+            maxHeight: 2048,
+            uiSettings: [
+              AndroidUiSettings(
+                toolbarTitle:
+                    AppLocalizations.of(context)?.cropDocument ??
+                    'Crop Document',
+                toolbarColor: AppColors.primary,
+                toolbarWidgetColor: Colors.white,
+                statusBarColor: AppColors.primary,
+              ),
+              IOSUiSettings(
+                title:
+                    AppLocalizations.of(context)?.cropDocument ??
+                    'Crop Document',
+              ),
+            ],
+          );
+
+          if (croppedFile != null) {
+            setState(() {
+              idImage = XFile(croppedFile.path);
+            });
+          }
+        } else {
           setState(() {
-            idImage = XFile(croppedFile.path);
+            idImage = image;
           });
         }
       }
@@ -231,33 +306,71 @@ class _SignupState extends State<Signup> {
   }
 
   Future<void> _pickCertifications() async {
-    try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
-        allowMultiple: true,
-      );
+    final source = await _showSourceSelector();
+    if (source == null) return;
 
-      if (result != null) {
-        // Validate file sizes
-        for (var file in result.files) {
-          if (file.size > 5 * 1024 * 1024) {
+    try {
+      if (source == 0) {
+        // Camera
+        final ImagePicker picker = ImagePicker();
+        final XFile? image = await picker.pickImage(
+          source: ImageSource.camera,
+          imageQuality: 80,
+        );
+
+        if (image != null) {
+          final file = File(image.path);
+          final size = await file.length();
+
+          // Validate size
+          if (size > 5 * 1024 * 1024) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    '${file.name} ${AppLocalizations.of(context)?.fileTooLarge ?? 'is too large (max 5MB)'}',
+                    '${image.name} ${AppLocalizations.of(context)?.fileTooLarge ?? 'is too large (max 5MB)'}',
                   ),
                 ),
               );
             }
             return;
           }
-        }
 
-        setState(() {
-          certifications.addAll(result.files);
-        });
+          setState(() {
+            certifications.add(
+              PlatformFile(name: image.name, path: image.path, size: size),
+            );
+          });
+        }
+      } else {
+        // Files
+        FilePickerResult? result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
+          allowMultiple: true,
+        );
+
+        if (result != null) {
+          // Validate file sizes
+          for (var file in result.files) {
+            if (file.size > 5 * 1024 * 1024) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      '${file.name} ${AppLocalizations.of(context)?.fileTooLarge ?? 'is too large (max 5MB)'}',
+                    ),
+                  ),
+                );
+              }
+              return;
+            }
+          }
+
+          setState(() {
+            certifications.addAll(result.files);
+          });
+        }
       }
     } catch (e) {
       if (kDebugMode) {
@@ -302,7 +415,50 @@ class _SignupState extends State<Signup> {
         false;
   }
 
-  void _viewCertification(PlatformFile file) {
+  void _showFullScreenImage(XFile file, BuildContext context) async {
+    final ext = file.path.split('.').last.toLowerCase();
+    if (['jpg', 'jpeg', 'png'].contains(ext)) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => Scaffold(
+            backgroundColor: Colors.black,
+            appBar: AppBar(
+              backgroundColor: AppColors.primary,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              title: Text(
+                AppLocalizations.of(context)!.idDocument,
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+            body: Center(
+              child: InteractiveViewer(
+                panEnabled: true,
+                boundaryMargin: EdgeInsets.all(20),
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Image.file(File(file.path)),
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      final result = await OpenFilex.open(file.path);
+      if (result.type != ResultType.done) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Cannot open file: ${file.path}')),
+          );
+        }
+      }
+    }
+  }
+
+  void _viewCertification(PlatformFile file) async {
     if (file.path == null) return;
     final ext = file.extension?.toLowerCase();
     if (['jpg', 'jpeg', 'png'].contains(ext)) {
@@ -325,9 +481,14 @@ class _SignupState extends State<Signup> {
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Cannot preview ${file.extension}')),
-      );
+      final result = await OpenFilex.open(file.path!);
+      if (result.type != ResultType.done) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Cannot open file: ${file.path}')),
+          );
+        }
+      }
     }
   }
 
@@ -558,10 +719,20 @@ class _SignupState extends State<Signup> {
       // Upload ID image
       if (idImage != null) {
         try {
-          idImageUrl = await UploadToFireStorage().uploadFile(
-            idImage!,
-            'agents/documents',
-          );
+          final ext = idImage!.path.split('.').last.toLowerCase();
+          if (['jpg', 'jpeg', 'png'].contains(ext)) {
+            idImageUrl = await UploadToFireStorage().uploadFile(
+              idImage!,
+              'agents/documents',
+            );
+          } else {
+            final fileRef = AppFireStorage.agentDocStorageRef.child(
+              'agents/documents/${DateTime.now().millisecondsSinceEpoch}_${idImage!.name}',
+            );
+            final uploadTask = fileRef.putFile(File(idImage!.path));
+            final snapshot = await uploadTask;
+            idImageUrl = await snapshot.ref.getDownloadURL();
+          }
         } catch (e) {
           if (kDebugMode) print('ID upload failed: $e');
         }
@@ -699,6 +870,7 @@ class _SignupState extends State<Signup> {
 
       child: Scaffold(
         appBar: AppBar(
+          centerTitle: true,
           title: Text(
             AppLocalizations.of(context)?.completeRegistration ??
                 'Complete Registration',
@@ -710,364 +882,421 @@ class _SignupState extends State<Signup> {
         ),
         body: Form(
           key: _formKey,
-          child: ListView(
+          child: SingleChildScrollView(
             padding: EdgeInsets.only(
               top: 16,
               left: 16,
               right: 16,
               bottom: safePadding.bottom + 16,
             ),
-            children: [
-              // Loading indicator
-              if (isLoadingLocations || isLoadingCategories)
-                const LinearProgressIndicator(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Loading indicator
+                if (isLoadingLocations || isLoadingCategories)
+                  const LinearProgressIndicator(),
 
-              const SizedBox(height: 16),
-
-              // Profile Image Picker
-              Center(
-                child: GestureDetector(
-                  onTap: _pickProfileImage,
-                  child: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 60,
-                        backgroundColor: AppColors.primary.withOpacity(0.1),
-                        backgroundImage: profileImage != null
-                            ? FileImage(File(profileImage!.path))
-                            : null,
-                        child: profileImage == null
-                            ? Icon(
-                                Icons.person,
-                                size: 60,
-                                color: AppColors.primary,
-                              )
-                            : null,
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.secondary,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Name Field
-              TextFormWidget(
-                controller: nameController,
-                label: AppLocalizations.of(context)?.fullName ?? 'Full Name',
-                keyboardType: TextInputType.name,
-                textInputAction: TextInputAction.next,
-                readOnly: false,
-                enabled: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(context)?.pleaseEnterYourName ??
-                        'Please enter your name';
-                  }
-                  if (value.length < 3) {
-                    return AppLocalizations.of(context)?.nameTooShort ??
-                        'Name must be at least 3 characters';
-                  }
-                  return null;
-                },
-              ),
-
-              // Phone Field (Read-only)
-              TextFormWidget(
-                controller: phoneController,
-                label:
-                    AppLocalizations.of(context)?.phoneNumber ?? 'Phone Number',
-                keyboardType: TextInputType.phone,
-                enabled: false,
-              ),
-
-              TextFormWidget(
-                controller: emailController,
-                label:
-                    '${AppLocalizations.of(context)?.email ?? 'Email'} (${AppLocalizations.of(context)?.optional ?? 'Optional'})',
-                keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                validator: (value) {
-                  // Only validate if user entered something
-                  if (value != null && value.isNotEmpty) {
-                    if (!emailRegex.hasMatch(value)) {
-                      return AppLocalizations.of(
-                            context,
-                          )?.pleaseEnterValidEmail ??
-                          'Please enter a valid email address';
-                    }
-                  }
-                  return null;
-                },
-              ),
-
-              // Region Dropdown
-              _buildDropdownField<Region>(
-                label: AppLocalizations.of(context)?.province ?? 'Region',
-                value: selectedRegion,
-                items: regions,
-                itemLabel: (region) => region.getName(isArabic),
-                onChanged: (region) {
-                  setState(() {
-                    selectedRegion = region;
-                    selectedCity = null;
-                    selectedDistrict = null;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return AppLocalizations.of(context)?.pleaseSelectProvince ??
-                        'Please select a region';
-                  }
-                  return null;
-                },
-              ),
-
-              if (selectedRegion != null) ...[
                 const SizedBox(height: 16),
 
-                // City Dropdown
-                _buildDropdownField<City>(
-                  label: AppLocalizations.of(context)?.city ?? 'City',
-                  value: selectedCity,
-                  items: selectedRegion!.cities,
-                  itemLabel: (city) => city.getName(isArabic),
-                  onChanged: (city) {
+                // Profile Image Picker
+                Center(
+                  child: GestureDetector(
+                    onTap: _pickProfileImage,
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 60,
+                          backgroundColor: AppColors.primary.withOpacity(0.1),
+                          backgroundImage: profileImage != null
+                              ? FileImage(File(profileImage!.path))
+                              : null,
+                          child: profileImage == null
+                              ? Icon(
+                                  Icons.person,
+                                  size: 60,
+                                  color: AppColors.primary,
+                                )
+                              : null,
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.secondary,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Name Field
+                TextFormWidget(
+                  controller: nameController,
+                  label: AppLocalizations.of(context)?.fullName ?? 'Full Name',
+                  keyboardType: TextInputType.name,
+                  textInputAction: TextInputAction.next,
+                  readOnly: false,
+                  enabled: true,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return AppLocalizations.of(
+                            context,
+                          )?.pleaseEnterYourName ??
+                          'Please enter your name';
+                    }
+                    if (value.trim().length < 3) {
+                      return AppLocalizations.of(context)?.nameTooShort ??
+                          'Name must be at least 3 characters';
+                    }
+                    return null;
+                  },
+                ),
+
+                // Phone Field (Read-only)
+                TextFormWidget(
+                  controller: phoneController,
+                  label:
+                      AppLocalizations.of(context)?.phoneNumber ??
+                      'Phone Number',
+                  keyboardType: TextInputType.phone,
+                  enabled: false,
+                ),
+
+                TextFormWidget(
+                  controller: emailController,
+                  label:
+                      '${AppLocalizations.of(context)?.email ?? 'Email'} (${AppLocalizations.of(context)?.optional ?? 'Optional'})',
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  validator: (value) {
+                    // Only validate if user entered something
+                    if (value != null && value.isNotEmpty) {
+                      if (!emailRegex.hasMatch(value)) {
+                        return AppLocalizations.of(
+                              context,
+                            )?.pleaseEnterValidEmail ??
+                            'Please enter a valid email address';
+                      }
+                    }
+                    return null;
+                  },
+                ),
+
+                // Region Dropdown
+                _buildDropdownField<Region>(
+                  label: AppLocalizations.of(context)?.province ?? 'Region',
+                  value: selectedRegion,
+                  items: regions,
+                  itemLabel: (region) => region.getName(isArabic),
+                  onChanged: (region) {
                     setState(() {
-                      selectedCity = city;
+                      selectedRegion = region;
+                      selectedCity = null;
                       selectedDistrict = null;
                     });
                   },
                   validator: (value) {
                     if (value == null) {
-                      return AppLocalizations.of(context)?.pleaseSelectCity ??
-                          'Please select a city';
-                    }
-                    return null;
-                  },
-                ),
-              ],
-
-              if (selectedCity != null) ...[
-                const SizedBox(height: 16),
-                // District Dropdown
-                _buildDropdownField<District>(
-                  label:
-                      AppLocalizations.of(context)?.neighborhood ?? 'District',
-                  value: selectedDistrict,
-                  items: selectedCity!.districts,
-                  itemLabel: (district) => district.getName(isArabic),
-                  onChanged: (district) {
-                    setState(() {
-                      selectedDistrict = district;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
                       return AppLocalizations.of(
                             context,
-                          )?.pleaseSelectNeighborhood ??
-                          'Please select a district';
+                          )?.pleaseSelectProvince ??
+                          'Please select a region';
                     }
                     return null;
                   },
                 ),
-              ],
 
-              const SizedBox(height: 16),
+                if (selectedRegion != null) ...[
+                  const SizedBox(height: 16),
 
-              // Job Roles Selector
-              Text(
-                AppLocalizations.of(context)?.jobRoles ?? 'Job Roles',
-                style: GoogleFonts.dmSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              InkWell(
-                onTap: isLoadingCategories ? null : _selectJobRoles,
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade400),
-                    borderRadius: BorderRadius.circular(8),
+                  // City Dropdown
+                  _buildDropdownField<City>(
+                    label: AppLocalizations.of(context)?.city ?? 'City',
+                    value: selectedCity,
+                    items: selectedRegion!.cities,
+                    itemLabel: (city) => city.getName(isArabic),
+                    onChanged: (city) {
+                      setState(() {
+                        selectedCity = city;
+                        selectedDistrict = null;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null) {
+                        return AppLocalizations.of(context)?.pleaseSelectCity ??
+                            'Please select a city';
+                      }
+                      return null;
+                    },
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          selectedJobRoles.isEmpty
-                              ? (AppLocalizations.of(context)?.selectJobRoles ??
-                                    'Select Job Roles')
-                              : _getJobRoleNames(),
-                          style: GoogleFonts.dmSans(
-                            color: selectedJobRoles.isEmpty
-                                ? Colors.grey
-                                : Colors.black,
-                          ),
-                        ),
-                      ),
-                      const Icon(Icons.arrow_drop_down),
-                    ],
+                ],
+
+                if (selectedCity != null) ...[
+                  const SizedBox(height: 16),
+                  // District Dropdown
+                  _buildDropdownField<District>(
+                    label:
+                        AppLocalizations.of(context)?.neighborhood ??
+                        'District',
+                    value: selectedDistrict,
+                    items: selectedCity!.districts,
+                    itemLabel: (district) => district.getName(isArabic),
+                    onChanged: (district) {
+                      setState(() {
+                        selectedDistrict = district;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null) {
+                        return AppLocalizations.of(
+                              context,
+                            )?.pleaseSelectNeighborhood ??
+                            'Please select a district';
+                      }
+                      return null;
+                    },
                   ),
-                ),
-              ),
+                ],
 
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // ID Document Upload
-              Text(
-                '${AppLocalizations.of(context)?.idDocument ?? 'ID Document'} *',
-                style: GoogleFonts.dmSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: _pickIdImage,
-                icon: const Icon(Icons.upload_file),
-                label: Text(
-                  idImage == null
-                      ? (AppLocalizations.of(context)?.uploadIdDocument ??
-                            'Upload ID Document')
-                      : (AppLocalizations.of(context)?.idDocumentUploaded ??
-                            'ID Document Uploaded'),
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: idImage != null
-                      ? Colors.green
-                      : AppColors.primary,
-                ),
-              ),
-
-              if (idImage != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          File(idImage!.path),
-                          height: 150,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: IconButton(
-                          onPressed: () async {
-                            final confirm = await _showDeleteConfirmation();
-                            if (confirm) {
-                              setState(() => idImage = null);
-                            }
-                          },
-                          icon: const Icon(Icons.close),
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
+                // Job Roles Selector
+                Text(
+                  AppLocalizations.of(context)?.jobRoles ?? 'Job Roles',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-
-              const SizedBox(height: 16),
-
-              // Certifications Upload
-              Text(
-                '${AppLocalizations.of(context)?.certifications ?? 'Certifications'} (${AppLocalizations.of(context)?.optional ?? 'Optional'})',
-                style: GoogleFonts.dmSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: _pickCertifications,
-                icon: const Icon(Icons.attach_file),
-                label: Text(
-                  AppLocalizations.of(context)?.uploadCertifications ??
-                      'Upload Certifications',
-                ),
-              ),
-
-              if (certifications.isNotEmpty)
-                ...certifications.asMap().entries.map((entry) {
-                  int index = entry.key;
-                  PlatformFile file = entry.value;
-                  return ListTile(
-                    onTap: () => _viewCertification(file),
-                    leading: const Icon(Icons.description),
-                    title: Text(file.name),
-                    subtitle: Align(
-                      alignment: isArabic
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: Directionality(
-                        textDirection: TextDirection.ltr,
-                        child: Text(
-                          '${(file.size / 1024).toStringAsFixed(2)} KB',
-                        ),
-                      ),
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: isLoadingCategories ? null : _selectJobRoles,
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade400),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _removeCertification(index),
-                    ),
-                  );
-                }),
-
-              // Submit Button
-              Padding(
-                padding: const EdgeInsets.only(top: 30.0),
-                child: SizedBox(
-                  width: double.maxFinite,
-                  height: 55,
-                  child: ElevatedButton(
-                    onPressed: isCreatingAccount ? null : _submitSignup,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.secondary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: isCreatingAccount
-                        ? Loader()
-                        : Text(
-                            AppLocalizations.of(context)?.createAccount ??
-                                'Create Account',
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            selectedJobRoles.isEmpty
+                                ? (AppLocalizations.of(
+                                        context,
+                                      )?.selectJobRoles ??
+                                      'Select Job Roles')
+                                : _getJobRoleNames(),
                             style: GoogleFonts.dmSans(
-                              color: Colors.white,
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
+                              color: selectedJobRoles.isEmpty
+                                  ? Colors.grey
+                                  : Colors.black,
                             ),
                           ),
+                        ),
+                        const Icon(Icons.arrow_drop_down),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 16),
+
+                // ID Document Upload
+                Text(
+                  '${AppLocalizations.of(context)?.idDocument ?? 'ID Document'} *',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: _pickIdImage,
+                  icon: const Icon(Icons.upload_file),
+                  label: Text(
+                    idImage == null
+                        ? (AppLocalizations.of(context)?.uploadIdDocument ??
+                              'Upload ID Document')
+                        : (AppLocalizations.of(context)?.changeIdDocument ??
+                              'Change ID Document'),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: idImage != null
+                        ? Colors.green
+                        : AppColors.primary,
+                  ),
+                ),
+
+                if (idImage != null)
+                  Padding(
+                    padding: EdgeInsets.only(top: 16),
+                    child: GestureDetector(
+                      onTap: () => _showFullScreenImage(idImage!, context),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade700),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              AppLocalizations.of(context)!.idDocument,
+                              style: GoogleFonts.dmSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                            const Spacer(),
+                            Icon(
+                              Icons.open_in_new,
+                              color: Colors.grey.shade700,
+                            ),
+                            SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () => _removeIdImage(),
+                              child: Icon(Icons.delete, color: Colors.red),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                const SizedBox(height: 16),
+
+                // Certifications Upload
+                Text(
+                  '${AppLocalizations.of(context)?.certifications ?? 'Certifications'} (${AppLocalizations.of(context)?.optional ?? 'Optional'})',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: _pickCertifications,
+                  icon: const Icon(Icons.attach_file),
+                  label: Text(
+                    AppLocalizations.of(context)?.uploadCertifications ??
+                        'Upload Certifications',
+                  ),
+                ),
+
+                if (certifications.isNotEmpty)
+                  ...certifications.asMap().entries.map((entry) {
+                    int index = entry.key;
+                    PlatformFile file = entry.value;
+                    return Padding(
+                      padding: EdgeInsets.only(top: 16),
+                      child: GestureDetector(
+                        onTap: () => _viewCertification(file),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade700),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                file.name,
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                              const Spacer(),
+                              Icon(
+                                Icons.open_in_new,
+                                color: Colors.grey.shade700,
+                              ),
+                              SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () => _removeCertification(index),
+                                child: Icon(Icons.delete, color: Colors.red),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+
+                    // return ListTile(
+                    //   onTap: () => _viewCertification(file),
+                    //   leading: const Icon(Icons.description),
+                    //   title: Text(file.name),
+                    //   subtitle: Align(
+                    //     alignment: isArabic
+                    //         ? Alignment.centerRight
+                    //         : Alignment.centerLeft,
+                    //     child: Directionality(
+                    //       textDirection: TextDirection.ltr,
+                    //       child: Text(
+                    //         '${(file.size / 1024).toStringAsFixed(2)} KB',
+                    //       ),
+                    //     ),
+                    //   ),
+                    //   trailing: IconButton(
+                    //     icon: const Icon(Icons.delete, color: Colors.red),
+                    //     onPressed: () => _removeCertification(index),
+                    //   ),
+                    // );
+                  }),
+
+                // Submit Button
+                Padding(
+                  padding: const EdgeInsets.only(top: 30.0),
+                  child: SizedBox(
+                    width: double.maxFinite,
+                    height: 55,
+                    child: ElevatedButton(
+                      onPressed: isCreatingAccount ? null : _submitSignup,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.secondary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: isCreatingAccount
+                          ? Loader()
+                          : Text(
+                              AppLocalizations.of(context)?.createAccount ??
+                                  'Create Account',
+                              style: GoogleFonts.dmSans(
+                                color: Colors.white,
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

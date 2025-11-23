@@ -802,7 +802,10 @@
   "pleaseProvideTransactionDetails": "يرجى تقديم تفاصيل المعاملة لقبول طلب الدفعة.",
   "pdfImageOrDocument": "PDF, صورة أو مستند",
   "tapToSelectFile": "اضغط لتحديد الملف",
+  "selectDateRange": "حدد نطاق التاريخ",
   "lifetimeEarnings": "إجمالي الأرباح",
+  "startDate": "تاريخ البدء",
+  "endDate": "تاريخ الانتهاء",
   "uploadProof": "رفع الإثبات",
   "requestTipPayout": "طلب دفعة إكرامية",
   "errorRequestingPayout": "حدث خطأ في طلب الدفعة",
@@ -980,6 +983,7 @@
   "technicianInformation": "معلومات الفني",
   "personalInfo": "معلومات شخصية",
   "bookingHistory": "تاريخ الحجز",
+  "filterByDate": "تصفية حسب التاريخ",
   "documents": "وثائق",
   "allData": "جميع البيانات المرتبطة",
   "biometricEnabled": "تم تفعيل البيوميتريك",
@@ -1075,6 +1079,8 @@
   "transactionDetails": "تفاصيل المعاملة",
   "bookingName": "اسم الحجز",
   "technicianName": "اسم الفني",
+  "pleaseSelectAllLocationFields": "يرجى تحديد جميع حقول الموقع",
+  "changeIdDocument": "تغيير الوثيقة الشخصية",
   "notAssigned": "غير معين",
   "date": "التاريخ"
 }

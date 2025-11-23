@@ -2363,6 +2363,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unblockCustomer => 'Unblock Customer';
 
   @override
+  String get filterByDate => 'Filter by Date';
+
+  @override
   String get areYouSureYouWantToUnblockThisCustomer =>
       'Are you sure you want to unblock this customer?';
 
@@ -2371,6 +2374,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get block => 'Block';
+
+  @override
+  String get startDate => 'Start Date';
+
+  @override
+  String get endDate => 'End Date';
+
+  @override
+  String get selectDateRange => 'Select Date Range';
 
   @override
   String get unblock => 'Unblock';
@@ -3314,10 +3326,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transactionDetails => 'Transaction Details';
 
   @override
+  String get pleaseSelectAllLocationFields =>
+      'Please select all location fields';
+
+  @override
   String get bookingName => 'Booking Name';
 
   @override
   String get technicianName => 'Technician Name';
+
+  @override
+  String get changeIdDocument => 'Change ID Document';
 
   @override
   String get notAssigned => 'Not Assigned';

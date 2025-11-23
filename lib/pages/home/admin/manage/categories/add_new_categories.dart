@@ -188,16 +188,18 @@ class _AddNewCategoriesState extends State<AddNewCategories> {
       );
       return;
     }
-    try {
-      await checkCategoryExistence(nameController.text.trim());
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.categoryAlreadyExists),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return; // Stop execution if duplicate found
+    if (widget.category == null) {
+      try {
+        await checkCategoryExistence(nameController.text.trim());
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.categoryAlreadyExists),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return; // Stop execution if duplicate found
+      }
     }
 
     if (_formKey.currentState!.validate()) {

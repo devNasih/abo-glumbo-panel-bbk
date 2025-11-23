@@ -634,7 +634,11 @@ class _ManageAgentsState extends State<ManageAgents>
                         ),
                         child: Center(
                           child: Text(
-                            (agent.name ?? 'A').substring(0, 1).toUpperCase(),
+                            ((agent.name == null || agent.name!.isEmpty)
+                                    ? 'A'
+                                    : agent.name!)
+                                .substring(0, 1)
+                                .toUpperCase(),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 28,

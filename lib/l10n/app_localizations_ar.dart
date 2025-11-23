@@ -2326,6 +2326,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get unblockCustomer => 'فك حظر العميل';
 
   @override
+  String get filterByDate => 'تصفية حسب التاريخ';
+
+  @override
   String get areYouSureYouWantToUnblockThisCustomer =>
       'هل انت متاكد انك تريد فك حظر هذا العميل؟';
 
@@ -2335,6 +2338,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get block => 'حظر';
+
+  @override
+  String get startDate => 'تاريخ البدء';
+
+  @override
+  String get endDate => 'تاريخ الانتهاء';
+
+  @override
+  String get selectDateRange => 'حدد نطاق التاريخ';
 
   @override
   String get unblock => 'فك الحظر';
@@ -3263,10 +3275,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transactionDetails => 'تفاصيل المعاملة';
 
   @override
+  String get pleaseSelectAllLocationFields => 'يرجى تحديد جميع حقول الموقع';
+
+  @override
   String get bookingName => 'اسم الحجز';
 
   @override
   String get technicianName => 'اسم الفني';
+
+  @override
+  String get changeIdDocument => 'تغيير الوثيقة الشخصية';
 
   @override
   String get notAssigned => 'غير معين';
