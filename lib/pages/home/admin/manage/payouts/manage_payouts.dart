@@ -48,10 +48,10 @@ class _ManagePayoutsState extends State<ManagePayouts> {
                   if (snapshot.hasData) {
                     final requests = snapshot.data ?? [];
                     final pending = requests
-                        .where((r) => r.status == 'p')
+                        .where((r) => r.status?.toLowerCase() == 'p')
                         .length;
                     final approved = requests
-                        .where((r) => r.status == 'c')
+                        .where((r) => r.status?.toLowerCase() == 'c')
                         .length;
                     final total = requests.length;
 
@@ -113,7 +113,7 @@ class _ManagePayoutsState extends State<ManagePayouts> {
                   const SizedBox(width: 8),
                   _buildFilterChip(
                     context,
-                    AppLocalizations.of(context)!.approved,
+                    AppLocalizations.of(context)!.completed,
                     'c',
                   ),
                   const SizedBox(width: 8),
@@ -164,7 +164,9 @@ class _ManagePayoutsState extends State<ManagePayouts> {
                 final filteredRequests = _selectedFilter == 'all'
                     ? allRequests
                     : allRequests
-                          .where((r) => r.status == _selectedFilter)
+                          .where(
+                            (r) => r.status?.toLowerCase() == _selectedFilter,
+                          )
                           .toList();
 
                 if (filteredRequests.isEmpty) {
