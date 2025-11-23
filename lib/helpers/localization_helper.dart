@@ -8,7 +8,7 @@ class LocalizationHelper {
     required BuildContext context,
   }) {
     switch (bookingStatus.toLowerCase()) {
-      case 'to do':
+      case 'pending':
         return AppLocalizations.of(context)!.pending;
       case 'accepted':
         return AppLocalizations.of(context)!.accepted;

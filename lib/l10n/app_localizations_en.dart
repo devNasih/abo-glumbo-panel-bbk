@@ -3288,4 +3288,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get files => 'Files';
+
+  @override
+  String get phoneNumberAlreadyUpdated => 'Phone number already updated';
+
+  @override
+  String get phoneNumberFormatHint => 'Phone number must start with 05';
+
+  @override
+  String get manageTransactions => 'Manage Transactions';
+
+  @override
+  String get noTransactionsFound => 'No transactions found';
+
+  @override
+  String get tooManyAttempts => 'Too many attempts';
+
+  @override
+  String get cash => 'Cash';
+
+  @override
+  String get transactions => 'transactions';
+
+  @override
+  String get transactionDetails => 'Transaction Details';
+
+  @override
+  String get bookingName => 'Booking Name';
+
+  @override
+  String get technicianName => 'Technician Name';
+
+  @override
+  String get notAssigned => 'Not Assigned';
+
+  @override
+  String get date => 'Date';
 }

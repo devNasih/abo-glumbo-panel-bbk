@@ -10,6 +10,7 @@ import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/notification_alerts/
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/payouts/manage_payouts.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/services/manage_services.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/tips/tips.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/transactions/manage_transactions.dart';
 import 'package:flutter/material.dart';
 
 class ManageApp extends StatefulWidget {
@@ -106,6 +107,12 @@ class _ManageAppState extends State<ManageApp> {
         icon: Icons.notifications,
         onTap: () => _navigateToPage('Manage Notification Alerts'),
       ),
+      _TileInfo(
+        key: 'manage_transactions',
+        labelFallback: AppLocalizations.of(context)!.manageTransactions,
+        icon: Icons.payment,
+        onTap: () => _navigateToPage('Manage Transactions'),
+      ),
     ];
   }
 
@@ -137,6 +144,8 @@ class _ManageAppState extends State<ManageApp> {
               return const ManageCustomerSupport();
             case 'Manage Notification Alerts':
               return const SendNotificationPage();
+            case 'Manage Transactions':
+              return const ManageTransactionsPage();
             default:
               return const Placeholder();
           }

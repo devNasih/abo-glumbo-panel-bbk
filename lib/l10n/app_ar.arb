@@ -1064,5 +1064,17 @@
   "youAreNowOnline": "أنت الآن متاح",
   "youAreNowOffline": "أنت الآن غير متاح",
   "errorUpdatingStatus": "حدث خطأ أثناء تحديث الحالة",
-  "files": "الملفات"
+  "phoneNumberFormatHint": "يجب أن يبدأ رقم الهاتف بـ 05",
+  "files": "الملفات",
+  "phoneNumberAlreadyUpdated": "رقم الهاتف تم تحديثه مسبقاً",
+  "manageTransactions": "إدارة المعاملات",
+  "noTransactionsFound": "لا توجد معاملات",
+  "tooManyAttempts": "عدد المحاولات أنتهي",
+  "cash": "نقدي",
+  "transactions": "معاملات",
+  "transactionDetails": "تفاصيل المعاملة",
+  "bookingName": "اسم الحجز",
+  "technicianName": "اسم الفني",
+  "notAssigned": "غير معين",
+  "date": "التاريخ"
 }

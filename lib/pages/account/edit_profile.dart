@@ -5,6 +5,7 @@ import 'package:aboglumbo_bbk_panel/common_widget/crop_confirm_dialog.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/saving_stack.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/searchable_dropdown.dart';
+import 'package:aboglumbo_bbk_panel/common_widget/snackbar.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/text_form.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
@@ -12,10 +13,13 @@ import 'package:aboglumbo_bbk_panel/models/location_selection.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
+import 'package:aboglumbo_bbk_panel/pages/login/otp.dart';
+import 'package:aboglumbo_bbk_panel/services/auth_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -36,6 +40,10 @@ class EditProfile extends StatefulWidget {
 class _EditProfileState extends State<EditProfile> {
   final _formKey = GlobalKey<FormState>();
   String? profileImageUrl = null;
+  bool isLoading = false;
+  bool isPhoneNumberUpdated = false;
+  bool _isUpdatingPhone = false;
+  int? _resendToken;
 
   final emailRegex = RegExp(
     r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
@@ -645,6 +653,139 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
+  bool _isValidPhoneNumber(String phoneNumber) {
+    if (phoneNumber.isEmpty) return false;
+    if (!phoneNumber.startsWith('05')) return false;
+    if (phoneNumber.length != 10) return false;
+    return true;
+  }
+
+  void _showSnackBar(String message, {Color? backgroundColor}) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            message,
+            style: GoogleFonts.dmSans(
+              color: backgroundColor == AppColors.yellow
+                  ? Colors.grey.shade800
+                  : Colors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          backgroundColor: backgroundColor ?? AppColors.yellow,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  void _updatePhoneNumber() async {
+    if (!_isValidPhoneNumber(phoneController.text)) {
+      _showSnackBar(
+        AppLocalizations.of(context)?.pleaseEnterAValidPhoneNumber ??
+            'Invalid number',
+        backgroundColor: AppColors.red,
+      );
+      return;
+    }
+
+    bool isNumberAlreadyExists =
+        await AppServices.checkCustomerPhoneNumberAlredyExist(
+          phoneController.text,
+        );
+
+    if (phoneController.text != widget.workerData?.phone) {
+      if (mounted) {
+        setState(() {
+          isLoading = true;
+          _isUpdatingPhone = true;
+        });
+      }
+
+      if (isNumberAlreadyExists) {
+        if (mounted) setState(() => isLoading = false);
+        _showSnackBar(
+          AppLocalizations.of(context)?.phoneNumberAlreadyExists ?? '',
+          backgroundColor: AppColors.yellow,
+        );
+        return;
+      }
+
+      if (phoneController.text.startsWith('05')) {
+        if (mounted) setState(() => isPhoneNumberUpdated = true);
+        final formattedPhone = '+966${phoneController.text.substring(1)}';
+
+        await AuthServices().sendOTP(
+          context,
+          phoneNumber: formattedPhone,
+          forceResendingToken: _resendToken,
+          onCodeSent: (String verificationId, {int? resendToken}) {
+            if (mounted) {
+              setState(() {
+                _resendToken = resendToken;
+                isLoading = false;
+                _isUpdatingPhone = false;
+              });
+            }
+            showSnackBar(
+              AppLocalizations.of(context)?.sendingOTP ?? 'Sending OTP...',
+              backgroundColor: AppColors.primary,
+              context,
+            );
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OtpPage(
+                  phoneNumber: phoneController.text,
+                  verificationId: verificationId,
+                  isFromProfile: true,
+                ),
+              ),
+            );
+          },
+          onError: (FirebaseAuthException e) {
+            if (mounted) {
+              setState(() {
+                isLoading = false;
+                _isUpdatingPhone = false;
+              });
+            }
+            String errorMessage;
+            switch (e.code) {
+              case 'too-many-requests':
+                errorMessage =
+                    AppLocalizations.of(context)?.tooManyAttempts ??
+                    'Too many attempts. Please wait and try again.';
+                break;
+              case 'invalid-phone-number':
+                errorMessage =
+                    AppLocalizations.of(
+                      context,
+                    )?.pleaseEnterAValidPhoneNumber ??
+                    'Please enter a valid phone number';
+                break;
+              default:
+                errorMessage =
+                    e.message ??
+                    AppLocalizations.of(context)?.somethingWentWrongTryAgain ??
+                    'Something went wrong. Please try again.';
+            }
+            _showSnackBar(errorMessage, backgroundColor: AppColors.red);
+          },
+        );
+      }
+    } else {
+      if (mounted) setState(() => isLoading = false);
+      _showSnackBar(
+        AppLocalizations.of(context)?.phoneNumberAlreadyUpdated ?? '',
+        backgroundColor: AppColors.yellow,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final safePadding = MediaQuery.of(context).padding;
@@ -856,17 +997,55 @@ class _EditProfileState extends State<EditProfile> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  TextFormWidget(
-                    readOnly: true,
-                    enabled: false,
-                    forceLtr: isArabic,
-                    controller: phoneController,
-                    keyboardType: TextInputType.phone,
-                    isPhoneNumber: true,
-                    label: locale?.phoneNumber ?? 'Phone Number',
-                    validator: (value) {
-                      return null;
-                    },
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextFormWidget(
+                        controller: phoneController,
+                        label: locale?.phoneNumber ?? 'Phone Number',
+                        keyboardType: TextInputType.phone,
+                        enabled: !_isUpdatingPhone,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'^[0-9]*')),
+                          LengthLimitingTextInputFormatter(10),
+                        ],
+                        suffixIcon: _isUpdatingPhone
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: Padding(
+                                  padding: EdgeInsets.all(12.0),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              )
+                            : TextButton(
+                                onPressed: _isUpdatingPhone
+                                    ? null
+                                    : _updatePhoneNumber,
+                                child: Text(locale?.update ?? 'Update'),
+                              ),
+                        textInputAction: TextInputAction.next,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return locale?.pleaseEnterAValidPhoneNumber ?? '';
+                          }
+                          return null;
+                        },
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 12, top: 4),
+                        child: Text(
+                          locale?.phoneNumberFormatHint ??
+                              'Phone number must start with 05',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   _buildDropdownField<Region>(

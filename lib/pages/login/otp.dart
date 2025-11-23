@@ -427,7 +427,7 @@ class _OtpPageState extends State<OtpPage> {
                               child: Directionality(
                                 textDirection: TextDirection.ltr,
                                 child: Text(
-                                  " ${widget.phoneNumber} ",
+                                  " +966${widget.phoneNumber} ",
                                   style: GoogleFonts.dmSans(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,

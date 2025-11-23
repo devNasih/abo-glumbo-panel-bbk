@@ -25,7 +25,7 @@ class AdminHome extends StatefulWidget {
   State<AdminHome> createState() => _AdminHomeState();
 }
 
-class _AdminHomeState extends State<AdminHome> {
+class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
   final List<Map<String, String>> bookingStatus = [
     {'code': 'P', 'name': 'Pending'},
     {'code': 'A', 'name': 'Accepted'},
@@ -34,7 +34,8 @@ class _AdminHomeState extends State<AdminHome> {
     {'code': 'X', 'name': 'Cancelled'},
   ];
 
-  String selectedBookingStatus = 'P';
+  late TabController _tabController;
+  late List<Stream<List<BookingModel>>> _bookingsStreams;
   List<LocationModel> locations = [];
 
   final TextEditingController _searchController = TextEditingController();
@@ -64,20 +65,48 @@ class _AdminHomeState extends State<AdminHome> {
 
   @override
   void initState() {
-    context.read<AccountBloc>().add(LoadDistrictsEvent());
-
     super.initState();
+
+    _tabController = TabController(
+      length: bookingStatus.length,
+      vsync: this,
+      initialIndex: 0,
+    );
+
+    // Add listener to rebuild on tab change
+    _tabController.addListener(() {
+      if (_tabController.index != _tabController.previousIndex) {
+        setState(() {}); // rebuild to update check mark UI
+      }
+    });
+
+    // Initialize streams for each booking status
+    _bookingsStreams = bookingStatus
+        .map(
+          (status) =>
+              AppServices.getBookingsStream(bookingStatusCode: status['code']!),
+        )
+        .toList();
+
+    // Search listener
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.toLowerCase();
+      });
+    });
+
+    context.read<AccountBloc>().add(LoadDistrictsEvent());
   }
 
   @override
   void dispose() {
+    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
     return MultiBlocListener(
@@ -253,142 +282,47 @@ class _AdminHomeState extends State<AdminHome> {
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
-                    child: SizedBox(
-                      height: 52,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: bookingStatus.map((status) {
-                            final code = status['code']!;
-                            final isSelected = selectedBookingStatus == code;
-                            final label = LocalizationHelper()
-                                .getLocalizedBookingStatus(code, context);
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: ActionChip(
-                                avatar: isSelected
-                                    ? Icon(
-                                        Icons.check_circle,
-                                        color: colorScheme.primary,
-                                        size: 20,
-                                      )
-                                    : const Icon(
-                                        Icons.circle_outlined,
-                                        size: 20,
-                                      ),
-                                label: Text(
-                                  label,
-                                  style: TextStyle(
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.w400,
-                                  ),
-                                ),
-                                onPressed: () {
-                                  if (selectedBookingStatus != code) {
-                                    setState(() {
-                                      selectedBookingStatus = code;
-                                    });
-                                  }
-                                },
-                                backgroundColor: isSelected
-                                    ? colorScheme.primary.withOpacity(0.15)
-                                    : null,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
+                  Container(
+                    height: 64,
+                    alignment: Alignment.centerLeft,
+                    child: TabBar(
+                      controller: _tabController,
+                      isScrollable: true,
+                      indicatorColor: Colors.transparent,
+                      tabAlignment: TabAlignment.start,
+                      splashFactory: NoSplash.splashFactory,
+                      labelPadding: EdgeInsets.zero,
+                      tabs: List.generate(bookingStatus.length, (index) {
+                        final status = bookingStatus[index];
+                        final isSelected = _tabController.index == index;
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            left: index == 0 ? 12 : 0,
+                            right: index < bookingStatus.length - 1 ? 8 : 12,
+                          ),
+                          child: _buildStatusChip(
+                            context,
+                            code: status['code']!,
+                            name: status['name']!,
+                            isSelected: isSelected,
+                            colorScheme: colorScheme,
+                            onPressed: () => _tabController.animateTo(index),
+                          ),
+                        );
+                      }),
                     ),
                   ),
-                  const Divider(height: 1),
 
                   Expanded(
-                    child: StreamBuilder(
-                      stream: AppServices.getBookingsStreamByStatus(
-                        selectedBookingStatus,
-                      ),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [SizedBox(height: 24, child: Loader())],
-                            ),
-                          );
-                        }
-                        if (snapshot.hasError) {
-                          return Center(
-                            child: Text(
-                              'Error: ${snapshot.error}',
-                              style: textTheme.bodyMedium,
-                            ),
-                          );
-                        }
-                        final allBookings = snapshot.data ?? [];
-
-                        final filteredBookings = _searchQuery.isEmpty
-                            ? allBookings
-                            : allBookings.where((booking) {
-                                final customerName =
-                                    booking.customer.name?.toLowerCase() ?? '';
-                                final bookingId = booking.id.toLowerCase();
-                                final serviceType = (booking.service.name ?? "")
-                                    .toLowerCase();
-                                final serviceTypeAr =
-                                    (booking.service.name_ar ?? "")
-                                        .toLowerCase();
-
-                                return customerName.contains(_searchQuery) ||
-                                    bookingId.contains(_searchQuery) ||
-                                    serviceTypeAr.contains(_searchQuery) ||
-                                    serviceType.contains(_searchQuery);
-                              }).toList();
-
-                        if (filteredBookings.isEmpty) {
-                          return Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.hourglass_empty_rounded,
-                                  size: 80,
-                                  color: Colors.grey,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  "${AppLocalizations.of(context)?.no ?? 'No'} ${LocalizationHelper().getLocalizedBookingStatus(selectedBookingStatus, context)} ${AppLocalizations.of(context)?.bookings ?? 'bookings'}",
-                                  style: textTheme.labelLarge,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-                        return ListView.separated(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          itemCount: filteredBookings.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 8),
-                          itemBuilder: (context, index) {
-                            final booking = filteredBookings[index];
-                            return BookingCards(
-                              booking: booking,
-                              isAdmin: true,
-                              onAssign: () {
-                                showAssignToUserBottomSheet(booking);
-                              },
-                            );
-                          },
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: List.generate(bookingStatus.length, (index) {
+                        return _buildBookingsList(
+                          context,
+                          stream: _bookingsStreams[index],
+                          selectedBookingStatus: bookingStatus[index]['code']!,
                         );
-                      },
+                      }),
                     ),
                   ),
                 ],
@@ -396,6 +330,174 @@ class _AdminHomeState extends State<AdminHome> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(
+    BuildContext context, {
+    required String code,
+    required String name,
+    required bool isSelected,
+    required ColorScheme colorScheme,
+    required VoidCallback onPressed,
+  }) {
+    return ActionChip(
+      avatar: Icon(
+        isSelected ? Icons.check_circle : Icons.circle_outlined,
+        color: isSelected ? colorScheme.primary : null,
+        size: 20,
+      ),
+      label: Text(
+        LocalizationHelper()
+            .localizedBookingStatus(name, context: context)
+            .toUpperCase(),
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+        ),
+      ),
+      onPressed: onPressed,
+      backgroundColor: isSelected
+          ? colorScheme.primary.withOpacity(0.15)
+          : null,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    );
+  }
+
+  // Filter bookings based on search query
+  List<BookingModel> _filterBookings(List<BookingModel> bookings) {
+    if (_searchQuery.isEmpty) {
+      return bookings;
+    }
+
+    return bookings.where((booking) {
+      final bookingId = booking.id.toLowerCase();
+      final customerName = booking.customer.name?.toLowerCase() ?? '';
+      final bookingNameEn = booking.service.name?.toLowerCase() ?? '';
+      final bookingNameAr = booking.service.name_ar?.toLowerCase() ?? '';
+
+      return bookingId.contains(_searchQuery) ||
+          customerName.contains(_searchQuery) ||
+          bookingNameEn.contains(_searchQuery) ||
+          bookingNameAr.contains(_searchQuery);
+    }).toList();
+  }
+
+  Widget _buildBookingsList(
+    BuildContext context, {
+    required Stream<List<BookingModel>> stream,
+    required String selectedBookingStatus,
+  }) {
+    return StreamBuilder<List<BookingModel>>(
+      stream: stream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [SizedBox(height: 24, child: Loader())],
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              'Error: ${snapshot.error}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          );
+        }
+
+        final allBookings = snapshot.data ?? [];
+        final filteredBookings = _filterBookings(allBookings);
+
+        if (filteredBookings.isEmpty) {
+          return _buildEmptyState(
+            context,
+            selectedBookingStatus,
+            isSearching: _searchQuery.isNotEmpty,
+          );
+        }
+
+        return ListView.separated(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          itemCount: filteredBookings.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          itemBuilder: (context, index) {
+            final booking = filteredBookings[index];
+            return BookingCards(
+              key: ValueKey(booking.id),
+              booking: booking,
+              isAdmin: true,
+              onAssign: () {
+                showAssignToUserBottomSheet(booking);
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState(
+    BuildContext context,
+    String selectedBookingStatus, {
+    bool isSearching = false,
+  }) {
+    final textTheme = Theme.of(context).textTheme;
+    final localizations = AppLocalizations.of(context);
+
+    if (isSearching) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 100,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              localizations?.noBookingsFound ?? 'No results found',
+              style: textTheme.labelLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              localizations?.tryAdjustingYourSearchCriteria ??
+                  'Try a different search term',
+              style: textTheme.bodySmall,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    final statusText = LocalizationHelper().getLocalizedBookingStatus(
+      selectedBookingStatus,
+      context,
+    );
+
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.hourglass_empty,
+            size: 100,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "${localizations?.no ?? 'No'} $statusText ${localizations?.bookings ?? 'bookings'}",
+            style: textTheme.labelLarge,
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
@@ -1747,7 +1849,9 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
                       const SizedBox(height: 12),
 
                       Text(
-                        AppLocalizations.of(context)?.technicianRestrictedTitle ??
+                        AppLocalizations.of(
+                              context,
+                            )?.technicianRestrictedTitle ??
                             'Worker Restricted',
                         style: textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,

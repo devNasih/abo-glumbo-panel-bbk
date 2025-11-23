@@ -3237,4 +3237,40 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get files => 'الملفات';
+
+  @override
+  String get phoneNumberAlreadyUpdated => 'رقم الهاتف تم تحديثه مسبقاً';
+
+  @override
+  String get phoneNumberFormatHint => 'يجب أن يبدأ رقم الهاتف بـ 05';
+
+  @override
+  String get manageTransactions => 'إدارة المعاملات';
+
+  @override
+  String get noTransactionsFound => 'لا توجد معاملات';
+
+  @override
+  String get tooManyAttempts => 'عدد المحاولات أنتهي';
+
+  @override
+  String get cash => 'نقدي';
+
+  @override
+  String get transactions => 'معاملات';
+
+  @override
+  String get transactionDetails => 'تفاصيل المعاملة';
+
+  @override
+  String get bookingName => 'اسم الحجز';
+
+  @override
+  String get technicianName => 'اسم الفني';
+
+  @override
+  String get notAssigned => 'غير معين';
+
+  @override
+  String get date => 'التاريخ';
 }

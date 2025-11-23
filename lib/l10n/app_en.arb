@@ -1072,5 +1072,17 @@
   "errorUpdatingStatus": "Error updating status",
   "youAreCurrentlyUnavailable": "You are currently unavailable for requests",
   "youAreAvailableForRequests": "You are available for requests",
-  "files": "Files"
+  "files": "Files",
+  "phoneNumberAlreadyUpdated": "Phone number already updated",
+  "phoneNumberFormatHint": "Phone number must start with 05",
+  "manageTransactions": "Manage Transactions",
+  "noTransactionsFound": "No transactions found",
+  "tooManyAttempts": "Too many attempts",
+  "cash": "Cash",
+  "transactions": "transactions",
+  "transactionDetails": "Transaction Details",
+  "bookingName": "Booking Name",
+  "technicianName": "Technician Name",
+  "notAssigned": "Not Assigned",
+  "date": "Date"
 }

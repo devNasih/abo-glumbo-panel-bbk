@@ -16,12 +16,13 @@ class TextFormWidget extends StatelessWidget {
     this.onTap,
     this.readOnly,
     this.obscureText = false,
-    this.suffix,
     this.isPhoneNumber = false,
     this.maxLength,
     this.enabled = true,
     this.hintText = "",
     this.forceLtr = false,
+    this.inputFormatters,
+    this.suffixIcon,
   });
   final TextEditingController controller;
   final String label;
@@ -31,12 +32,13 @@ class TextFormWidget extends StatelessWidget {
   final GestureTapCallback? onTap;
   final bool? readOnly;
   final bool obscureText;
-  final Widget? suffix;
   final bool isPhoneNumber;
   final bool enabled;
   final int? maxLength;
   final String? hintText;
   final bool forceLtr;
+  final List<TextInputFormatter>? inputFormatters;
+  final Widget? suffixIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -46,15 +48,14 @@ class TextFormWidget extends StatelessWidget {
         Text(label, style: GoogleFonts.dmSans(fontSize: 16)),
         const SizedBox(height: 5),
         TextFormField(
+
           textDirection: forceLtr ? TextDirection.ltr : null,
           textAlign: forceLtr ? TextAlign.end : TextAlign.start,
           obscureText: obscureText,
-          inputFormatters: maxLength != null
-              ? [LengthLimitingTextInputFormatter(maxLength)]
-              : null,
+          inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hintText,
-            suffixIcon: suffix,
+            suffixIcon: suffixIcon,
             border: InputBorder.none,
             constraints: const BoxConstraints(minHeight: 62),
             fillColor: readOnly == true ? AppColors.black2 : null,
@@ -104,6 +105,7 @@ class TextFormWidget extends StatelessWidget {
               : validator,
           onTap: onTap,
           readOnly: readOnly ?? onTap != null,
+          
         ),
       ],
     );

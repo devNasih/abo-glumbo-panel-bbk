@@ -1953,6 +1953,21 @@ class AppServices {
         );
   }
 
+  static Stream<List<TransactionModel>> getAllTransactionsStream() {
+    return AppFirestore.transactionsCollectionRef
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map(
+                (doc) => TransactionModel.fromJson(
+                  doc.data() as Map<String, dynamic>,
+                ),
+              )
+              .toList();
+        });
+  }
+
   static Stream<Map<String, dynamic>> getAllCustomersAndTechniciansStream() {
     final customer = AppServices.getAllCustomersStream();
     final technicians = AppServices.getAllAgentsStream();
@@ -1991,6 +2006,32 @@ class AppServices {
       'warranty.rejectedTechnicians': FieldValue.arrayUnion([rejectedTech]),
       "warranty.updatedAt": FieldValue.serverTimestamp(),
     });
+  }
+
+  static Future<bool> checkCustomerPhoneNumberAlredyExist(
+    String phoneNumber,
+  ) async {
+    try {
+      String normalizedPhoneNumber = phoneNumber.replaceAll(
+        RegExp(r'[^\d+]'),
+        '',
+      );
+      String convertedNumber = "+966${normalizedPhoneNumber.substring(1)}";
+      final technicianQuery = await AppFirestore.usersCollectionRef
+          .where('phone', isEqualTo: convertedNumber)
+          .limit(1)
+          .get();
+      if (technicianQuery.docs.isEmpty) {
+        final technicianQueryOriginal = await AppFirestore.usersCollectionRef
+            .where('phone', isEqualTo: phoneNumber)
+            .limit(1)
+            .get();
+        return technicianQueryOriginal.docs.isNotEmpty;
+      }
+      return technicianQuery.docs.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
   }
 
   static Stream<List<WarrantyModel>> getAllWarrantyClaimRequestsStream() {

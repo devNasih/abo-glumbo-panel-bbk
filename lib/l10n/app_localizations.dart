@@ -6289,6 +6289,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Files'**
   String get files;
+
+  /// No description provided for @phoneNumberAlreadyUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number already updated'**
+  String get phoneNumberAlreadyUpdated;
+
+  /// No description provided for @phoneNumberFormatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number must start with 05'**
+  String get phoneNumberFormatHint;
+
+  /// No description provided for @manageTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Transactions'**
+  String get manageTransactions;
+
+  /// No description provided for @noTransactionsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions found'**
+  String get noTransactionsFound;
+
+  /// No description provided for @tooManyAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts'**
+  String get tooManyAttempts;
+
+  /// No description provided for @cash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get cash;
+
+  /// No description provided for @transactions.
+  ///
+  /// In en, this message translates to:
+  /// **'transactions'**
+  String get transactions;
+
+  /// No description provided for @transactionDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction Details'**
+  String get transactionDetails;
+
+  /// No description provided for @bookingName.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking Name'**
+  String get bookingName;
+
+  /// No description provided for @technicianName.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician Name'**
+  String get technicianName;
+
+  /// No description provided for @notAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Assigned'**
+  String get notAssigned;
+
+  /// No description provided for @date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get date;
 }
 
 class _AppLocalizationsDelegate
