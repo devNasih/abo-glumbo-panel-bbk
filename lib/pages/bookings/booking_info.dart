@@ -1425,6 +1425,7 @@ class _BookingInfoState extends State<BookingInfo> {
               value: widget.booking.orderId ?? "",
               textTheme: textTheme,
               colorScheme: colorScheme,
+              needCopyButton: true,
             ),
 
             const SizedBox(height: 16),
@@ -1562,7 +1563,7 @@ class _BookingInfoState extends State<BookingInfo> {
               _buildCostRow(
                 context,
                 label: AppLocalizations.of(context)!.inspectionFee,
-                amount: completionData.totalCost,
+                amount: widget.booking.service.price ?? 0.0,
                 colorScheme: colorScheme,
               ),
             ],

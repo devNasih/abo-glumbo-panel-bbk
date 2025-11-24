@@ -64,7 +64,8 @@ class BookingCards extends StatelessWidget {
           : () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => BookingInfo(booking: booking,isAdmin: isAdmin,),
+                builder: (context) =>
+                    BookingInfo(booking: booking, isAdmin: isAdmin),
               ),
             ),
       child: Container(
@@ -313,27 +314,60 @@ class BookingCards extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                      } else if (booking.bookingStatusCode == 'R' ||
-                          booking.bookingStatusCode == 'XC') ...{
-                        if (booking.rejectedAt != null ||
-                            booking.cancelledAt != null)
+                      } else if (booking.bookingStatusCode == 'XC') ...{
+                        if (booking.cancelledAt != null)
                           Text(
-                            "${AppLocalizations.of(context)!.rejectedOn}: ${booking.bookingStatusCode == 'R' ? LocalizationHelper().formatDateLocalized(booking.rejectedAt!.toDate(), context) : LocalizationHelper().formatDateLocalized(booking.cancelledAt!.toDate(), context)}",
+                            "${AppLocalizations.of(context)!.cancelledOn}: ${LocalizationHelper().formatDateLocalized(booking.cancelledAt!.toDate(), context)}",
                             style: textTheme.labelSmall?.copyWith(
                               color: colorScheme.onSurface.withOpacity(0.5),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+                        Text(
+                          "${AppLocalizations.of(context)!.cancelledBy}: ${AppLocalizations.of(context)!.customer}",
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurface.withOpacity(0.5),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      } else if (booking.bookingStatusCode == 'XC') ...{
+                        Text(
+                          "${AppLocalizations.of(context)!.rejectedOn}: ${LocalizationHelper().formatDateLocalized(booking.cancelledWorkers.firstWhere((worker) => worker.uid == LocalStore.getUID()).cancelledAt.toDate(), context)}",
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurface.withOpacity(0.5),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         if (!isAdmin)
                           Text(
-                            "${AppLocalizations.of(context)!.rejectedBy}: ${(booking.bookingStatusCode == 'XC') ? AppLocalizations.of(context)!.customer : AppLocalizations.of(context)!.admin}",
+                            "${AppLocalizations.of(context)!.rejectedBy}: ${AppLocalizations.of(context)!.admin}",
                             style: textTheme.labelSmall?.copyWith(
                               color: colorScheme.onSurface.withOpacity(0.5),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+                      } else if (booking.bookingStatusCode == 'R') ...{
+                        Text(
+                          "${AppLocalizations.of(context)!.rejectedOn}: ${LocalizationHelper().formatDateLocalized(booking.rejectedAt!.toDate(), context)}",
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurface.withOpacity(0.5),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+
+                        Text(
+                          "${AppLocalizations.of(context)!.rejectedBy}: ${AppLocalizations.of(context)!.admin}",
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurface.withOpacity(0.5),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       } else if (!isAdmin &&
                           booking.cancelledWorkers.any(
                             (worker) => worker.uid == LocalStore.getUID(),

@@ -329,12 +329,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get streetNameIsRequired => 'اسم الشارع مطلوب';
 
   @override
-  String get districtName => 'اسم المنطقة';
-
-  @override
-  String get districtNameIsRequired => 'اسم المنطقة مطلوب';
-
-  @override
   String get cityName => 'اسم المدينة';
 
   @override
@@ -556,9 +550,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get street => 'الشارع';
-
-  @override
-  String get district => 'المنطقة';
 
   @override
   String get city => 'المدينة';
@@ -1497,9 +1488,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get categoryAlreadyExists => 'القسم موجود بالفعل';
 
   @override
-  String get errorLoadingDistricts => 'خطأ في تحميل المناطق';
-
-  @override
   String get noLocationsAvailable => 'لا يوجد مواقع متاحة';
 
   @override
@@ -2329,6 +2317,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get filterByDate => 'تصفية حسب التاريخ';
 
   @override
+  String get typeProvinceNameToSearch => 'اكتب اسم المنطقة للبحث...';
+
+  @override
+  String get typeCityNameToSearch => 'اكتب اسم المدينة للبحث...';
+
+  @override
+  String get typeNeighborhoodNameToSearch => 'اكتب اسم الحي للبحث...';
+
+  @override
   String get areYouSureYouWantToUnblockThisCustomer =>
       'هل انت متاكد انك تريد فك حظر هذا العميل؟';
 
@@ -2337,10 +2334,26 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يوجد عملاء يطابقون معايير البحث الخاصة بك';
 
   @override
+  String get searchbyBookingIdnameTechnician =>
+      'بحث عن رقم الحجز، اسم العميل، اسم الفني';
+
+  @override
   String get block => 'حظر';
 
   @override
+  String get days => 'أيام';
+
+  @override
+  String get hours => 'ساعات';
+
+  @override
+  String get minutes => 'دقائق';
+
+  @override
   String get startDate => 'تاريخ البدء';
+
+  @override
+  String get cancelledOn => 'تم الإلغاء في';
 
   @override
   String get endDate => 'تاريخ الانتهاء';
@@ -2995,7 +3008,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get optional => 'اختياري';
 
   @override
-  String get province => 'المحافظة';
+  String get province => 'المنطقة/المحافظة';
 
   @override
   String get pleaseSelectCity => 'يرجى تحديد المدينة';
@@ -3230,7 +3243,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noJobCategoriesAvailable => 'لا توجد فئات عمل متاحة';
 
   @override
-  String get availabilityStatus => 'حالة المتاحية';
+  String get availabilityStatus => 'حالة التوافر';
 
   @override
   String get youAreNowOnline => 'أنت الآن متاح';

@@ -1067,11 +1067,11 @@ class _EditProfileState extends State<EditProfile> {
   @override
   Widget build(BuildContext context) {
     final safePadding = MediaQuery.of(context).padding;
-    final locale = AppLocalizations.of(context);
+    final locale = AppLocalizations.of(context)!;
     final isArabic = LocalStore.getUserlanguage() == 'ar';
     return Scaffold(
       appBar: AppBar(
-        title: Text(locale?.profileManagement ?? 'Profile Management'),
+        title: Text(locale.profileManagement),
         centerTitle: true,
         elevation: 0,
       ),
@@ -1122,12 +1122,7 @@ class _EditProfileState extends State<EditProfile> {
 
                   Navigator.pop(context, updatedUser);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        locale?.profileUpdatedSuccessfully ??
-                            'Profile updated successfully',
-                      ),
-                    ),
+                    SnackBar(content: Text(locale.profileUpdatedSuccessfully)),
                   );
                 }
               });
@@ -1135,12 +1130,7 @@ class _EditProfileState extends State<EditProfile> {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        locale?.failedToUpdateProfile ??
-                            'Profile update failed',
-                      ),
-                    ),
+                    SnackBar(content: Text(locale.failedToUpdateProfile)),
                   );
                 }
               });
@@ -1252,15 +1242,14 @@ class _EditProfileState extends State<EditProfile> {
                     const SizedBox(height: 24),
                     TextFormWidget(
                       controller: nameController,
-                      label: locale?.yourName ?? 'Your Name',
+                      label: locale.yourName,
                       keyboardType: TextInputType.name,
                       textInputAction: TextInputAction.next,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return locale?.nameIsRequired ?? 'Name is required';
+                          return locale.nameIsRequired;
                         } else if (value.trim().length < 3) {
-                          return locale?.enterAValidName ??
-                              'Enter a valid name';
+                          return locale.enterAValidName;
                         }
                         return null;
                       },
@@ -1268,18 +1257,14 @@ class _EditProfileState extends State<EditProfile> {
                     const SizedBox(height: 16),
                     TextFormWidget(
                       controller: emailController,
-                      label:
-                          "${locale?.emailAddress ?? 'Email Address'} (${locale?.optional ?? "Optional"})",
+                      label: locale.emailAddress,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.done,
                       readOnly: false,
                       validator: (value) {
                         if (value != null && value.isNotEmpty) {
                           if (!emailRegex.hasMatch(value)) {
-                            return AppLocalizations.of(
-                                  context,
-                                )?.pleaseEnterValidEmail ??
-                                'Please enter a valid email address';
+                            return locale.pleaseEnterValidEmail;
                           }
                         }
                         return null;
@@ -1291,7 +1276,7 @@ class _EditProfileState extends State<EditProfile> {
                       children: [
                         TextFormWidget(
                           controller: phoneController,
-                          label: locale?.phoneNumber ?? 'Phone Number',
+                          label: locale.phoneNumber,
                           keyboardType: TextInputType.phone,
                           enabled: !_isUpdatingPhone,
                           inputFormatters: [
@@ -1315,12 +1300,12 @@ class _EditProfileState extends State<EditProfile> {
                                   onPressed: _isUpdatingPhone
                                       ? null
                                       : _updatePhoneNumber,
-                                  child: Text(locale?.update ?? 'Update'),
+                                  child: Text(locale.update),
                                 ),
                           textInputAction: TextInputAction.next,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return locale?.pleaseEnterAValidPhoneNumber ?? '';
+                              return locale.pleaseEnterAValidPhoneNumber;
                             }
                             return null;
                           },
@@ -1328,8 +1313,7 @@ class _EditProfileState extends State<EditProfile> {
                         Padding(
                           padding: const EdgeInsets.only(left: 12, top: 4),
                           child: Text(
-                            locale?.phoneNumberFormatHint ??
-                                'Phone number must start with 05',
+                            locale.phoneNumberFormatHint,
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey.shade600,
@@ -1340,7 +1324,8 @@ class _EditProfileState extends State<EditProfile> {
                     ),
                     const SizedBox(height: 16),
                     _buildDropdownField<Region>(
-                      label: '${locale?.province ?? 'Region'} *',
+                      hintText: locale.typeProvinceNameToSearch,
+                      label: '${locale.province} *',
                       value: selectedRegion,
                       items: regions,
                       itemLabel: (region) => region.getName(isArabic),
@@ -1353,8 +1338,7 @@ class _EditProfileState extends State<EditProfile> {
                       },
                       validator: (value) {
                         if (value == null) {
-                          return locale?.pleaseSelectProvince ??
-                              'Please select a region';
+                          return locale.pleaseSelectProvince;
                         }
                         return null;
                       },
@@ -1365,7 +1349,8 @@ class _EditProfileState extends State<EditProfile> {
 
                       // ✅ City Dropdown
                       _buildDropdownField<City>(
-                        label: '${locale?.city ?? 'City'} *',
+                        hintText: locale.typeCityNameToSearch,
+                        label: locale.city,
                         value: selectedCity,
                         items: selectedRegion!.cities,
                         itemLabel: (city) => city.getName(isArabic),
@@ -1377,8 +1362,7 @@ class _EditProfileState extends State<EditProfile> {
                         },
                         validator: (value) {
                           if (value == null) {
-                            return locale?.pleaseSelectCity ??
-                                'Please select a city';
+                            return locale.pleaseSelectCity;
                           }
                           return null;
                         },
@@ -1390,7 +1374,8 @@ class _EditProfileState extends State<EditProfile> {
 
                       // ✅ District Dropdown
                       _buildDropdownField<District>(
-                        label: '${locale?.neighborhood ?? 'District'} *',
+                        hintText: locale.typeNeighborhoodNameToSearch,
+                        label: locale.neighborhood,
                         value: selectedDistrict,
                         items: selectedCity!.districts,
                         itemLabel: (district) => district.getName(isArabic),
@@ -1401,8 +1386,7 @@ class _EditProfileState extends State<EditProfile> {
                         },
                         validator: (value) {
                           if (value == null) {
-                            return locale?.pleaseSelectNeighborhood ??
-                                'Please select a district';
+                            return locale.pleaseSelectNeighborhood;
                           }
                           return null;
                         },
@@ -1415,7 +1399,7 @@ class _EditProfileState extends State<EditProfile> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          locale?.jobRoles ?? 'Job Roles',
+                          locale.jobRoles,
                           style: GoogleFonts.dmSans(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -1444,8 +1428,7 @@ class _EditProfileState extends State<EditProfile> {
                                 Expanded(
                                   child: selectedJobRoles.isEmpty
                                       ? Text(
-                                          locale?.selectJobRoles ??
-                                              'Select job roles',
+                                          locale.selectJobRoles,
                                           style: GoogleFonts.dmSans(
                                             fontSize: 14,
                                             color: Colors.grey,
@@ -1513,7 +1496,7 @@ class _EditProfileState extends State<EditProfile> {
 
                     // ID Document Upload
                     Text(
-                      '${AppLocalizations.of(context)?.idDocument ?? 'ID Document'} *',
+                      '${locale.idDocument} *',
                       style: GoogleFonts.dmSans(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -1526,10 +1509,8 @@ class _EditProfileState extends State<EditProfile> {
                       label: Text(
                         selectedImage == null &&
                                 widget.workerData?.docUrl == null
-                            ? (AppLocalizations.of(context)?.uploadIdDocument ??
-                                  'Upload ID Document')
-                            : (AppLocalizations.of(context)?.changeIdDocument ??
-                                  'Change ID Document'),
+                            ? locale.uploadIdDocument
+                            : locale.changeIdDocument,
                       ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor:
@@ -1752,11 +1733,15 @@ class _EditProfileState extends State<EditProfile> {
                                     ),
                                     SizedBox(width: 8),
                                     GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          widget.workerData!.certifications!
-                                              .removeAt(index);
-                                        });
+                                      onTap: () async {
+                                        final confirm =
+                                            await _showDeleteConfirmation();
+                                        if (confirm) {
+                                          setState(() {
+                                            widget.workerData!.certifications!
+                                                .removeAt(index);
+                                          });
+                                        }
                                       },
                                       child: Icon(
                                         Icons.delete,
@@ -1784,8 +1769,7 @@ class _EditProfileState extends State<EditProfile> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    locale?.pleaseSelectAllLocationFields ??
-                                        'Please select your location',
+                                    locale.pleaseSelectAllLocationFields,
                                   ),
                                 ),
                               );
@@ -1797,8 +1781,7 @@ class _EditProfileState extends State<EditProfile> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    locale?.pleaseSelectAtLeastOneJobRole ??
-                                        'Please select at least one job role',
+                                    locale.pleaseSelectAtLeastOneJobRole,
                                   ),
                                 ),
                               );
@@ -1863,7 +1846,7 @@ class _EditProfileState extends State<EditProfile> {
                         child: state is UpdateProfileLoading
                             ? Loader(color: Colors.white, size: 20)
                             : Text(
-                                locale?.update ?? 'Update',
+                                locale.update,
                                 style: GoogleFonts.dmSans(
                                   color: Colors.white,
                                   fontSize: 17,
@@ -1884,6 +1867,7 @@ class _EditProfileState extends State<EditProfile> {
 
   Widget _buildDropdownField<T extends Object>({
     required String label,
+    required String hintText,
     required T? value,
     required List<T> items,
     required String Function(T) itemLabel,
@@ -1892,6 +1876,7 @@ class _EditProfileState extends State<EditProfile> {
   }) {
     return SearchableDropdown<T>(
       label: label,
+      hintText: hintText,
       value: value,
       items: items,
       itemLabel: itemLabel,
@@ -1921,10 +1906,7 @@ class _EditProfileState extends State<EditProfile> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              AppLocalizations.of(context)?.couldNotOpenFile ??
-                  'Could not open file',
-            ),
+            content: Text(AppLocalizations.of(context)!.couldNotOpenFile),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),

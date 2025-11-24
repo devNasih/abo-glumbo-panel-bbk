@@ -345,87 +345,157 @@ class AppServices {
 
   static Stream<List<BookingModel>> getBookingsStream({
     String? bookingStatusCode,
+    bool isAdmin = false,
   }) {
-    String workerId = LocalStore.getUID() ?? '';
+    if (isAdmin) {
+      if (bookingStatusCode == 'X') {
+        final adminCancel = AppFirestore.bookingsCollectionRef
+            .where('bookingStatusCode', isEqualTo: 'R')
+            .snapshots()
+            .map((snapshot) {
+              return snapshot.docs
+                  .map((doc) => BookingModel.fromDocumentSnapshot(doc))
+                  .toList();
+            });
 
-    if (bookingStatusCode == 'X') {
-      final workerCancel = AppFirestore.bookingsCollectionRef
-          .where('cancelledWorkerUids', arrayContains: workerId)
-          .snapshots()
-          .map((snapshot) {
-            return snapshot.docs
-                .map((doc) => BookingModel.fromDocumentSnapshot(doc))
-                .toList();
+        final customerCancel = AppFirestore.bookingsCollectionRef
+            .where('bookingStatusCode', isEqualTo: 'XC')
+            .snapshots()
+            .map((snapshot) {
+              return snapshot.docs
+                  .map((doc) => BookingModel.fromDocumentSnapshot(doc))
+                  .toList();
+            });
+
+        return Rx.combineLatest2(customerCancel, adminCancel, (
+          List<BookingModel> customer,
+          List<BookingModel> admin,
+        ) {
+          final combined = [...customer, ...admin];
+
+          combined.sort((a, b) {
+            final aTime = _getComparisonTimestamp(a);
+            final bTime = _getComparisonTimestamp(b);
+            return bTime.compareTo(aTime);
           });
 
-      final adminCancel = AppFirestore.bookingsCollectionRef
-          .where('bookingStatusCode', isEqualTo: 'R')
-          .snapshots()
-          .map((snapshot) {
-            return snapshot.docs
-                .map((doc) => BookingModel.fromDocumentSnapshot(doc))
-                .toList();
-          });
-
-      final customerCancel = AppFirestore.bookingsCollectionRef
-          .where('bookingStatusCode', isEqualTo: 'XC')
-          .snapshots()
-          .map((snapshot) {
-            return snapshot.docs
-                .map((doc) => BookingModel.fromDocumentSnapshot(doc))
-                .toList();
-          });
-
-      return Rx.combineLatest3(customerCancel, adminCancel, workerCancel, (
-        List<BookingModel> customer,
-        List<BookingModel> admin,
-        List<BookingModel> worker,
-      ) {
-        final combined = [...customer, ...admin, ...worker];
-
-        combined.sort((a, b) {
-          final aTime = _getComparisonTimestamp(a);
-          final bTime = _getComparisonTimestamp(b);
-          return bTime.compareTo(aTime);
+          return combined;
         });
-
-        return combined;
-      });
-    } else if (bookingStatusCode == 'CP') {
-      return AppFirestore.bookingsCollectionRef
-          .where('agent.uid', isEqualTo: workerId)
-          .where('bookingStatusCode', isEqualTo: 'C')
-          .where('paymentCompleted', isEqualTo: false)
-          .orderBy('createdAt', descending: true)
-          .snapshots()
-          .map((snapshot) {
-            return snapshot.docs
-                .map((doc) => BookingModel.fromDocumentSnapshot(doc))
-                .toList();
-          });
-    } else if (bookingStatusCode == 'C') {
-      return AppFirestore.bookingsCollectionRef
-          .where('agent.uid', isEqualTo: workerId)
-          .where('bookingStatusCode', isEqualTo: bookingStatusCode)
-          .where('paymentCompleted', isEqualTo: true)
-          .orderBy('createdAt', descending: true)
-          .snapshots()
-          .map((snapshot) {
-            return snapshot.docs
-                .map((doc) => BookingModel.fromDocumentSnapshot(doc))
-                .toList();
-          });
+      } else if (bookingStatusCode == 'CP') {
+        return AppFirestore.bookingsCollectionRef
+            .where('bookingStatusCode', isEqualTo: 'C')
+            .where('paymentCompleted', isEqualTo: false)
+            .orderBy('createdAt', descending: true)
+            .snapshots()
+            .map((snapshot) {
+              return snapshot.docs
+                  .map((doc) => BookingModel.fromDocumentSnapshot(doc))
+                  .toList();
+            });
+      } else if (bookingStatusCode == 'C') {
+        return AppFirestore.bookingsCollectionRef
+            .where('bookingStatusCode', isEqualTo: bookingStatusCode)
+            .where('paymentCompleted', isEqualTo: true)
+            .orderBy('createdAt', descending: true)
+            .snapshots()
+            .map((snapshot) {
+              return snapshot.docs
+                  .map((doc) => BookingModel.fromDocumentSnapshot(doc))
+                  .toList();
+            });
+      } else {
+        return AppFirestore.bookingsCollectionRef
+            .where('bookingStatusCode', isEqualTo: bookingStatusCode)
+            .orderBy('createdAt', descending: true)
+            .snapshots()
+            .map((snapshot) {
+              return snapshot.docs
+                  .map((doc) => BookingModel.fromDocumentSnapshot(doc))
+                  .toList();
+            });
+      }
     } else {
-      return AppFirestore.bookingsCollectionRef
-          .where('agent.uid', isEqualTo: workerId)
-          .where('bookingStatusCode', isEqualTo: bookingStatusCode)
-          .orderBy('createdAt', descending: true)
-          .snapshots()
-          .map((snapshot) {
-            return snapshot.docs
-                .map((doc) => BookingModel.fromDocumentSnapshot(doc))
-                .toList();
+      String workerId = LocalStore.getUID() ?? '';
+
+      if (bookingStatusCode == 'X' && !isAdmin) {
+        final workerCancel = AppFirestore.bookingsCollectionRef
+            .where('cancelledWorkerUids', arrayContains: workerId)
+            .snapshots()
+            .map((snapshot) {
+              return snapshot.docs
+                  .map((doc) => BookingModel.fromDocumentSnapshot(doc))
+                  .toList();
+            });
+
+        final adminCancel = AppFirestore.bookingsCollectionRef
+            .where('bookingStatusCode', isEqualTo: 'R')
+            .snapshots()
+            .map((snapshot) {
+              return snapshot.docs
+                  .map((doc) => BookingModel.fromDocumentSnapshot(doc))
+                  .toList();
+            });
+
+        final customerCancel = AppFirestore.bookingsCollectionRef
+            .where('bookingStatusCode', isEqualTo: 'XC')
+            .snapshots()
+            .map((snapshot) {
+              return snapshot.docs
+                  .map((doc) => BookingModel.fromDocumentSnapshot(doc))
+                  .toList();
+            });
+
+        return Rx.combineLatest3(customerCancel, adminCancel, workerCancel, (
+          List<BookingModel> customer,
+          List<BookingModel> admin,
+          List<BookingModel> worker,
+        ) {
+          final combined = [...customer, ...admin, ...worker];
+
+          combined.sort((a, b) {
+            final aTime = _getComparisonTimestamp(a);
+            final bTime = _getComparisonTimestamp(b);
+            return bTime.compareTo(aTime);
           });
+
+          return combined;
+        });
+      } else if (bookingStatusCode == 'CP') {
+        return AppFirestore.bookingsCollectionRef
+            .where('agent.uid', isEqualTo: workerId)
+            .where('bookingStatusCode', isEqualTo: 'C')
+            .where('paymentCompleted', isEqualTo: false)
+            .orderBy('createdAt', descending: true)
+            .snapshots()
+            .map((snapshot) {
+              return snapshot.docs
+                  .map((doc) => BookingModel.fromDocumentSnapshot(doc))
+                  .toList();
+            });
+      } else if (bookingStatusCode == 'C') {
+        return AppFirestore.bookingsCollectionRef
+            .where('agent.uid', isEqualTo: workerId)
+            .where('bookingStatusCode', isEqualTo: bookingStatusCode)
+            .where('paymentCompleted', isEqualTo: true)
+            .orderBy('createdAt', descending: true)
+            .snapshots()
+            .map((snapshot) {
+              return snapshot.docs
+                  .map((doc) => BookingModel.fromDocumentSnapshot(doc))
+                  .toList();
+            });
+      } else {
+        return AppFirestore.bookingsCollectionRef
+            .where('agent.uid', isEqualTo: workerId)
+            .where('bookingStatusCode', isEqualTo: bookingStatusCode)
+            .orderBy('createdAt', descending: true)
+            .snapshots()
+            .map((snapshot) {
+              return snapshot.docs
+                  .map((doc) => BookingModel.fromDocumentSnapshot(doc))
+                  .toList();
+            });
+      }
     }
   }
 

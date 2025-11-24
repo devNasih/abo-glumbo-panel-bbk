@@ -464,7 +464,7 @@ class _LoginPageState extends State<LoginPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildHeaderImage(),
-                        const SizedBox(height: 35),
+                        const SizedBox(height: 10),
                         Center(
                           child: Text(
                             AppLocalizations.of(context)?.appLoginCaption ?? '',
@@ -481,7 +481,7 @@ class _LoginPageState extends State<LoginPage> {
                           textDirection: TextDirection.ltr,
                           child: LanguageSelectorCard(isInLoginPage: true),
                         ),
-                        const SizedBox(height: 23),
+                        const SizedBox(height: 20),
                         Text(
                           AppLocalizations.of(context)?.mobileNumber ?? '',
                           style: GoogleFonts.dmSans(
@@ -495,11 +495,12 @@ class _LoginPageState extends State<LoginPage> {
                         _buildRememberMeCheckbox(),
                         const SizedBox(height: 10),
                         _buildLoginButton(state),
+                        const SizedBox(height: 20),
 
                         if (isCheckUserEnableTwoStepVerification &&
                             customerLastUid != null &&
                             customerLastUid!.isNotEmpty) ...[
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 10),
                           Row(
                             children: [
                               Expanded(
@@ -535,7 +536,7 @@ class _LoginPageState extends State<LoginPage> {
 
                         const SizedBox(height: 20),
                         _buildTermsAndPrivacyText(),
-                        const SizedBox(height: 30),
+                        const SizedBox(height: 60),
                       ],
                     ),
                   ),

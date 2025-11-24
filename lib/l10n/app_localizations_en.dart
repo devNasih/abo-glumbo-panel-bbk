@@ -332,12 +332,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get streetNameIsRequired => 'Street Name is Required';
 
   @override
-  String get districtName => 'District Name';
-
-  @override
-  String get districtNameIsRequired => 'District Name is Required';
-
-  @override
   String get cityName => 'City Name';
 
   @override
@@ -560,9 +554,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get street => 'Street';
-
-  @override
-  String get district => 'District';
 
   @override
   String get city => 'City';
@@ -1409,7 +1400,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationPermissionDenied => 'Location permission denied';
 
   @override
-  String get bioMetricAuthentication => 'Enable biometric';
+  String get bioMetricAuthentication => 'Enable Biometric';
 
   @override
   String get confirmDeletion => 'Confirm Deletion';
@@ -1510,9 +1501,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get categoryAlreadyExists => 'Category already exists';
-
-  @override
-  String get errorLoadingDistricts => 'Error loading districts';
 
   @override
   String get noLocationsAvailable => 'No locations available';
@@ -2366,6 +2354,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filterByDate => 'Filter by Date';
 
   @override
+  String get typeProvinceNameToSearch => 'Type province name to search...';
+
+  @override
+  String get typeCityNameToSearch => 'Type city name to search...';
+
+  @override
+  String get typeNeighborhoodNameToSearch =>
+      'Type neighborhood name to search...';
+
+  @override
   String get areYouSureYouWantToUnblockThisCustomer =>
       'Are you sure you want to unblock this customer?';
 
@@ -2373,10 +2371,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noCustomersMatchYourSearch => 'No customers match your search';
 
   @override
+  String get searchbyBookingIdnameTechnician =>
+      'Search by Booking ID, Name, Technician';
+
+  @override
   String get block => 'Block';
 
   @override
+  String get days => 'Days';
+
+  @override
+  String get hours => 'Hours';
+
+  @override
+  String get minutes => 'Minutes';
+
+  @override
   String get startDate => 'Start Date';
+
+  @override
+  String get cancelledOn => 'Cancelled On';
 
   @override
   String get endDate => 'End Date';

@@ -15,6 +15,24 @@ class ManageTransactionsPage extends StatefulWidget {
 
 class _ManageTransactionsPageState extends State<ManageTransactionsPage> {
   String _selectedFilter = 'all'; // all, cash, card
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,9 +101,49 @@ class _ManageTransactionsPageState extends State<ManageTransactionsPage> {
             ),
           ),
 
+          // Search Bar Section
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText:
+                    '${AppLocalizations.of(context)!.search} ${AppLocalizations.of(context)!.bookingId} / ${AppLocalizations.of(context)!.orderId}',
+                hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+                prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(Icons.clear, color: Colors.grey[600]),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.primary, width: 2),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+              ),
+            ),
+          ),
+
           // Filter Chips Section
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -146,7 +204,9 @@ class _ManageTransactionsPageState extends State<ManageTransactionsPage> {
                 }
 
                 final allTransactions = snapshot.data ?? [];
-                final filteredTransactions = _selectedFilter == 'all'
+
+                // Apply payment method filter
+                var filteredTransactions = _selectedFilter == 'all'
                     ? allTransactions
                     : allTransactions.where((t) {
                         final method = t.paymentMethod.toLowerCase();
@@ -157,6 +217,16 @@ class _ManageTransactionsPageState extends State<ManageTransactionsPage> {
                         }
                         return true;
                       }).toList();
+
+                // Apply search filter
+                if (_searchQuery.isNotEmpty) {
+                  filteredTransactions = filteredTransactions.where((t) {
+                    final bookingId = t.bookingId.toLowerCase();
+                    final orderId = t.orderId.toLowerCase();
+                    return bookingId.contains(_searchQuery) ||
+                        orderId.contains(_searchQuery);
+                  }).toList();
+                }
 
                 if (filteredTransactions.isEmpty) {
                   return Center(

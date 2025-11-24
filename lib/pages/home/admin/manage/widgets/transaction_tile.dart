@@ -152,7 +152,9 @@ class _TransactionTileState extends State<TransactionTile> {
             const SizedBox(width: 4),
             Expanded(
               child: Text(
-                widget.transaction.paymentMethod,
+                widget.transaction.paymentMethod.toLowerCase().contains('cash')
+                    ? AppLocalizations.of(context)!.cashInHand
+                    : AppLocalizations.of(context)!.card,
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey.shade600,
@@ -260,11 +262,11 @@ class _TransactionTileState extends State<TransactionTile> {
       );
       return formatter.format(date);
     } else if (difference.inDays > 0) {
-      return '${difference.inDays} ${AppLocalizations.of(context)!.day}${difference.inDays > 1 ? 's' : ''} ${AppLocalizations.of(context)!.ago}';
+      return '${difference.inDays} ${difference.inDays > 1 ? AppLocalizations.of(context)!.day : AppLocalizations.of(context)!.days} ${AppLocalizations.of(context)!.ago}';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours} ${AppLocalizations.of(context)!.hour}${difference.inHours > 1 ? 's' : ''} ${AppLocalizations.of(context)!.ago}';
+      return '${difference.inHours} ${difference.inHours > 1 ? AppLocalizations.of(context)!.hour : AppLocalizations.of(context)!.hours} ${AppLocalizations.of(context)!.ago}';
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} ${AppLocalizations.of(context)!.minute}${difference.inMinutes > 1 ? 's' : ''} ${AppLocalizations.of(context)!.ago}';
+      return '${difference.inMinutes} ${difference.inMinutes > 1 ? AppLocalizations.of(context)!.minute : AppLocalizations.of(context)!.minutes} ${AppLocalizations.of(context)!.ago}';
     } else {
       return AppLocalizations.of(context)!.justNow;
     }
@@ -442,7 +444,12 @@ class _TransactionTileState extends State<TransactionTile> {
                             widget.transaction.bookingId,
                             copyable: true,
                           ),
-                          const SizedBox(height: 16),
+                          _buildDetailRow(
+                            context,
+                            AppLocalizations.of(context)!.orderId,
+                            widget.transaction.orderId,
+                            copyable: true,
+                          ),
                           _buildDetailRow(
                             context,
                             AppLocalizations.of(context)!.bookingName,

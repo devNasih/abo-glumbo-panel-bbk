@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class SearchableDropdown<T extends Object> extends StatefulWidget {
   final String label;
+  final String hintText;
   final T? value;
   final List<T> items;
   final String Function(T) itemLabel;
@@ -12,6 +13,7 @@ class SearchableDropdown<T extends Object> extends StatefulWidget {
   const SearchableDropdown({
     super.key,
     required this.label,
+    required this.hintText,
     required this.value,
     required this.items,
     required this.itemLabel,
@@ -110,6 +112,7 @@ class _SearchableDropdownState<T extends Object>
                       controller: textEditingController,
                       focusNode: focusNode,
                       decoration: InputDecoration(
+                        hintText: widget.hintText,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),

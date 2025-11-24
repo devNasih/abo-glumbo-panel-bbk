@@ -996,7 +996,10 @@ class _SignupState extends State<Signup> {
 
                 // Region Dropdown
                 _buildDropdownField<Region>(
-                  label: AppLocalizations.of(context)?.province ?? 'Region',
+                  hintText: AppLocalizations.of(
+                    context,
+                  )!.typeProvinceNameToSearch,
+                  label: AppLocalizations.of(context)!.province,
                   value: selectedRegion,
                   items: regions,
                   itemLabel: (region) => region.getName(isArabic),
@@ -1023,7 +1026,10 @@ class _SignupState extends State<Signup> {
 
                   // City Dropdown
                   _buildDropdownField<City>(
-                    label: AppLocalizations.of(context)?.city ?? 'City',
+                    hintText: AppLocalizations.of(
+                      context,
+                    )!.typeCityNameToSearch,
+                    label: AppLocalizations.of(context)!.city,
                     value: selectedCity,
                     items: selectedRegion!.cities,
                     itemLabel: (city) => city.getName(isArabic),
@@ -1035,8 +1041,7 @@ class _SignupState extends State<Signup> {
                     },
                     validator: (value) {
                       if (value == null) {
-                        return AppLocalizations.of(context)?.pleaseSelectCity ??
-                            'Please select a city';
+                        return AppLocalizations.of(context)!.pleaseSelectCity;
                       }
                       return null;
                     },
@@ -1047,9 +1052,10 @@ class _SignupState extends State<Signup> {
                   const SizedBox(height: 16),
                   // District Dropdown
                   _buildDropdownField<District>(
-                    label:
-                        AppLocalizations.of(context)?.neighborhood ??
-                        'District',
+                    hintText: AppLocalizations.of(
+                      context,
+                    )!.typeNeighborhoodNameToSearch,
+                    label: AppLocalizations.of(context)!.neighborhood,
                     value: selectedDistrict,
                     items: selectedCity!.districts,
                     itemLabel: (district) => district.getName(isArabic),
@@ -1061,9 +1067,8 @@ class _SignupState extends State<Signup> {
                     validator: (value) {
                       if (value == null) {
                         return AppLocalizations.of(
-                              context,
-                            )?.pleaseSelectNeighborhood ??
-                            'Please select a district';
+                          context,
+                        )!.pleaseSelectNeighborhood;
                       }
                       return null;
                     },
@@ -1074,7 +1079,7 @@ class _SignupState extends State<Signup> {
 
                 // Job Roles Selector
                 Text(
-                  AppLocalizations.of(context)?.jobRoles ?? 'Job Roles',
+                  AppLocalizations.of(context)!.jobRoles,
                   style: GoogleFonts.dmSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -1116,7 +1121,7 @@ class _SignupState extends State<Signup> {
 
                 // ID Document Upload
                 Text(
-                  '${AppLocalizations.of(context)?.idDocument ?? 'ID Document'} *',
+                  '${AppLocalizations.of(context)!.idDocument} *',
                   style: GoogleFonts.dmSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -1128,10 +1133,8 @@ class _SignupState extends State<Signup> {
                   icon: const Icon(Icons.upload_file),
                   label: Text(
                     idImage == null
-                        ? (AppLocalizations.of(context)?.uploadIdDocument ??
-                              'Upload ID Document')
-                        : (AppLocalizations.of(context)?.changeIdDocument ??
-                              'Change ID Document'),
+                        ? AppLocalizations.of(context)!.uploadIdDocument
+                        : AppLocalizations.of(context)!.changeIdDocument,
                   ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: idImage != null
@@ -1185,7 +1188,7 @@ class _SignupState extends State<Signup> {
 
                 // Certifications Upload
                 Text(
-                  '${AppLocalizations.of(context)?.certifications ?? 'Certifications'} (${AppLocalizations.of(context)?.optional ?? 'Optional'})',
+                  '${AppLocalizations.of(context)!.certifications} (${AppLocalizations.of(context)!.optional})',
                   style: GoogleFonts.dmSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -1196,8 +1199,7 @@ class _SignupState extends State<Signup> {
                   onPressed: _pickCertifications,
                   icon: const Icon(Icons.attach_file),
                   label: Text(
-                    AppLocalizations.of(context)?.uploadCertifications ??
-                        'Upload Certifications',
+                    AppLocalizations.of(context)!.uploadCertifications,
                   ),
                 ),
 
@@ -1284,8 +1286,7 @@ class _SignupState extends State<Signup> {
                       child: isCreatingAccount
                           ? Loader()
                           : Text(
-                              AppLocalizations.of(context)?.createAccount ??
-                                  'Create Account',
+                              AppLocalizations.of(context)!.createAccount,
                               style: GoogleFonts.dmSans(
                                 color: Colors.white,
                                 fontSize: 17,
@@ -1307,6 +1308,7 @@ class _SignupState extends State<Signup> {
     required String label,
     required T? value,
     required List<T> items,
+    required String hintText,
     required String Function(T) itemLabel,
     required void Function(T?) onChanged,
     String? Function(T?)? validator,
@@ -1318,6 +1320,7 @@ class _SignupState extends State<Signup> {
       itemLabel: itemLabel,
       onChanged: onChanged,
       validator: validator,
+      hintText: hintText,
     );
   }
 
@@ -1333,23 +1336,19 @@ class _SignupState extends State<Signup> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(
-          AppLocalizations.of(context)?.cancelRegistration ??
-              'Cancel Registration?',
-        ),
+        title: Text(AppLocalizations.of(context)!.cancelRegistration),
         content: Text(
-          AppLocalizations.of(context)?.cancelRegistrationConfirmation ??
-              'Are you sure you want to cancel? All entered data will be lost.',
+          AppLocalizations.of(context)!.cancelRegistrationConfirmation,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(AppLocalizations.of(context)?.no ?? 'No'),
+            child: Text(AppLocalizations.of(context)!.no),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(
-              AppLocalizations.of(context)?.yes ?? 'Yes',
+              AppLocalizations.of(context)!.yes,
               style: const TextStyle(color: Colors.red),
             ),
           ),

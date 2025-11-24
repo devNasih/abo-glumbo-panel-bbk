@@ -266,10 +266,7 @@ class _HomeState extends State<Home> {
         log("adminPages: $selectedBookingStatus");
         List<Widget> workerPages = [
           DashboardScreen(workerData: userData),
-          WorkerHome(
-            selectedIndex: selectedBookingStatus,
-          ), //swap with dashboard
-
+          WorkerHome(selectedIndex: selectedBookingStatus),
           AccountPage(workerData: userData),
         ];
         final currentPages = userData.isAdmin == true
@@ -357,12 +354,6 @@ class _HomeState extends State<Home> {
                     label: AppLocalizations.of(context)?.orders ?? 'Orders',
                   ),
                 },
-
-                NavigationDestination(
-                  icon: Icon(Icons.shield_outlined, color: AppColors.grey),
-                  selectedIcon: Icon(Icons.shield, color: AppColors.secondary),
-                  label: locale?.warrantyClaims ?? '',
-                ),
 
                 NavigationDestination(
                   icon: SvgPicture.asset(

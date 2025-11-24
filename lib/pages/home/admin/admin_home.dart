@@ -274,9 +274,10 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
                               });
                             },
                             decoration: InputDecoration(
+                              hintStyle: TextStyle(fontSize: 12),
                               hintText: AppLocalizations.of(
                                 context,
-                              )!.searchBookings,
+                              )!.searchbyBookingIdnameTechnician,
                               prefixIcon: const Icon(Icons.search),
                               suffixIcon: _searchQuery.isNotEmpty
                                   ? IconButton(
@@ -293,7 +294,7 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
+                                horizontal: 0,
                               ),
                             ),
                           ),
@@ -495,6 +496,7 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
     return StreamBuilder<List<BookingModel>>(
       stream: AppServices.getBookingsStream(
         bookingStatusCode: selectedBookingStatus,
+        isAdmin: true,
       ),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting &&

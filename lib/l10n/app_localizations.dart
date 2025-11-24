@@ -722,18 +722,6 @@ abstract class AppLocalizations {
   /// **'Street Name is Required'**
   String get streetNameIsRequired;
 
-  /// No description provided for @districtName.
-  ///
-  /// In en, this message translates to:
-  /// **'District Name'**
-  String get districtName;
-
-  /// No description provided for @districtNameIsRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'District Name is Required'**
-  String get districtNameIsRequired;
-
   /// No description provided for @cityName.
   ///
   /// In en, this message translates to:
@@ -1171,12 +1159,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Street'**
   String get street;
-
-  /// No description provided for @district.
-  ///
-  /// In en, this message translates to:
-  /// **'District'**
-  String get district;
 
   /// No description provided for @city.
   ///
@@ -2807,7 +2789,7 @@ abstract class AppLocalizations {
   /// No description provided for @bioMetricAuthentication.
   ///
   /// In en, this message translates to:
-  /// **'Enable biometric'**
+  /// **'Enable Biometric'**
   String get bioMetricAuthentication;
 
   /// No description provided for @confirmDeletion.
@@ -3001,12 +2983,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Category already exists'**
   String get categoryAlreadyExists;
-
-  /// No description provided for @errorLoadingDistricts.
-  ///
-  /// In en, this message translates to:
-  /// **'Error loading districts'**
-  String get errorLoadingDistricts;
 
   /// No description provided for @noLocationsAvailable.
   ///
@@ -4574,6 +4550,24 @@ abstract class AppLocalizations {
   /// **'Filter by Date'**
   String get filterByDate;
 
+  /// No description provided for @typeProvinceNameToSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Type province name to search...'**
+  String get typeProvinceNameToSearch;
+
+  /// No description provided for @typeCityNameToSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Type city name to search...'**
+  String get typeCityNameToSearch;
+
+  /// No description provided for @typeNeighborhoodNameToSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Type neighborhood name to search...'**
+  String get typeNeighborhoodNameToSearch;
+
   /// No description provided for @areYouSureYouWantToUnblockThisCustomer.
   ///
   /// In en, this message translates to:
@@ -4586,17 +4580,47 @@ abstract class AppLocalizations {
   /// **'No customers match your search'**
   String get noCustomersMatchYourSearch;
 
+  /// No description provided for @searchbyBookingIdnameTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by Booking ID, Name, Technician'**
+  String get searchbyBookingIdnameTechnician;
+
   /// No description provided for @block.
   ///
   /// In en, this message translates to:
   /// **'Block'**
   String get block;
 
+  /// No description provided for @days.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get days;
+
+  /// No description provided for @hours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get hours;
+
+  /// No description provided for @minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes'**
+  String get minutes;
+
   /// No description provided for @startDate.
   ///
   /// In en, this message translates to:
   /// **'Start Date'**
   String get startDate;
+
+  /// No description provided for @cancelledOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled On'**
+  String get cancelledOn;
 
   /// No description provided for @endDate.
   ///
