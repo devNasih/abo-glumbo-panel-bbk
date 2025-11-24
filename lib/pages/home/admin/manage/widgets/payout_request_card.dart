@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/payout_request.dart';
@@ -14,20 +12,21 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:shimmer/shimmer.dart';
 
 class PayoutRequestCard extends StatefulWidget {
   final PayoutRequestModel payoutRequest;
   final UserModel technician;
-  const PayoutRequestCard({super.key, required this.payoutRequest, required this.technician });
+  const PayoutRequestCard({
+    super.key,
+    required this.payoutRequest,
+    required this.technician,
+  });
 
   @override
   State<PayoutRequestCard> createState() => _PayoutRequestCardState();
 }
 
 class _PayoutRequestCardState extends State<PayoutRequestCard> {
-
-
   Color _getStatusColor() {
     switch (widget.payoutRequest.status?.toLowerCase()) {
       case 'p':
@@ -1041,7 +1040,6 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
 
   @override
   Widget build(BuildContext context) {
-
     final bool isPending = widget.payoutRequest.status?.toLowerCase() == 'p';
 
     return GestureDetector(

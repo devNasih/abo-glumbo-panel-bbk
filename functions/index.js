@@ -93,6 +93,8 @@ exports.notifyAdminsOnNewBooking = onDocumentCreated(
       return null;
     }
 
+    const serviceName = booking.service?.name || "";
+
     try {
       const adminUsersSnapshot = await admin
         .firestore()
@@ -125,12 +127,18 @@ exports.notifyAdminsOnNewBooking = onDocumentCreated(
           targetId: uid,
           titleEn: "New Booking Request",
           titleAr: "طلب حجز جديد",
-          bodyEn: "Hey Admin, a new booking request just came in!",
-          bodyAr: "مرحبًا Admin، لقد تم تقديم طلب حجز جديد!",
+          bodyEn: serviceName
+            ? `New booking request for ${serviceName}`
+            : "Hey Admin, a new booking request just came in!",
+          bodyAr: serviceName
+            ? `طلب حجز جديد لخدمة ${serviceName}`
+            : "مرحبًا Admin، لقد تم تقديم طلب حجز جديد!",
           data: {
             targetRole: "admin",
             category: "booking",
             bookingId: event.params.bookingId,
+            serviceName: serviceName,
+            isAdmin: "true",
           },
           fcmToken: token,
           lanCode: lanCode,
@@ -170,7 +178,11 @@ exports.notifyAgentOnAssignment = onDocumentWritten(
         .map((doc) => {
           const data = doc.data();
           return data.fcmToken && data.fcmToken.trim() !== ""
-            ? { token: data.fcmToken, lanCode: data.lanCode || "en" }
+            ? {
+                uid: doc.id,
+                token: data.fcmToken,
+                lanCode: data.lanCode || "en",
+              }
             : null;
         })
         .filter(Boolean);
@@ -218,10 +230,11 @@ exports.notifyAgentOnAssignment = onDocumentWritten(
               bodyEn: `You have accepted a new booking for "${serviceName}"`,
               bodyAr: `لقد قبلت حجزاً جديداً لخدمة "${serviceName}"`,
               data: {
-                targetRole: "worker",
+                targetRole: "technician",
                 category: "booking",
                 bookingId,
                 serviceName,
+                isAdmin: "false",
               },
               fcmToken: agentFcmToken,
               lanCode: agentLanCode,
@@ -250,6 +263,7 @@ exports.notifyAgentOnAssignment = onDocumentWritten(
               category: "booking",
               bookingId,
               serviceName,
+              isAdmin: "true",
             },
             fcmToken: token,
             lanCode: lanCode,
@@ -295,6 +309,7 @@ exports.notifyAgentOnAssignment = onDocumentWritten(
                 bookingId,
                 workerId,
                 workerName,
+                isAdmin: "true",
               },
               fcmToken: token,
               lanCode: lanCode,
@@ -623,6 +638,7 @@ exports.onBookingUpdateToTip = onDocumentWritten(
             category: "tip",
             amount: tipAmount.toString(),
             type: tipType,
+            isAdmin: "false",
           },
           fcmToken: agentFcmToken,
           lanCode: agent.lanCode || "en",
@@ -808,6 +824,7 @@ exports.notifyAdminsOnPayoutRequest = onDocumentCreated(
         const user = doc.data();
         if (user.fcmToken && user.fcmToken.trim() !== "") {
           tokensWithLanguage.push({
+            uid: doc.id,
             token: user.fcmToken,
             lanCode: user.lanCode || "en",
           });
@@ -836,6 +853,7 @@ exports.notifyAdminsOnPayoutRequest = onDocumentCreated(
             workerId: userId,
             workerName: workerName,
             amount: amount,
+            isAdmin: "true",
           },
           fcmToken: token,
           lanCode: lanCode,
@@ -953,11 +971,12 @@ exports.notifyWorkerOnPayoutStatusChange = onDocumentWritten(
       bodyEn: statusMessages[status]?.["en"],
       bodyAr: statusMessages[status]?.["ar"],
       data: {
-        targetRole: "worker",
+        targetRole: "technician",
         category: "payout",
         requestId: requestId,
         status: status,
         amount: amount,
+        isAdmin: "false",
       },
       fcmToken: fcmToken,
       lanCode: lanCode,
@@ -1062,11 +1081,12 @@ exports.notifyWorkerOnNewBooking = onDocumentCreated(
       bodyEn: notificationBody["en"],
       bodyAr: notificationBody["ar"],
       data: {
-        targetRole: "worker",
+        targetRole: "technician",
         category: "booking",
         bookingId: bookingId,
         serviceName: serviceName,
         customerName: customerName,
+        isAdmin: "false",
       },
       fcmToken: fcmToken,
       lanCode: lanCode,
@@ -1152,6 +1172,7 @@ exports.notifyAdminsOnTipPayoutRequest = onDocumentWritten(
             agentId: agentId,
             agentName: agentName,
             amount: totalTip.toString(),
+            isAdmin: "true",
           },
           fcmToken: token,
           lanCode: lanCode,
@@ -1248,10 +1269,11 @@ exports.notifyWorkerOnTipPayoutProcessed = onDocumentWritten(
       bodyEn: notificationBody["en"],
       bodyAr: notificationBody["ar"],
       data: {
-        targetRole: "worker",
+        targetRole: "technician",
         category: "tip_payout",
         walletId: walletId,
         amount: totalTip.toString(),
+        isAdmin: "false",
       },
       fcmToken: fcmToken,
       lanCode: lanCode,
@@ -1377,6 +1399,7 @@ exports.sendCustomNotificationToTechnicians = onDocumentCreated(
           sentAt: new Date().toISOString(),
           recipientId: recipientId,
           language: lanCode,
+          isAdmin: "false",
         },
         token: fcmToken,
         android: {
@@ -2107,7 +2130,11 @@ exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
         .map((doc) => {
           const data = doc.data();
           return data.fcmToken && data.fcmToken.trim() !== ""
-            ? { token: data.fcmToken, lanCode: data.lanCode || "en" }
+            ? {
+                uid: doc.id,
+                token: data.fcmToken,
+                lanCode: data.lanCode || "en",
+              }
             : null;
         })
         .filter(Boolean);
@@ -2766,8 +2793,6 @@ exports.applyMonthlyBonus = onSchedule(
               ? parseFloat(currentTotalBonus) || 0
               : currentTotalBonus || 0;
           const newTotalBonus = currentTotalBonusNum + bonusAmount;
-
-         
 
           // Update user's totalMonthlyBonus
           await db
