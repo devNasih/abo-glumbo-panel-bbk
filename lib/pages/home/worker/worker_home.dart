@@ -96,7 +96,7 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
     return bookings.where((booking) {
       // Search by booking ID
       final bookingId = booking.id.toLowerCase();
-
+      final technicianName = booking.agent?.name?.toLowerCase() ?? '';
       // Search by customer name (adjust field name based on your BookingModel)
       final customerName = booking.customer.name?.toLowerCase() ?? '';
 
@@ -106,6 +106,7 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
 
       return bookingId.contains(_searchQuery) ||
           customerName.contains(_searchQuery) ||
+          technicianName.contains(_searchQuery) ||
           bookingNameEn.contains(_searchQuery) ||
           bookingNameAr.contains(_searchQuery);
     }).toList();
@@ -124,9 +125,9 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
               padding: const EdgeInsets.all(12.0),
               child: SearchBar(
                 controller: _searchController,
-                hintText:
-                    AppLocalizations.of(context)?.search ??
-                    'Search bookings...',
+                hintText: AppLocalizations.of(
+                  context,
+                )?.searchbyBookingIdnameTechnician,
                 leading: const Icon(Icons.search),
                 trailing: _searchQuery.isNotEmpty
                     ? [
