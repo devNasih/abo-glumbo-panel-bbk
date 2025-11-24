@@ -18,49 +18,15 @@ import 'package:shimmer/shimmer.dart';
 
 class PayoutRequestCard extends StatefulWidget {
   final PayoutRequestModel payoutRequest;
-  const PayoutRequestCard({super.key, required this.payoutRequest});
+  final UserModel technician;
+  const PayoutRequestCard({super.key, required this.payoutRequest, required this.technician });
 
   @override
   State<PayoutRequestCard> createState() => _PayoutRequestCardState();
 }
 
 class _PayoutRequestCardState extends State<PayoutRequestCard> {
-  UserModel? _workerData;
-  bool _isLoading = true;
-  String? _error;
 
-  @override
-  void initState() {
-    super.initState();
-
-    _fetchWorkerData();
-  }
-
-  Future<void> _fetchWorkerData() async {
-    try {
-      final doc = await AppFirestore.usersCollectionRef
-          .doc(widget.payoutRequest.userId)
-          .get();
-
-      if (!mounted) return;
-
-      setState(() {
-        _isLoading = false;
-        if (doc.exists) {
-          _workerData = UserModel.fromJson(doc.data() as Map<String, dynamic>);
-        } else {
-          _error = 'User not found';
-        }
-      });
-    } catch (e) {
-      log("Error fetching worker data: $e");
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-        _error = e.toString();
-      });
-    }
-  }
 
   Color _getStatusColor() {
     switch (widget.payoutRequest.status?.toLowerCase()) {
@@ -775,7 +741,7 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
               final isProcessing = state is RejectingPayout;
 
               return AlertDialog(
-                actionsAlignment: MainAxisAlignment.start,  
+                actionsAlignment: MainAxisAlignment.start,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -1005,79 +971,76 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
   }
 
   // Replace _buildShimmer method with:
-  Widget _buildShimmerLoader() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey.shade300,
-      highlightColor: Colors.grey.shade100,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    height: 12,
-                    width: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    height: 24,
-                    width: 120,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    height: 14,
-                    width: 150,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(7),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 16),
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _buildShimmerLoader() {
+  //   return Shimmer.fromColors(
+  //     baseColor: Colors.grey.shade300,
+  //     highlightColor: Colors.grey.shade100,
+  //     child: Container(
+  //       margin: const EdgeInsets.only(bottom: 12),
+  //       padding: const EdgeInsets.all(20),
+  //       decoration: BoxDecoration(
+  //         color: Colors.white,
+  //         borderRadius: BorderRadius.circular(16),
+  //         boxShadow: [
+  //           BoxShadow(
+  //             color: Colors.black.withOpacity(0.04),
+  //             blurRadius: 10,
+  //             offset: const Offset(0, 2),
+  //           ),
+  //         ],
+  //       ),
+  //       child: Row(
+  //         children: [
+  //           Expanded(
+  //             child: Column(
+  //               crossAxisAlignment: CrossAxisAlignment.start,
+  //               children: [
+  //                 Container(
+  //                   height: 12,
+  //                   width: 80,
+  //                   decoration: BoxDecoration(
+  //                     color: Colors.white,
+  //                     borderRadius: BorderRadius.circular(6),
+  //                   ),
+  //                 ),
+  //                 const SizedBox(height: 8),
+  //                 Container(
+  //                   height: 24,
+  //                   width: 120,
+  //                   decoration: BoxDecoration(
+  //                     color: Colors.white,
+  //                     borderRadius: BorderRadius.circular(8),
+  //                   ),
+  //                 ),
+  //                 const SizedBox(height: 8),
+  //                 Container(
+  //                   height: 14,
+  //                   width: 150,
+  //                   decoration: BoxDecoration(
+  //                     color: Colors.white,
+  //                     borderRadius: BorderRadius.circular(7),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //           const SizedBox(width: 16),
+  //           Container(
+  //             width: 80,
+  //             height: 80,
+  //             decoration: BoxDecoration(
+  //               color: Colors.white,
+  //               borderRadius: BorderRadius.circular(12),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return _buildShimmerLoader();
-    }
 
     final bool isPending = widget.payoutRequest.status?.toLowerCase() == 'p';
 
@@ -1086,6 +1049,7 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
+          isDismissible: true,
           backgroundColor: Colors.transparent,
           builder: (bottomSheetContext) => DraggableScrollableSheet(
             initialChildSize: 0.75,
@@ -1141,6 +1105,34 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
                                       color: Colors.black87,
                                     ),
                                   ),
+
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(24),
+                                      border: Border.all(
+                                        color: Colors.grey,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      widget.payoutRequest.type == 'bonus'
+                                          ? AppLocalizations.of(context)!.bonus
+                                          : AppLocalizations.of(
+                                              context,
+                                            )!.earnings,
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ),
+
                                   const SizedBox(height: 16),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
@@ -1195,19 +1187,19 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
                             _buildInfoRow(
                               Icons.person_outline_rounded,
                               AppLocalizations.of(context)!.name,
-                              _workerData?.name ?? 'N/A',
+                              widget.technician.name ?? 'N/A',
                             ),
                             const SizedBox(height: 12),
                             _buildInfoRow(
                               Icons.email_outlined,
                               AppLocalizations.of(context)!.email,
-                              _workerData?.email ?? 'N/A',
+                              widget.technician.email ?? 'N/A',
                             ),
                             const SizedBox(height: 12),
                             _buildInfoRow(
                               Icons.phone_outlined,
                               AppLocalizations.of(context)!.phone,
-                              _workerData?.phone ?? 'N/A',
+                              widget.technician.phone ?? 'N/A',
                             ),
 
                             const SizedBox(height: 24),
@@ -1296,90 +1288,92 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 100),
+
+                            if (isPending)
+                              Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: Colors.transparent,
+                                ),
+                                child: SafeArea(
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: OutlinedButton.icon(
+                                          onPressed: () =>
+                                              _showRejectDialog(context),
+                                          icon: const Icon(
+                                            Icons.close_rounded,
+                                            size: 20,
+                                          ),
+                                          label: Text(
+                                            AppLocalizations.of(
+                                              context,
+                                            )!.reject,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 15,
+                                            ),
+                                          ),
+                                          style: OutlinedButton.styleFrom(
+                                            foregroundColor:
+                                                Colors.red.shade600,
+                                            side: BorderSide(
+                                              color: Colors.red.shade600,
+                                              width: 2,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 16,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: ElevatedButton.icon(
+                                          onPressed: () =>
+                                              _showApprovalDialog(context),
+                                          icon: const Icon(
+                                            Icons.check_rounded,
+                                            size: 20,
+                                          ),
+                                          label: Text(
+                                            AppLocalizations.of(
+                                              context,
+                                            )!.approve,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 15,
+                                            ),
+                                          ),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                Colors.green.shade600,
+                                            foregroundColor: Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 16,
+                                            ),
+                                            elevation: 0,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: 30),
                           ],
                         ),
                       ),
                     ),
-
-                    // Action Buttons
-                    if (isPending)
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.08),
-                              blurRadius: 20,
-                              offset: const Offset(0, -4),
-                            ),
-                          ],
-                        ),
-                        child: SafeArea(
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () => _showRejectDialog(context),
-                                  icon: const Icon(
-                                    Icons.close_rounded,
-                                    size: 20,
-                                  ),
-                                  label: Text(
-                                    AppLocalizations.of(context)!.reject,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.red.shade600,
-                                    side: BorderSide(
-                                      color: Colors.red.shade600,
-                                      width: 2,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 16,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () => _showApprovalDialog(context),
-                                  icon: const Icon(
-                                    Icons.check_rounded,
-                                    size: 20,
-                                  ),
-                                  label: Text(
-                                    AppLocalizations.of(context)!.approve,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green.shade600,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 16,
-                                    ),
-                                    elevation: 0,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               );
@@ -1409,7 +1403,9 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    AppLocalizations.of(context)!.payoutAmount,
+                    widget.payoutRequest.type == 'bonus'
+                        ? AppLocalizations.of(context)!.bonus
+                        : AppLocalizations.of(context)!.earnings,
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey.shade600,
@@ -1427,6 +1423,7 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
                     ),
                   ),
                   const SizedBox(height: 8),
+
                   Row(
                     children: [
                       Icon(
@@ -1437,7 +1434,7 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          _workerData?.name ??
+                          widget.technician.name ??
                               widget.payoutRequest.userId ??
                               'N/A',
                           style: TextStyle(
@@ -1459,7 +1456,8 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
 
             // Right Side - Status
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              constraints: const BoxConstraints(maxWidth: 100, minWidth: 90),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
               decoration: BoxDecoration(
                 color: _getStatusColor().withOpacity(0.12),
                 borderRadius: BorderRadius.circular(12),

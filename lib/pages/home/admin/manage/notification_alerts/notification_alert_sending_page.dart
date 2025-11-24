@@ -98,13 +98,9 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
     final titleArEmpty = _titleArController.text.isEmpty;
     final bodyArEmpty = _bodyArController.text.isEmpty;
 
-    // At least one language must have both title and body
-    final enComplete = !titleEnEmpty && !bodyEnEmpty;
-    final arComplete = !titleArEmpty && !bodyArEmpty;
-
-    if (!enComplete && !arComplete) {
+    if (titleEnEmpty || bodyEnEmpty || titleArEmpty || bodyArEmpty) {
       _showSnackBar(
-        'Please fill in at least English or Arabic message content',
+        AppLocalizations.of(context)!.fillInBothEnglishAndArabicMessageContent,
       );
       return false;
     }
@@ -114,7 +110,9 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
 
   Future<void> _sendNotifications() async {
     if (selectedTechnicianIds.isEmpty) {
-      _showSnackBar('Please select at least one technician');
+      _showSnackBar(
+        AppLocalizations.of(context)!.pleaseSelectAtLeastOneRecipient,
+      );
       return;
     }
 
@@ -142,9 +140,9 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
             'bodyEn': _bodyEnController.text,
             'titleAr': _titleArController.text,
             'bodyAr': _bodyArController.text,
-            'sentAt': timestamp,
+            'createdAt': timestamp,
             'read': false,
-            'type': 'custom',
+            'data': {'type': 'custom'},
           });
 
           // Create queue document to trigger Cloud Function
@@ -170,7 +168,9 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
 
       if (mounted) {
         _showSnackBar(
-          'Notification sent to ${selectedTechnicianIds.length} technician(s)',
+          AppLocalizations.of(
+            context,
+          )!.notificationSenttoTechnicians(selectedTechnicianIds.length),
           true,
         );
 
@@ -184,7 +184,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
       }
     } catch (e) {
       if (kDebugMode) print('Error sending notifications: $e');
-      _showSnackBar('Error sending notifications');
+      _showSnackBar(AppLocalizations.of(context)!.errorSendingNotifications);
     } finally {
       setState(() => _isSending = false);
     }
@@ -197,6 +197,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      isDismissible: false,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -238,7 +239,9 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Select Recipients',
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.selectRecipients,
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -247,7 +250,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                     ),
                                     if (selectedTechnicianIds.isNotEmpty)
                                       Text(
-                                        '${selectedTechnicianIds.length} selected',
+                                        '${selectedTechnicianIds.length} ${AppLocalizations.of(context)!.selected}',
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey[600],
@@ -269,7 +272,9 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                             onChanged: (_) =>
                                 setModalState(() => _filterTechnicians()),
                             decoration: InputDecoration(
-                              hintText: 'Search by name, email, or phone...',
+                              hintText: AppLocalizations.of(
+                                context,
+                              )!.searchByNameEmailOrPhone,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -307,8 +312,12 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                   const SizedBox(height: 12),
                                   Text(
                                     _searchQuery.isEmpty
-                                        ? 'No technicians available'
-                                        : 'No matching technicians found',
+                                        ? AppLocalizations.of(
+                                            context,
+                                          )!.noTechniciansAvailable
+                                        : AppLocalizations.of(
+                                            context,
+                                          )!.noTechniciansFound,
                                     style: TextStyle(
                                       color: Colors.grey[600],
                                       fontSize: 16,
@@ -382,8 +391,10 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                                 color: Colors.orange,
                                               ),
                                               const SizedBox(width: 4),
-                                              const Text(
-                                                'No FCM token',
+                                              Text(
+                                                AppLocalizations.of(
+                                                  context,
+                                                )!.noFcmTokenAvailable,
                                                 style: TextStyle(
                                                   color: Colors.orange,
                                                   fontSize: 10,
@@ -436,7 +447,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                     setState(() {});
                                   },
                                   child: Text(
-                                    'Deselect All',
+                                    AppLocalizations.of(context)!.removeAll,
                                     style: TextStyle(color: Colors.grey[800]),
                                   ),
                                 ),
@@ -457,8 +468,8 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.primary,
                                   ),
-                                  child: const Text(
-                                    'Select All',
+                                  child: Text(
+                                    AppLocalizations.of(context)!.selectAll,
                                     style: TextStyle(color: Colors.white),
                                   ),
                                 ),
@@ -470,8 +481,8 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                   backgroundColor: AppColors.primary,
                                 ),
                                 onPressed: () => Navigator.pop(context),
-                                child: const Text(
-                                  'Done',
+                                child: Text(
+                                  AppLocalizations.of(context)!.done,
                                   style: TextStyle(color: Colors.white),
                                 ),
                               ),
@@ -499,7 +510,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
         elevation: 0,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: SizedBox(height: 24, child: Loader()))
           : SingleChildScrollView(
               child: Column(
                 children: [

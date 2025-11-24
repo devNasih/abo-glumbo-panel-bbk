@@ -589,11 +589,6 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
       );
     }
 
-    final statusText = LocalizationHelper().getLocalizedBookingStatus(
-      selectedBookingStatus,
-      context,
-    );
-
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -605,7 +600,7 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
           ),
           const SizedBox(height: 12),
           Text(
-            "${localizations?.no ?? 'No'} $statusText ${localizations?.bookings ?? 'bookings'}",
+            localizations!.noBookings,
             style: textTheme.labelLarge,
             textAlign: TextAlign.center,
           ),

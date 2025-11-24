@@ -289,7 +289,7 @@ class _SplashScreenState extends State<SplashScreen>
                       opacity: _logoFadeAnimation,
                       child: Text(
                         state.locale.languageCode == "ar"
-                            ? "أبو غمبو"
+                            ? "ابو جلمبو"
                             : 'Abo Glumbo',
                         style: TextStyle(
                           fontSize: 36,

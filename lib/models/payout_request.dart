@@ -6,6 +6,7 @@ class PayoutRequestModel {
   String? userId;
   String? amount;
   String? status;
+  String? type;
   Timestamp? createdAt;
   Timestamp? updatedAt;
   PayoutAccountModel? payoutAccount;
@@ -18,6 +19,7 @@ class PayoutRequestModel {
     this.createdAt,
     this.updatedAt,
     this.payoutAccount,
+    this.type,
   });
 
   PayoutRequestModel copyWith({
@@ -28,6 +30,7 @@ class PayoutRequestModel {
     Timestamp? createdAt,
     Timestamp? updatedAt,
     PayoutAccountModel? payoutAccount,
+    String? type,
   }) {
     return PayoutRequestModel(
       id: id ?? this.id,
@@ -37,6 +40,7 @@ class PayoutRequestModel {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       payoutAccount: payoutAccount ?? this.payoutAccount,
+      type: type ?? this.type,
     );
   }
 
@@ -49,6 +53,7 @@ class PayoutRequestModel {
       'createdAt': createdAt,
       'updatedAt': updatedAt,
       'payoutAccount': payoutAccount?.toJson(),
+      'type': type,
     };
   }
 
@@ -63,6 +68,7 @@ class PayoutRequestModel {
       payoutAccount: map['payoutAccount'] != null
           ? PayoutAccountModel.fromMap(map['payoutAccount'])
           : null,
+      type: map['type'],
     );
   }
 
@@ -77,6 +83,7 @@ class PayoutRequestModel {
       payoutAccount: json['payoutAccount'] != null
           ? PayoutAccountModel.fromJson(json['payoutAccount'])
           : null,
+      type: json['type'],
     );
   }
 }

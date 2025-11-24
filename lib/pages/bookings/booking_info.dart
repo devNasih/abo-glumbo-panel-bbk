@@ -204,30 +204,33 @@ class _BookingInfoState extends State<BookingInfo> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🔥 CHAT BUTTON WITH STREAMBUILDER - Automatically updates
-            StreamBuilder<DocumentSnapshot>(
-              stream: AppFirestore.bookingsCollectionRef
-                  .doc(widget.booking.id)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                String? chatroomId = widget.booking.chatroomId;
+            if (widget.booking.bookingStatusCode.toLowerCase() == 'a' &&
+                !widget.isAdmin) ...{
+              StreamBuilder<DocumentSnapshot>(
+                stream: AppFirestore.bookingsCollectionRef
+                    .doc(widget.booking.id)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  String? chatroomId = widget.booking.chatroomId;
 
-                // Update chatroomId from stream if available
-                if (snapshot.hasData && snapshot.data!.exists) {
-                  final data = snapshot.data!.data() as Map<String, dynamic>?;
-                  chatroomId = data?['chatroomId'] as String?;
-                }
-                if (widget.booking.bookingStatusCode.toLowerCase() != 'a') {
-                  return SizedBox.shrink();
-                }
-                return _buildChatWithCustomerButton(
-                  context,
-                  colorScheme,
-                  chatroomId,
-                );
-              },
-            ),
-            const SizedBox(height: 16),
+                  // Update chatroomId from stream if available
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    final data = snapshot.data!.data() as Map<String, dynamic>?;
+                    chatroomId = data?['chatroomId'] as String?;
+                  }
+                  if (widget.booking.bookingStatusCode.toLowerCase() != 'a') {
+                    return SizedBox.shrink();
+                  }
+                  return _buildChatWithCustomerButton(
+                    context,
+                    colorScheme,
+                    chatroomId,
+                  );
+                },
+              ),
+
+              const SizedBox(height: 16),
+            },
 
             // Booking controls
             if ((widget.booking.bookingStatusCode.toLowerCase() == 'a') &&

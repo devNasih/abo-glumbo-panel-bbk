@@ -238,7 +238,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     emit(RequestPayoutLoading(locale: state.locale));
 
     try {
-      await AppServices.requestPayout(event.amount, event.user);
+      await AppServices.requestPayout(event.amount, event.user, event.type);
       emit(RequestPayoutSuccess(locale: state.locale));
     } catch (e) {
       emit(RequestPayoutFailure(error: e.toString(), locale: state.locale));

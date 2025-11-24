@@ -99,21 +99,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get scheduledFor => 'مجدول لـ';
 
   @override
-  String get noPendingOrders => 'لا توجد طلبات معلقة';
-
-  @override
-  String get noAcceptedOrders => 'لا توجد طلبات مقبولة';
-
-  @override
-  String get noRejectedOrders => 'لا توجد طلبات مرفوضة';
-
-  @override
-  String get noCompletedOrders => 'لا توجد طلبات مكتملة';
-
-  @override
-  String get noCancelledOrders => 'لا توجد طلبات ملغاة';
-
-  @override
   String get services => 'الخدمات';
 
   @override
@@ -379,7 +364,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'فشل في تحميل البيانات. يرجى المحاولة مرة أخرى لاحقًا.';
 
   @override
-  String get noBookingsFound => 'لا توجد حجوزات.';
+  String get noBookings => 'لا يوجد طلبات';
+
+  @override
+  String get noBookingsFound => 'لا يوجد طلبات';
 
   @override
   String get searchServices => 'ابحث عن الخدمات';
@@ -396,6 +384,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get afterNoon => 'بعد الظهر';
+
+  @override
+  String get confirmRequest => 'تأكيد الطلب';
+
+  @override
+  String get bonusAmount => 'مبلغ المكافأة';
+
+  @override
+  String get requestBonusPayout => 'طلب صرف المكافأة';
+
+  @override
+  String get noBonusAvailableToClaim => 'لا توجد مكافأة متاحة للمطالبة';
+
+  @override
+  String get monthlyBonusEarned => 'المكافأة الشهرية المكتسبة';
+
+  @override
+  String get areYouSureYouWantToRequestAPayoutForYourMonthlyBonus =>
+      'هل أنت متأكد أنك تريد طلب صرف مكافأتك الشهرية؟';
 
   @override
   String get evening => 'مساءً';
@@ -1258,22 +1265,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get fifteenpercentBonus => '15% مكافأة + بيج';
 
   @override
-  String get greaterThan3dot5rating => '≥ 3.5 التقييم';
+  String get greaterThan3dot5rating => 'تقييم 3.5+';
 
   @override
-  String get greaterThan4dot0rating => '≥ 4.0 التقييم';
+  String get greaterThan4dot0rating => 'تقييم 4.0+';
 
   @override
-  String get greaterThan4dot5rating => '≥ 4.5 التقييم';
+  String get greaterThan4dot5rating => 'تقييم 4.5+';
 
   @override
-  String get greaterThan4dot8rating => '≥ 4.8 التقييم';
+  String get greaterThan4dot8rating => 'تقييم 4.8+';
+
+  @override
+  String get searchByTechnicianName => 'البحث باسم الفنّي';
 
   @override
   String get bonus => 'مكافأة';
 
   @override
   String get jobs => 'وظائف';
+
+  @override
+  String get twentyPlusJobs => 'أكثر من 20 وظيفة';
+
+  @override
+  String get thirtyPlusJobs => 'أكثر من 30 وظيفة';
+
+  @override
+  String get fortyPlusJobs => 'أكثر من 40 وظيفة';
+
+  @override
+  String get sixtyPlusJobs => 'أكثر من 60 وظيفة';
 
   @override
   String get earnings => 'الأرباح';
@@ -1479,7 +1501,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToLoadImage => 'فشل في تحميل الصورة';
 
   @override
-  String get issueMedia => 'محتوى المشكلة';
+  String get issueMedia => 'مرفقات المشكلة';
 
   @override
   String get loadingVideo => 'تحميل الفيديو';
@@ -2543,9 +2565,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noPayoutRequestsYet => 'لا توجد طلبات دفع حتى الآن';
 
   @override
-  String get noRequests => 'لا توجد طلبات';
-
-  @override
   String get reviews => 'التقييمات';
 
   @override
@@ -2997,6 +3016,27 @@ class AppLocalizationsAr extends AppLocalizations {
   String get bookingHistory => 'تاريخ الحجز';
 
   @override
+  String get pleaseSelectAtLeastOneRecipient =>
+      'يرجى اختيار مستلم واحد على الأقل';
+
+  @override
+  String get fillInAtLeastEnglishOrArabicMessageContent =>
+      'يرجى إدخال محتوى رسالة باللغة الإنجليزية أو العربية';
+
+  @override
+  String get searchByNameEmailOrPhone =>
+      'بحث بالاسم أو البريد الإلكتروني أو رقم الهاتف...';
+
+  @override
+  String get noFcmTokenAvailable => 'لا يوجد رمز FCM';
+
+  @override
+  String get selectRecipients => 'اختر المستلمين';
+
+  @override
+  String get removeAll => 'إزالة الكل';
+
+  @override
   String get documents => 'وثائق';
 
   @override
@@ -3006,14 +3046,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get networkError => 'خطأ في الشبكة';
 
   @override
-  String get biometricEnabled => 'تم تفعيل البيوميتريك';
+  String get biometricEnabled => 'تم تفعيل البصمة';
 
   @override
-  String get biometricDisabled => 'تم تعطيل البيوميتريك';
+  String get biometricDisabled => 'تم تعطيل البصمة';
 
   @override
   String get disableBiometricWarning =>
-      'تعطيل البيوميتريك سوف يمنعك من تسجيل الدخول باستخدام البيوميتريك';
+      'تعطيل البصمة سيمنعك من تسجيل الدخول باستخدام البصمة';
 
   @override
   String get youWillNeedPhoneOtp =>
@@ -3026,7 +3066,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get disable => 'تعطيل';
 
   @override
-  String get disableBiometric => 'تعطيل البيوميتريك';
+  String get disableBiometric => 'تعطيل البصمة';
 
   @override
   String get optional => 'اختياري';
@@ -3089,7 +3129,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get or => 'أو';
 
   @override
-  String get loginWithBiometric => 'تسجيل الدخول باستخدام البيوميتريك';
+  String get loginWithBiometric => 'تسجيل الدخول باستخدام البصمة';
 
   @override
   String get migratingData => 'تحويل البيانات';
@@ -3328,4 +3368,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get date => 'التاريخ';
+
+  @override
+  String get removeFile => 'إزالة الملف';
+
+  @override
+  String get removeFileConfirmation => 'هل أنت متأكد أنك تريد إزالة هذا الملف؟';
+
+  @override
+  String get errorSendingNotifications => 'خطأ في إرسال الإشعارات';
+
+  @override
+  String get fillInBothEnglishAndArabicMessageContent =>
+      'الرجاء تعبئة محتوى الرسالة باللغتين الإنجليزية والعربية';
+
+  @override
+  String notificationSenttoTechnicians(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم إرسال الإشعار إلى $count فنّيين.',
+      one: 'تم إرسال الإشعار إلى فنّي واحد.',
+    );
+    return '$_temp0';
+  }
 }

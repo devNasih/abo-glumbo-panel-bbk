@@ -328,18 +328,6 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
       );
     }
 
-    final statusText = selectedBookingStatus == 'P'
-        ? localizations?.pending
-        : selectedBookingStatus == 'A'
-        ? localizations?.accepted
-        : selectedBookingStatus == 'C'
-        ? localizations?.completed
-        : selectedBookingStatus == 'R'
-        ? localizations?.rejected
-        : selectedBookingStatus == 'X'
-        ? localizations?.cancelled
-        : localizations?.pending;
-
     return Center(
       child: TweenAnimationBuilder<double>(
         tween: Tween<double>(begin: 0.0, end: 1.0),
@@ -360,11 +348,7 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
             ),
             const SizedBox(height: 12),
-            Text(
-              "${localizations?.no ?? 'No'} $statusText ${localizations?.orders ?? 'orders'}",
-              style: textTheme.labelLarge,
-              textAlign: TextAlign.center,
-            ),
+            Text(localizations!.noBookings, textAlign: TextAlign.center),
           ],
         ),
       ),

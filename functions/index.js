@@ -984,399 +984,6 @@ exports.notifyWorkerOnPayoutStatusChange = onDocumentWritten(
   }
 );
 
-// ============================================
-// Function 1: Reset Tiers Monthly (1st at 00:00 IST)
-// ============================================
-exports.resetMonthlyTiers = onSchedule(
-  {
-    schedule: "0 0 1 * *",
-    timeZone: "Asia/Riyadh",
-  },
-  async (event) => {
-    logger.info("Starting monthly tier reset...");
-
-    try {
-      const usersSnapshot = await db.collection("users").get();
-      let totalResets = 0;
-
-      for (const userDoc of usersSnapshot.docs) {
-        const userId = userDoc.id;
-
-        const tiersSnapshot = await db
-          .collection("users")
-          .doc(userId)
-          .collection("tiers")
-          .get();
-
-        const batch = db.batch();
-
-        for (const tierDoc of tiersSnapshot.docs) {
-          const tierRef = tierDoc.ref;
-
-          batch.update(tierRef, {
-            tier: "Bronze",
-            currentMonthJobs: 0,
-            currentMonthRating: 0.0,
-            lastResetDate: admin.firestore.FieldValue.serverTimestamp(),
-            previousMonthTier: tierDoc.data().tier || "Bronze",
-          });
-
-          totalResets++;
-        }
-
-        if (tiersSnapshot.docs.length > 0) {
-          await batch.commit();
-        }
-      }
-
-      logger.info(`Monthly tier reset completed. Total resets: ${totalResets}`);
-      return null;
-    } catch (error) {
-      logger.error("Error resetting tiers:", error);
-      throw error;
-    }
-  }
-);
-
-// ============================================
-// Function 2: Calculate and Apply Monthly Bonuses
-// ============================================
-// ============================================
-// Function 2: Calculate and Apply Monthly Bonuses (Last day at 23:00 Saudi Arabia Time)
-// ============================================
-exports.applyMonthlyBonus = onSchedule(
-  {
-    schedule: "0 23 * * *",
-    timeZone: "Asia/Riyadh",
-  },
-  async (event) => {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (tomorrow.getDate() !== 1) {
-      logger.info(
-        `Not last day of month (${today.getDate()}). Skipping bonus calculation.`
-      );
-      return null;
-    }
-
-    logger.info(
-      `Last day of month detected (${today.getDate()}). Calculating bonuses...`
-    );
-
-    try {
-      const usersSnapshot = await db.collection("users").get();
-      let totalBonusesApplied = 0;
-      let totalBonusAmount = 0;
-
-      for (const userDoc of usersSnapshot.docs) {
-        const userId = userDoc.id;
-        const userData = userDoc.data();
-
-        const tiersSnapshot = await db
-          .collection("users")
-          .doc(userId)
-          .collection("tiers")
-          .get();
-
-        for (const tierDoc of tiersSnapshot.docs) {
-          const tierData = tierDoc.data();
-          const categoryId = tierDoc.id;
-
-          // Check if bonus already applied this month
-          const lastBonusDate = tierData.lastBonusDate?.toDate();
-          if (
-            lastBonusDate &&
-            lastBonusDate.getMonth() === today.getMonth() &&
-            lastBonusDate.getFullYear() === today.getFullYear()
-          ) {
-            logger.info(
-              `Bonus already applied for user ${userId}, category ${categoryId}`
-            );
-            continue;
-          }
-
-          // Get stats for this category
-          const statsDoc = await db
-            .collection("users")
-            .doc(userId)
-            .collection("stats")
-            .doc(categoryId)
-            .get();
-
-          if (!statsDoc.exists) {
-            logger.info(
-              `No stats found for user ${userId}, category ${categoryId}`
-            );
-            continue;
-          }
-
-          const stats = statsDoc.data();
-          const jobs = stats.jobs || 0;
-          const rating = stats.rating || 0.0;
-
-          // Calculate tier and bonus percentage
-          let tier = "Bronze";
-          let bonusPercentage = 0;
-
-          if (rating >= 4.8 && jobs >= 60) {
-            tier = "Platinum";
-            bonusPercentage = 0.15;
-          } else if (rating >= 4.5 && jobs >= 40) {
-            tier = "Gold";
-            bonusPercentage = 0.1;
-          } else if (rating >= 4.0 && jobs >= 20) {
-            tier = "Silver";
-            bonusPercentage = 0.05;
-          }
-
-          if (bonusPercentage === 0) {
-            logger.info(
-              `User ${userId} in Bronze tier for category ${categoryId}. No bonus.`
-            );
-            continue;
-          }
-
-          // Calculate monthly earnings from transactions
-          const firstDayOfMonth = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            1
-          );
-          const lastDayOfMonth = new Date(
-            today.getFullYear(),
-            today.getMonth() + 1,
-            0,
-            23,
-            59,
-            59
-          );
-
-          // Query transactions for this worker in this month
-          const transactionsSnapshot = await db
-            .collection("transactions")
-            .where("workerId", "==", userId)
-            .where("paymentStatus", "==", "completed") // Only count completed payments
-            .where("createdAt", ">=", firstDayOfMonth.toISOString())
-            .where("createdAt", "<=", lastDayOfMonth.toISOString())
-            .get();
-
-          // Get all bookings for this month to filter by category
-          const bookingsSnapshot = await db
-            .collection("bookings")
-            .where("agent.uid", "==", userId)
-            .where("bookingStatusCode", "==", "C")
-            .where(
-              "completedAt",
-              ">=",
-              admin.firestore.Timestamp.fromDate(firstDayOfMonth)
-            )
-            .where(
-              "completedAt",
-              "<=",
-              admin.firestore.Timestamp.fromDate(lastDayOfMonth)
-            )
-            .get();
-
-          // Create a map of bookingId -> categoryId for filtering
-          const bookingCategoryMap = {};
-          bookingsSnapshot.forEach((doc) => {
-            const booking = doc.data();
-            // FIXED: Use service.category instead of service.categoryId
-            if (booking.service?.category === categoryId) {
-              bookingCategoryMap[doc.id] = booking.service.category;
-            }
-          });
-
-          // Calculate total earnings from transactions for this category
-          let totalEarnings = 0;
-          transactionsSnapshot.forEach((doc) => {
-            const transaction = doc.data();
-            const bookingId = transaction.bookingId;
-
-            // Only count transactions for bookings in this category
-            if (bookingCategoryMap[bookingId]) {
-              const amount =
-                typeof transaction.amount === "string"
-                  ? parseFloat(transaction.amount)
-                  : transaction.amount;
-              totalEarnings += amount || 0;
-            }
-          });
-
-          if (totalEarnings === 0) {
-            logger.info(
-              `No earnings for user ${userId}, category ${categoryId}`
-            );
-            continue;
-          }
-
-          const bonusAmount = totalEarnings * bonusPercentage;
-
-          // Update tier document with bonus info
-          await tierDoc.ref.update({
-            tier: tier,
-            bonusAmount: bonusAmount,
-            lastBonusDate: admin.firestore.FieldValue.serverTimestamp(),
-            lastBonusMonth: `${today.getFullYear()}-${today.getMonth() + 1}`,
-          });
-
-          // Get current available balance and update
-          const currentBalance = userData.availableBalance;
-          const currentBalanceNum =
-            typeof currentBalance === "string"
-              ? parseFloat(currentBalance) || 0
-              : currentBalance || 0;
-          const newBalance = currentBalanceNum + bonusAmount;
-
-          // Update user's availableBalance
-          await db
-            .collection("users")
-            .doc(userId)
-            .update({
-              availableBalance: newBalance.toFixed(2),
-              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
-
-          // Create bonus transaction record in transactions collection
-          await db.collection("transactions").add({
-            amount: parseFloat(bonusAmount.toFixed(2)),
-            customerId: "", // No customer for bonus transactions
-            workerId: userId,
-            paymentStatus: "completed",
-            paymentMethod: "bonus", // Special payment method for bonuses
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            bookingId: "", // No specific booking for bonus
-            orderId: `BONUS-${today.getFullYear()}${(today.getMonth() + 1)
-              .toString()
-              .padStart(2, "0")}-${userId}-${categoryId}`,
-            // Additional bonus metadata
-            transactionType: "bonus",
-            tier: tier,
-            categoryId: categoryId,
-            bonusPercentage: bonusPercentage * 100,
-            totalEarnings: parseFloat(totalEarnings.toFixed(2)),
-            jobs: jobs,
-            rating: rating,
-            month: `${today.getFullYear()}-${today.getMonth() + 1}`,
-          });
-
-          totalBonusesApplied++;
-          totalBonusAmount += bonusAmount;
-
-          logger.info(
-            `Applied ${tier} bonus of ₹${bonusAmount.toFixed(
-              2
-            )} to user ${userId} (based on ₹${totalEarnings.toFixed(
-              2
-            )} earnings)`
-          );
-        }
-      }
-
-      logger.info(
-        `Monthly bonus calculation completed. Bonuses applied: ${totalBonusesApplied}, Total amount: ₹${totalBonusAmount.toFixed(
-          2
-        )}`
-      );
-      return null;
-    } catch (error) {
-      logger.error("Error calculating bonuses:", error);
-      throw error;
-    }
-  }
-);
-
-// ============================================
-// Function 3: Update Tier Stats on Job Completion (WITH DEBUG LOGGING)
-// ============================================
-// ============================================
-// Function 3: Update Tier Stats on Job Completion (FIXED)
-// ============================================
-exports.updateTierStatsOnJobComplete = onDocumentUpdated(
-  "bookings/{jobId}",
-  async (event) => {
-    const before = event.data.before.data();
-    const after = event.data.after.data();
-
-    // Only proceed if status changed to completed (bookingStatusCode changed to 'C')
-    if (before.bookingStatusCode === "C" || after.bookingStatusCode !== "C") {
-      return null;
-    }
-
-    // Get worker ID from nested agent object
-    const workerId = after.agent?.uid;
-
-    // FIXED: Get category ID from service.category (not service.categoryId)
-    const categoryId = after.service?.category;
-    const serviceName = after.service?.name;
-
-    // Get rating from nested review object
-    const rating = after.review?.rating || 0;
-
-    if (!workerId || !categoryId) {
-      logger.warn(
-        `Booking ${event.params.jobId} missing workerId or categoryId`
-      );
-      logger.warn(`workerId: ${workerId}, categoryId: ${categoryId}`);
-      return null;
-    }
-
-    try {
-      const tierRef = db
-        .collection("users")
-        .doc(workerId)
-        .collection("tiers")
-        .doc(categoryId);
-
-      const tierDoc = await tierRef.get();
-
-      if (!tierDoc.exists) {
-        // Initialize tier document
-        await tierRef.set({
-          tier: "Bronze",
-          currentMonthJobs: 1,
-          currentMonthRating: rating,
-          lastResetDate: admin.firestore.FieldValue.serverTimestamp(),
-          bonusAmount: 0,
-        });
-
-        logger.info(
-          `✅ Initialized tier document for user ${workerId}, category ${categoryId} (${serviceName})`
-        );
-      } else {
-        // Update existing tier document
-        const currentData = tierDoc.data();
-        const currentJobs = currentData.currentMonthJobs || 0;
-        const currentRating = currentData.currentMonthRating || 0;
-
-        // Calculate new average rating
-        const newJobCount = currentJobs + 1;
-        const newAverageRating =
-          (currentRating * currentJobs + rating) / newJobCount;
-
-        await tierRef.update({
-          currentMonthJobs: admin.firestore.FieldValue.increment(1),
-          currentMonthRating: newAverageRating,
-        });
-
-        logger.info(
-          `✅ Updated tier stats for user ${workerId}, category ${categoryId} (${serviceName}): ${newJobCount} jobs, ${newAverageRating.toFixed(
-            2
-          )} rating`
-        );
-      }
-
-      return null;
-    } catch (error) {
-      logger.error("Error updating tier stats:", error);
-      throw error;
-    }
-  }
-);
-
 exports.notifyWorkerOnNewBooking = onDocumentCreated(
   "bookings/{bookingId}",
   async (event) => {
@@ -2923,6 +2530,451 @@ exports.notifyOnNewChatMessage = onValueCreated(
     } catch (error) {
       console.error(`[${chatId}] Error in notifyOnNewChatMessage:`, error);
       return null;
+    }
+  }
+);
+// ============================================
+// REWARDS SYSTEM CLOUD FUNCTIONS
+// ============================================
+
+// Function 1: Reset Tiers Monthly (1st at 00:00 Saudi Arabia Time)
+// Resets all worker tier progress at the start of each month
+// ============================================
+exports.resetMonthlyTiers = onSchedule(
+  {
+    schedule: "0 0 1 * *", // 1st of every month at 00:00
+    timeZone: "Asia/Riyadh",
+  },
+  async (event) => {
+    logger.info("Starting monthly tier reset...");
+
+    try {
+      const usersSnapshot = await db.collection("users").get();
+      let totalResets = 0;
+
+      for (const userDoc of usersSnapshot.docs) {
+        const userId = userDoc.id;
+
+        const tiersSnapshot = await db
+          .collection("users")
+          .doc(userId)
+          .collection("tiers")
+          .get();
+
+        const batch = db.batch();
+
+        for (const tierDoc of tiersSnapshot.docs) {
+          const tierRef = tierDoc.ref;
+          const tierData = tierDoc.data();
+
+          batch.update(tierRef, {
+            tier: "Bronze",
+            currentMonthJobs: 0,
+            currentMonthRating: 0.0,
+            lastResetDate: admin.firestore.FieldValue.serverTimestamp(),
+            previousMonthTier: tierData.tier || "Bronze",
+            previousMonthJobs: tierData.currentMonthJobs || 0,
+            previousMonthRating: tierData.currentMonthRating || 0.0,
+          });
+
+          totalResets++;
+        }
+
+        if (tiersSnapshot.docs.length > 0) {
+          await batch.commit();
+        }
+      }
+
+      logger.info(`Monthly tier reset completed. Total resets: ${totalResets}`);
+      return null;
+    } catch (error) {
+      logger.error("Error resetting tiers:", error);
+      throw error;
+    }
+  }
+);
+
+// ============================================
+// Function 2: Calculate and Apply Monthly Bonuses
+// Runs on 1st of month at 01:00 (after reset at 00:00)
+// Calculates bonuses for PREVIOUS month and adds them
+// Example: January's bonus is calculated and added on February 1st
+// ============================================
+exports.applyMonthlyBonus = onSchedule(
+  {
+    schedule: "0 1 1 * *", // 1st of every month at 01:00
+    timeZone: "Asia/Riyadh",
+  },
+  async (event) => {
+    const today = new Date();
+
+    // Calculate for PREVIOUS month
+    const previousMonth = new Date(today);
+    previousMonth.setMonth(previousMonth.getMonth() - 1);
+
+    const previousMonthStr = previousMonth.toLocaleString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
+
+    logger.info(`Calculating bonuses for ${previousMonthStr}...`);
+
+    try {
+      const usersSnapshot = await db.collection("users").get();
+      let totalBonusesApplied = 0;
+      let totalBonusAmount = 0;
+
+      for (const userDoc of usersSnapshot.docs) {
+        const userId = userDoc.id;
+        const userData = userDoc.data();
+
+        const tiersSnapshot = await db
+          .collection("users")
+          .doc(userId)
+          .collection("tiers")
+          .get();
+
+        for (const tierDoc of tiersSnapshot.docs) {
+          const tierData = tierDoc.data();
+          const categoryId = tierDoc.id;
+
+          // Check if bonus already applied for this month
+          const lastBonusMonth = tierData.lastBonusMonth;
+          const currentMonthKey = `${today.getFullYear()}-${
+            today.getMonth() + 1
+          }`;
+
+          if (lastBonusMonth === currentMonthKey) {
+            logger.info(
+              `Bonus already applied for user ${userId}, category ${categoryId}`
+            );
+            continue;
+          }
+
+          // Use PREVIOUS month's data (stored before reset)
+          const jobs = tierData.previousMonthJobs || 0;
+          const rating = tierData.previousMonthRating || 0.0;
+          const previousTier = tierData.previousMonthTier || "Bronze";
+
+          // Calculate tier and bonus percentage based on previous month performance
+          let tier = "Bronze";
+          let bonusPercentage = 0;
+
+          if (rating >= 4.8 && jobs >= 60) {
+            tier = "Platinum";
+            bonusPercentage = 0.15;
+          } else if (rating >= 4.5 && jobs >= 40) {
+            tier = "Gold";
+            bonusPercentage = 0.1;
+          } else if (rating >= 4.0 && jobs >= 20) {
+            tier = "Silver";
+            bonusPercentage = 0.05;
+          }
+
+          if (bonusPercentage === 0) {
+            logger.info(
+              `User ${userId} in Bronze tier for category ${categoryId}. No bonus.`
+            );
+            continue;
+          }
+
+          // Calculate earnings from PREVIOUS month
+          const firstDayOfPrevMonth = new Date(
+            previousMonth.getFullYear(),
+            previousMonth.getMonth(),
+            1
+          );
+          const lastDayOfPrevMonth = new Date(
+            previousMonth.getFullYear(),
+            previousMonth.getMonth() + 1,
+            0,
+            23,
+            59,
+            59
+          );
+
+          // Query transactions for previous month
+          const transactionsSnapshot = await db
+            .collection("transactions")
+            .where("workerId", "==", userId)
+            .where("paymentStatus", "==", "completed")
+            .where("createdAt", ">=", firstDayOfPrevMonth.toISOString())
+            .where("createdAt", "<=", lastDayOfPrevMonth.toISOString())
+            .get();
+
+          // Get all bookings for previous month to filter by category
+          const bookingsSnapshot = await db
+            .collection("bookings")
+            .where("agent.uid", "==", userId)
+            .where("bookingStatusCode", "==", "C")
+            .where(
+              "completedAt",
+              ">=",
+              admin.firestore.Timestamp.fromDate(firstDayOfPrevMonth)
+            )
+            .where(
+              "completedAt",
+              "<=",
+              admin.firestore.Timestamp.fromDate(lastDayOfPrevMonth)
+            )
+            .get();
+
+          // Create a map of bookingId -> categoryId
+          const bookingCategoryMap = {};
+          bookingsSnapshot.forEach((doc) => {
+            const booking = doc.data();
+            if (booking.service?.category === categoryId) {
+              bookingCategoryMap[doc.id] = booking.service.category;
+            }
+          });
+
+          // Calculate total earnings from transactions for this category
+          let totalEarnings = 0;
+          transactionsSnapshot.forEach((doc) => {
+            const transaction = doc.data();
+            const bookingId = transaction.bookingId;
+
+            if (bookingCategoryMap[bookingId]) {
+              const amount =
+                typeof transaction.amount === "string"
+                  ? parseFloat(transaction.amount)
+                  : transaction.amount;
+              totalEarnings += amount || 0;
+            }
+          });
+
+          if (totalEarnings === 0) {
+            logger.info(
+              `No earnings for user ${userId}, category ${categoryId} in ${previousMonthStr}`
+            );
+            continue;
+          }
+
+          const bonusAmount = totalEarnings * bonusPercentage;
+
+          // Update tier document with bonus info
+          await tierDoc.ref.update({
+            bonusAmount: bonusAmount,
+            lastBonusDate: admin.firestore.FieldValue.serverTimestamp(),
+            lastBonusMonth: currentMonthKey,
+          });
+
+          // Get current totalMonthlyBonus
+          const currentTotalBonus = userData.totalMonthlyBonus;
+          const currentTotalBonusNum =
+            typeof currentTotalBonus === "string"
+              ? parseFloat(currentTotalBonus) || 0
+              : currentTotalBonus || 0;
+          const newTotalBonus = currentTotalBonusNum + bonusAmount;
+
+         
+
+          // Update user's totalMonthlyBonus
+          await db
+            .collection("users")
+            .doc(userId)
+            .update({
+              totalMonthlyBonus: newTotalBonus.toFixed(2),
+              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+          // Send notification to worker
+          const workerFcmToken = userData.fcmToken;
+          const workerLanCode = userData.lanCode || "en";
+
+          if (workerFcmToken && workerFcmToken.trim() !== "") {
+            await sendAndStoreNotification({
+              targetRole: "technician",
+              targetId: userId,
+              titleEn: "🎉 Monthly Bonus Received!",
+              titleAr: "🎉 تم استلام المكافأة الشهرية!",
+              bodyEn: `Congratulations! You achieved ${tier} tier in ${previousMonthStr} and earned a bonus of ₹${bonusAmount.toFixed(
+                2
+              )} (${bonusPercentage * 100}% of ₹${totalEarnings.toFixed(
+                2
+              )} earnings).`,
+              bodyAr: `تهانينا! لقد حققت مستوى ${tier} في ${previousMonthStr} وحصلت على مكافأة قدرها ₹${bonusAmount.toFixed(
+                2
+              )} (${bonusPercentage * 100}٪ من ₹${totalEarnings.toFixed(
+                2
+              )} أرباح).`,
+              data: {
+                category: "bonus",
+                tier: tier,
+                amount: bonusAmount.toFixed(2),
+                bonusPercentage: (bonusPercentage * 100).toString(),
+                month: previousMonthStr,
+              },
+              fcmToken: workerFcmToken,
+              lanCode: workerLanCode,
+            });
+          }
+
+          totalBonusesApplied++;
+          totalBonusAmount += bonusAmount;
+
+          logger.info(
+            `Applied ${tier} bonus of ₹${bonusAmount.toFixed(
+              2
+            )} to user ${userId} for ${previousMonthStr} (based on ₹${totalEarnings.toFixed(
+              2
+            )} earnings)`
+          );
+        }
+      }
+
+      logger.info(
+        `Monthly bonus calculation completed for ${previousMonthStr}. Bonuses applied: ${totalBonusesApplied}, Total amount: ₹${totalBonusAmount.toFixed(
+          2
+        )}`
+      );
+      return null;
+    } catch (error) {
+      logger.error("Error calculating bonuses:", error);
+      throw error;
+    }
+  }
+);
+
+// ============================================
+// Function 3: Update Tier Stats on Job Completion
+// Triggers when a booking status changes to completed
+// ============================================
+exports.updateTierStatsOnJobComplete = onDocumentUpdated(
+  "bookings/{jobId}",
+  async (event) => {
+    const before = event.data.before.data();
+    const after = event.data.after.data();
+
+    // Only proceed if status changed to completed
+    if (before.bookingStatusCode === "C" || after.bookingStatusCode !== "C") {
+      return null;
+    }
+
+    const workerId = after.agent?.uid;
+    const categoryId = after.service?.category;
+    const serviceName = after.service?.name;
+    const rating = after.review?.rating || 0;
+
+    if (!workerId || !categoryId) {
+      logger.warn(
+        `Booking ${event.params.jobId} missing workerId or categoryId`
+      );
+      return null;
+    }
+
+    try {
+      const tierRef = db
+        .collection("users")
+        .doc(workerId)
+        .collection("tiers")
+        .doc(categoryId);
+
+      const tierDoc = await tierRef.get();
+
+      if (!tierDoc.exists) {
+        // Initialize tier document
+        await tierRef.set({
+          tier: "Bronze",
+          currentMonthJobs: 1,
+          currentMonthRating: rating,
+          lastResetDate: admin.firestore.FieldValue.serverTimestamp(),
+          bonusAmount: 0,
+          previousMonthTier: "Bronze",
+          previousMonthJobs: 0,
+          previousMonthRating: 0.0,
+        });
+
+        logger.info(
+          `✅ Initialized tier document for user ${workerId}, category ${categoryId} (${serviceName})`
+        );
+      } else {
+        // Update existing tier document
+        const currentData = tierDoc.data();
+        const currentJobs = currentData.currentMonthJobs || 0;
+        const currentRating = currentData.currentMonthRating || 0;
+        const currentTier = currentData.tier || "Bronze";
+
+        // Calculate new average rating
+        const newJobCount = currentJobs + 1;
+        const newAverageRating =
+          (currentRating * currentJobs + rating) / newJobCount;
+
+        // Calculate new tier based on updated stats
+        let newTier = "Bronze";
+        if (newAverageRating >= 4.8 && newJobCount >= 60) {
+          newTier = "Platinum";
+        } else if (newAverageRating >= 4.5 && newJobCount >= 40) {
+          newTier = "Gold";
+        } else if (newAverageRating >= 4.0 && newJobCount >= 20) {
+          newTier = "Silver";
+        }
+
+        // Update tier document
+        await tierRef.update({
+          currentMonthJobs: admin.firestore.FieldValue.increment(1),
+          currentMonthRating: newAverageRating,
+          tier: newTier,
+        });
+
+        // Send notification if tier upgraded
+        if (newTier !== currentTier) {
+          const tierOrder = { Bronze: 0, Silver: 1, Gold: 2, Platinum: 3 };
+          if (tierOrder[newTier] > tierOrder[currentTier]) {
+            const workerDoc = await db.collection("users").doc(workerId).get();
+            if (workerDoc.exists) {
+              const workerData = workerDoc.data();
+              const fcmToken = workerData.fcmToken;
+              const lanCode = workerData.lanCode || "en";
+
+              if (fcmToken && fcmToken.trim() !== "") {
+                const bonusPercentages = {
+                  Silver: "5%",
+                  Gold: "10%",
+                  Platinum: "15%",
+                };
+
+                await sendAndStoreNotification({
+                  targetRole: "technician",
+                  targetId: workerId,
+                  titleEn: `🎊 Tier Upgraded to ${newTier}!`,
+                  titleAr: `🎊 تمت ترقية المستوى إلى ${newTier}!`,
+                  bodyEn: `Congratulations! You've been upgraded to ${newTier} tier! You now earn ${
+                    bonusPercentages[newTier] || "0%"
+                  } bonus on your monthly earnings. Keep up the great work!`,
+                  bodyAr: `تهانينا! تمت ترقيتك إلى مستوى ${newTier}! أنت الآن تكسب ${
+                    bonusPercentages[newTier] || "0%"
+                  } مكافأة على أرباحك الشهرية. استمر في العمل الرائع!`,
+                  data: {
+                    category: "tier_upgrade",
+                    oldTier: currentTier,
+                    newTier: newTier,
+                    jobs: newJobCount.toString(),
+                    rating: newAverageRating.toFixed(2),
+                  },
+                  fcmToken: fcmToken,
+                  lanCode: lanCode,
+                });
+
+                logger.info(
+                  `🎊 Tier upgraded for user ${workerId}: ${currentTier} → ${newTier}`
+                );
+              }
+            }
+          }
+        }
+
+        logger.info(
+          `✅ Updated tier stats for user ${workerId}, category ${categoryId} (${serviceName}): ${newJobCount} jobs, ${newAverageRating.toFixed(
+            2
+          )} rating, tier: ${newTier}`
+        );
+      }
+
+      return null;
+    } catch (error) {
+      logger.error("Error updating tier stats:", error);
+      throw error;
     }
   }
 );

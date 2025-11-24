@@ -1,4 +1,6 @@
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
+import 'package:aboglumbo_bbk_panel/models/payout_request.dart';
+import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/widgets/payout_request_card.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
@@ -13,7 +15,15 @@ class ManagePayouts extends StatefulWidget {
 }
 
 class _ManagePayoutsState extends State<ManagePayouts> {
-  String _selectedFilter = 'all'; // all, pending, approved, rejected
+  String _selectedFilter = 'all';
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +102,12 @@ class _ManagePayoutsState extends State<ManagePayouts> {
             ),
           ),
 
+          // Search Bar Section
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: _buildSearchBar(),
+          ),
+
           // Filter Chips Section
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -122,6 +138,18 @@ class _ManagePayoutsState extends State<ManagePayouts> {
                     AppLocalizations.of(context)!.rejected,
                     'r',
                   ),
+                  const SizedBox(width: 8),
+                  _buildFilterChip(
+                    context,
+                    AppLocalizations.of(context)!.bonus,
+                    'b',
+                  ),
+                  const SizedBox(width: 8),
+                  _buildFilterChip(
+                    context,
+                    AppLocalizations.of(context)!.earnings,
+                    'e',
+                  ),
                 ],
               ),
             ),
@@ -130,7 +158,7 @@ class _ManagePayoutsState extends State<ManagePayouts> {
           // Payout Requests List
           Expanded(
             child: StreamBuilder(
-              stream: AppServices.getAllPayoutRequests(),
+              stream: AppServices.getAllPayoutsAndTechnicians(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return _buildListShimmer();
@@ -160,14 +188,43 @@ class _ManagePayoutsState extends State<ManagePayouts> {
                   );
                 }
 
-                final allRequests = snapshot.data ?? [];
+                final List<PayoutRequestModel> allRequests =
+                    (snapshot.data?['payouts'] as List<dynamic>?)
+                        ?.cast<PayoutRequestModel>() ??
+                    [];
+                final List<UserModel> technicians =
+                    (snapshot.data?['technicians'] as List<dynamic>?)
+                        ?.cast<UserModel>() ??
+                    [];
                 final filteredRequests = _selectedFilter == 'all'
                     ? allRequests
                     : allRequests
                           .where(
-                            (r) => r.status?.toLowerCase() == _selectedFilter,
+                            (r) => _selectedFilter == 'b'
+                                ? r.type?.toLowerCase() == 'bonus'
+                                : _selectedFilter == 'e'
+                                ? r.type?.toLowerCase() == 'earnings'
+                                : _selectedFilter == "p"
+                                ? r.status?.toLowerCase() == 'p'
+                                : _selectedFilter == "c"
+                                ? r.status?.toLowerCase() == 'c'
+                                : _selectedFilter == "r"
+                                ? r.status?.toLowerCase() == 'r'
+                                : r.status == _selectedFilter,
                           )
                           .toList();
+
+                // Filter by search query
+                if (_searchQuery.isNotEmpty) {
+                  filteredRequests.retainWhere((request) {
+                    final tech = technicians.firstWhere(
+                      (t) => t.uid == request.userId,
+                      orElse: () => UserModel(role: 'technician'),
+                    );
+                    final name = tech.name?.toLowerCase() ?? '';
+                    return name.contains(_searchQuery.toLowerCase());
+                  });
+                }
 
                 // Sort by createdAt in descending order (newest to oldest)
                 filteredRequests.sort((a, b) {
@@ -224,7 +281,13 @@ class _ManagePayoutsState extends State<ManagePayouts> {
                         const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final payoutRequest = filteredRequests[index];
-                      return PayoutRequestCard(payoutRequest: payoutRequest);
+                      final tech = technicians.firstWhere(
+                        (t) => t.uid == payoutRequest.userId,
+                      );
+                      return PayoutRequestCard(
+                        payoutRequest: payoutRequest,
+                        technician: tech,
+                      );
                     },
                   ),
                 );
@@ -450,6 +513,50 @@ class _ManagePayoutsState extends State<ManagePayouts> {
       ),
       elevation: 0,
       pressElevation: 2,
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return TextField(
+      controller: _searchController,
+      onChanged: (value) {
+        setState(() {
+          _searchQuery = value;
+        });
+      },
+      decoration: InputDecoration(
+        hintText: AppLocalizations.of(context)!.searchByTechnicianName,
+        prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+        suffixIcon: _searchQuery.isNotEmpty
+            ? IconButton(
+                icon: Icon(Icons.clear, color: Colors.grey[400]),
+                onPressed: () {
+                  _searchController.clear();
+                  setState(() {
+                    _searchQuery = '';
+                  });
+                },
+              )
+            : null,
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+      ),
     );
   }
 }

@@ -100,21 +100,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scheduledFor => 'Scheduled For';
 
   @override
-  String get noPendingOrders => 'No Pending Orders';
-
-  @override
-  String get noAcceptedOrders => 'No Accepted Orders';
-
-  @override
-  String get noRejectedOrders => 'No Rejected Orders';
-
-  @override
-  String get noCompletedOrders => 'No Completed Orders';
-
-  @override
-  String get noCancelledOrders => 'No Canceled Orders';
-
-  @override
   String get services => 'Services';
 
   @override
@@ -382,6 +367,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Failed to load data. Please try again later.';
 
   @override
+  String get noBookings => 'No bookings';
+
+  @override
   String get noBookingsFound => 'No bookings found.';
 
   @override
@@ -398,6 +386,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get afterNoon => 'After Noon';
+
+  @override
+  String get confirmRequest => 'Confirm Request';
+
+  @override
+  String get bonusAmount => 'Bonus Amount';
+
+  @override
+  String get requestBonusPayout => 'Request Bonus Payout';
+
+  @override
+  String get noBonusAvailableToClaim => 'No bonus available to claim';
+
+  @override
+  String get monthlyBonusEarned => 'Monthly Bonus Earned';
+
+  @override
+  String get areYouSureYouWantToRequestAPayoutForYourMonthlyBonus =>
+      'Are you sure you want to request a payout for your monthly bonus?';
 
   @override
   String get evening => 'Evening';
@@ -1270,22 +1277,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fifteenpercentBonus => '15% Bonus + Badge';
 
   @override
-  String get greaterThan3dot5rating => '≥ 3.5 rating';
+  String get greaterThan3dot5rating => '3.5+ rating';
 
   @override
-  String get greaterThan4dot0rating => '≥ 4.0 rating';
+  String get greaterThan4dot0rating => '4.0+ rating';
 
   @override
-  String get greaterThan4dot5rating => '≥ 4.5 rating';
+  String get greaterThan4dot5rating => '4.5+ rating';
 
   @override
-  String get greaterThan4dot8rating => '≥ 4.8 rating';
+  String get greaterThan4dot8rating => '4.8+ rating';
+
+  @override
+  String get searchByTechnicianName => 'Search by technician name';
 
   @override
   String get bonus => 'Bonus';
 
   @override
   String get jobs => 'Jobs';
+
+  @override
+  String get twentyPlusJobs => '20+ Jobs';
+
+  @override
+  String get thirtyPlusJobs => '30+ Jobs';
+
+  @override
+  String get fortyPlusJobs => '40+ Jobs';
+
+  @override
+  String get sixtyPlusJobs => '60+ Jobs';
 
   @override
   String get earnings => 'Earnings';
@@ -2584,9 +2606,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPayoutRequestsYet => 'No payout requests yet';
 
   @override
-  String get noRequests => 'No requests';
-
-  @override
   String get reviews => 'Reviews';
 
   @override
@@ -3044,6 +3063,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookingHistory => 'Booking history';
 
   @override
+  String get pleaseSelectAtLeastOneRecipient =>
+      'Please select at least one recipient';
+
+  @override
+  String get fillInAtLeastEnglishOrArabicMessageContent =>
+      'Please fill in at least English or Arabic message content';
+
+  @override
+  String get searchByNameEmailOrPhone => 'Search by name, email, or phone...';
+
+  @override
+  String get noFcmTokenAvailable => 'No FCM token available';
+
+  @override
+  String get selectRecipients => 'Select Recipients';
+
+  @override
+  String get removeAll => 'Remove All';
+
+  @override
   String get documents => 'Uploaded documents';
 
   @override
@@ -3382,4 +3421,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get date => 'Date';
+
+  @override
+  String get removeFile => 'Remove File';
+
+  @override
+  String get removeFileConfirmation =>
+      'Are you sure you want to remove this file?';
+
+  @override
+  String get errorSendingNotifications => 'Error sending notifications';
+
+  @override
+  String get fillInBothEnglishAndArabicMessageContent =>
+      'Please fill in both English and Arabic message content';
+
+  @override
+  String notificationSenttoTechnicians(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Notification sent to $count technicians.',
+      one: 'Notification sent to 1 technician.',
+    );
+    return '$_temp0';
+  }
 }

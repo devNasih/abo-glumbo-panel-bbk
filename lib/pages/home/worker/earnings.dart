@@ -37,6 +37,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
   double fullcashTips = 0.0;
   double fullcardTips = 0.0;
   double total = 0.0;
+  double bonusAmounts =0.0;
 
   @override
   void initState() {
@@ -66,13 +67,19 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
           debugPrint('Error fetching paid amounts: $error');
           return 0.0; // Return 0.0 on error
         }),
+        AppServices.getWorkerBonusAmounts(widget.workerId).catchError((error) {
+          debugPrint('Error fetching bonus amounts: $error');
+          return 0.0; // Return 0.0 on error
+        }),
       ]);
+      
 
       // Assign results with null safety
       transactions = (results[0] as List<TransactionModel>?) ?? [];
       tipsList = (results[1] as List<AllTipsModel>?) ?? [];
       tips = results[2] as TippingModel;
       paidAmounts = (results[3] as double?) ?? 0.0;
+      bonusAmounts = (results[4] as double?) ?? 0.0;
       int count = tipsList.length;
 
       //get lifetime tips
@@ -131,7 +138,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
     }
 
     totalEarnings = cashPayments + cardPayments;
-    lifetimeEarnings = cashPayments + cardPayments + totalTips;
+    lifetimeEarnings = cashPayments + cardPayments + totalTips + bonusAmounts;
   }
 
   @override
@@ -1129,7 +1136,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
     try {
       final bloc = context.read<AccountBloc>();
 
-      bloc.add(RequestPayoutEvent(widget.workerId, amount.toStringAsFixed(2)));
+      bloc.add(RequestPayoutEvent(widget.workerId, amount.toStringAsFixed(2), 'earnings'));
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),

@@ -328,6 +328,42 @@ class AppServices {
     await batch.commit();
   }
 
+  static Stream<int> getUnreadNotificationsCountStream() {
+    String userId = LocalStore.getUID() ?? '';
+    if (userId.isEmpty) return Stream.value(0);
+
+    return AppFirestore.usersCollectionRef
+        .doc(userId)
+        .collection('notifications')
+        .where('read', isEqualTo: false)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
+
+  static Future<bool> markAllNotificationsAsRead() async {
+    String userId = LocalStore.getUID() ?? '';
+    if (userId.isEmpty) return false;
+
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+      final snapshot = await AppFirestore.usersCollectionRef
+          .doc(userId)
+          .collection('notifications')
+          .where('read', isEqualTo: false)
+          .get();
+
+      for (var doc in snapshot.docs) {
+        batch.update(doc.reference, {'read': true});
+      }
+
+      await batch.commit();
+      return true;
+    } catch (e) {
+      debugPrint('Error marking all notifications as read: $e');
+      return false;
+    }
+  }
+
   static Future<List<Map<String, dynamic>>> getUserNotifications({
     int limit = 20,
     bool onlyUnread = false,
@@ -1138,21 +1174,6 @@ class AppServices {
     }
   }
 
-  static Future<String?> getCategoryIdByJobRoleOnce(String jobRole) async {
-    QuerySnapshot snapshot = await AppFirestore.categoriesCollectionRef
-        .where('name', isEqualTo: jobRole)
-        .get();
-
-    if (snapshot.docs.isNotEmpty) {
-      return snapshot
-          .docs
-          .first
-          .id; // Or use data()['id'] if stored in document
-    } else {
-      return null;
-    }
-  }
-
   static Future addCustomerServiceDetails(CustomerSupportModel contact) async {
     final uid = AppFirestore.customerServiceCollectionRef.doc().id;
 
@@ -1523,7 +1544,11 @@ class AppServices {
     );
   }
 
-  static Future<void> requestPayout(String amount, String? userId) async {
+  static Future<void> requestPayout(
+    String amount,
+    String? userId,
+    String type,
+  ) async {
     final newId = AppFirestore.payoutCollectionRef.doc().id;
 
     userId ??= LocalStore.getUID() ?? '';
@@ -1535,6 +1560,7 @@ class AppServices {
       'amount': amount,
       'userId': userId,
       'status': 'P',
+      'type': type,
       'payoutAccount': primaryBankAcount
           ?.toJson(), // Convert to JSON before saving
       'createdAt': Timestamp.now(),
@@ -1571,6 +1597,18 @@ class AppServices {
     });
   }
 
+  static Stream<Map<String, dynamic>> getAllPayoutsAndTechnicians() {
+    final payoutRequests = AppServices.getAllPayoutRequests();
+    final technicians = AppServices.getAllAgentsStream();
+
+    return Rx.combineLatest2(payoutRequests, technicians, (
+      payouts,
+      technicians,
+    ) {
+      return {'payouts': payouts, 'technicians': technicians};
+    });
+  }
+
   static Future<double> getWorkerAvailableBalance(String workerId) async {
     final balance = await AppFirestore.usersCollectionRef
         .doc(workerId)
@@ -1592,6 +1630,12 @@ class AppServices {
               (snapshot.data() as Map<String, dynamic>?)?['paidAmounts'] ?? 0.0,
         );
     return paidAmounts;
+  }
+
+  static Future<double> getWorkerBonusAmounts(String workerId) async {
+    final snapshot = await AppFirestore.usersCollectionRef.doc(workerId).get();
+    final data = snapshot.data() as Map<String, dynamic>?;
+    return (data?['totalMonthlyBonus'] as num?)?.toDouble() ?? 0.0;
   }
 
   static Future<UserModel> getWorkerById(String workerId) async {
@@ -1919,72 +1963,6 @@ class AppServices {
         });
   }
 
-  // Get unread notifications count
-  static Future<int> getUnreadNotificationsCount() async {
-    try {
-      String userId = LocalStore.getUID() ?? '';
-      if (userId.isEmpty) {
-        if (kDebugMode) {
-          print('⚠️ No user logged in, cannot retrieve unread count');
-        }
-        return 0;
-      }
-
-      final querySnapshot = await AppFirestore.notificationsCollectionRef
-          .where('userId', isEqualTo: userId)
-          .where('isRead', isEqualTo: false)
-          .count()
-          .get();
-
-      return querySnapshot.count ?? 0;
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error getting unread notifications count: $e');
-      }
-      return 0;
-    }
-  }
-
-  // Stream for real-time unread count
-  static Stream<int> getUnreadNotificationsCountStream() {
-    try {
-      String userId = LocalStore.getUID() ?? '';
-      if (userId.isEmpty) {
-        return Stream.value(0);
-      }
-
-      return AppFirestore.notificationsCollectionRef
-          .where('userId', isEqualTo: userId)
-          .where('isRead', isEqualTo: false)
-          .snapshots()
-          .map((snapshot) => snapshot.docs.length);
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error getting unread notifications stream: $e');
-      }
-      return Stream.value(0);
-    }
-  }
-
-  // Mark single notification as read
-  static Future<bool> markNotificationAsRead(String notificationId) async {
-    try {
-      await AppFirestore.notificationsCollectionRef.doc(notificationId).update({
-        'isRead': true,
-        'readAt': Timestamp.now(),
-      });
-      if (kDebugMode) {
-        print('✅ Notification marked as read: $notificationId');
-      }
-      return true;
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error marking notification as read: $e');
-      }
-      return false;
-    }
-  }
-
   /// Stream user data
   static Stream<UserModel?> getUserStream(String uid) {
     return AppFirestore.usersCollectionRef.doc(uid).snapshots().map((snapshot) {
@@ -1992,46 +1970,6 @@ class AppServices {
       if (!snapshot.exists || data == null) return null;
       return UserModel.fromJson(data as Map<String, dynamic>);
     });
-  }
-
-  // Mark all notifications as read for current user
-  static Future<bool> markAllNotificationsAsRead() async {
-    try {
-      String userId = LocalStore.getUID() ?? '';
-      if (userId.isEmpty) {
-        if (kDebugMode) {
-          print('⚠️ No user logged in, cannot mark all as read');
-        }
-        return false;
-      }
-
-      final unreadNotifications = await AppFirestore.notificationsCollectionRef
-          .where('userId', isEqualTo: userId)
-          .where('isRead', isEqualTo: false)
-          .get();
-
-      final batch = FirebaseFirestore.instance.batch();
-
-      for (var doc in unreadNotifications.docs) {
-        batch.update(doc.reference, {
-          'isRead': true,
-          'readAt': Timestamp.now(),
-        });
-      }
-
-      await batch.commit();
-      if (kDebugMode) {
-        print(
-          '✅ All notifications marked as read: ${unreadNotifications.docs.length}',
-        );
-      }
-      return true;
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error marking all notifications as read: $e');
-      }
-      return false;
-    }
   }
 
   static Stream<List<WarrantyModel>> getWarrantyClaimRequestsStream(
@@ -2176,7 +2114,7 @@ class AppServices {
                     data['warranty'] as Map<String, dynamic>,
                   );
                 } catch (e) {
-                  console.log('Error processing doc ${doc.id}: $e');
+                  debugPrint('Error processing doc ${doc.id}: $e');
                   return null;
                 }
               })

@@ -60,6 +60,7 @@ class NewNotificationsPage extends StatelessWidget {
                 await AppServices.deleteAllFirestoreNotifications();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
+                    backgroundColor: Colors.green,
                     content: Text(
                       isAr
                           ? 'تم حذف جميع الإشعارات'

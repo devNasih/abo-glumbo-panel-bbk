@@ -272,36 +272,6 @@ abstract class AppLocalizations {
   /// **'Scheduled For'**
   String get scheduledFor;
 
-  /// No description provided for @noPendingOrders.
-  ///
-  /// In en, this message translates to:
-  /// **'No Pending Orders'**
-  String get noPendingOrders;
-
-  /// No description provided for @noAcceptedOrders.
-  ///
-  /// In en, this message translates to:
-  /// **'No Accepted Orders'**
-  String get noAcceptedOrders;
-
-  /// No description provided for @noRejectedOrders.
-  ///
-  /// In en, this message translates to:
-  /// **'No Rejected Orders'**
-  String get noRejectedOrders;
-
-  /// No description provided for @noCompletedOrders.
-  ///
-  /// In en, this message translates to:
-  /// **'No Completed Orders'**
-  String get noCompletedOrders;
-
-  /// No description provided for @noCancelledOrders.
-  ///
-  /// In en, this message translates to:
-  /// **'No Canceled Orders'**
-  String get noCancelledOrders;
-
   /// No description provided for @services.
   ///
   /// In en, this message translates to:
@@ -818,6 +788,12 @@ abstract class AppLocalizations {
   /// **'Failed to load data. Please try again later.'**
   String get failedToLoadDataPleaseTryAgainLater;
 
+  /// No description provided for @noBookings.
+  ///
+  /// In en, this message translates to:
+  /// **'No bookings'**
+  String get noBookings;
+
   /// No description provided for @noBookingsFound.
   ///
   /// In en, this message translates to:
@@ -853,6 +829,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'After Noon'**
   String get afterNoon;
+
+  /// No description provided for @confirmRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Request'**
+  String get confirmRequest;
+
+  /// No description provided for @bonusAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus Amount'**
+  String get bonusAmount;
+
+  /// No description provided for @requestBonusPayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Bonus Payout'**
+  String get requestBonusPayout;
+
+  /// No description provided for @noBonusAvailableToClaim.
+  ///
+  /// In en, this message translates to:
+  /// **'No bonus available to claim'**
+  String get noBonusAvailableToClaim;
+
+  /// No description provided for @monthlyBonusEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Bonus Earned'**
+  String get monthlyBonusEarned;
+
+  /// No description provided for @areYouSureYouWantToRequestAPayoutForYourMonthlyBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to request a payout for your monthly bonus?'**
+  String get areYouSureYouWantToRequestAPayoutForYourMonthlyBonus;
 
   /// No description provided for @evening.
   ///
@@ -2537,26 +2549,32 @@ abstract class AppLocalizations {
   /// No description provided for @greaterThan3dot5rating.
   ///
   /// In en, this message translates to:
-  /// **'≥ 3.5 rating'**
+  /// **'3.5+ rating'**
   String get greaterThan3dot5rating;
 
   /// No description provided for @greaterThan4dot0rating.
   ///
   /// In en, this message translates to:
-  /// **'≥ 4.0 rating'**
+  /// **'4.0+ rating'**
   String get greaterThan4dot0rating;
 
   /// No description provided for @greaterThan4dot5rating.
   ///
   /// In en, this message translates to:
-  /// **'≥ 4.5 rating'**
+  /// **'4.5+ rating'**
   String get greaterThan4dot5rating;
 
   /// No description provided for @greaterThan4dot8rating.
   ///
   /// In en, this message translates to:
-  /// **'≥ 4.8 rating'**
+  /// **'4.8+ rating'**
   String get greaterThan4dot8rating;
+
+  /// No description provided for @searchByTechnicianName.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by technician name'**
+  String get searchByTechnicianName;
 
   /// No description provided for @bonus.
   ///
@@ -2569,6 +2587,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Jobs'**
   String get jobs;
+
+  /// No description provided for @twentyPlusJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'20+ Jobs'**
+  String get twentyPlusJobs;
+
+  /// No description provided for @thirtyPlusJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'30+ Jobs'**
+  String get thirtyPlusJobs;
+
+  /// No description provided for @fortyPlusJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'40+ Jobs'**
+  String get fortyPlusJobs;
+
+  /// No description provided for @sixtyPlusJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'60+ Jobs'**
+  String get sixtyPlusJobs;
 
   /// No description provided for @earnings.
   ///
@@ -4982,12 +5024,6 @@ abstract class AppLocalizations {
   /// **'No payout requests yet'**
   String get noPayoutRequestsYet;
 
-  /// No description provided for @noRequests.
-  ///
-  /// In en, this message translates to:
-  /// **'No requests'**
-  String get noRequests;
-
   /// No description provided for @reviews.
   ///
   /// In en, this message translates to:
@@ -5816,6 +5852,42 @@ abstract class AppLocalizations {
   /// **'Booking history'**
   String get bookingHistory;
 
+  /// No description provided for @pleaseSelectAtLeastOneRecipient.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select at least one recipient'**
+  String get pleaseSelectAtLeastOneRecipient;
+
+  /// No description provided for @fillInAtLeastEnglishOrArabicMessageContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill in at least English or Arabic message content'**
+  String get fillInAtLeastEnglishOrArabicMessageContent;
+
+  /// No description provided for @searchByNameEmailOrPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, email, or phone...'**
+  String get searchByNameEmailOrPhone;
+
+  /// No description provided for @noFcmTokenAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No FCM token available'**
+  String get noFcmTokenAvailable;
+
+  /// No description provided for @selectRecipients.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Recipients'**
+  String get selectRecipients;
+
+  /// No description provided for @removeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove All'**
+  String get removeAll;
+
   /// No description provided for @documents.
   ///
   /// In en, this message translates to:
@@ -6463,6 +6535,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Date'**
   String get date;
+
+  /// No description provided for @removeFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove File'**
+  String get removeFile;
+
+  /// No description provided for @removeFileConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove this file?'**
+  String get removeFileConfirmation;
+
+  /// No description provided for @errorSendingNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Error sending notifications'**
+  String get errorSendingNotifications;
+
+  /// No description provided for @fillInBothEnglishAndArabicMessageContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill in both English and Arabic message content'**
+  String get fillInBothEnglishAndArabicMessageContent;
+
+  /// No description provided for @notificationSenttoTechnicians.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one {Notification sent to 1 technician.} other {Notification sent to {count} technicians.}}'**
+  String notificationSenttoTechnicians(int count);
 }
 
 class _AppLocalizationsDelegate
