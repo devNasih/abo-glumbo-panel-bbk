@@ -397,17 +397,12 @@ class BookingCards extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
+          actionsAlignment: MainAxisAlignment.start,
           title: Text(AppLocalizations.of(context)!.acceptBooking),
           content: Text(
             AppLocalizations.of(context)!.areYouSureYouWantToAcceptThisBooking,
           ),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(AppLocalizations.of(context)!.cancel),
-            ),
             ElevatedButton(
               onPressed: () {
                 AppFirestore.bookingsCollectionRef.doc(booking.id).update({
@@ -425,6 +420,13 @@ class BookingCards extends StatelessWidget {
               },
               child: Text(AppLocalizations.of(context)!.accept),
             ),
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(AppLocalizations.of(context)!.cancel),
+            ),
           ],
         );
       },
@@ -436,17 +438,12 @@ class BookingCards extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
+          actionsAlignment: MainAxisAlignment.start,
           title: Text(AppLocalizations.of(context)!.rejectBooking),
           content: Text(
             AppLocalizations.of(context)!.areYouSureYouWantToRejectThisBooking,
           ),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(AppLocalizations.of(context)!.cancel),
-            ),
             ElevatedButton(
               onPressed: () {
                 context.read<BookingBloc>().add(
@@ -459,6 +456,13 @@ class BookingCards extends StatelessWidget {
                 Navigator.of(context).pop();
               },
               child: Text(AppLocalizations.of(context)!.reject),
+            ),
+              const SizedBox(width: 8),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
           ],
         );

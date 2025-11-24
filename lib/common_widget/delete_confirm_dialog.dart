@@ -6,6 +6,8 @@ Future<bool?> showDeleteConfirmDialog(BuildContext context) async {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
+        actionsAlignment: MainAxisAlignment.start,
+
         title: Text(
           AppLocalizations.of(context)?.confirmDelete ?? 'Confirm Delete',
         ),
@@ -15,13 +17,14 @@ Future<bool?> showDeleteConfirmDialog(BuildContext context) async {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
-          ),
-          TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: Text(AppLocalizations.of(context)?.delete ?? 'Delete'),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
           ),
         ],
       );

@@ -4,12 +4,13 @@ import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 
 import 'package:aboglumbo_bbk_panel/models/user.dart';
-import 'package:aboglumbo_bbk_panel/pages/account/notifications.dart';
+
 import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/worker/contact_bottom_sheet.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/worker/earnings.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/worker/reviews.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/worker/rewards_page.dart';
+import 'package:aboglumbo_bbk_panel/pages/notifications/notifications_page.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -152,7 +153,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const NotificationsPage(),
+                      builder: (_) => const NewNotificationsPage(),
                     ),
                   ),
                 ),

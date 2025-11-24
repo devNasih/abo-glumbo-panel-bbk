@@ -76,7 +76,8 @@ class PayoutRequests extends StatelessWidget {
   Future<bool?> _showDeleteConfirmation(BuildContext context) async {
     return showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AlertDialog( 
+        actionsAlignment: MainAxisAlignment.start,
         title: Text(AppLocalizations.of(context)!.cancel),
         content: Text(
           AppLocalizations.of(
@@ -84,14 +85,16 @@ class PayoutRequests extends StatelessWidget {
           )!.areYouSureYouWantToCancelThisPayoutRequest,
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(AppLocalizations.of(context)!.back),
-          ),
+        
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppLocalizations.of(context)!.back),
           ),
         ],
       ),

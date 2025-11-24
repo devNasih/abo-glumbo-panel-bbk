@@ -126,15 +126,12 @@ class CategoryTileDevWidget extends StatelessWidget {
         final isDeleting = state is DeletingCategory;
 
         return AlertDialog(
+          actionsAlignment: MainAxisAlignment.start,
           title: Text(AppLocalizations.of(context)!.deleteCategory),
           content: Text(
             AppLocalizations.of(context)!.deleteCategoryConfirmation,
           ),
           actions: [
-            TextButton(
-              onPressed: isDeleting ? null : () => Navigator.pop(context),
-              child: Text(AppLocalizations.of(context)!.cancel),
-            ),
             TextButton(
               onPressed: isDeleting
                   ? null
@@ -151,6 +148,11 @@ class CategoryTileDevWidget extends StatelessWidget {
                       child: Loader(size: 12, color: AppColors.primary),
                     )
                   : Text(AppLocalizations.of(context)!.delete),
+            ),
+            SizedBox(width: 8),
+            TextButton(
+              onPressed: isDeleting ? null : () => Navigator.pop(context),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
           ],
         );

@@ -392,6 +392,7 @@ class _SignupState extends State<Signup> {
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
+            actionsAlignment: MainAxisAlignment.start,
             title: Text(AppLocalizations.of(context)?.delete ?? 'Delete'),
             content: Text(
               AppLocalizations.of(context)?.areYouSureYouWantToDeleteThisFile ??
@@ -399,15 +400,16 @@ class _SignupState extends State<Signup> {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(AppLocalizations.of(context)?.no ?? 'No'),
-              ),
-              TextButton(
                 onPressed: () => Navigator.pop(context, true),
                 child: Text(
                   AppLocalizations.of(context)?.yes ?? 'Yes',
                   style: const TextStyle(color: Colors.red),
                 ),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(AppLocalizations.of(context)?.no ?? 'No'),
               ),
             ],
           ),
@@ -1336,21 +1338,23 @@ class _SignupState extends State<Signup> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        actionsAlignment: MainAxisAlignment.start,
         title: Text(AppLocalizations.of(context)!.cancelRegistration),
         content: Text(
           AppLocalizations.of(context)!.cancelRegistrationConfirmation,
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(AppLocalizations.of(context)!.no),
-          ),
-          TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(
               AppLocalizations.of(context)!.yes,
               style: const TextStyle(color: Colors.red),
             ),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppLocalizations.of(context)!.no),
           ),
         ],
       ),

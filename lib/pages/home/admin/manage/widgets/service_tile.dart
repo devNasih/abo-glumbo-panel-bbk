@@ -220,6 +220,7 @@ class ServiceTileDevWidget extends StatelessWidget {
         final isDeleting = state is DeletingService;
 
         return AlertDialog(
+          actionsAlignment: MainAxisAlignment.start,
           title: Text(
             AppLocalizations.of(context)?.deleteService ?? 'Delete Service',
           ),
@@ -228,10 +229,6 @@ class ServiceTileDevWidget extends StatelessWidget {
                 'Are you sure you want to delete this service? This action cannot be undone.',
           ),
           actions: [
-            TextButton(
-              onPressed: isDeleting ? null : () => Navigator.of(context).pop(),
-              child: Text(AppLocalizations.of(context)!.cancel),
-            ),
             TextButton(
               onPressed: isDeleting
                   ? null
@@ -250,6 +247,11 @@ class ServiceTileDevWidget extends StatelessWidget {
                       AppLocalizations.of(context)!.delete,
                       style: const TextStyle(color: Colors.red),
                     ),
+            ),
+            SizedBox(width: 8),
+            TextButton(
+              onPressed: isDeleting ? null : () => Navigator.of(context).pop(),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
           ],
         );

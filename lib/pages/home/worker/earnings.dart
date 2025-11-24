@@ -393,6 +393,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
+              actionsAlignment: MainAxisAlignment.start,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -544,26 +545,6 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                 ),
               ),
               actions: [
-                TextButton(
-                  onPressed: isLoading
-                      ? null
-                      : () {
-                          Navigator.of(context).pop();
-                        },
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: Text(
-                    AppLocalizations.of(context)!.cancel,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
                 ElevatedButton(
                   onPressed: cardTips < 10.00
                       ? () {
@@ -626,6 +607,27 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                   ),
                   child: Text(
                     AppLocalizations.of(context)!.requestPayout,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          Navigator.of(context).pop();
+                        },
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: Text(
+                    AppLocalizations.of(context)!.cancel,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -1023,6 +1025,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
+        actionsAlignment: MainAxisAlignment.start,
         title: Text(AppLocalizations.of(context)!.requestPayout),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1084,10 +1087,6 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(AppLocalizations.of(context)!.cancel),
-          ),
           ElevatedButton(
             onPressed: () {
               final amount = double.tryParse(amountController.text);
@@ -1115,6 +1114,11 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
               foregroundColor: Colors.white,
             ),
             child: Text(AppLocalizations.of(context)!.submitRequest),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
         ],
       ),

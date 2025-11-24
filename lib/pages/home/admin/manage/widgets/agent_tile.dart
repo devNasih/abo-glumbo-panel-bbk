@@ -25,6 +25,7 @@ class AgentTileMinimal extends StatelessWidget {
       builder: (context) {
         final TextTheme textTheme = Theme.of(context).textTheme;
         return AlertDialog(
+          actionsAlignment: MainAxisAlignment.start,
           title: Text(
             (approve
                     ? AppLocalizations.of(
@@ -45,15 +46,16 @@ class AgentTileMinimal extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context, false);
-              },
-              child: Text(AppLocalizations.of(context)?.cancel ?? "Cancel"),
-            ),
-            TextButton(
-              onPressed: () {
                 Navigator.pop(context, true);
               },
               child: Text(AppLocalizations.of(context)?.yesText ?? "Yes"),
+            ),
+            SizedBox(width: 8),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: Text(AppLocalizations.of(context)?.cancel ?? "Cancel"),
             ),
           ],
         );

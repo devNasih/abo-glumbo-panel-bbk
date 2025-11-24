@@ -3016,6 +3016,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get personalInfo => 'Personal information';
 
   @override
+  String get batteryOptimization => 'Battery Optimization';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get locationError => 'Location Error';
+
+  @override
+  String get locationServicesIos =>
+      'This is an iOS location permission error. Please check your location settings.';
+
+  @override
+  String get locationServices =>
+      'Please enable location services in your device settings.';
+
+  @override
+  String get locationPermission =>
+      'Please grant location permission in Settings and select \"Allow all the time\" for background tracking.';
+
+  @override
+  String get batteryOptimizationWarning =>
+      'For reliable background location tracking, please disable battery optimization for this app. This ensures location updates continue even when the app is in the background.';
+
+  @override
   String get bookingHistory => 'Booking history';
 
   @override

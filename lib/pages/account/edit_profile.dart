@@ -256,6 +256,7 @@ class _EditProfileState extends State<EditProfile> {
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
+            actionsAlignment: MainAxisAlignment.start,
             title: Text(AppLocalizations.of(context)?.delete ?? 'Delete'),
             content: Text(
               AppLocalizations.of(context)?.areYouSureYouWantToDeleteThisFile ??
@@ -263,15 +264,16 @@ class _EditProfileState extends State<EditProfile> {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(AppLocalizations.of(context)?.no ?? 'No'),
-              ),
-              TextButton(
                 onPressed: () => Navigator.pop(context, true),
                 child: Text(
                   AppLocalizations.of(context)?.yes ?? 'Yes',
                   style: const TextStyle(color: Colors.red),
                 ),
+              ),
+              SizedBox(width: 8),
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(AppLocalizations.of(context)?.no ?? 'No'),
               ),
             ],
           ),

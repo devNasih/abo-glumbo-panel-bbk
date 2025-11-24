@@ -118,7 +118,11 @@ class _LocationTrackingWidgetState extends State<LocationTrackingWidget> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Location Error'),
+          actionsAlignment: MainAxisAlignment.start,
+
+          title: Text(
+            AppLocalizations.of(context)?.locationError ?? 'Location Error',
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,17 +132,20 @@ class _LocationTrackingWidgetState extends State<LocationTrackingWidget> {
               if (error.contains('permission') ||
                   error.contains('Privacy & Security'))
                 Text(
-                  'Please grant location permission in Settings and select "Allow all the time" for background tracking.',
+                  AppLocalizations.of(context)?.locationPermission ??
+                      'Please grant location permission in Settings and select "Allow all the time" for background tracking.',
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               if (error.contains('services'))
                 Text(
-                  'Please enable location services in your device settings.',
+                  AppLocalizations.of(context)?.locationServices ??
+                      'Please enable location services in your device settings.',
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               if (error.contains('PlatformException') && error.contains('1'))
                 Text(
-                  'This is an iOS location permission error. Please check your location settings.',
+                  AppLocalizations.of(context)?.locationServicesIos ??
+                      'This is an iOS location permission error. Please check your location settings.',
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
             ],
@@ -160,22 +167,31 @@ class _LocationTrackingWidgetState extends State<LocationTrackingWidget> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Battery Optimization'),
-          content: const Text(
-            'For reliable background location tracking, please disable battery optimization for this app. This ensures location updates continue even when the app is in the background.',
+          actionsAlignment: MainAxisAlignment.start,
+
+          title: Text(
+            AppLocalizations.of(context)?.batteryOptimization ??
+                'Battery Optimization',
+          ),
+          content: Text(
+            AppLocalizations.of(context)?.batteryOptimizationWarning ??
+                'For reliable background location tracking, please disable battery optimization for this app. This ensures location updates continue even when the app is in the background.',
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Later'),
-            ),
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop();
                 await BatteryOptimizationService.requestDisableBatteryOptimization();
                 _checkBatteryOptimization();
               },
-              child: const Text('Open Settings'),
+              child: Text(
+                AppLocalizations.of(context)?.openSettings ?? 'Open Settings',
+              ),
+            ),
+            SizedBox(height: 16),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(AppLocalizations.of(context)?.later ?? 'Later'),
             ),
           ],
         );

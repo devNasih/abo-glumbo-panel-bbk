@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:aboglumbo_bbk_panel/models/payout_request.dart';
 import 'package:aboglumbo_bbk_panel/models/transaction.dart';
 import 'package:aboglumbo_bbk_panel/models/warranty.dart';
+import 'package:aboglumbo_bbk_panel/models/notification_model.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -278,6 +279,53 @@ class AppServices {
       }
     }
     return 'worker';
+  }
+
+  static Stream<List<NotificationModel>> getNotificationsStream() {
+    String userId = LocalStore.getUID() ?? '';
+    if (userId.isEmpty) return Stream.value([]);
+
+    return AppFirestore.usersCollectionRef
+        .doc(userId)
+        .collection('notifications')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => NotificationModel.fromFirestore(doc))
+              .toList();
+        });
+  }
+
+  static Future<void> markFirestoreNotificationAsRead(
+    String notificationId,
+  ) async {
+    String userId = LocalStore.getUID() ?? '';
+    if (userId.isEmpty) return;
+
+    await AppFirestore.usersCollectionRef
+        .doc(userId)
+        .collection('notifications')
+        .doc(notificationId)
+        .update({'read': true});
+  }
+
+  static Future<void> deleteAllFirestoreNotifications() async {
+    String userId = LocalStore.getUID() ?? '';
+    if (userId.isEmpty) return;
+
+    final collection = AppFirestore.usersCollectionRef
+        .doc(userId)
+        .collection('notifications');
+
+    final snapshot = await collection.get();
+    final batch = FirebaseFirestore.instance.batch();
+
+    for (var doc in snapshot.docs) {
+      batch.delete(doc.reference);
+    }
+
+    await batch.commit();
   }
 
   static Future<List<Map<String, dynamic>>> getUserNotifications({

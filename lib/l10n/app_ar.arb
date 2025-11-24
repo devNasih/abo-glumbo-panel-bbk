@@ -957,6 +957,13 @@
     }
   },
   "typeMessageToCustomer": "اكتب رسالة للعميل...",
+  "batteryOptimization": "تحسينات البطارية",
+  "later": "لاحقًا",
+  "locationError": "خطأ في الموقع",
+  "locationServicesIos": "هذا خطأ في أذونات الموقع على نظام iOS. يرجى التحقق من إعدادات الموقع.",
+  "locationServices": "يرجى تفعيل خدمات الموقع من إعدادات جهازك.",
+  "locationPermission": "يرجى منح إذن الموقع من الإعدادات واختيار \"السماح دائمًا\" لتتبع الخلفية.",
+  "batteryOptimizationWarning": "لتمكين تتبع الموقع في الخلفية، يرجى تعطيل تحسينات البطارية لهذا التطبيق. هذا يضمن تحديث الموقع حتى عندما يكون التطبيق في الخلفية.",
   "startConversationWithCustomer": "ابدأ محادثة مع عميلك",
   "chatWithCustomer": "الدردشة مع العميل",
   "startChat": "بدء الدردشة",

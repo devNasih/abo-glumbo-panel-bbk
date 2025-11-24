@@ -198,6 +198,7 @@ class _PayoutAccountsPageState extends State<PayoutAccountsPage> {
     return showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
+        actionsAlignment: MainAxisAlignment.start,
         icon: Icon(
           Icons.delete_outline_rounded,
           size: 48,
@@ -207,10 +208,6 @@ class _PayoutAccountsPageState extends State<PayoutAccountsPage> {
         content: Text(localizations.deleteAccountConfirmation),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(localizations.cancel),
-          ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(
@@ -218,6 +215,11 @@ class _PayoutAccountsPageState extends State<PayoutAccountsPage> {
               foregroundColor: colorScheme.onError,
             ),
             child: Text(localizations.delete),
+          ),
+          SizedBox(width: 8),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(localizations.cancel),
           ),
         ],
       ),

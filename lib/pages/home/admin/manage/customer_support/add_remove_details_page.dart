@@ -365,6 +365,7 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
+        actionsAlignment: MainAxisAlignment.start,
         title: Text(AppLocalizations.of(context)!.deleteConfirmation),
         content: Text(
           AppLocalizations.of(
@@ -372,10 +373,6 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
           )!.areYouSureYouWantToDeleteThisSupportContact,
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(AppLocalizations.of(context)!.cancel),
-          ),
           TextButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
@@ -391,6 +388,11 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
               AppLocalizations.of(context)!.delete,
               style: TextStyle(color: Colors.red),
             ),
+          ),
+          SizedBox(width: 8),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
         ],
       ),
@@ -432,6 +434,7 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
                       state is UpdatingCustomerSupport;
 
                   return AlertDialog(
+                    actionsAlignment: MainAxisAlignment.start,
                     title: Text(
                       isEdit ? getEditHeader() : getAddDialogHeader(),
                     ),
@@ -577,14 +580,8 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
                         ],
                       ),
                     ),
-                    actionsAlignment: MainAxisAlignment.start,
+
                     actions: [
-                      TextButton(
-                        onPressed: isLoading
-                            ? null
-                            : () => Navigator.of(dialogContext).pop(),
-                        child: Text(AppLocalizations.of(context)!.cancel),
-                      ),
                       isLoading
                           ? SizedBox(width: 70, height: 20, child: Loader())
                           : TextButton(
@@ -638,6 +635,13 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
                                     : AppLocalizations.of(context)!.add,
                               ),
                             ),
+                      SizedBox(width: 8),
+                      TextButton(
+                        onPressed: isLoading
+                            ? null
+                            : () => Navigator.of(dialogContext).pop(),
+                        child: Text(AppLocalizations.of(context)!.cancel),
+                      ),
                     ],
                   );
                 },

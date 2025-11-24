@@ -966,6 +966,7 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
             : '${AppLocalizations.of(context)!.item} ${index + 1}';
 
         return AlertDialog(
+          actionsAlignment: MainAxisAlignment.start,
           title: Row(
             children: [
               Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
@@ -1131,16 +1132,6 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
             borderRadius: BorderRadius.circular(12),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                AppLocalizations.of(context)!.cancel,
-                style: TextStyle(
-                  color: Colors.grey.shade700,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
@@ -1170,6 +1161,17 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                AppLocalizations.of(context)!.cancel,
+                style: TextStyle(
+                  color: Colors.grey.shade700,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],
@@ -1225,6 +1227,7 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          actionsAlignment: MainAxisAlignment.start,
           title: Text(
             AppLocalizations.of(context)!.confirmCompletion,
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -1407,16 +1410,6 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                AppLocalizations.of(context)!.cancel,
-                style: TextStyle(
-                  color: Colors.grey.shade700,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
@@ -1436,6 +1429,17 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
               child: Text(
                 AppLocalizations.of(context)!.confirm,
                 style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                AppLocalizations.of(context)!.cancel,
+                style: TextStyle(
+                  color: Colors.grey.shade700,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],

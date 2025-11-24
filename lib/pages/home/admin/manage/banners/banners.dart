@@ -117,6 +117,7 @@ class ManageBanners extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          actionsAlignment: MainAxisAlignment.start,
           title: Text(
             AppLocalizations.of(context)?.deleteBanner ?? 'Delete Banner',
           ),
@@ -126,10 +127,6 @@ class ManageBanners extends StatelessWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
-            ),
-            TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 context.read<ManageAppBloc>().add(
@@ -138,6 +135,11 @@ class ManageBanners extends StatelessWidget {
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: Text(AppLocalizations.of(context)?.delete ?? 'Delete'),
+            ),
+            SizedBox(width: 8),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
             ),
           ],
         );

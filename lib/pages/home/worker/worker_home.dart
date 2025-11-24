@@ -2,7 +2,8 @@ import 'package:aboglumbo_bbk_panel/common_widget/booking_cards.dart';
 import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
-import 'package:aboglumbo_bbk_panel/pages/account/notifications.dart';
+
+import 'package:aboglumbo_bbk_panel/pages/notifications/notifications_page.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
@@ -83,7 +84,7 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
   void _navigateToNotifications() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const NotificationsPage()),
+      MaterialPageRoute(builder: (context) => const NewNotificationsPage()),
     );
   }
 

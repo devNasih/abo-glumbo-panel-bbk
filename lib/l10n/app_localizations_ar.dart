@@ -2970,6 +2970,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get personalInfo => 'معلومات شخصية';
 
   @override
+  String get batteryOptimization => 'تحسينات البطارية';
+
+  @override
+  String get later => 'لاحقًا';
+
+  @override
+  String get locationError => 'خطأ في الموقع';
+
+  @override
+  String get locationServicesIos =>
+      'هذا خطأ في أذونات الموقع على نظام iOS. يرجى التحقق من إعدادات الموقع.';
+
+  @override
+  String get locationServices => 'يرجى تفعيل خدمات الموقع من إعدادات جهازك.';
+
+  @override
+  String get locationPermission =>
+      'يرجى منح إذن الموقع من الإعدادات واختيار \"السماح دائمًا\" لتتبع الخلفية.';
+
+  @override
+  String get batteryOptimizationWarning =>
+      'لتمكين تتبع الموقع في الخلفية، يرجى تعطيل تحسينات البطارية لهذا التطبيق. هذا يضمن تحديث الموقع حتى عندما يكون التطبيق في الخلفية.';
+
+  @override
   String get bookingHistory => 'تاريخ الحجز';
 
   @override

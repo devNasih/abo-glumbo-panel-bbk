@@ -74,6 +74,7 @@ class _HomeState extends State<Home> {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
+                    actionsAlignment: MainAxisAlignment.start,
                     title: Text(locale?.exitAppTitle ?? 'Exit App'),
                     content: Text(
                       locale?.exitAppMessage ??
@@ -81,12 +82,13 @@ class _HomeState extends State<Home> {
                     ),
                     actions: [
                       TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text(locale?.cancel ?? 'Cancel'),
-                      ),
-                      TextButton(
                         onPressed: () => Navigator.of(context).pop(true),
                         child: Text(locale?.exit ?? 'Exit'),
+                      ),
+                      SizedBox(width: 8),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(locale?.cancel ?? 'Cancel'),
                       ),
                     ],
                   ),
@@ -139,6 +141,7 @@ class _HomeState extends State<Home> {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
+                    actionsAlignment: MainAxisAlignment.start,
                     title: Text(locale?.exitAppTitle ?? 'Exit App'),
                     content: Text(
                       locale?.exitAppMessage ??
@@ -146,12 +149,13 @@ class _HomeState extends State<Home> {
                     ),
                     actions: [
                       TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text(locale?.cancel ?? 'Cancel'),
-                      ),
-                      TextButton(
                         onPressed: () => Navigator.of(context).pop(true),
                         child: Text(locale?.exit ?? 'Exit'),
+                      ),
+                      SizedBox(width: 8),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(locale?.cancel ?? 'Cancel'),
                       ),
                     ],
                   ),
@@ -170,6 +174,7 @@ class _HomeState extends State<Home> {
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
+                      actionsAlignment: MainAxisAlignment.start,
                       title: Text(locale?.exitAppTitle ?? 'Exit App'),
                       content: Text(
                         locale?.exitAppMessage ??
@@ -177,12 +182,13 @@ class _HomeState extends State<Home> {
                       ),
                       actions: [
                         TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text(locale?.cancel ?? 'Cancel'),
-                        ),
-                        TextButton(
                           onPressed: () => Navigator.of(context).pop(true),
                           child: Text(locale?.exit ?? 'Exit'),
+                        ),
+                        SizedBox(width: 8),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(locale?.cancel ?? 'Cancel'),
                         ),
                       ],
                     ),
@@ -280,6 +286,7 @@ class _HomeState extends State<Home> {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
+                  actionsAlignment: MainAxisAlignment.start,
                   title: Text(locale?.exitAppTitle ?? 'Exit App'),
                   content: Text(
                     locale?.exitAppMessage ??
@@ -287,12 +294,13 @@ class _HomeState extends State<Home> {
                   ),
                   actions: [
                     TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text(locale?.cancel ?? 'Cancel'),
-                    ),
-                    TextButton(
                       onPressed: () => Navigator.of(context).pop(true),
                       child: Text(locale?.exit ?? 'Exit'),
+                    ),
+                    SizedBox(width: 8),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(locale?.cancel ?? 'Cancel'),
                     ),
                   ],
                 ),

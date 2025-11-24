@@ -11,8 +11,9 @@ import 'package:aboglumbo_bbk_panel/models/categories.dart';
 import 'package:aboglumbo_bbk_panel/models/location.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
-import 'package:aboglumbo_bbk_panel/pages/account/notifications.dart';
+
 import 'package:aboglumbo_bbk_panel/pages/home/admin/bloc/admin_bloc.dart';
+import 'package:aboglumbo_bbk_panel/pages/notifications/notifications_page.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -218,7 +219,8 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const NotificationsPage(),
+                                builder: (context) =>
+                                    const NewNotificationsPage(),
                               ),
                             );
                           },
@@ -979,20 +981,22 @@ class _AssignUserBottomSheetState extends State<_AssignUserBottomSheet> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          actionsAlignment: MainAxisAlignment.start,
           title: Text(AppLocalizations.of(context)!.confirmReject),
           content: Text(AppLocalizations.of(context)!.confirmRejectMessage),
           actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(AppLocalizations.of(context)!.reject),
+            ),
+            SizedBox(width: 8),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(false);
                 Navigator.of(context).pop(false);
               },
               child: Text(AppLocalizations.of(context)!.cancel),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: Text(AppLocalizations.of(context)!.reject),
             ),
           ],
         );

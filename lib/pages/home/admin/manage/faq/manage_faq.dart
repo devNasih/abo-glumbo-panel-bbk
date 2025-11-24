@@ -306,6 +306,7 @@ class _ManageFaqState extends State<ManageFaq> {
 
   Widget confirmDeleteDialog(FaqModel entry) {
     return AlertDialog(
+      actionsAlignment: MainAxisAlignment.start,
       title: Text(AppLocalizations.of(context)!.deleteFaqEntry),
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,15 +319,17 @@ class _ManageFaqState extends State<ManageFaq> {
         ],
       ),
       actions: [
-        TextButton(
-          child: Text(AppLocalizations.of(context)!.cancel),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+       
         TextButton(
           child: Text(AppLocalizations.of(context)!.delete),
           onPressed: () {
             context.read<ManageAppBloc>().add(DeleteFaqEvent(entry.id));
           },
+        ),
+        SizedBox(width: 8),
+      TextButton(
+          child: Text(AppLocalizations.of(context)!.cancel),
+          onPressed: () => Navigator.of(context).pop(),
         ),
       ],
     );

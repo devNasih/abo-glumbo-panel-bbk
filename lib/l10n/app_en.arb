@@ -986,6 +986,13 @@
     }
   },
   "personalInfo": "Personal information",
+  "batteryOptimization": "Battery Optimization",
+  "later": "Later",
+  "locationError": "Location Error",
+  "locationServicesIos": "This is an iOS location permission error. Please check your location settings.",
+  "locationServices": "Please enable location services in your device settings.",
+  "locationPermission": "Please grant location permission in Settings and select \"Allow all the time\" for background tracking.",
+  "batteryOptimizationWarning": "For reliable background location tracking, please disable battery optimization for this app. This ensures location updates continue even when the app is in the background.",
   "bookingHistory": "Booking history",
   "documents": "Uploaded documents",
   "allData": "All associated data",

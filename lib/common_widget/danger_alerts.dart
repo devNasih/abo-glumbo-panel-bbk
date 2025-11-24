@@ -12,6 +12,8 @@ class AccountActionDialogs {
       barrierDismissible: true,
       builder: (BuildContext context) {
         return AlertDialog(
+          actionsAlignment: MainAxisAlignment.start,
+
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -38,20 +40,6 @@ class AccountActionDialogs {
             vertical: 16,
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-              ),
-              child: Text(
-                AppLocalizations.of(context)?.cancel ?? 'Cancel',
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-            const SizedBox(width: 8),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
@@ -76,6 +64,20 @@ class AccountActionDialogs {
                 ),
               ),
             ),
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+              ),
+              child: Text(
+                AppLocalizations.of(context)?.cancel ?? 'Cancel',
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
           ],
         );
       },
@@ -98,6 +100,8 @@ class AccountActionDialogs {
           key: UniqueKey(), // Add unique key to prevent conflicts
           builder: (context, setState) {
             return AlertDialog(
+              actionsAlignment: MainAxisAlignment.start,
+
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -182,23 +186,6 @@ class AccountActionDialogs {
                 vertical: 16,
               ),
               actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Future.microtask(() => passwordController.clear());
-                  },
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: Text(
-                    AppLocalizations.of(context)?.cancel ?? 'Cancel',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ),
-                const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () {
                     final password = passwordController.text.trim();
@@ -243,6 +230,23 @@ class AccountActionDialogs {
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Future.microtask(() => passwordController.clear());
+                  },
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: Text(
+                    AppLocalizations.of(context)?.cancel ?? 'Cancel',
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ),
               ],

@@ -181,6 +181,7 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
               return StatefulBuilder(
                 builder: (context, setDialogState) {
                   return AlertDialog(
+                    actionsAlignment: MainAxisAlignment.start,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -774,6 +775,7 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
               final isProcessing = state is RejectingPayout;
 
               return AlertDialog(
+                actionsAlignment: MainAxisAlignment.start,  
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),

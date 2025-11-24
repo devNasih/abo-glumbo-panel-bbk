@@ -65,6 +65,7 @@ class _AccountPageState extends State<AccountPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
+          actionsAlignment: MainAxisAlignment.start,
           title: Text(
             AppLocalizations.of(context)?.selectLanguage ?? 'Select Language',
           ),
@@ -448,6 +449,7 @@ class _AccountPageState extends State<AccountPage> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
+          actionsAlignment: MainAxisAlignment.start,
           title: Row(
             children: [
               const Icon(Icons.warning_amber_rounded, color: Colors.red),
@@ -538,16 +540,6 @@ class _AccountPageState extends State<AccountPage> {
             ],
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(
-                AppLocalizations.of(dialogContext)?.cancel ?? 'Cancel',
-                style: GoogleFonts.dmSans(
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
             ElevatedButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
               style: ElevatedButton.styleFrom(
@@ -558,6 +550,17 @@ class _AccountPageState extends State<AccountPage> {
                 AppLocalizations.of(dialogContext)?.deleteAccount ??
                     'Delete Account',
                 style: GoogleFonts.dmSans(fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(
+                AppLocalizations.of(dialogContext)?.cancel ?? 'Cancel',
+                style: GoogleFonts.dmSans(
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],
@@ -617,6 +620,7 @@ class _AccountPageState extends State<AccountPage> {
           return PopScope(
             canPop: false,
             child: AlertDialog(
+              
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -782,6 +786,8 @@ class _AccountPageState extends State<AccountPage> {
         context: context,
         builder: (BuildContext dialogContext) {
           return AlertDialog(
+
+            actionsAlignment: MainAxisAlignment.start,
             title: Row(
               children: [
                 Icon(Icons.warning_amber_rounded, color: Colors.orange),
@@ -837,16 +843,6 @@ class _AccountPageState extends State<AccountPage> {
               ],
             ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: Text(
-                  AppLocalizations.of(dialogContext)?.cancel ?? 'Cancel',
-                  style: GoogleFonts.dmSans(
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
               ElevatedButton(
                 onPressed: () => Navigator.of(dialogContext).pop(true),
                 style: ElevatedButton.styleFrom(
@@ -856,6 +852,16 @@ class _AccountPageState extends State<AccountPage> {
                 child: Text(
                   AppLocalizations.of(dialogContext)?.disable ?? 'Disable',
                   style: GoogleFonts.dmSans(fontWeight: FontWeight.bold),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text(
+                  AppLocalizations.of(dialogContext)?.cancel ?? 'Cancel',
+                  style: GoogleFonts.dmSans(
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
@@ -912,6 +918,7 @@ class _AccountPageState extends State<AccountPage> {
         barrierDismissible: false,
         builder: (BuildContext dialogContext) {
           return AlertDialog(
+            
             key: const ValueKey('delete_account_progress_dialog'),
             content: Row(
               children: [

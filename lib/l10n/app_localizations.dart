@@ -5768,6 +5768,48 @@ abstract class AppLocalizations {
   /// **'Personal information'**
   String get personalInfo;
 
+  /// No description provided for @batteryOptimization.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery Optimization'**
+  String get batteryOptimization;
+
+  /// No description provided for @later.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get later;
+
+  /// No description provided for @locationError.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Error'**
+  String get locationError;
+
+  /// No description provided for @locationServicesIos.
+  ///
+  /// In en, this message translates to:
+  /// **'This is an iOS location permission error. Please check your location settings.'**
+  String get locationServicesIos;
+
+  /// No description provided for @locationServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enable location services in your device settings.'**
+  String get locationServices;
+
+  /// No description provided for @locationPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Please grant location permission in Settings and select \"Allow all the time\" for background tracking.'**
+  String get locationPermission;
+
+  /// No description provided for @batteryOptimizationWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'For reliable background location tracking, please disable battery optimization for this app. This ensures location updates continue even when the app is in the background.'**
+  String get batteryOptimizationWarning;
+
   /// No description provided for @bookingHistory.
   ///
   /// In en, this message translates to:

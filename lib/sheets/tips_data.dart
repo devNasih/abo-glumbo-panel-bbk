@@ -302,6 +302,7 @@ class TipsDataSheet extends StatelessWidget {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
+          actionsAlignment: MainAxisAlignment.center,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -525,16 +526,6 @@ class TipsDataSheet extends StatelessWidget {
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () {
-                transactionIdController.clear();
-                Navigator.pop(context);
-              },
-              child: Text(
-                AppLocalizations.of(context)?.cancel ?? 'Cancel',
-                style: TextStyle(color: Colors.grey.shade600),
-              ),
-            ),
             ElevatedButton(
               onPressed: () {
                 if (formKey.currentState!.validate() && selectedFile != null) {
@@ -568,6 +559,17 @@ class TipsDataSheet extends StatelessWidget {
                 ),
               ),
               child: Text(AppLocalizations.of(context)?.confirm ?? 'Confirm'),
+            ),
+            SizedBox(width: 8),
+            TextButton(
+              onPressed: () {
+                transactionIdController.clear();
+                Navigator.pop(context);
+              },
+              child: Text(
+                AppLocalizations.of(context)?.cancel ?? 'Cancel',
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
             ),
           ],
         ),

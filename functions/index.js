@@ -12,6 +12,72 @@ admin.initializeApp();
 const db = admin.firestore();
 const FieldValue = admin.firestore.FieldValue;
 
+// Helper function to send FCM and store notification in Firestore
+async function sendAndStoreNotification({
+  targetRole, // 'customer', 'technician', 'admin'
+  targetId,
+  titleEn,
+  titleAr,
+  bodyEn,
+  bodyAr,
+  data,
+  fcmToken,
+  lanCode,
+}) {
+  // 1. Determine collection based on role
+  // Customer -> customers collection
+  // Technician/Admin -> users collection
+  let collectionName = "users";
+  if (targetRole === "customer") {
+    collectionName = "customers";
+  }
+
+  // 2. Store in Firestore (subcollection 'notifications')
+  try {
+    await admin
+      .firestore()
+      .collection(collectionName)
+      .doc(targetId)
+      .collection("notifications")
+      .add({
+        titleEn,
+        titleAr,
+        bodyEn,
+        bodyAr,
+        data: data || {},
+        read: false,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    console.log(`Notification stored for ${targetRole} ${targetId}`);
+  } catch (e) {
+    console.error(
+      `Error storing notification for ${targetRole} ${targetId}:`,
+      e
+    );
+  }
+
+  // 3. Send FCM
+  if (fcmToken && fcmToken.trim() !== "") {
+    const title = lanCode === "ar" ? titleAr : titleEn;
+    const body = lanCode === "ar" ? bodyAr : bodyEn;
+
+    const message = {
+      notification: { title, body },
+      data: { ...data, lanCode: lanCode || "en" },
+      token: fcmToken,
+    };
+
+    try {
+      const response = await admin.messaging().send(message);
+      console.log(`FCM sent to ${targetRole} ${targetId}, msgId: ${response}`);
+      return response;
+    } catch (e) {
+      console.error(`Error sending FCM to ${targetRole} ${targetId}:`, e);
+    }
+  }
+  return null;
+}
+
 exports.notifyAdminsOnNewBooking = onDocumentCreated(
   "bookings/{bookingId}",
   async (event) => {
@@ -39,6 +105,7 @@ exports.notifyAdminsOnNewBooking = onDocumentCreated(
         const user = doc.data();
         if (user.fcmToken && user.fcmToken.trim() !== "") {
           tokensWithLanguage.push({
+            uid: doc.id,
             token: user.fcmToken,
             lanCode: user.lanCode,
           });
@@ -52,29 +119,22 @@ exports.notifyAdminsOnNewBooking = onDocumentCreated(
 
       const results = [];
 
-      for (const { token, lanCode } of tokensWithLanguage) {
-        try {
-          const message = {
-            notification: {
-              title: lanCode === "ar" ? "طلب حجز جديد" : "New Booking Request",
-              body:
-                lanCode === "ar"
-                  ? "مرحبًا Admin، لقد تم تقديم طلب حجز جديد!"
-                  : "Hey Admin, a new booking request just came in!",
-            },
-            data: {
-              targetRole: "admin",
-              category: "booking",
-              bookingId: event.params.bookingId,
-            },
-            token: token,
-          };
-
-          const response = await admin.messaging().send(message);
-          results.push({ token, success: true, messageId: response });
-        } catch (error) {
-          results.push({ token, success: false, error: error.message });
-        }
+      for (const { uid, token, lanCode } of tokensWithLanguage) {
+        await sendAndStoreNotification({
+          targetRole: "admin",
+          targetId: uid,
+          titleEn: "New Booking Request",
+          titleAr: "طلب حجز جديد",
+          bodyEn: "Hey Admin, a new booking request just came in!",
+          bodyAr: "مرحبًا Admin، لقد تم تقديم طلب حجز جديد!",
+          data: {
+            targetRole: "admin",
+            category: "booking",
+            bookingId: event.params.bookingId,
+          },
+          fcmToken: token,
+          lanCode: lanCode,
+        });
       }
     } catch (error) {
       console.error("Error sending admin notifications:", error);
@@ -150,31 +210,22 @@ exports.notifyAgentOnAssignment = onDocumentWritten(
             const agentLanCode = agentData.lanCode || "en";
             const agentFcmToken = agentData.fcmToken;
 
-            if (agentFcmToken && agentFcmToken.trim() !== "") {
-              const title =
-                agentLanCode === "ar"
-                  ? "تم تعيين حجز جديد لك"
-                  : "New Booking Assigned";
-              const body =
-                agentLanCode === "ar"
-                  ? `لقد قبلت حجزاً جديداً لخدمة "${serviceName}"`
-                  : `You have accepted a new booking for "${serviceName}"`;
-
-              await admin.messaging().send({
-                notification: { title, body },
-                data: {
-                  targetRole: "worker",
-                  category: "booking",
-                  bookingId,
-                  serviceName,
-                },
-                token: agentFcmToken,
-              });
-
-              console.log(
-                `[${bookingId}] Notification sent to assigned worker`
-              );
-            }
+            await sendAndStoreNotification({
+              targetRole: "technician",
+              targetId: agent.uid,
+              titleEn: "New Booking Assigned",
+              titleAr: "تم تعيين حجز جديد لك",
+              bodyEn: `You have accepted a new booking for "${serviceName}"`,
+              bodyAr: `لقد قبلت حجزاً جديداً لخدمة "${serviceName}"`,
+              data: {
+                targetRole: "worker",
+                category: "booking",
+                bookingId,
+                serviceName,
+              },
+              fcmToken: agentFcmToken,
+              lanCode: agentLanCode,
+            });
           }
         } catch (error) {
           console.error(
@@ -186,37 +237,23 @@ exports.notifyAgentOnAssignment = onDocumentWritten(
 
       // Notify admins about assignment
       if (adminTokens.length > 0) {
-        const adminMessages = adminTokens.map(({ token, lanCode }) => ({
-          notification: {
-            title:
-              lanCode === "ar"
-                ? "تم تعيين فني جديد لحجز"
-                : "New Agent Assigned",
-            body:
-              lanCode === "ar"
-                ? `تم تعيين الفني لحجز جديد لخدمة "${serviceName}".`
-                : `An Technician has been assigned to a new booking for "${serviceName}".`,
-          },
-          token,
-          data: {
+        for (const { uid, token, lanCode } of adminTokens) {
+          await sendAndStoreNotification({
             targetRole: "admin",
-            category: "booking",
-            bookingId,
-            serviceName,
-            lanCode,
-          },
-        }));
-
-        try {
-          await Promise.all(
-            adminMessages.map((msg) => admin.messaging().send(msg))
-          );
-          console.log(`[${bookingId}] Admins notified of assignment`);
-        } catch (error) {
-          console.error(
-            `[${bookingId}] Error notifying admins of assignment:`,
-            error
-          );
+            targetId: uid,
+            titleEn: "New Agent Assigned",
+            titleAr: "تم تعيين فني جديد لحجز",
+            bodyEn: `An Technician has been assigned to a new booking for "${serviceName}".`,
+            bodyAr: `تم تعيين الفني لحجز جديد لخدمة "${serviceName}".`,
+            data: {
+              targetRole: "admin",
+              category: "booking",
+              bookingId,
+              serviceName,
+            },
+            fcmToken: token,
+            lanCode: lanCode,
+          });
         }
       }
     }
@@ -244,31 +281,25 @@ exports.notifyAgentOnAssignment = onDocumentWritten(
         const workerId = latestCancelled?.uid || "";
 
         if (adminTokens.length > 0) {
-          const cancelMessages = adminTokens.map(({ token, lanCode }) => ({
-            notification: {
-              title:
-                lanCode === "ar"
-                  ? "إلغاء الحجز من قبل الفني"
-                  : "Booking Cancelled by Technician",
-              body:
-                lanCode === "ar"
-                  ? `تم إلغاء الحجز من قبل الفني ${workerName}.`
-                  : `The booking has been cancelled by Technician ${workerName}.`,
-            },
-            token,
-            data: {
+          for (const { uid, token, lanCode } of adminTokens) {
+            await sendAndStoreNotification({
               targetRole: "admin",
-              category: "booking",
-              bookingId,
-              workerId,
-              workerName,
-            },
-          }));
-
-          await Promise.all(
-            cancelMessages.map((msg) => admin.messaging().send(msg))
-          );
-          console.log(`[${bookingId}] Admins notified of worker cancellation`);
+              targetId: uid,
+              titleEn: "Booking Cancelled by Technician",
+              titleAr: "إلغاء الحجز من قبل الفني",
+              bodyEn: `The booking has been cancelled by Technician ${workerName}.`,
+              bodyAr: `تم إلغاء الحجز من قبل الفني ${workerName}.`,
+              data: {
+                targetRole: "admin",
+                category: "booking",
+                bookingId,
+                workerId,
+                workerName,
+              },
+              fcmToken: token,
+              lanCode: lanCode,
+            });
+          }
         }
       }
     } catch (error) {
@@ -384,33 +415,31 @@ exports.notifyCustomerOnBookingStatusChange = onDocumentWritten(
       messageKey = "C_PAYMENT_COMPLETED";
     }
 
-    const notificationBody =
-      statusMessages[messageKey]?.[lanCode] ||
+    const bodyEn =
       statusMessages[messageKey]?.["en"] ||
       `Your booking status changed to ${bookingStatus}`;
+    const bodyAr =
+      statusMessages[messageKey]?.["ar"] ||
+      `تغيرت حالة حجزك إلى ${bookingStatus}`;
 
-    const message = {
-      notification: {
-        title: lanCode === "ar" ? "تحديث حالة الحجز" : "Booking Status Update",
-        body: `${notificationBody} (${serviceName})`,
-      },
-      token: fcmToken,
+    await sendAndStoreNotification({
+      targetRole: "customer",
+      targetId: customerId,
+      titleEn: "Booking Status Update",
+      titleAr: "تحديث حالة الحجز",
+      bodyEn: `${bodyEn} (${serviceName})`,
+      bodyAr: `${bodyAr} (${serviceName})`,
       data: {
         customerId: customerId,
         targetRole: "customer",
         bookingId: event.params.bookingId,
         status: bookingStatus,
         serviceName: serviceName || "Service",
-        lanCode: lanCode,
         paymentCompleted: isPaymentCompleted.toString(),
       },
-    };
-
-    try {
-      await admin.messaging().send(message);
-    } catch (error) {
-      console.error("Error sending FCM notification:", error);
-    }
+      fcmToken: fcmToken,
+      lanCode: lanCode,
+    });
   }
 );
 
@@ -470,46 +499,33 @@ exports.customerTrackingNotification = onDocumentWritten(
     const isStartedNow = afterData.isStarted;
     if (wasStarted === isStartedNow) return;
 
-    let trackingMessageTitle = "";
-    let trackingMessageBody = "";
-
-    // Debug: Ensure lanCode is valid
-    const language =
-      typeof lanCode === "string" && lanCode.trim().toLowerCase() === "ar"
-        ? "ar"
-        : "en";
+    // Determine titles and bodies for both languages
+    let titleEn, titleAr, bodyEn, bodyAr;
 
     if (!wasStarted && isStartedNow) {
-      trackingMessageTitle =
-        language === "ar" ? "بدء تتبع الحجز" : "Tracking Started";
-      trackingMessageBody =
-        language === "ar"
-          ? "يمكنك الآن تتبع حالة حجزك."
-          : "The Technician has started tracking your location for the booking.";
+      titleEn = "Tracking Started";
+      titleAr = "بدء تتبع الحجز";
+      bodyEn =
+        "The Technician has started tracking your location for the booking.";
+      bodyAr = "يمكنك الآن تتبع حالة حجزك.";
     } else if (wasStarted && !isStartedNow) {
-      trackingMessageTitle =
-        language === "ar" ? "إيقاف تتبع الحجز" : "Tracking Stopped";
-      trackingMessageBody =
-        language === "ar"
-          ? "تم إيقاف تتبع موقعك بواسطة الفني."
-          : "Tracking has been stopped by the Technician.";
-    } else {
-      console.log("Tracking status unchanged, skipping...");
-      return;
+      titleEn = "Tracking Stopped";
+      titleAr = "إيقاف تتبع الحجز";
+      bodyEn = "Tracking has been stopped by the Technician.";
+      bodyAr = "تم إيقاف تتبع موقعك بواسطة الفني.";
     }
 
-    const message = {
-      notification: {
-        title: trackingMessageTitle,
-        body: trackingMessageBody,
-      },
-      token: fcmToken,
-    };
-    try {
-      await admin.messaging().send(message);
-    } catch (error) {
-      console.error("Error sending tracking notification:", error);
-    }
+    await sendAndStoreNotification({
+      targetRole: "customer",
+      targetId: customerId,
+      titleEn,
+      titleAr,
+      bodyEn,
+      bodyAr,
+      data: {},
+      fcmToken: fcmToken,
+      lanCode: lanCode,
+    });
     console.log("✅ Final Message Object:", JSON.stringify(message, null, 2));
   }
 );
@@ -592,15 +608,25 @@ exports.onBookingUpdateToTip = onDocumentWritten(
 
         const agentFcmToken = agent.fcmToken;
 
-        const message = {
-          notification: {
-            title: "New Tip Received",
-            body: `You have received a new ${
-              isCardPayment ? "card" : "cash"
-            } tip of ${tipAmount}.`,
+        const tipType = isCardPayment ? "card" : "cash";
+
+        await sendAndStoreNotification({
+          targetRole: "technician",
+          targetId: agent.uid,
+          titleEn: "New Tip Received",
+          titleAr: "تم استلام إكرامية جديدة",
+          bodyEn: `You have received a new ${tipType} tip of ${tipAmount}.`,
+          bodyAr: `لقد تلقيت إكرامية ${
+            tipType === "card" ? "بطاقة" : "نقدية"
+          } جديدة بقيمة ${tipAmount}.`,
+          data: {
+            category: "tip",
+            amount: tipAmount.toString(),
+            type: tipType,
           },
-          token: agentFcmToken,
-        };
+          fcmToken: agentFcmToken,
+          lanCode: agent.lanCode || "en",
+        });
 
         if (agentFcmToken && agentFcmToken.trim() !== "") {
           try {
@@ -795,39 +821,25 @@ exports.notifyAdminsOnPayoutRequest = onDocumentCreated(
 
       const results = [];
 
-      for (const { token, lanCode } of tokensWithLanguage) {
-        try {
-          const message = {
-            notification: {
-              title: lanCode === "ar" ? "طلب دفع جديد" : "New Payout Request",
-              body:
-                lanCode === "ar"
-                  ? `${workerName} طلب دفع بقيمة ₹${amount}`
-                  : `${workerName} requested a payout of ₹${amount}`,
-            },
-            data: {
-              targetRole: "admin",
-              category: "payout",
-              requestId: requestId,
-              workerId: userId,
-              workerName: workerName,
-              amount: amount,
-            },
-            token: token,
-          };
-
-          const response = await admin.messaging().send(message);
-          results.push({ token, success: true, messageId: response });
-          console.log(
-            `Notification sent to admin with token: ${token.substring(
-              0,
-              20
-            )}...`
-          );
-        } catch (error) {
-          results.push({ token, success: false, error: error.message });
-          console.error(`Failed to send to token: ${error.message}`);
-        }
+      for (const { uid, token, lanCode } of tokensWithLanguage) {
+        await sendAndStoreNotification({
+          targetRole: "admin",
+          targetId: uid,
+          titleEn: "New Payout Request",
+          titleAr: "طلب دفع جديد",
+          bodyEn: `${workerName} requested a payout of ₹${amount}`,
+          bodyAr: `${workerName} طلب دفع بقيمة ₹${amount}`,
+          data: {
+            targetRole: "admin",
+            category: "payout",
+            requestId: requestId,
+            workerId: userId,
+            workerName: workerName,
+            amount: amount,
+          },
+          fcmToken: token,
+          lanCode: lanCode,
+        });
       }
 
       console.log(
@@ -933,21 +945,23 @@ exports.notifyWorkerOnPayoutStatusChange = onDocumentWritten(
     const title =
       notificationTitle[status]?.[lanCode] || notificationTitle[status]?.["en"];
 
-    const message = {
-      notification: {
-        title: title,
-        body: notificationBody,
-      },
-      token: fcmToken,
+    await sendAndStoreNotification({
+      targetRole: "technician",
+      targetId: userId,
+      titleEn: notificationTitle[status]?.["en"],
+      titleAr: notificationTitle[status]?.["ar"],
+      bodyEn: statusMessages[status]?.["en"],
+      bodyAr: statusMessages[status]?.["ar"],
       data: {
         targetRole: "worker",
         category: "payout",
         requestId: requestId,
         status: status,
         amount: amount,
-        lanCode: lanCode,
       },
-    };
+      fcmToken: fcmToken,
+      lanCode: lanCode,
+    });
 
     try {
       await admin.messaging().send(message);
@@ -1433,21 +1447,23 @@ exports.notifyWorkerOnNewBooking = onDocumentCreated(
     const title = notificationTitle[lanCode] || notificationTitle["en"];
     const body = notificationBody[lanCode] || notificationBody["en"];
 
-    const message = {
-      notification: {
-        title: title,
-        body: body,
-      },
-      token: fcmToken,
+    await sendAndStoreNotification({
+      targetRole: "technician",
+      targetId: workerId,
+      titleEn: notificationTitle["en"],
+      titleAr: notificationTitle["ar"],
+      bodyEn: notificationBody["en"],
+      bodyAr: notificationBody["ar"],
       data: {
         targetRole: "worker",
         category: "booking",
         bookingId: bookingId,
         serviceName: serviceName,
         customerName: customerName,
-        lanCode: lanCode,
       },
-    };
+      fcmToken: fcmToken,
+      lanCode: lanCode,
+    });
 
     try {
       const response = await admin.messaging().send(message);
@@ -1500,6 +1516,7 @@ exports.notifyAdminsOnTipPayoutRequest = onDocumentWritten(
         const user = doc.data();
         if (user.fcmToken && user.fcmToken.trim() !== "") {
           tokensWithLanguage.push({
+            uid: doc.id,
             token: user.fcmToken,
             lanCode: user.lanCode || "en",
           });
@@ -1513,37 +1530,25 @@ exports.notifyAdminsOnTipPayoutRequest = onDocumentWritten(
 
       // Send notification to each admin
       const results = [];
-      for (const { token, lanCode } of tokensWithLanguage) {
-        try {
-          const message = {
-            notification: {
-              title:
-                lanCode === "ar" ? "طلب سحب إكرامية" : "Tip Payout Request",
-              body:
-                lanCode === "ar"
-                  ? `${agentName} طلب سحب إكرامية بمبلغ ${totalTip}. يرجى المراجعة والموافقة.`
-                  : `${agentName} requested a tip payout of ₹${totalTip}. Please review and approve.`,
-            },
-            data: {
-              targetRole: "admin",
-              category: "tip_payout",
-              walletId: walletId,
-              agentId: agentId,
-              agentName: agentName,
-              amount: totalTip.toString(),
-            },
-            token: token,
-          };
-
-          const response = await admin.messaging().send(message);
-          results.push({ token, success: true, messageId: response });
-          console.log(
-            `Notification sent to admin with token ${token.substring(0, 20)}...`
-          );
-        } catch (error) {
-          results.push({ token, success: false, error: error.message });
-          console.error(`Failed to send to token: ${error.message}`);
-        }
+      for (const { uid, token, lanCode } of tokensWithLanguage) {
+        await sendAndStoreNotification({
+          targetRole: "admin",
+          targetId: uid,
+          titleEn: "Tip Payout Request",
+          titleAr: "طلب سحب إكرامية",
+          bodyEn: `${agentName} requested a tip payout of ₹${totalTip}. Please review and approve.`,
+          bodyAr: `${agentName} طلب سحب إكرامية بمبلغ ${totalTip}. يرجى المراجعة والموافقة.`,
+          data: {
+            targetRole: "admin",
+            category: "tip_payout",
+            walletId: walletId,
+            agentId: agentId,
+            agentName: agentName,
+            amount: totalTip.toString(),
+          },
+          fcmToken: token,
+          lanCode: lanCode,
+        });
       }
 
       console.log(
@@ -1628,20 +1633,22 @@ exports.notifyWorkerOnTipPayoutProcessed = onDocumentWritten(
     const title = notificationTitle[lanCode] || notificationTitle["en"];
     const body = notificationBody[lanCode] || notificationBody["en"];
 
-    const message = {
-      notification: {
-        title: title,
-        body: body,
-      },
-      token: fcmToken,
+    await sendAndStoreNotification({
+      targetRole: "technician",
+      targetId: agentId,
+      titleEn: notificationTitle["en"],
+      titleAr: notificationTitle["ar"],
+      bodyEn: notificationBody["en"],
+      bodyAr: notificationBody["ar"],
       data: {
         targetRole: "worker",
         category: "tip_payout",
         walletId: walletId,
         amount: totalTip.toString(),
-        lanCode: lanCode,
       },
-    };
+      fcmToken: fcmToken,
+      lanCode: lanCode,
+    });
 
     try {
       await admin.messaging().send(message);
@@ -1901,34 +1908,24 @@ exports.notifyCustomerOnWorkerCancellation = onDocumentUpdated(
 
       const customerLanCode = customerData.lanCode || "en";
 
-      // Prepare notification content based on language
-      let notificationTitle, notificationBody;
-
-      if (customerLanCode === "ar") {
-        notificationTitle = "تم رفض الحجز";
-        notificationBody = `لقد قام الفني برفض حجزك ل ${serviceName}.`;
-      } else {
-        notificationTitle = "Booking Rejected";
-        notificationBody = `A Technician rejected your booking for ${serviceName}.`;
-      }
-
-      // Send FCM notification
-      const message = {
-        notification: {
-          title: notificationTitle,
-          body: notificationBody,
-        },
+      await sendAndStoreNotification({
+        targetRole: "customer",
+        targetId: afterData.customer.id,
+        titleEn: "Booking Rejected",
+        titleAr: "تم رفض الحجز",
+        bodyEn: `A Technician rejected your booking for ${serviceName}.`,
+        bodyAr: `لقد قام الفني برفض حجزك ل ${serviceName}.`,
         data: {
           bookingId: afterData.id,
-          bookingStatusCode: afterData.bookingStatusCode, // Will be "P"
+          bookingStatusCode: afterData.bookingStatusCode,
           cancelledWorkerName: lastCancelledWorker.agentName,
           cancelledWorkerCount: afterCancelledCount.toString(),
           bookingDateTime: afterData.bookingDateTime.toDate().toISOString(),
         },
-        token: customerFcmToken,
-      };
+        fcmToken: customerFcmToken,
+        lanCode: customerLanCode,
+      });
 
-      await admin.messaging().send(message);
       console.log(
         `✅ Customer notification sent for booking ${afterData.id} - Worker ${lastCancelledWorker.agentName} rejected`
       );
@@ -1994,31 +1991,21 @@ exports.notifyAdminsOnWorkerCancellation = onDocumentUpdated(
       }
 
       // Send notification to each admin
-      const adminNotifications = [];
-      adminsSnapshot.docs.forEach((adminDoc) => {
+      for (const adminDoc of adminsSnapshot.docs) {
         const adminData = adminDoc.data();
         const adminFcmToken = adminData.fcmToken;
         const adminLanCode = adminData.lanCode || "en";
 
-        // Prepare notification content based on admin language preference
-        let notificationTitle, notificationBody;
-
-        if (adminLanCode === "ar") {
-          notificationTitle = "الفني قام برفض الحجز";
-          notificationBody = `${lastCancelledWorker.agentName} رفض حجزك ل${serviceNameAr} من ${customerName}. يرجى مراجعة وتعيين فني جديد.`;
-        } else {
-          notificationTitle = "Technician Cancelled A Booking";
-          notificationBody = `${lastCancelledWorker.agentName} rejected booking for ${serviceName} from ${customerName}. Please review and assign a new Technician.`;
-        }
-
-        const message = {
-          notification: {
-            title: notificationTitle,
-            body: notificationBody,
-          },
+        await sendAndStoreNotification({
+          targetRole: "admin",
+          targetId: adminDoc.id,
+          titleEn: "Technician Cancelled A Booking",
+          titleAr: "الفني قام برفض الحجز",
+          bodyEn: `${lastCancelledWorker.agentName} rejected booking for ${serviceName} from ${customerName}. Please review and assign a new Technician.`,
+          bodyAr: `${lastCancelledWorker.agentName} رفض حجزك ل${serviceNameAr} من ${customerName}. يرجى مراجعة وتعيين فني جديد.`,
           data: {
             bookingId: afterData.id,
-            bookingStatusCode: afterData.bookingStatusCode, // "P"
+            bookingStatusCode: afterData.bookingStatusCode,
             cancelledWorkerName: lastCancelledWorker.agentName,
             cancelledWorkerUid: lastCancelledWorker.uid,
             cancelledWorkerCount: afterCancelledCount.toString(),
@@ -2027,13 +2014,10 @@ exports.notifyAdminsOnWorkerCancellation = onDocumentUpdated(
             bookingDateTime: afterData.bookingDateTime.toDate().toISOString(),
             totalCancelledWorkers: afterCancelledCount.toString(),
           },
-          token: adminFcmToken,
-        };
-
-        adminNotifications.push(admin.messaging().send(message));
-      });
-
-      await Promise.all(adminNotifications);
+          fcmToken: adminFcmToken,
+          lanCode: adminLanCode,
+        });
+      }
       console.log(
         `✅ Admin notifications sent for booking ${afterData.id} - Worker ${lastCancelledWorker.agentName} rejected`
       );
@@ -2103,47 +2087,32 @@ exports.notifyWorkersOnCustomerCancellation = onDocumentUpdated(
       }
 
       // Send notification to each worker
-      const workerNotifications = [];
-      workersSnapshot.docs.forEach((workerDoc) => {
+      for (const workerDoc of workersSnapshot.docs) {
         const workerData = workerDoc.data();
         const workerFcmToken = workerData.fcmToken;
         const workerLanCode = workerData.lanCode || "en";
 
-        if (!workerFcmToken) {
-          return; // Skip if no FCM token
-        }
+        if (!workerFcmToken) continue;
 
-        // Prepare notification content based on worker language preference
-        let notificationTitle, notificationBody;
-
-        if (workerLanCode === "ar") {
-          notificationTitle = "تم إلغاء الحجز من قبل العميل";
-          notificationBody = `العميل ${customerName} قام بإلغاء حجز ${serviceNameAr}. لن تتمكن من قبول هذا الحجز.`;
-        } else {
-          notificationTitle = "Booking Cancelled by Customer";
-          notificationBody = `Customer ${customerName} cancelled their booking for ${serviceName}. You can no longer accept this booking.`;
-        }
-
-        const message = {
-          notification: {
-            title: notificationTitle,
-            body: notificationBody,
-          },
+        await sendAndStoreNotification({
+          targetRole: "technician",
+          targetId: workerDoc.id,
+          titleEn: "Booking Cancelled by Customer",
+          titleAr: "تم إلغاء الحجز من قبل العميل",
+          bodyEn: `Customer ${customerName} cancelled their booking for ${serviceName}. You can no longer accept this booking.`,
+          bodyAr: `العميل ${customerName} قام بإلغاء حجز ${serviceNameAr}. لن تتمكن من قبول هذا الحجز.`,
           data: {
             bookingId: afterData.id,
-            bookingStatusCode: afterData.bookingStatusCode, // "XC"
+            bookingStatusCode: afterData.bookingStatusCode,
             customerName: customerName,
             serviceName: serviceName,
             bookingDateTime: afterData.bookingDateTime.toDate().toISOString(),
             cancelledBy: "customer",
           },
-          token: workerFcmToken,
-        };
-
-        workerNotifications.push(admin.messaging().send(message));
-      });
-
-      await Promise.all(workerNotifications);
+          fcmToken: workerFcmToken,
+          lanCode: workerLanCode,
+        });
+      }
       console.log(
         `✅ Worker notifications sent for booking ${afterData.id} - Customer cancelled`
       );
@@ -2202,44 +2171,31 @@ exports.notifyAdminsOnCustomerCancellation = onDocumentUpdated(
       }
 
       // Send notification to each admin
-      const adminNotifications = [];
-      adminsSnapshot.docs.forEach((adminDoc) => {
+      for (const adminDoc of adminsSnapshot.docs) {
         const adminData = adminDoc.data();
         const adminFcmToken = adminData.fcmToken;
         const adminLanCode = adminData.lanCode || "en";
 
-        // Prepare notification content based on admin language preference
-        let notificationTitle, notificationBody;
-
-        if (adminLanCode === "ar") {
-          notificationTitle = "تم إلغاء الحجز من قبل العميل";
-          notificationBody = `العميل ${customerName} قام بإلغاء حجز ${serviceNameAr}. السبب: ${cancellationReason}`;
-        } else {
-          notificationTitle = "Booking Cancelled by Customer";
-          notificationBody = `Customer ${customerName} cancelled their booking for ${serviceName}. Reason: ${cancellationReason}`;
-        }
-
-        const message = {
-          notification: {
-            title: notificationTitle,
-            body: notificationBody,
-          },
+        await sendAndStoreNotification({
+          targetRole: "admin",
+          targetId: adminDoc.id,
+          titleEn: "Booking Cancelled by Customer",
+          titleAr: "تم إلغاء الحجز من قبل العميل",
+          bodyEn: `Customer ${customerName} cancelled their booking for ${serviceName}. Reason: ${cancellationReason}`,
+          bodyAr: `العميل ${customerName} قام بإلغاء حجز ${serviceNameAr}. السبب: ${cancellationReason}`,
           data: {
             bookingId: afterData.id,
-            bookingStatusCode: afterData.bookingStatusCode, // "XC"
+            bookingStatusCode: afterData.bookingStatusCode,
             customerName: customerName,
             serviceName: serviceName,
             bookingDateTime: afterData.bookingDateTime.toDate().toISOString(),
             cancellationReason: cancellationReason,
             cancelledBy: "customer",
           },
-          token: adminFcmToken,
-        };
-
-        adminNotifications.push(admin.messaging().send(message));
-      });
-
-      await Promise.all(adminNotifications);
+          fcmToken: adminFcmToken,
+          lanCode: adminLanCode,
+        });
+      }
       console.log(
         `✅ Admin notifications sent for booking ${afterData.id} - Customer cancelled`
       );
