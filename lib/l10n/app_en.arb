@@ -412,6 +412,7 @@
   "greaterThan4dot5rating": "4.5+ rating",
   "greaterThan4dot8rating": "4.8+ rating",
   "searchByTechnicianName": "Search by technician name",
+  "bookingWasRejectedByAdmin": "Booking was rejected by admin",
   "bonus": "Bonus",
   "jobs": "Jobs",
   "twentyPlusJobs": "20+ Jobs",

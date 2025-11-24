@@ -1292,6 +1292,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchByTechnicianName => 'Search by technician name';
 
   @override
+  String get bookingWasRejectedByAdmin => 'Booking was rejected by admin';
+
+  @override
   String get bonus => 'Bonus';
 
   @override

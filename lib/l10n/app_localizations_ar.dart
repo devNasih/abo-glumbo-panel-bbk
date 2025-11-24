@@ -1280,6 +1280,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get searchByTechnicianName => 'البحث باسم الفنّي';
 
   @override
+  String get bookingWasRejectedByAdmin => 'تم رفض الحجز بواسطة المسؤول';
+
+  @override
   String get bonus => 'مكافأة';
 
   @override

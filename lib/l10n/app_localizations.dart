@@ -2576,6 +2576,12 @@ abstract class AppLocalizations {
   /// **'Search by technician name'**
   String get searchByTechnicianName;
 
+  /// No description provided for @bookingWasRejectedByAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking was rejected by admin'**
+  String get bookingWasRejectedByAdmin;
+
   /// No description provided for @bonus.
   ///
   /// In en, this message translates to:

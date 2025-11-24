@@ -25,7 +25,7 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
     {'code': 'X', 'name': 'Cancelled'},
   ];
   late TabController _tabController;
-  late List<Stream<List<BookingModel>>> _bookingsStreams;
+
   late AnimationController _shimmerController;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -51,12 +51,6 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
     });
 
     // Rest of your code...
-    _bookingsStreams = _bookingStatuses
-        .map(
-          (status) =>
-              AppServices.getBookingsStream(bookingStatusCode: status['code']!),
-        )
-        .toList();
 
     _shimmerController = AnimationController(
       vsync: this,
@@ -86,31 +80,6 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
       context,
       MaterialPageRoute(builder: (context) => const NewNotificationsPage()),
     );
-  }
-
-  // Filter bookings based on search query
-  List<BookingModel> _filterBookings(List<BookingModel> bookings) {
-    if (_searchQuery.isEmpty) {
-      return bookings;
-    }
-
-    return bookings.where((booking) {
-      // Search by booking ID
-      final bookingId = booking.id.toLowerCase();
-      final technicianName = booking.agent?.name?.toLowerCase() ?? '';
-      // Search by customer name (adjust field name based on your BookingModel)
-      final customerName = booking.customer.name?.toLowerCase() ?? '';
-
-      // Search by booking name/service name (adjust field name based on your BookingModel)
-      final bookingNameEn = booking.service.name?.toLowerCase() ?? '';
-      final bookingNameAr = booking.service.name_ar?.toLowerCase() ?? '';
-
-      return bookingId.contains(_searchQuery) ||
-          customerName.contains(_searchQuery) ||
-          technicianName.contains(_searchQuery) ||
-          bookingNameEn.contains(_searchQuery) ||
-          bookingNameAr.contains(_searchQuery);
-    }).toList();
   }
 
   @override
@@ -181,10 +150,9 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
               child: TabBarView(
                 controller: _tabController,
                 children: List.generate(_bookingStatuses.length, (index) {
-                  return _buildBookingsList(
-                    context,
-                    stream: _bookingsStreams[index],
-                    selectedBookingStatus: _bookingStatuses[index]['code']!,
+                  return _BookingListTab(
+                    bookingStatusCode: _bookingStatuses[index]['code']!,
+                    searchQuery: _searchQuery,
                   );
                 }),
               ),
@@ -239,14 +207,56 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     );
   }
+}
 
-  Widget _buildBookingsList(
-    BuildContext context, {
-    required Stream<List<BookingModel>> stream,
-    required String selectedBookingStatus,
-  }) {
+class _BookingListTab extends StatefulWidget {
+  final String bookingStatusCode;
+  final String searchQuery;
+
+  const _BookingListTab({
+    required this.bookingStatusCode,
+    required this.searchQuery,
+  });
+
+  @override
+  State<_BookingListTab> createState() => _BookingListTabState();
+}
+
+class _BookingListTabState extends State<_BookingListTab> {
+  late Stream<List<BookingModel>> _bookingsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _bookingsStream = AppServices.getBookingsStream(
+      bookingStatusCode: widget.bookingStatusCode,
+    );
+  }
+
+  List<BookingModel> _filterBookings(List<BookingModel> bookings) {
+    if (widget.searchQuery.isEmpty) {
+      return bookings;
+    }
+
+    return bookings.where((booking) {
+      final bookingId = booking.id.toLowerCase();
+      final technicianName = booking.agent?.name?.toLowerCase() ?? '';
+      final customerName = booking.customer.name?.toLowerCase() ?? '';
+      final bookingNameEn = booking.service.name?.toLowerCase() ?? '';
+      final bookingNameAr = booking.service.name_ar?.toLowerCase() ?? '';
+
+      return bookingId.contains(widget.searchQuery) ||
+          customerName.contains(widget.searchQuery) ||
+          technicianName.contains(widget.searchQuery) ||
+          bookingNameEn.contains(widget.searchQuery) ||
+          bookingNameAr.contains(widget.searchQuery);
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return StreamBuilder<List<BookingModel>>(
-      stream: stream,
+      stream: _bookingsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting &&
             !snapshot.hasData) {
@@ -263,8 +273,8 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
         if (filteredBookings.isEmpty) {
           return _buildEmptyState(
             context,
-            selectedBookingStatus,
-            isSearching: _searchQuery.isNotEmpty,
+            widget.bookingStatusCode,
+            isSearching: widget.searchQuery.isNotEmpty,
           );
         }
 

@@ -1059,7 +1059,7 @@ class _BookingInfoState extends State<BookingInfo> {
     }
 
     // Worker cancellations
-    if (widget.booking.cancelledWorkers.isNotEmpty) {
+    if (widget.isAdmin && widget.booking.cancelledWorkers.isNotEmpty) {
       for (var worker in widget.booking.cancelledWorkers) {
         final workerName = worker.agentName.isNotEmpty
             ? worker.agentName
@@ -1082,7 +1082,7 @@ class _BookingInfoState extends State<BookingInfo> {
     if (widget.booking.completedAt == null &&
         widget.booking.rejectedAt == null &&
         widget.booking.bookingStatusCode.toLowerCase() != 'xc' &&
-        widget.booking.bookingStatusCode.toLowerCase() != 'xx') {
+        widget.booking.bookingStatusCode.toLowerCase() != 'R') {
       if (widget.booking.trackingStartedAt != null) {
         timelineItems.add({
           'title': AppLocalizations.of(context)!.serviceInProgress,

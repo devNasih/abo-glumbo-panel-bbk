@@ -724,6 +724,7 @@
   "greaterThan4dot0rating": "تقييم 4.0+",
   "greaterThan4dot5rating": "تقييم 4.5+",
   "greaterThan4dot8rating": "تقييم 4.8+",
+  "bookingWasRejectedByAdmin": "تم رفض الحجز بواسطة المسؤول",
   "searchByTechnicianName": "البحث باسم الفنّي",
   "bonus": "مكافأة",
   "jobs": "وظائف",

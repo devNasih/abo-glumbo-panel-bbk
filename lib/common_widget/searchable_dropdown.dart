@@ -88,10 +88,21 @@ class _SearchableDropdownState<T extends Object>
                   return const Iterable.empty();
                 }
                 return widget.items.where((T option) {
-                  return widget
-                      .itemLabel(option)
-                      .toLowerCase()
-                      .contains(textEditingValue.text.toLowerCase());
+                  final searchText = textEditingValue.text.toLowerCase();
+                  final optionText = widget.itemLabel(option).toLowerCase();
+
+                  // Fuzzy search: all characters must appear in order
+                  int searchIndex = 0;
+                  for (
+                    int i = 0;
+                    i < optionText.length && searchIndex < searchText.length;
+                    i++
+                  ) {
+                    if (optionText[i] == searchText[searchIndex]) {
+                      searchIndex++;
+                    }
+                  }
+                  return searchIndex == searchText.length;
                 });
               },
               displayStringForOption: widget.itemLabel,
