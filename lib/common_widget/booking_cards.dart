@@ -117,7 +117,7 @@ class BookingCards extends StatelessWidget {
                       )) ...[
                     IconButton(
                       onPressed: () {
-                        showAcceptBookingDialog(context, booking);
+                        _showAcceptConfirmationDialog(context, booking);
                       },
                       icon: Icon(Icons.check_circle, color: Colors.green),
                     ),
@@ -392,7 +392,10 @@ class BookingCards extends StatelessWidget {
     );
   }
 
-  void showAcceptBookingDialog(BuildContext context, BookingModel booking) {
+  void _showAcceptConfirmationDialog(
+    BuildContext context,
+    BookingModel booking,
+  ) {
     showDialog(
       context: context,
       builder: (context) {
@@ -457,7 +460,7 @@ class BookingCards extends StatelessWidget {
               },
               child: Text(AppLocalizations.of(context)!.reject),
             ),
-              const SizedBox(width: 8),
+            const SizedBox(width: 8),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
