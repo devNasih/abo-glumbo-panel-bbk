@@ -358,11 +358,21 @@ class _BookingInfoState extends State<BookingInfo> {
               _buildIssueMediaCard(context, textTheme, colorScheme),
             const SizedBox(height: 16),
 
-            // Completion data
             if (widget.booking.bookingStatusCode.toLowerCase() == 'c' &&
                 widget.booking.paymentCompleted &&
                 widget.booking.completionData != null) ...[
               _buildCompletionDataCard(context, textTheme, colorScheme),
+              const SizedBox(height: 16),
+            ],
+            if (widget.isAdmin &&
+                widget.booking.warranty != null &&
+                widget.booking.warranty!.rejectedTechnicians != null &&
+                widget.booking.warranty!.rejectedTechnicians!.isNotEmpty) ...[
+              _buildWarrantyRejectedTechniciansCard(
+                context,
+                textTheme,
+                colorScheme,
+              ),
               const SizedBox(height: 16),
             ],
 
@@ -373,6 +383,224 @@ class _BookingInfoState extends State<BookingInfo> {
               colorScheme,
               widget.isWarranty,
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWarrantyRejectedTechniciansCard(
+    BuildContext context,
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+  ) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(0.1),
+          width: 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.person_off_rounded,
+                    color: Colors.red,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Warranty Rejected Technicians', // Replace with AppLocalizations.of(context)!.warrantyRejectedTechnicians
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // List of rejected technicians
+            ...widget.booking.warranty!.rejectedTechnicians!.map((tech) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceVariant.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.red.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Technician Name
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.person,
+                          size: 16,
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Technician Name', // Replace with AppLocalizations.of(context)!.technicianName
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      tech.name ?? 'Unknown',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Technician UID (copyable)
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.badge,
+                          size: 16,
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Technician UID', // Replace with AppLocalizations.of(context)!.technicianUid
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            tech.uid ?? 'N/A',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.copy, size: 18),
+                          onPressed: () {
+                            if (tech.uid != null) {
+                              Clipboard.setData(ClipboardData(text: tech.uid!));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('UID copied to clipboard'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Cancellation Reason
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Cancellation Reason', // Replace with AppLocalizations.of(context)!.cancellationReason
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      tech.reason ?? 'No reason provided',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Cancelled Date
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
+                          size: 16,
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Cancelled Date', // Replace with AppLocalizations.of(context)!.cancelledDate
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      tech.rejectedAt != null
+                          ? _formatDateLocalized(tech.rejectedAt!, context)
+                          : 'N/A',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
           ],
         ),
       ),

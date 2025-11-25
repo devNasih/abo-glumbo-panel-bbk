@@ -2030,66 +2030,64 @@ class AppLocalizationsAr extends AppLocalizations {
   String get unknownTechnician => 'فني غير معروف';
 
   @override
-  String get tryadifferentsearchterm => 'Try a different search term';
+  String get tryadifferentsearchterm => 'جرّب كلمة بحث أخرى';
 
   @override
-  String get warrantyRepairRequested => 'Warranty Repair Requested';
+  String get warrantyRepairRequested => 'تم طلب إصلاح الضمان';
 
   @override
-  String get acceptWarrantyRepair => 'Accept Warranty Repair';
+  String get acceptWarrantyRepair => 'قبول إصلاح الضمان';
 
   @override
   String get customerRequestedRepairUnderWarranty =>
-      'Customer requested repair under warranty';
+      'العميل طلب إصلاحًا تحت الضمان';
 
   @override
-  String get warrantyRepairAccepted => 'Warranty Repair Accepted';
+  String get warrantyRepairAccepted => 'تم قبول إصلاح الضمان';
 
   @override
-  String get technicianAcceptedTheRequest => 'Technician accepted the request';
+  String get technicianAcceptedTheRequest => 'قام الفنّي بقبول الطلب';
 
   @override
-  String get warrantyRepairCompleted => 'Warranty Repair Completed';
+  String get warrantyRepairCompleted => 'تم إكمال إصلاح الضمان';
 
   @override
-  String get originalServiceCompleted => 'Original Service Completed';
+  String get originalServiceCompleted => 'تم إكمال الخدمة الأصلية';
 
   @override
-  String get warrantyRejectedByAdmin => 'Warranty Rejected by Admin';
+  String get warrantyRejectedByAdmin => 'تم رفض الضمان من قبل الإدارة';
 
   @override
-  String get warrantyRejectedByTechnician => 'Warranty Rejected by Technician';
+  String get warrantyRejectedByTechnician => 'تم رفض الضمان من قبل الفنّي';
 
   @override
-  String get reasonforrejection => 'Reason for rejection';
+  String get reasonforrejection => 'سبب الرفض';
 
   @override
   String get warrantyRequestWasRejectedByAdmin =>
-      'Warranty request was rejected by admin';
+      'تم رفض طلب الضمان من قبل الإدارة';
 
   @override
   String get warrantyRequestWasRejectedByTechnician =>
-      'Warranty request was rejected by technician';
+      'تم رفض طلب الضمان من قبل الفنّي';
 
   @override
-  String get technicianCompletedTheRequest =>
-      'Technician completed the request';
+  String get technicianCompletedTheRequest => 'قام الفنّي بإكمال الطلب';
 
   @override
-  String get trackingStoppedAt => 'Tracking Stopped';
+  String get trackingStoppedAt => 'تم إيقاف التتبع عند';
 
   @override
-  String get serviceTrackingStopped => 'Service tracking has been stopped';
+  String get serviceTrackingStopped => 'تم إيقاف تتبع الخدمة';
 
   @override
-  String get youCancelledThisRequest => 'You cancelled this request';
+  String get youCancelledThisRequest => 'لقد ألغيت هذا الطلب';
 
   @override
-  String get youDeclinedThisWarrantyRequest =>
-      'You declined this warranty request';
+  String get youDeclinedThisWarrantyRequest => 'لقد رفضت طلب الضمان هذا';
 
   @override
-  String get noresultsfound => 'No results found';
+  String get noresultsfound => 'لا توجد نتائج';
 
   @override
   String get technicianCancelled => 'تم إلغاء الفني';
@@ -3243,47 +3241,47 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enterReasonForCancel => 'الرجاء ادخال سبب الإلغاء';
 
   @override
-  String get noTechnicianAssigned => 'No technician assigned';
+  String get noTechnicianAssigned => 'لم يتم تعيين فنّي';
 
   @override
   String get enterReasonForReject => 'الرجاء ادخال سبب الرفض';
 
   @override
-  String get noWarrantyRequests => 'No warranty requests';
+  String get noWarrantyRequests => 'لا توجد طلبات ضمان';
 
   @override
-  String get completeWarrantyRepair => 'Complete Warranty Repair';
+  String get completeWarrantyRepair => 'إكمال إصلاح الضمان';
 
   @override
   String get areYouSureYouWantToCompleteThisWarrantyRepairThisIsAFreeService =>
-      'Are you sure you want to complete this warranty repair? This is a free service.';
+      'هل أنت متأكد أنك تريد إكمال إصلاح الضمان؟ هذه خدمة مجانية.';
 
   @override
   String get areYouSureYouWantToStopTrackingThisWarrantyRepair =>
-      'Are you sure you want to stop tracking this warranty repair?';
+      'هل أنت متأكد أنك تريد إيقاف تتبع إصلاح الضمان؟';
 
   @override
   String get areYouSureYouWantToStartTrackingThisWarrantyRepair =>
-      'Are you sure you want to start tracking this warranty repair?';
+      'هل أنت متأكد أنك تريد بدء تتبع إصلاح الضمان؟';
 
   @override
   String get anotherBookingIsAlreadyBeingTracked =>
-      'Another booking is already being tracked. Please complete or stop the current tracking before starting a new one.';
+      'هناك حجز آخر يتم تتبعه بالفعل';
 
   @override
-  String get requested => 'requested';
+  String get requested => 'تم الطلب';
 
   @override
   String
   get areYouSureYouWantToCancelThisWarrantyRepairThisActionCannotBeUndone =>
-      'Are you sure you want to cancel this warranty repair? This action cannot be undone.';
+      'هل أنت متأكد أنك تريد إلغاء إصلاح الضمان؟ لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String get reasonMustBeAtLeast10Characters =>
-      'Reason must be at least 10 characters';
+      'يجب أن يكون السبب 10 أحرف على الأقل';
 
   @override
-  String get cancelWarrantyRepair => 'Cancel Warranty Repair';
+  String get cancelWarrantyRepair => 'إلغاء إصلاح الضمان';
 
   @override
   String get areYouSureYouWantToDeleteThisFile =>

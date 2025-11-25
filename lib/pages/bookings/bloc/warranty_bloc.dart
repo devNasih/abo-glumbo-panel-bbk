@@ -112,6 +112,7 @@ class WarrantyBloc extends Bloc<WarrantyEvent, WarrantyState> {
 
       await AppFirestore.bookingsCollectionRef.doc(event.bookingId).update({
         'warranty.warrantyStatusCode': 'C',
+        'warranty.availability': Timestamp.now(),
         'warranty.completedAt': Timestamp.now(),
         'updatedAt': Timestamp.now(),
       });

@@ -2209,71 +2209,179 @@ exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
     // Notify customer
     if (customerData?.fcmToken && customerData.fcmToken.trim() !== "") {
       const customerLanCode = customerData.lanCode || "en";
-      const customerMessage =
-        statusMessages[status]?.customer?.[customerLanCode] ||
-        statusMessages[status]?.customer?.["en"] ||
-        `Your warranty request status has been updated to ${status}`;
 
-      try {
-        await admin.messaging().send({
-          notification: {
-            title:
-              customerLanCode === "ar"
-                ? "تحديث طلب الضمان"
-                : "Warranty Request Update",
-            body: `${customerMessage} (${serviceName})`,
-          },
-          data: {
-            targetRole: "customer",
-            category: "warranty",
-            bookingId: bookingId,
-            status: status,
-            serviceName: serviceName,
-          },
-          token: customerData.fcmToken,
-        });
-        console.log(
-          `Warranty notification sent to customer ${customerId} for status: ${status}`
-        );
-      } catch (error) {
-        console.error("Error sending customer warranty notification:", error);
-      }
+      await sendAndStoreNotification({
+        targetRole: "customer",
+        targetId: customerId,
+        titleEn: "Warranty Request Update",
+        titleAr: "تحديث طلب الضمان",
+        bodyEn: `${
+          statusMessages[status]?.customer?.["en"] ||
+          `Your warranty request status has been updated to ${status}`
+        } (${serviceName})`,
+        bodyAr: `${
+          statusMessages[status]?.customer?.["ar"] ||
+          `تحديث حالة طلب الضمان إلى ${status}`
+        } (${serviceName})`,
+        data: {
+          targetRole: "customer",
+          category: "warranty",
+          bookingId: bookingId,
+          status: status,
+          serviceName: serviceName,
+          isWarranty: "true",
+        },
+        fcmToken: customerData.fcmToken,
+        lanCode: customerLanCode,
+      });
     }
 
     // Notify admins
     if (adminTokens.length > 0) {
-      const adminMessages = adminTokens.map(({ token, lanCode }) => ({
-        notification: {
-          title:
-            lanCode === "ar" ? "تحديث طلب الضمان" : "Warranty Request Update",
-          body:
-            statusMessages[status]?.admin?.[lanCode] ||
+      for (const { uid, token, lanCode } of adminTokens) {
+        await sendAndStoreNotification({
+          targetRole: "admin",
+          targetId: uid,
+          titleEn: "Warranty Request Update",
+          titleAr: "تحديث طلب الضمان",
+          bodyEn:
             statusMessages[status]?.admin?.["en"] ||
             `Warranty request for booking ${bookingId} updated to ${status}`,
-        },
-        token,
-        data: {
-          targetRole: "admin",
-          category: "warranty",
-          bookingId: bookingId,
-          customerId: customerId || "",
-          workerId: workerId || "",
-          status: status,
-          serviceName: serviceName,
-        },
-      }));
-
-      try {
-        await Promise.all(
-          adminMessages.map((msg) => admin.messaging().send(msg))
-        );
-        console.log(
-          `Warranty notification sent to ${adminTokens.length} admins for status: ${status}`
-        );
-      } catch (error) {
-        console.error("Error sending admin warranty notifications:", error);
+          bodyAr:
+            statusMessages[status]?.admin?.["ar"] ||
+            `تم تحديث طلب الضمان للحجز ${bookingId} إلى ${status}`,
+          data: {
+            targetRole: "admin",
+            category: "warranty",
+            bookingId: bookingId,
+            customerId: customerId || "",
+            workerId: workerId || "",
+            status: status,
+            serviceName: serviceName,
+            isWarranty: "true",
+          },
+          fcmToken: token,
+          lanCode: lanCode,
+        });
       }
     }
+
+    return null;
+  }
+);
+
+// ============================================
+// Notify Admins on Warranty Escalation
+// ============================================
+exports.notifyAdminsOnWarrantyEscalation = onDocumentWritten(
+  "bookings/{bookingId}",
+  async (event) => {
+    const beforeData = event.data?.before?.data();
+    const afterData = event.data?.after?.data();
+    const bookingId = event.params.bookingId;
+
+    if (!afterData) {
+      console.log("Booking document deleted, skipping escalation check...");
+      return;
+    }
+
+    // Check if isEscalated changed from false/undefined to true
+    const wasEscalated = beforeData?.isEscalated === true;
+    const isEscalatedNow = afterData.isEscalated === true;
+
+    if (!isEscalatedNow || wasEscalated) {
+      return; // No escalation occurred
+    }
+
+    console.log(
+      `Warranty request escalated for booking ${bookingId}. Notifying admins...`
+    );
+
+    const serviceName = afterData.service?.name || "Service";
+    const customerName = afterData.customer?.name || "Customer";
+    const warranty = afterData.warranty;
+
+    // Determine escalation reason
+    let escalationReason = "staying unchanged (unattended) for a long time";
+    if (
+      warranty?.rejectedTechnicians &&
+      warranty.rejectedTechnicians.length > 0
+    ) {
+      escalationReason =
+        "the original technician cancelled/rejected the request";
+    }
+
+    // Fetch all admin users
+    let adminTokens = [];
+    try {
+      const adminSnapshot = await admin
+        .firestore()
+        .collection("users")
+        .where("isAdmin", "==", true)
+        .get();
+
+      adminTokens = adminSnapshot.docs
+        .map((doc) => {
+          const data = doc.data();
+          return data.fcmToken && data.fcmToken.trim() !== ""
+            ? {
+                uid: doc.id,
+                token: data.fcmToken,
+                lanCode: data.lanCode || "en",
+              }
+            : null;
+        })
+        .filter(Boolean);
+    } catch (error) {
+      console.error("Error fetching admin users:", error);
+      return;
+    }
+
+    if (adminTokens.length === 0) {
+      console.log("No admin tokens found for escalation notification.");
+      return;
+    }
+
+    // Notification messages
+    const titleEn = "⚠️ Warranty Request Escalated";
+    const titleAr = "⚠️ تم تصعيد طلب الضمان";
+
+    const bodyEn = `A warranty request for "${serviceName}" from ${customerName} requires your attention.\n\nReason: This request has been ${escalationReason}.\n\nActions Available:\n✅ Approve Rejection: Confirm the technician's decision and close the request.\n🔁 Assign Alternate Technician: Use the "Assign" option to re-assign the job to another technician.`;
+
+    const bodyAr = `طلب ضمان لـ "${serviceName}" من ${customerName} يتطلب انتباهك.\n\nالسبب: تم ${
+      escalationReason === "staying unchanged (unattended) for a long time"
+        ? "ترك هذا الطلب دون تغيير (غير مُعالج) لفترة طويلة"
+        : "إلغاء/رفض الطلب من قبل الفني الأصلي"
+    }.\n\nالإجراءات المتاحة:\n✅ الموافقة على الرفض: تأكيد قرار الفني وإغلاق الطلب.\n🔁 تعيين فني بديل: استخدم خيار "تعيين" لإعادة تعيين العمل لفني آخر.`;
+
+    // Send notification to each admin
+    for (const { uid, token, lanCode } of adminTokens) {
+      await sendAndStoreNotification({
+        targetRole: "admin",
+        targetId: uid,
+        titleEn: titleEn,
+        titleAr: titleAr,
+        bodyEn: bodyEn,
+        bodyAr: bodyAr,
+        data: {
+          targetRole: "admin",
+          category: "warranty_escalation",
+          bookingId: bookingId,
+          customerId: afterData.customer?.uid || "",
+          customerName: customerName,
+          serviceName: serviceName,
+          escalationReason: escalationReason,
+          isWarranty: "true",
+          isAdmin: "true",
+        },
+        fcmToken: token,
+        lanCode: lanCode,
+      });
+    }
+
+    console.log(
+      `✅ Escalation notifications sent to ${adminTokens.length} admin(s) for booking ${bookingId}`
+    );
 
     return null;
   }
@@ -2291,7 +2399,7 @@ exports.updateWarrantyAvailability = onSchedule(
     logger.info("Starting warranty availability update check...");
 
     try {
-      // Calculate the date 7 days ago from now
+      // Calculate the date exactly 7 days ago from now
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       sevenDaysAgo.setHours(0, 0, 0, 0); // Start of the day
@@ -2301,21 +2409,20 @@ exports.updateWarrantyAvailability = onSchedule(
       eightDaysAgo.setHours(0, 0, 0, 0);
 
       logger.info(
-        `Checking bookings completed between ${eightDaysAgo.toISOString()} and ${sevenDaysAgo.toISOString()}`
+        `Checking warranties created between ${eightDaysAgo.toISOString()} and ${sevenDaysAgo.toISOString()}`
       );
 
-      // Query completed bookings that have warranty enabled and completed exactly 7 days ago
+      // Query bookings with warranties that were created exactly 7 days ago
+      // and have status "A" (available) or "R" (requested)
       const bookingsSnapshot = await db
         .collection("bookings")
-        .where("bookingStatusCode", "==", "C") // Completed bookings
-        .where("warranty.availability", "==", true) // Warranty still available
         .where(
-          "completedAt",
+          "warranty.createdAt",
           ">=",
           admin.firestore.Timestamp.fromDate(eightDaysAgo)
         )
         .where(
-          "completedAt",
+          "warranty.createdAt",
           "<=",
           admin.firestore.Timestamp.fromDate(sevenDaysAgo)
         )
@@ -2327,50 +2434,52 @@ exports.updateWarrantyAvailability = onSchedule(
       }
 
       let updatedCount = 0;
+      let skippedCount = 0;
       const batch = db.batch();
       const batchSize = 500; // Firestore batch limit
       let batchCount = 0;
 
       for (const bookingDoc of bookingsSnapshot.docs) {
         const bookingData = bookingDoc.data();
-        const completedAt = bookingData.completedAt?.toDate();
+        const warranty = bookingData.warranty;
 
-        if (!completedAt) {
-          logger.warn(
-            `Booking ${bookingDoc.id} has no completedAt timestamp, skipping.`
-          );
+        // Skip if no warranty exists
+        if (!warranty) {
+          skippedCount++;
           continue;
         }
 
-        // Calculate days since completion
-        const daysSinceCompletion = Math.floor(
-          (new Date() - completedAt) / (1000 * 60 * 60 * 24)
+        // Only update if warranty status is "A" (available) or "R" (requested)
+        const warrantyStatusCode = warranty.warrantyStatusCode;
+        if (warrantyStatusCode !== "A" && warrantyStatusCode !== "R") {
+          logger.info(
+            `Skipping booking ${bookingDoc.id} - warranty status is ${warrantyStatusCode} (not A or R)`
+          );
+          skippedCount++;
+          continue;
+        }
+
+        const bookingRef = bookingDoc.ref;
+
+        // Update warranty status to Expired (E), set expiredOn and updatedAt
+        batch.update(bookingRef, {
+          "warranty.warrantyStatusCode": "E",
+          "warranty.expiredOn": admin.firestore.FieldValue.serverTimestamp(),
+          "warranty.updatedAt": admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        updatedCount++;
+        batchCount++;
+
+        logger.info(
+          `Scheduled warranty expiration for booking ${bookingDoc.id} (previous status: ${warrantyStatusCode})`
         );
 
-        // Only update if exactly 7 or more days have passed
-        if (daysSinceCompletion >= 7) {
-          const bookingRef = bookingDoc.ref;
-
-          // Update warranty availability to false
-          batch.update(bookingRef, {
-            "warranty.availability": false,
-            "warranty.expiredAt": admin.firestore.FieldValue.serverTimestamp(),
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-          });
-
-          updatedCount++;
-          batchCount++;
-
-          logger.info(
-            `Scheduled warranty expiration for booking ${bookingDoc.id} (completed ${daysSinceCompletion} days ago)`
-          );
-
-          // Commit batch every 500 operations
-          if (batchCount >= batchSize) {
-            await batch.commit();
-            logger.info(`Committed batch of ${batchCount} updates`);
-            batchCount = 0;
-          }
+        // Commit batch every 500 operations
+        if (batchCount >= batchSize) {
+          await batch.commit();
+          logger.info(`Committed batch of ${batchCount} updates`);
+          batchCount = 0;
         }
       }
 
@@ -2381,7 +2490,7 @@ exports.updateWarrantyAvailability = onSchedule(
       }
 
       logger.info(
-        `Warranty availability update completed. Total bookings updated: ${updatedCount}`
+        `Warranty availability update completed. Total bookings updated: ${updatedCount}, skipped: ${skippedCount}`
       );
       return null;
     } catch (error) {
@@ -2468,6 +2577,29 @@ exports.notifyOnNewChatMessage = onValueCreated(
         console.error(`[${chatId}] Error fetching sender name:`, error);
       }
 
+      // Fetch booking details to get service name and warranty status
+      let serviceName = "Service";
+      let isWarranty = "false";
+      const bookingId = chatData.bookingId;
+
+      if (bookingId) {
+        try {
+          const bookingDoc = await db
+            .collection("bookings")
+            .doc(bookingId)
+            .get();
+          if (bookingDoc.exists) {
+            const bookingData = bookingDoc.data();
+            serviceName = bookingData.service?.name || "Service";
+            if (bookingData.warranty) {
+              isWarranty = "true";
+            }
+          }
+        } catch (e) {
+          console.error(`[${chatId}] Error fetching booking details:`, e);
+        }
+      }
+
       // Get receiver's FCM token and language preference
       let receiverFcmToken = null;
       let receiverLanCode = "en";
@@ -2506,30 +2638,34 @@ exports.notifyOnNewChatMessage = onValueCreated(
       }
 
       // Prepare notification message
-      let notificationBody = messageText;
+      let bodyEn = messageText;
+      let bodyAr = messageText;
 
       // Handle media messages
       if (mediaType === "image") {
-        notificationBody = receiverLanCode === "ar" ? "📷 صورة" : "📷 Photo";
+        bodyEn = "📷 Photo";
+        bodyAr = "📷 صورة";
       } else if (mediaType === "video") {
-        notificationBody = receiverLanCode === "ar" ? "🎥 فيديو" : "🎥 Video";
+        bodyEn = "🎥 Video";
+        bodyAr = "🎥 فيديو";
       }
 
       // Truncate long messages
-      if (notificationBody.length > 100) {
-        notificationBody = notificationBody.substring(0, 97) + "...";
+      if (bodyEn.length > 100) {
+        bodyEn = bodyEn.substring(0, 97) + "...";
+        bodyAr = bodyAr.substring(0, 97) + "...";
       }
 
-      const notificationTitle =
-        receiverLanCode === "ar"
-          ? `رسالة جديدة من ${senderName}`
-          : `New message from ${senderName}`;
+      const titleEn = `New message from ${senderName}`;
+      const titleAr = `رسالة جديدة من ${senderName}`;
 
-      const message = {
-        notification: {
-          title: notificationTitle,
-          body: notificationBody,
-        },
+      await sendAndStoreNotification({
+        targetRole: receiverType,
+        targetId: receiverId,
+        titleEn: titleEn,
+        titleAr: titleAr,
+        bodyEn: bodyEn,
+        bodyAr: bodyAr,
         data: {
           type: "chat_message",
           chatId: chatId,
@@ -2537,21 +2673,14 @@ exports.notifyOnNewChatMessage = onValueCreated(
           senderType: senderType,
           senderName: senderName,
           messageId: messageId,
-          bookingId: chatData.bookingId || "",
+          bookingId: bookingId || "",
           targetRole: receiverType,
+          serviceName: serviceName,
+          isWarranty: isWarranty,
         },
-        token: receiverFcmToken,
-      };
-
-      try {
-        const response = await admin.messaging().send(message);
-        console.log(
-          `[${chatId}] Notification sent successfully to ${receiverType}:`,
-          response
-        );
-      } catch (error) {
-        console.error(`[${chatId}] Error sending notification:`, error);
-      }
+        fcmToken: receiverFcmToken,
+        lanCode: receiverLanCode,
+      });
 
       return null;
     } catch (error) {
