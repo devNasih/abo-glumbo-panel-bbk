@@ -12,8 +12,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 part 'booking_event.dart';
 part 'booking_state.dart';
 
@@ -68,19 +66,17 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
           .map((item) => item.toMap())
           .toList();
 
-      // Step 3: Save booking completion data to Firestore
-      await _saveBookingCompletionData(
+      // Step 4: Update booking status using existing service
+      bool isSuccess = await AppServices.completeBooking(
         bookingId: event.bookingId,
-        fileUrls: fileUrls, // Changed from imageUrls
+        technicianId: event.technicianId,
+        mode: event.mode,
+        fileUrls: fileUrls,
         serviceCost: event.serviceCost,
         serviceItems: serviceItemsData,
-
         totalCost: event.totalCost,
-        mode: event.mode,
+        inspectionFee: event.inspectionFee,
       );
-
-      // Step 4: Update booking status using existing service
-      bool isSuccess = await AppServices.completeBooking(event.bookingId, event.technicianId, event.customerId, event.mode);
 
       if (isSuccess) {
         emit(BookingCompleteSuccess());
@@ -142,36 +138,6 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
   }
 
   // Save booking completion data to Firestore
-  Future<void> _saveBookingCompletionData({
-    required String bookingId,
-    required List<String> fileUrls, // Changed from imageUrls
-    required double serviceCost,
-    required List<Map<String, dynamic>> serviceItems,
-    required double totalCost,
-    required int mode,
-  }) async {
-    try {
-      // Update the existing booking document with completion details
-      await FirebaseFirestore.instance
-          .collection('bookings')
-          .doc(bookingId)
-          .update({
-            'completionData': {
-              'fileUrls': fileUrls, // Changed from imageUrls
-              'serviceCost': serviceCost,
-              'serviceItems': serviceItems,
-              'totalCost': totalCost,
-              'mode': mode,
-            },
-            'completedAt': FieldValue.serverTimestamp(),
-            'status': 'completed',
-            'bookingStatusCode': 'C',
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
-    } catch (e) {
-      throw Exception('Failed to save booking completion data: $e');
-    }
-  }
 
   Future<void> _startBookingWorker(
     StartWorkingOnBooking event,

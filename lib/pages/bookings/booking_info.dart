@@ -7,21 +7,32 @@ import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/address.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
+import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/bookings/booking_controllers.dart';
+import 'package:aboglumbo_bbk_panel/pages/bookings/warranty_controllers.dart';
 import 'package:aboglumbo_bbk_panel/pages/chat_screen.dart';
 import 'package:aboglumbo_bbk_panel/services/chat_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:collection/collection.dart';
 
 class BookingInfo extends StatefulWidget {
   final BookingModel booking;
   final bool isAdmin;
-  const BookingInfo({super.key, required this.booking, required this.isAdmin});
+  final bool isWarranty;
+
+  const BookingInfo({
+    super.key,
+    required this.booking,
+    required this.isAdmin,
+    this.isWarranty = false,
+  });
 
   @override
   State<BookingInfo> createState() => _BookingInfoState();
@@ -106,13 +117,24 @@ class _BookingInfoState extends State<BookingInfo> {
       } else {
         log('🔄 Initiating new chat...');
         // Get technician info
-        final technicianName = widget.isAdmin
-            ? "Admin"
-            : widget.booking.agent?.name ?? "Technician";
-        final technicianPhoto = widget.isAdmin
-            ? ""
-            : widget.booking.agent?.profileUrl ?? "";
+        String technicianName;
+        String technicianPhoto;
+        if (widget.isWarranty) {
+          final technicianDoc = await AppFirestore.usersCollectionRef
+              .doc(widget.booking.warranty?.assignedTechnicianId)
+              .get();
+          final tech = UserModel.fromDocumentSnapshot(technicianDoc);
 
+          technicianName = widget.isAdmin ? "Admin" : tech.name ?? "Technician";
+          technicianPhoto = widget.isAdmin ? "" : tech.profileUrl ?? "";
+        } else {
+          technicianName = widget.isAdmin
+              ? "Admin"
+              : widget.booking.agent?.name ?? "Technician";
+          technicianPhoto = widget.isAdmin
+              ? ""
+              : widget.booking.agent?.profileUrl ?? "";
+        }
         // Create new chat
         chatId = await chatService.initiateChat(
           bookingId: widget.booking.id,
@@ -132,6 +154,24 @@ class _BookingInfoState extends State<BookingInfo> {
 
       // Navigate to chat screen
       if (mounted) {
+        String technicianName;
+        String technicianPhoto;
+        if (widget.isWarranty) {
+          final technicianDoc = await AppFirestore.usersCollectionRef
+              .doc(widget.booking.warranty?.assignedTechnicianId)
+              .get();
+          final tech = UserModel.fromDocumentSnapshot(technicianDoc);
+
+          technicianName = widget.isAdmin ? "Admin" : tech.name ?? "Technician";
+          technicianPhoto = widget.isAdmin ? "" : tech.profileUrl ?? "";
+        } else {
+          technicianName = widget.isAdmin
+              ? "Admin"
+              : widget.booking.agent?.name ?? "Technician";
+          technicianPhoto = widget.isAdmin
+              ? ""
+              : widget.booking.agent?.profileUrl ?? "";
+        }
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -141,12 +181,8 @@ class _BookingInfoState extends State<BookingInfo> {
               participantName: widget.booking.customer.name ?? "Customer",
               participantId: widget.booking.customer.uid,
               participantPhoto: "",
-              technicianName: widget.isAdmin
-                  ? "Admin"
-                  : widget.booking.agent?.name ?? "Technician",
-              technicianPhoto: widget.isAdmin
-                  ? ""
-                  : widget.booking.agent?.profileUrl ?? "",
+              technicianName: technicianName,
+              technicianPhoto: technicianPhoto,
             ),
           ),
         );
@@ -204,8 +240,12 @@ class _BookingInfoState extends State<BookingInfo> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (widget.booking.bookingStatusCode.toLowerCase() == 'a' &&
-                !widget.isAdmin) ...{
+            if ((widget.booking.bookingStatusCode.toLowerCase() == 'a' &&
+                    !widget.isAdmin) ||
+                (!widget.isAdmin &&
+                    widget.isWarranty &&
+                    widget.booking.warranty!.warrantyStatusCode.toLowerCase() ==
+                        's')) ...{
               StreamBuilder<DocumentSnapshot>(
                 stream: AppFirestore.bookingsCollectionRef
                     .doc(widget.booking.id)
@@ -218,13 +258,17 @@ class _BookingInfoState extends State<BookingInfo> {
                     final data = snapshot.data!.data() as Map<String, dynamic>?;
                     chatroomId = data?['chatroomId'] as String?;
                   }
-                  if (widget.booking.bookingStatusCode.toLowerCase() != 'a') {
+                  if (widget.booking.bookingStatusCode.toLowerCase() != 'a' &&
+                      widget.booking.warranty!.warrantyStatusCode
+                              .toLowerCase() !=
+                          's') {
                     return SizedBox.shrink();
                   }
                   return _buildChatWithCustomerButton(
                     context,
                     colorScheme,
                     chatroomId,
+                    widget.isWarranty,
                   );
                 },
               ),
@@ -232,8 +276,9 @@ class _BookingInfoState extends State<BookingInfo> {
               const SizedBox(height: 16),
             },
 
-            // Booking controls
-            if ((widget.booking.bookingStatusCode.toLowerCase() == 'a') &&
+            // Booking controls (Normal)
+            if (!widget.isWarranty &&
+                (widget.booking.bookingStatusCode.toLowerCase() == 'a') &&
                 (widget.booking.agent?.uid == LocalStore.getUID()))
               StreamBuilder<DocumentSnapshot>(
                 stream: AppFirestore.bookingsCollectionRef
@@ -253,6 +298,45 @@ class _BookingInfoState extends State<BookingInfo> {
                   );
                 },
               ),
+
+            // Warranty controls (Warranty)
+            if (widget.isWarranty && widget.booking.warranty != null) ...[
+              Builder(
+                builder: (context) {
+                  final warrantyStatus =
+                      widget.booking.warranty?.warrantyStatusCode;
+
+                  // Warranty tracking controls (when warranty is started)
+                  if (warrantyStatus == 'S' &&
+                      widget.booking.warranty?.assignedTechnicianId ==
+                          LocalStore.getUID()) {
+                    return StreamBuilder<DocumentSnapshot>(
+                      stream: AppFirestore.bookingsCollectionRef
+                          .doc(widget.booking.id)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        bool isTracking =
+                            widget.booking.isStartTracking ?? false;
+
+                        if (snapshot.hasData && snapshot.data!.exists) {
+                          final data =
+                              snapshot.data!.data() as Map<String, dynamic>?;
+                          isTracking = data?['isStartTracking'] ?? false;
+                        }
+
+                        return WarrantyControlsWidget(
+                          booking: widget.booking,
+                          isTracking: isTracking,
+                          isAdmin: widget.isAdmin,
+                        );
+                      },
+                    );
+                  }
+
+                  return const SizedBox.shrink();
+                },
+              ),
+            ],
 
             // Service card
             _buildServiceCard(context, locale, textTheme, colorScheme),
@@ -283,7 +367,12 @@ class _BookingInfoState extends State<BookingInfo> {
             ],
 
             // Timeline
-            _buildBookingTimelineCard(context, textTheme, colorScheme),
+            _buildBookingTimelineCard(
+              context,
+              textTheme,
+              colorScheme,
+              widget.isWarranty,
+            ),
           ],
         ),
       ),
@@ -295,6 +384,7 @@ class _BookingInfoState extends State<BookingInfo> {
     BuildContext context,
     ColorScheme colorScheme,
     String? chatroomId,
+    bool isWarranty,
   ) {
     final bool hasChatRoom = chatroomId != null && chatroomId.isNotEmpty;
 
@@ -964,162 +1054,469 @@ class _BookingInfoState extends State<BookingInfo> {
     BuildContext context,
     TextTheme textTheme,
     ColorScheme colorScheme,
+    bool isWarranty,
   ) {
-    // We store raw DateTime for sorting later
     List<Map<String, dynamic>> timelineItems = [];
 
-    // Created
-    if (widget.booking.createdAt != null) {
-      timelineItems.add({
-        'title': AppLocalizations.of(context)!.createdAt,
-        'time': _formatDateLocalized(
-          widget.booking.createdAt!.toDate(),
-          context,
-        ),
-        'description': AppLocalizations.of(
-          context,
-        )!.customerSubmittedBookingRequest,
-        'status': 'completed',
-        'date': widget.booking.createdAt!.toDate(),
-      });
-    }
+    // Get current technician's cancellation date (if they cancelled)
+    DateTime? currentTechCancelledAt;
 
-    // Accepted
-    if (widget.booking.acceptedAt != null) {
-      timelineItems.add({
-        'title': AppLocalizations.of(context)!.acceptedAt,
-        'time': _formatDateLocalized(
-          widget.booking.acceptedAt!.toDate(),
-          context,
-        ),
-        'description': AppLocalizations.of(
-          context,
-        )!.serviceProviderConfirmedAppointment,
-        'status': 'completed',
-        'date': widget.booking.acceptedAt!.toDate(),
-      });
-    }
+    if (!widget.isAdmin && isWarranty) {
+      final currentTechId = FirebaseAuth.instance.currentUser?.uid;
+      if (currentTechId != null &&
+          widget.booking.warranty?.rejectedTechnicians != null) {
+        final cancelledByCurrentTech = widget
+            .booking
+            .warranty!
+            .rejectedTechnicians!
+            .firstWhereOrNull((tech) => tech.uid == currentTechId);
 
-    // Tracking started
-    if (widget.booking.trackingStartedAt != null) {
-      timelineItems.add({
-        'title': AppLocalizations.of(context)!.trackingStartedAt,
-        'time': _formatDateLocalized(
-          widget.booking.trackingStartedAt!.toDate(),
-          context,
-        ),
-        'description': AppLocalizations.of(context)!.serviceTrackingInitiated,
-        'status': 'completed',
-        'date': widget.booking.trackingStartedAt!.toDate(),
-      });
-    }
-
-    // Completed
-    if (widget.booking.completedAt != null) {
-      timelineItems.add({
-        'title': AppLocalizations.of(context)!.completedAt,
-        'time': _formatDateLocalized(
-          widget.booking.completedAt!.toDate(),
-          context,
-        ),
-        'description': AppLocalizations.of(
-          context,
-        )!.serviceHasBeenSuccessfullyCompleted,
-        'status': 'completed',
-        'date': widget.booking.completedAt!.toDate(),
-      });
-    }
-    if (widget.booking.bookingStatusCode.toLowerCase() == 'r') {
-      timelineItems.add({
-        'title': AppLocalizations.of(context)!.rejectedAt,
-        'time': _formatDateLocalized(
-          widget.booking.rejectedAt!.toDate(),
-          context,
-        ),
-        'description': AppLocalizations.of(
-          context,
-        )!.bookingWasRejectedByServiceProvider,
-        'status': 'rejected',
-        'date': widget.booking.rejectedAt!.toDate(),
-      });
-    }
-    if (widget.booking.bookingStatusCode.toLowerCase() == 'xc') {
-      timelineItems.add({
-        'title': AppLocalizations.of(context)!.cancelledByCustomer,
-        'time': _formatDateLocalized(
-          widget.booking.cancelledAt!.toDate(),
-          context,
-        ),
-        'description': AppLocalizations.of(
-          context,
-        )!.bookingWasCancelledByCustomer,
-        'status': 'rejected',
-        'date': widget.booking.cancelledAt!.toDate(),
-      });
-    }
-
-    // Worker cancellations
-    if (widget.isAdmin && widget.booking.cancelledWorkers.isNotEmpty) {
-      for (var worker in widget.booking.cancelledWorkers) {
-        final workerName = worker.agentName.isNotEmpty
-            ? worker.agentName
-            : AppLocalizations.of(context)!.unknownTechnician;
-
-        timelineItems.add({
-          'title': AppLocalizations.of(context)!.technicianCancelled,
-          'time': _formatDateLocalized(worker.cancelledAt.toDate(), context),
-          'description':
-              '${AppLocalizations.of(context)!.cancelledByTechnician}: $workerName',
-          'status': 'cancelled',
-          'date': worker.cancelledAt.toDate(),
-        });
+        if (cancelledByCurrentTech != null) {
+          currentTechCancelledAt = cancelledByCurrentTech.rejectedAt;
+        }
       }
     }
 
-    // Admin cancellation
+    if (isWarranty) {
+      // ==========================================
+      // WARRANTY BOOKING TIMELINE ONLY
+      // ==========================================
 
-    // If no completion/rejection/cancellation, add current status
-    if (widget.booking.completedAt == null &&
-        widget.booking.rejectedAt == null &&
-        widget.booking.bookingStatusCode.toLowerCase() != 'xc' &&
-        widget.booking.bookingStatusCode.toLowerCase() != 'R') {
+      // Created (original booking)
+      if (widget.booking.createdAt != null) {
+        final eventDate = widget.booking.createdAt!.toDate();
+
+        if (currentTechCancelledAt == null ||
+            eventDate.isBefore(currentTechCancelledAt) ||
+            eventDate.isAtSameMomentAs(currentTechCancelledAt)) {
+          timelineItems.add({
+            'title': AppLocalizations.of(context)!.createdAt,
+            'time': _formatDateLocalized(eventDate, context),
+            'description': AppLocalizations.of(
+              context,
+            )!.customerSubmittedBookingRequest,
+            'status': 'completed',
+            'date': eventDate,
+          });
+        }
+      }
+
+      // Original service completed
+      if (widget.booking.completedAt != null) {
+        final eventDate = widget.booking.completedAt!.toDate();
+
+        if (currentTechCancelledAt == null ||
+            eventDate.isBefore(currentTechCancelledAt) ||
+            eventDate.isAtSameMomentAs(currentTechCancelledAt)) {
+          timelineItems.add({
+            'title': AppLocalizations.of(context)!.originalServiceCompleted,
+            'time': _formatDateLocalized(eventDate, context),
+            'description': AppLocalizations.of(
+              context,
+            )!.serviceHasBeenSuccessfullyCompleted,
+            'status': 'completed',
+            'date': eventDate,
+          });
+        }
+      }
+
+      // Warranty requested
+      if (widget.booking.warranty?.requestedOn != null) {
+        final eventDate = widget.booking.warranty!.requestedOn!;
+
+        if (currentTechCancelledAt == null ||
+            eventDate.isBefore(currentTechCancelledAt) ||
+            eventDate.isAtSameMomentAs(currentTechCancelledAt)) {
+          timelineItems.add({
+            'title': AppLocalizations.of(context)!.warrantyRepairRequested,
+            'time': _formatDateLocalized(eventDate, context),
+            'description': AppLocalizations.of(
+              context,
+            )!.customerRequestedRepairUnderWarranty,
+            'status': 'completed',
+            'date': eventDate,
+          });
+        }
+      }
+
+      // Warranty accepted
+      if (widget.booking.warranty?.acceptedAt != null) {
+        final eventDate = widget.booking.warranty!.acceptedAt!;
+
+        if (currentTechCancelledAt == null ||
+            eventDate.isBefore(currentTechCancelledAt) ||
+            eventDate.isAtSameMomentAs(currentTechCancelledAt)) {
+          timelineItems.add({
+            'title': AppLocalizations.of(context)!.warrantyRepairAccepted,
+            'time': _formatDateLocalized(eventDate, context),
+            'description': AppLocalizations.of(
+              context,
+            )!.technicianAcceptedTheRequest,
+            'status': 'completed',
+            'date': eventDate,
+          });
+        }
+      }
+
+      // Warranty tracking started
+      if (widget.booking.trackingStartedAt != null) {
+        final eventDate = widget.booking.trackingStartedAt!.toDate();
+
+        if (currentTechCancelledAt == null ||
+            eventDate.isBefore(currentTechCancelledAt) ||
+            eventDate.isAtSameMomentAs(currentTechCancelledAt)) {
+          timelineItems.add({
+            'title': AppLocalizations.of(context)!.trackingStartedAt,
+            'time': _formatDateLocalized(eventDate, context),
+            'description': AppLocalizations.of(
+              context,
+            )!.serviceTrackingInitiated,
+            'status': 'completed',
+            'date': eventDate,
+          });
+        }
+      }
+
+      // Warranty tracking stopped
+      if (widget.booking.trackingStoppedAt != null) {
+        final eventDate = widget.booking.trackingStoppedAt!.toDate();
+
+        if (currentTechCancelledAt == null ||
+            eventDate.isBefore(currentTechCancelledAt) ||
+            eventDate.isAtSameMomentAs(currentTechCancelledAt)) {
+          timelineItems.add({
+            'title': AppLocalizations.of(context)!.trackingStoppedAt,
+            'time': _formatDateLocalized(eventDate, context),
+            'description': AppLocalizations.of(context)!.serviceTrackingStopped,
+            'status': 'completed',
+            'date': eventDate,
+          });
+        }
+      }
+
+      // Warranty completed
+      if (widget.booking.warranty?.completedAt != null) {
+        final eventDate = widget.booking.warranty!.completedAt!;
+
+        if (currentTechCancelledAt == null ||
+            eventDate.isBefore(currentTechCancelledAt) ||
+            eventDate.isAtSameMomentAs(currentTechCancelledAt)) {
+          timelineItems.add({
+            'title': AppLocalizations.of(context)!.warrantyRepairCompleted,
+            'time': _formatDateLocalized(eventDate, context),
+            'description': AppLocalizations.of(
+              context,
+            )!.technicianCompletedTheRequest,
+            'status': 'completed',
+            'date': eventDate,
+          });
+        }
+      }
+
+      // Warranty rejected technicians - For technician view
+      if (!widget.isAdmin &&
+          widget.booking.warranty?.rejectedTechnicians != null &&
+          widget.booking.warranty!.rejectedTechnicians!.isNotEmpty) {
+        final currentTechId = LocalStore.getUID();
+
+        if (currentTechId != null) {
+          final currentTechCancellation = widget
+              .booking
+              .warranty!
+              .rejectedTechnicians!
+              .firstWhereOrNull((tech) => tech.uid == currentTechId);
+
+          if (currentTechCancellation != null) {
+            timelineItems.add({
+              'title': AppLocalizations.of(context)!.youCancelledThisRequest,
+              'time': _formatDateLocalized(
+                currentTechCancellation.rejectedAt!,
+                context,
+              ),
+              'description': AppLocalizations.of(
+                context,
+              )!.youDeclinedThisWarrantyRequest,
+              'status': 'cancelled',
+              'date': currentTechCancellation.rejectedAt!,
+            });
+          }
+        }
+      }
+
+      // Warranty rejected technicians - For admin view
+      if (widget.isAdmin &&
+          widget.booking.warranty?.rejectedTechnicians != null &&
+          widget.booking.warranty!.rejectedTechnicians!.isNotEmpty) {
+        for (var tech in widget.booking.warranty!.rejectedTechnicians!) {
+          final eventDate = tech.rejectedAt!;
+
+          if (currentTechCancelledAt == null ||
+              eventDate.isBefore(currentTechCancelledAt) ||
+              eventDate.isAtSameMomentAs(currentTechCancelledAt)) {
+            final workerName =
+                tech.name ?? AppLocalizations.of(context)!.unknownTechnician;
+
+            timelineItems.add({
+              'title': AppLocalizations.of(context)!.technicianCancelled,
+              'time': _formatDateLocalized(eventDate, context),
+              'description':
+                  '${AppLocalizations.of(context)!.cancelledByTechnician}: $workerName',
+              'status': 'cancelled',
+              'date': eventDate,
+            });
+          }
+        }
+      }
+
+      // Warranty rejected by admin
+      if (widget.booking.warranty?.rejectedAt != null) {
+        final eventDate = widget.booking.warranty!.rejectedAt!;
+
+        if (currentTechCancelledAt == null ||
+            eventDate.isBefore(currentTechCancelledAt) ||
+            eventDate.isAtSameMomentAs(currentTechCancelledAt)) {
+          final warrantyStatus =
+              widget.booking.warranty?.warrantyStatusCode.toLowerCase() ?? '';
+          final isAdminRejection =
+              warrantyStatus == 's' || warrantyStatus == 'x';
+
+          timelineItems.add({
+            'title': isAdminRejection
+                ? AppLocalizations.of(context)!.warrantyRejectedByAdmin
+                : AppLocalizations.of(context)!.warrantyRejectedByTechnician,
+            'time': _formatDateLocalized(eventDate, context),
+            'description': isAdminRejection
+                ? AppLocalizations.of(
+                    context,
+                  )!.warrantyRequestWasRejectedByAdmin
+                : AppLocalizations.of(
+                    context,
+                  )!.warrantyRequestWasRejectedByTechnician,
+            'status': 'rejected',
+            'date': eventDate,
+          });
+        }
+      }
+    } else {
+      // ==========================================
+      // NORMAL BOOKING TIMELINE ONLY
+      // ==========================================
+
+      // Created
+      if (widget.booking.createdAt != null) {
+        timelineItems.add({
+          'title': AppLocalizations.of(context)!.createdAt,
+          'time': _formatDateLocalized(
+            widget.booking.createdAt!.toDate(),
+            context,
+          ),
+          'description': AppLocalizations.of(
+            context,
+          )!.customerSubmittedBookingRequest,
+          'status': 'completed',
+          'date': widget.booking.createdAt!.toDate(),
+        });
+      }
+
+      // Accepted
+      if (widget.booking.acceptedAt != null) {
+        timelineItems.add({
+          'title': AppLocalizations.of(context)!.acceptedAt,
+          'time': _formatDateLocalized(
+            widget.booking.acceptedAt!.toDate(),
+            context,
+          ),
+          'description': AppLocalizations.of(
+            context,
+          )!.serviceProviderConfirmedAppointment,
+          'status': 'completed',
+          'date': widget.booking.acceptedAt!.toDate(),
+        });
+      }
+
+      // Tracking started
       if (widget.booking.trackingStartedAt != null) {
         timelineItems.add({
-          'title': AppLocalizations.of(context)!.serviceInProgress,
-          'time': AppLocalizations.of(context)!.current,
-          'description': AppLocalizations.of(
+          'title': AppLocalizations.of(context)!.trackingStartedAt,
+          'time': _formatDateLocalized(
+            widget.booking.trackingStartedAt!.toDate(),
             context,
-          )!.serviceIsCurrentlyBeingPerformed,
-          'status': 'current',
-          'date': DateTime.now(),
+          ),
+          'description': AppLocalizations.of(context)!.serviceTrackingInitiated,
+          'status': 'completed',
+          'date': widget.booking.trackingStartedAt!.toDate(),
         });
-      } else if (widget.booking.acceptedAt != null) {
+      }
+
+      // Tracking stopped
+      if (widget.booking.trackingStoppedAt != null) {
         timelineItems.add({
-          'title': AppLocalizations.of(context)!.waitingForServiceProvider,
-          'time': AppLocalizations.of(context)!.pending,
-          'description': AppLocalizations.of(
+          'title': AppLocalizations.of(context)!.trackingStoppedAt,
+          'time': _formatDateLocalized(
+            widget.booking.trackingStoppedAt!.toDate(),
             context,
-          )!.waitingForTechnicianToStartService,
-          'status': 'current',
-          'date': DateTime.now(),
+          ),
+          'description': AppLocalizations.of(context)!.serviceTrackingStopped,
+          'status': 'completed',
+          'date': widget.booking.trackingStoppedAt!.toDate(),
         });
-      } else {
+      }
+
+      // Completed
+      if (widget.booking.completedAt != null) {
         timelineItems.add({
-          'title': AppLocalizations.of(context)!.waitingForAcceptance,
-          'time': AppLocalizations.of(context)!.pending,
+          'title': AppLocalizations.of(context)!.completedAt,
+          'time': _formatDateLocalized(
+            widget.booking.completedAt!.toDate(),
+            context,
+          ),
           'description': AppLocalizations.of(
             context,
-          )!.waitingForServiceProviderResponse,
-          'status': 'current',
-          'date': DateTime.now(),
+          )!.serviceHasBeenSuccessfullyCompleted,
+          'status': 'completed',
+          'date': widget.booking.completedAt!.toDate(),
         });
+      }
+
+      // Rejected
+      if (widget.booking.bookingStatusCode.toLowerCase() == 'r') {
+        timelineItems.add({
+          'title': AppLocalizations.of(context)!.rejectedAt,
+          'time': _formatDateLocalized(
+            widget.booking.rejectedAt!.toDate(),
+            context,
+          ),
+          'description': AppLocalizations.of(
+            context,
+          )!.bookingWasRejectedByServiceProvider,
+          'status': 'rejected',
+          'date': widget.booking.rejectedAt!.toDate(),
+        });
+      }
+
+      // Cancelled by customer
+      if (widget.booking.bookingStatusCode.toLowerCase() == 'xc') {
+        timelineItems.add({
+          'title': AppLocalizations.of(context)!.cancelledByCustomer,
+          'time': _formatDateLocalized(
+            widget.booking.cancelledAt!.toDate(),
+            context,
+          ),
+          'description': AppLocalizations.of(
+            context,
+          )!.bookingWasCancelledByCustomer,
+          'status': 'rejected',
+          'date': widget.booking.cancelledAt!.toDate(),
+        });
+      }
+
+      // Worker cancellations (admin only)
+      if (widget.isAdmin && widget.booking.cancelledWorkers.isNotEmpty) {
+        for (var worker in widget.booking.cancelledWorkers) {
+          final workerName = worker.agentName.isNotEmpty
+              ? worker.agentName
+              : AppLocalizations.of(context)!.unknownTechnician;
+
+          timelineItems.add({
+            'title': AppLocalizations.of(context)!.technicianCancelled,
+            'time': _formatDateLocalized(worker.cancelledAt.toDate(), context),
+            'description':
+                '${AppLocalizations.of(context)!.cancelledByTechnician}: $workerName',
+            'status': 'cancelled',
+            'date': worker.cancelledAt.toDate(),
+          });
+        }
       }
     }
 
-    // Sort events by actual date
+    // Sort ALL events by actual date (chronological order)
     timelineItems.sort(
       (a, b) => (a['date'] as DateTime).compareTo(b['date'] as DateTime),
     );
+
+    // === ADD CURRENT/PENDING STATUS (ONLY if technician hasn't cancelled) ===
+
+    if (currentTechCancelledAt == null) {
+      bool isInProgress =
+          widget.booking.trackingStartedAt != null &&
+          widget.booking.trackingStoppedAt == null;
+
+      if (isWarranty) {
+        // Warranty current status
+        if (widget.booking.warranty?.completedAt == null &&
+            widget.booking.warranty?.rejectedAt == null) {
+          if (isInProgress) {
+            timelineItems.add({
+              'title': AppLocalizations.of(context)!.serviceInProgress,
+              'time': AppLocalizations.of(context)!.current,
+              'description': AppLocalizations.of(
+                context,
+              )!.serviceIsCurrentlyBeingPerformed,
+              'status': 'current',
+              'date': DateTime.now(),
+            });
+          } else if (widget.booking.warranty?.acceptedAt != null) {
+            timelineItems.add({
+              'title': AppLocalizations.of(context)!.waitingForServiceProvider,
+              'time': AppLocalizations.of(context)!.pending,
+              'description': AppLocalizations.of(
+                context,
+              )!.waitingForTechnicianToStartService,
+              'status': 'current',
+              'date': DateTime.now(),
+            });
+          } else {
+            timelineItems.add({
+              'title': AppLocalizations.of(context)!.waitingForServiceProvider,
+              'time': AppLocalizations.of(context)!.pending,
+              'description': AppLocalizations.of(
+                context,
+              )!.waitingForServiceProviderResponse,
+              'status': 'current',
+              'date': DateTime.now(),
+            });
+          }
+        }
+      } else {
+        // Normal booking current status
+        if (widget.booking.completedAt == null &&
+            widget.booking.rejectedAt == null &&
+            widget.booking.bookingStatusCode.toLowerCase() != 'xc' &&
+            widget.booking.bookingStatusCode.toLowerCase() != 'r') {
+          if (isInProgress) {
+            timelineItems.add({
+              'title': AppLocalizations.of(context)!.serviceInProgress,
+              'time': AppLocalizations.of(context)!.current,
+              'description': AppLocalizations.of(
+                context,
+              )!.serviceIsCurrentlyBeingPerformed,
+              'status': 'current',
+              'date': DateTime.now(),
+            });
+          } else if (widget.booking.acceptedAt != null) {
+            timelineItems.add({
+              'title': AppLocalizations.of(context)!.waitingForServiceProvider,
+              'time': AppLocalizations.of(context)!.pending,
+              'description': AppLocalizations.of(
+                context,
+              )!.waitingForTechnicianToStartService,
+              'status': 'current',
+              'date': DateTime.now(),
+            });
+          } else {
+            timelineItems.add({
+              'title': AppLocalizations.of(context)!.waitingForAcceptance,
+              'time': AppLocalizations.of(context)!.pending,
+              'description': AppLocalizations.of(
+                context,
+              )!.waitingForServiceProviderResponse,
+              'status': 'current',
+              'date': DateTime.now(),
+            });
+          }
+        }
+      }
+    }
 
     return Container(
       width: double.infinity,
@@ -1143,7 +1540,6 @@ class _BookingInfoState extends State<BookingInfo> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Row(
               children: [
                 Container(
@@ -1171,7 +1567,6 @@ class _BookingInfoState extends State<BookingInfo> {
             ),
             const SizedBox(height: 20),
 
-            // Render timeline
             ...timelineItems.asMap().entries.map((entry) {
               final index = entry.key;
               final item = entry.value;

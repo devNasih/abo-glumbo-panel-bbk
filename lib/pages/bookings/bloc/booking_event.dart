@@ -31,6 +31,7 @@ class CompleteBooking extends BookingEvent {
   final double totalCost;
   final String technicianId;
   final String customerId;
+  final double inspectionFee;
 
   const CompleteBooking({
     required this.mode,
@@ -41,6 +42,7 @@ class CompleteBooking extends BookingEvent {
     required this.bookingId,
     required this.technicianId,
     required this.customerId,
+    required this.inspectionFee,
   });
 
   @override
@@ -52,6 +54,7 @@ class CompleteBooking extends BookingEvent {
     serviceItems,
     totalCost,
     technicianId,
+    inspectionFee,
     customerId,
   ];
 }

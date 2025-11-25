@@ -606,6 +606,87 @@ class AppServices {
     return 0;
   }
 
+  /// Get warranty repairs stream
+  /// Fetches bookings where warranty != null, paymentCompleted = true, bookingStatusCode = 'C'
+  /// Then filters by warranty status code
+  static Stream<List<BookingModel>> getWarrantiesStream({
+    String? warrantyStatusCode,
+    bool isAdmin = false,
+  }) {
+    if (isAdmin) {
+      // Admin sees all warranties
+      return AppFirestore.bookingsCollectionRef
+          .where('bookingStatusCode', isEqualTo: 'C')
+          .where('paymentCompleted', isEqualTo: true)
+          .orderBy('createdAt', descending: true)
+          .snapshots()
+          .map((snapshot) {
+            return snapshot.docs
+                .map((doc) => BookingModel.fromDocumentSnapshot(doc))
+                .where((booking) {
+                  // Filter only bookings with warranty
+                  if (booking.warranty == null) return false;
+
+                  // Filter by warranty status if specified
+                  if (warrantyStatusCode != null) {
+                    return booking.warranty!.warrantyStatusCode ==
+                        warrantyStatusCode;
+                  }
+                  return true;
+                })
+                .toList();
+          });
+    } else {
+      // Technician sees warranties they're assigned to OR have rejected
+      String workerId = LocalStore.getUID() ?? '';
+
+      return AppFirestore.bookingsCollectionRef
+          .where('bookingStatusCode', isEqualTo: 'C')
+          .where('paymentCompleted', isEqualTo: true)
+          .orderBy('createdAt', descending: true)
+          .snapshots()
+          .map((snapshot) {
+            return snapshot.docs
+                .map((doc) => BookingModel.fromDocumentSnapshot(doc))
+                .where((booking) {
+                  // Filter only bookings with warranty
+                  if (booking.warranty == null) return false;
+
+                  // Check if technician is assigned to this warranty
+                  bool isAssigned =
+                      booking.warranty!.assignedTechnicianId == workerId;
+
+                  // Check if technician has rejected this warranty
+                  bool hasRejected =
+                      booking.warranty!.rejectedTechnicians?.any(
+                        (tech) => tech.uid == workerId,
+                      ) ??
+                      false;
+
+                  // Include if assigned OR rejected
+                  if (!isAssigned && !hasRejected) return false;
+
+                  // Filter by warranty status if specified
+                  if (warrantyStatusCode != null) {
+                    // Special handling for 'X' (Rejected) tab for technicians
+                    if (warrantyStatusCode == 'X') {
+                      // Show only warranties this technician has rejected
+                      return hasRejected;
+                    } else {
+                      // For other tabs, show only if NOT rejected by this technician
+                      // and the warranty status matches
+                      return !hasRejected &&
+                          booking.warranty!.warrantyStatusCode ==
+                              warrantyStatusCode;
+                    }
+                  }
+                  return true;
+                })
+                .toList();
+          });
+    }
+  }
+
   static Stream<List<BookingModel>> getBookingsStreamByStatus(
     String bookingStatusCode,
   ) {
@@ -1026,30 +1107,37 @@ class AppServices {
     }
   }
 
-  static Future<bool> completeBooking(
-    String bookingId,
-    String technicianId,
-    String customerId,
-    int mode,
-  ) async {
+  static Future<bool> completeBooking({
+    required String bookingId,
+    required String technicianId,
+    required int mode,
+    required List<String> fileUrls,
+    required double serviceCost,
+    required List<Map<String, dynamic>> serviceItems,
+    required double totalCost,
+    required double inspectionFee,
+  }) async {
     try {
       await AppFirestore.bookingsCollectionRef.doc(bookingId).update({
         'bookingStatusCode': 'C',
         'isStarted': false,
         'completedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
+        'completionData': {
+          'fileUrls': fileUrls, // Changed from imageUrls
+          'serviceCost': serviceCost,
+          'serviceItems': serviceItems,
+          'totalCost': totalCost,
+          'mode': mode,
+          'inspectionFee': inspectionFee,
+        },
 
         if (mode == 1) ...{
           'warranty': WarrantyModel(
-            id: Uuid().v4(),
-            availability: false,
-            claimStatus: null,
-            completed: false,
-            isTracking: false,
-            bookingId: bookingId,
-            customerId: customerId,
+            id: bookingId,
+            claimrequested: false,
+            warrantyStatusCode: 'A',
             assignedTechnicianId: technicianId,
-            technicianId: technicianId,
             createdAt: DateTime.utc(
               DateTime.now().year,
               DateTime.now().month,
@@ -2053,7 +2141,7 @@ class AppServices {
       'uid': technicianUid,
       'name': technicianName,
       'reason': reason,
-      'rejectedOn': Timestamp.fromDate(DateTime.now()),
+      'rejectedAt': Timestamp.fromDate(DateTime.now()),
     };
 
     await AppFirestore.bookingsCollectionRef.doc(bookingId).update({

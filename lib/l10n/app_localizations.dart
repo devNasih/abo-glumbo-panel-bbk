@@ -4004,6 +4004,120 @@ abstract class AppLocalizations {
   /// **'Unknown Technician'**
   String get unknownTechnician;
 
+  /// No description provided for @tryadifferentsearchterm.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different search term'**
+  String get tryadifferentsearchterm;
+
+  /// No description provided for @warrantyRepairRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty Repair Requested'**
+  String get warrantyRepairRequested;
+
+  /// No description provided for @acceptWarrantyRepair.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept Warranty Repair'**
+  String get acceptWarrantyRepair;
+
+  /// No description provided for @customerRequestedRepairUnderWarranty.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer requested repair under warranty'**
+  String get customerRequestedRepairUnderWarranty;
+
+  /// No description provided for @warrantyRepairAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty Repair Accepted'**
+  String get warrantyRepairAccepted;
+
+  /// No description provided for @technicianAcceptedTheRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician accepted the request'**
+  String get technicianAcceptedTheRequest;
+
+  /// No description provided for @warrantyRepairCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty Repair Completed'**
+  String get warrantyRepairCompleted;
+
+  /// No description provided for @originalServiceCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Original Service Completed'**
+  String get originalServiceCompleted;
+
+  /// No description provided for @warrantyRejectedByAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty Rejected by Admin'**
+  String get warrantyRejectedByAdmin;
+
+  /// No description provided for @warrantyRejectedByTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty Rejected by Technician'**
+  String get warrantyRejectedByTechnician;
+
+  /// No description provided for @reasonforrejection.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason for rejection'**
+  String get reasonforrejection;
+
+  /// No description provided for @warrantyRequestWasRejectedByAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty request was rejected by admin'**
+  String get warrantyRequestWasRejectedByAdmin;
+
+  /// No description provided for @warrantyRequestWasRejectedByTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty request was rejected by technician'**
+  String get warrantyRequestWasRejectedByTechnician;
+
+  /// No description provided for @technicianCompletedTheRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician completed the request'**
+  String get technicianCompletedTheRequest;
+
+  /// No description provided for @trackingStoppedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking Stopped'**
+  String get trackingStoppedAt;
+
+  /// No description provided for @serviceTrackingStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Service tracking has been stopped'**
+  String get serviceTrackingStopped;
+
+  /// No description provided for @youCancelledThisRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'You cancelled this request'**
+  String get youCancelledThisRequest;
+
+  /// No description provided for @youDeclinedThisWarrantyRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'You declined this warranty request'**
+  String get youDeclinedThisWarrantyRequest;
+
+  /// No description provided for @noresultsfound.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found'**
+  String get noresultsfound;
+
   /// No description provided for @technicianCancelled.
   ///
   /// In en, this message translates to:
@@ -6170,11 +6284,78 @@ abstract class AppLocalizations {
   /// **'Enter reason for cancellation'**
   String get enterReasonForCancel;
 
+  /// No description provided for @noTechnicianAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'No technician assigned'**
+  String get noTechnicianAssigned;
+
   /// No description provided for @enterReasonForReject.
   ///
   /// In en, this message translates to:
   /// **'Enter reason for rejection'**
   String get enterReasonForReject;
+
+  /// No description provided for @noWarrantyRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'No warranty requests'**
+  String get noWarrantyRequests;
+
+  /// No description provided for @completeWarrantyRepair.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Warranty Repair'**
+  String get completeWarrantyRepair;
+
+  /// No description provided for @areYouSureYouWantToCompleteThisWarrantyRepairThisIsAFreeService.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to complete this warranty repair? This is a free service.'**
+  String get areYouSureYouWantToCompleteThisWarrantyRepairThisIsAFreeService;
+
+  /// No description provided for @areYouSureYouWantToStopTrackingThisWarrantyRepair.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to stop tracking this warranty repair?'**
+  String get areYouSureYouWantToStopTrackingThisWarrantyRepair;
+
+  /// No description provided for @areYouSureYouWantToStartTrackingThisWarrantyRepair.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to start tracking this warranty repair?'**
+  String get areYouSureYouWantToStartTrackingThisWarrantyRepair;
+
+  /// No description provided for @anotherBookingIsAlreadyBeingTracked.
+  ///
+  /// In en, this message translates to:
+  /// **'Another booking is already being tracked. Please complete or stop the current tracking before starting a new one.'**
+  String get anotherBookingIsAlreadyBeingTracked;
+
+  /// No description provided for @requested.
+  ///
+  /// In en, this message translates to:
+  /// **'requested'**
+  String get requested;
+
+  /// No description provided for @areYouSureYouWantToCancelThisWarrantyRepairThisActionCannotBeUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel this warranty repair? This action cannot be undone.'**
+  String
+  get areYouSureYouWantToCancelThisWarrantyRepairThisActionCannotBeUndone;
+
+  /// No description provided for @reasonMustBeAtLeast10Characters.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason must be at least 10 characters'**
+  String get reasonMustBeAtLeast10Characters;
+
+  /// No description provided for @cancelWarrantyRepair.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Warranty Repair'**
+  String get cancelWarrantyRepair;
 
   /// No description provided for @areYouSureYouWantToDeleteThisFile.
   ///

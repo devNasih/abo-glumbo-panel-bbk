@@ -1,4 +1,5 @@
 import 'package:aboglumbo_bbk_panel/pages/bookings/bloc/booking_bloc.dart';
+import 'package:aboglumbo_bbk_panel/pages/bookings/bloc/warranty_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/bloc/admin_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/bloc/manage_app_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/customer_support/add_remove_details_page.dart';
@@ -12,6 +13,9 @@ List<BlocProvider> providers = [
   BlocProvider<AdminBloc>(create: (context) => AdminBloc()),
   BlocProvider<BookingBloc>(
     create: (context) => BookingBloc(BookingTrackerService()),
+  ),
+  BlocProvider<WarrantyBloc>(
+    create: (context) => WarrantyBloc(BookingTrackerService()),
   ),
   BlocProvider(
     create: (context) => ManageAppBloc(),

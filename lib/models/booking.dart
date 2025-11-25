@@ -60,6 +60,7 @@ class BookingModel {
   Timestamp? rejectedAt;
   Timestamp? completedAt;
   Timestamp? trackingStartedAt;
+  Timestamp? trackingStoppedAt;
   Timestamp? cancelledAt;
   String? cancellationReason;
   String? orderId;
@@ -92,6 +93,7 @@ class BookingModel {
     this.rejectedAt,
     this.completedAt,
     this.trackingStartedAt,
+    this.trackingStoppedAt,
     this.cancelledAt,
     this.cancellationReason,
     this.orderId,
@@ -135,6 +137,7 @@ class BookingModel {
       cancellationReason = data['cancellationReason'],
       paymentCompleted = data['paymentCompleted'] ?? false,
       trackingStartedAt = data['trackingStartedAt'],
+      trackingStoppedAt = data['trackingStoppedAt'],
       orderId = data['orderId'],
       cancelledWorkerUids = data['cancelledWorkerUids'] != null
           ? List<String>.from(data['cancelledWorkerUids'])
@@ -173,6 +176,7 @@ class BookingModel {
       'rejectedAt': rejectedAt,
       'completedAt': completedAt,
       'trackingStartedAt': trackingStartedAt,
+      'trackingStoppedAt': trackingStoppedAt,
       'cancelledWorkerUids': cancelledWorkerUids,
       'cancelledAt': cancelledAt,
       'cancellationReason': cancellationReason,
@@ -290,6 +294,7 @@ class CompletionDataModel {
   final double serviceCost;
   final double totalCost;
   final List<BookingServiceItem> serviceItems;
+  final double inspectionFee;
 
   CompletionDataModel({
     required this.fileUrls, // Changed
@@ -298,6 +303,7 @@ class CompletionDataModel {
     required this.serviceCost,
     required this.totalCost,
     required this.serviceItems,
+    required this.inspectionFee,
   });
 
   factory CompletionDataModel.fromMap(Map<String, dynamic> data) {
@@ -313,6 +319,7 @@ class CompletionDataModel {
       paymentMethod: data['paymentMethod'] ?? '',
       serviceCost: data['serviceCost']?.toDouble() ?? 0.0,
       totalCost: data['totalCost']?.toDouble() ?? 0.0,
+      inspectionFee: data['inspectionFee']?.toDouble() ?? 0.0,
       serviceItems:
           (data['serviceItems'] as List<dynamic>?)
               ?.map(
@@ -334,6 +341,7 @@ class CompletionDataModel {
       'paymentMethod': paymentMethod,
       'serviceCost': serviceCost,
       'totalCost': totalCost,
+      'inspectionFee': inspectionFee,
       'serviceItems': serviceItems.map((e) => e.toMap()).toList(),
     };
   }

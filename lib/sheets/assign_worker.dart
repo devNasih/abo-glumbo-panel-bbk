@@ -21,12 +21,14 @@ class AssignUserBottomSheet extends StatefulWidget {
   final Function({required BookingModel booking, required UserModel user})
   onAssignAgent;
   final Function(BookingModel booking) onRejectOrder;
+  final bool isWarranty;
 
   const AssignUserBottomSheet({
     super.key,
     required this.booking,
     required this.onAssignAgent,
     required this.onRejectOrder,
+    this.isWarranty = false,
   });
 
   @override
@@ -166,36 +168,61 @@ class _AssignUserBottomSheetState extends State<AssignUserBottomSheet> {
     _lastPreloadedUsers = users;
 
     try {
-      // Load job role categories - FIX APPLIED HERE
+      // Load job role categories
       final jobRoleIds = users
           .expand((u) => u.jobRoles ?? [])
-          .whereType<String>() // Changed from .toSet().toList()
+          .whereType<String>()
           .toSet()
           .toList();
 
       await _loadCategories(jobRoleIds);
 
-      // Get cancelled worker UIDs
-      final currentBookingDoc = await AppFirestore.bookingsCollectionRef
-          .doc(widget.booking.id)
-          .get();
+      // Get the list of UIDs to check for conflicts
+      List<String> conflictUids = [];
 
-      final cancelledWorkerUids = <String>[];
-      if (currentBookingDoc.exists) {
-        final data = currentBookingDoc.data() as Map<String, dynamic>;
-        final uids = data['cancelledWorkerUids'] as List?;
-        if (uids != null) {
-          cancelledWorkerUids.addAll(uids.cast<String>());
+      if (widget.isWarranty) {
+        // For warranties, only get rejected technician UIDs
+        final currentBookingDoc = await AppFirestore.bookingsCollectionRef
+            .doc(widget.booking.id)
+            .get();
+
+        if (currentBookingDoc.exists) {
+          final data = currentBookingDoc.data() as Map<String, dynamic>?;
+          final warrantyData = data?['warranty'] as Map<String, dynamic>?;
+          final rejectedTechnicians =
+              warrantyData?['rejectedTechnicians'] as List?;
+
+          if (rejectedTechnicians != null) {
+            for (var tech in rejectedTechnicians) {
+              final uid = tech['uid'] as String?;
+              if (uid != null) {
+                conflictUids.add(uid);
+              }
+            }
+          }
+        }
+      } else {
+        // For normal bookings, get cancelled worker UIDs
+        final currentBookingDoc = await AppFirestore.bookingsCollectionRef
+            .doc(widget.booking.id)
+            .get();
+
+        if (currentBookingDoc.exists) {
+          final data = currentBookingDoc.data() as Map<String, dynamic>?;
+          final uids = data?['cancelledWorkerUids'] as List?;
+          if (uids != null) {
+            conflictUids.addAll(uids.cast<String>());
+          }
         }
       }
 
-      // Batch check conflicts
+      // Batch check conflicts with the appropriate UIDs
       final userIds = users.map((u) => u.uid).whereType<String>().toList();
 
       await _conflictService.batchCheckConflicts(
         userIds: userIds,
         booking: widget.booking,
-        cancelledWorkerUids: cancelledWorkerUids,
+        cancelledWorkerUids: conflictUids,
       );
     } catch (e) {
       log('Error preloading conflicts: $e');
@@ -290,6 +317,37 @@ class _AssignUserBottomSheetState extends State<AssignUserBottomSheet> {
       if (mounted) _isAssigning.value = false;
     }
   }
+
+  // Future<void> _showRejectConfirmationDialog() async {
+  //   final confirmed = await showDialog<bool>(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: Text(
+  //         AppLocalizations.of(context)?.rejectBooking ?? 'Reject Booking',
+  //       ),
+  //       content: Text(
+  //         AppLocalizations.of(context)?.areYouSureYouWantToRejectThisBooking ??
+  //             'Are you sure you want to reject this booking?',
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context, false),
+  //           child: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
+  //         ),
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context, true),
+  //           style: TextButton.styleFrom(foregroundColor: Colors.red),
+  //           child: Text(AppLocalizations.of(context)?.reject ?? 'Reject'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+
+  //   if (confirmed == true && mounted) {
+  //     widget.onRejectOrder(widget.booking);
+  //     Navigator.pop(context);
+  //   }
+  // }
 
   Future<void> _showConflictDialog(
     UserModel user,
@@ -1011,7 +1069,7 @@ class _UserTile extends StatelessWidget {
 
   Widget? _buildTrailing(ConflictData? data, bool assigning) {
     if (assigning) {
-      return SizedBox(width: 20, height: 24, child: Loader());
+      return SizedBox(width: 24, height: 24, child: Loader());
     }
 
     if (data?.hasConflict == true) {

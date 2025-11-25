@@ -876,6 +876,7 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
     Navigator.of(context).pop();
     context.read<BookingBloc>().add(
       CompleteBooking(
+        inspectionFee: widget.booking.service.price ?? 0.0,
         customerId: widget.booking.customer.uid,
         technicianId: widget.booking.agent?.uid ?? "",
         mode: _serviceCompleted ? 1 : 0,

@@ -4,7 +4,9 @@ import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/address.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
+import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/bookings/bloc/booking_bloc.dart';
+import 'package:aboglumbo_bbk_panel/pages/bookings/bloc/warranty_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/bookings/booking_info.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,32 +17,54 @@ class BookingCards extends StatelessWidget {
   final BookingModel booking;
   final bool isAdmin;
   final VoidCallback? onAssign;
+  final bool isWarranty;
 
   const BookingCards({
     super.key,
     required this.booking,
     this.isAdmin = false,
     this.onAssign,
+    this.isWarranty = false,
   });
 
   Color _getStatusColor() {
-    final bool bookingCancelled = booking.cancelledWorkers.any(
-      (worker) => worker.uid == LocalStore.getUID(),
-    );
+    final bool bookingCancelled = isWarranty
+        ? (booking.warranty?.rejectedTechnicians?.any(
+                (worker) => worker.uid == LocalStore.getUID(),
+              ) ??
+              false)
+        : booking.cancelledWorkers.any(
+            (worker) => worker.uid == LocalStore.getUID(),
+          );
 
     if (bookingCancelled) {
       return Colors.red;
     }
-
-    switch (booking.bookingStatusCode) {
-      case "X":
-      case "R":
-      case "XC":
-        return Colors.red;
-      case "C":
-        return Colors.green;
-      default:
-        return Colors.blue;
+    if (isWarranty) {
+      switch (booking.warranty!.warrantyStatusCode) {
+        case "X":
+        case "E":
+          return Colors.red;
+        case "R":
+          return Colors.blue;
+        case "S":
+          return Colors.orange;
+        case "C":
+          return Colors.green;
+        default:
+          return Colors.blue;
+      }
+    } else {
+      switch (booking.bookingStatusCode) {
+        case "X":
+        case "R":
+        case "XC":
+          return Colors.red;
+        case "C":
+          return Colors.green;
+        default:
+          return Colors.blue;
+      }
     }
   }
 
@@ -64,8 +88,11 @@ class BookingCards extends StatelessWidget {
           : () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    BookingInfo(booking: booking, isAdmin: isAdmin),
+                builder: (context) => BookingInfo(
+                  booking: booking,
+                  isAdmin: isAdmin,
+                  isWarranty: isWarranty,
+                ),
               ),
             ),
       child: Container(
@@ -110,28 +137,43 @@ class BookingCards extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  if (!isAdmin &&
-                      booking.bookingStatusCode == 'P' &&
-                      !booking.cancelledWorkers.any(
-                        (worker) => worker.uid == LocalStore.getUID(),
-                      )) ...[
+                  if ((!isAdmin &&
+                          booking.bookingStatusCode == 'P' &&
+                          !booking.cancelledWorkers.any(
+                            (worker) => worker.uid == LocalStore.getUID(),
+                          )) ||
+                      (!isAdmin &&
+                          isWarranty &&
+                          booking.warranty!.warrantyStatusCode == 'R' &&
+                          !(booking.warranty!.rejectedTechnicians?.any(
+                                (tech) => tech.uid == LocalStore.getUID(),
+                              ) ??
+                              false))) ...[
                     IconButton(
                       onPressed: () {
-                        _showAcceptConfirmationDialog(context, booking);
+                        _showAcceptConfirmationDialog(
+                          context,
+                          booking,
+                          isWarranty,
+                        );
                       },
                       icon: Icon(Icons.check_circle, color: Colors.green),
                     ),
 
                     IconButton(
                       onPressed: () {
-                        showRejectBookingDialog(context, booking);
+                        showRejectBookingDialog(context, booking, isWarranty);
                       },
                       icon: Icon(Icons.cancel, color: Colors.red),
                     ),
                   ],
-                  if (isAdmin &&
-                      onAssign != null &&
-                      booking.bookingStatusCode == 'P')
+                  if ((isAdmin &&
+                          !isWarranty &&
+                          onAssign != null &&
+                          booking.bookingStatusCode == 'P') ||
+                      (isAdmin &&
+                          isWarranty &&
+                          booking.warranty!.warrantyStatusCode == 'R'))
                     OutlinedButton(
                       onPressed: onAssign,
                       style: OutlinedButton.styleFrom(
@@ -352,7 +394,7 @@ class BookingCards extends StatelessWidget {
                           ),
                       } else if (booking.bookingStatusCode == 'R') ...{
                         Text(
-                          "${AppLocalizations.of(context)!.rejectedOn}: ${LocalizationHelper().formatDateLocalized(booking.rejectedAt!.toDate(), context)}",
+                          "${AppLocalizations.of(context)!.rejectedAt}: ${LocalizationHelper().formatDateLocalized(booking.rejectedAt!.toDate(), context)}",
                           style: textTheme.labelSmall?.copyWith(
                             color: colorScheme.onSurface.withOpacity(0.5),
                           ),
@@ -395,32 +437,56 @@ class BookingCards extends StatelessWidget {
   void _showAcceptConfirmationDialog(
     BuildContext context,
     BookingModel booking,
+    bool isWarranty,
   ) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           actionsAlignment: MainAxisAlignment.start,
-          title: Text(AppLocalizations.of(context)!.acceptBooking),
+          title: Text(
+            isWarranty
+                ? AppLocalizations.of(context)!.acceptWarrantyRepair
+                : AppLocalizations.of(context)!.acceptBooking,
+          ),
           content: Text(
             AppLocalizations.of(context)!.areYouSureYouWantToAcceptThisBooking,
           ),
           actions: [
             ElevatedButton(
-              onPressed: () {
-                AppFirestore.bookingsCollectionRef.doc(booking.id).update({
-                  'bookingStatusCode': 'A',
-                  'acceptedAt': FieldValue.serverTimestamp(),
-                  'updatedAt': FieldValue.serverTimestamp(),
-                });
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        Home(newIndex: 1, selectedFilter: "A"),
-                  ),
-                  (route) => false,
-                );
-              },
+              onPressed: isWarranty
+                  ? () {
+                      AppFirestore.bookingsCollectionRef
+                          .doc(booking.id)
+                          .update({
+                            'warranty.warrantyStatusCode': 'S',
+                            'warranty.acceptedAt': FieldValue.serverTimestamp(),
+                            'updatedAt': FieldValue.serverTimestamp(),
+                          });
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              Home(newIndex: 2, selectedFilter: "S"),
+                        ),
+                        (route) => false,
+                      );
+                    }
+                  : () {
+                      AppFirestore.bookingsCollectionRef
+                          .doc(booking.id)
+                          .update({
+                            'bookingStatusCode': 'A',
+                            'acceptedAt': FieldValue.serverTimestamp(),
+                            'updatedAt': FieldValue.serverTimestamp(),
+                          });
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              Home(newIndex: 1, selectedFilter: "A"),
+                        ),
+                        (route) => false,
+                      );
+                    },
               child: Text(AppLocalizations.of(context)!.accept),
             ),
             const SizedBox(width: 8),
@@ -436,28 +502,96 @@ class BookingCards extends StatelessWidget {
     );
   }
 
-  void showRejectBookingDialog(BuildContext context, BookingModel booking) {
+ void showRejectBookingDialog(
+    BuildContext context,
+    BookingModel booking,
+    bool isWarranty,
+  ) {
+    final TextEditingController reasonController = TextEditingController();
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           actionsAlignment: MainAxisAlignment.start,
           title: Text(AppLocalizations.of(context)!.rejectBooking),
-          content: Text(
-            AppLocalizations.of(context)!.areYouSureYouWantToRejectThisBooking,
-          ),
+          content: isWarranty
+              ? Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!
+                            .areYouSureYouWantToRejectThisBooking,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: reasonController,
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(context)!.reasonforrejection,
+                          hintText: AppLocalizations.of(context)!.enterReasonForReject,
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 3,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return AppLocalizations.of(context)!.pleaseProvideARejectionReason;
+                          }
+                          if (value.trim().length < 10) {
+                            return AppLocalizations.of(context)!.reasonMustBeAtLeast10Characters;
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                )
+              : Text(
+                  AppLocalizations.of(context)!
+                      .areYouSureYouWantToRejectThisBooking,
+                ),
           actions: [
             ElevatedButton(
-              onPressed: () {
-                context.read<BookingBloc>().add(
-                  CancelBooking(
-                    bookingId: booking.id,
-                    agentUid: booking.agent?.uid ?? '',
-                    agentName: booking.agent?.name ?? '',
-                  ),
-                );
-                Navigator.of(context).pop();
-              },
+              onPressed: isWarranty
+                  ? () async {
+                      if (formKey.currentState!.validate()) {
+                        final technicianDoc = await AppFirestore
+                            .usersCollectionRef
+                            .doc(booking.warranty?.assignedTechnicianId ?? '')
+                            .get();
+
+                        final tech = UserModel.fromDocumentSnapshot(
+                          technicianDoc,
+                        );
+
+                        if (context.mounted) {
+                          context.read<WarrantyBloc>().add(
+                                CancelWarranty(
+                                  bookingId: booking.id,
+                                  technicianName: tech.name ?? "",
+                                  technicianUid:
+                                      booking.warranty?.assignedTechnicianId ??
+                                          '',
+                                  rejectionReason: reasonController.text.trim(),
+                                ),
+                              );
+                          Navigator.of(context).pop();
+                        }
+                      }
+                    }
+                  : () {
+                      context.read<BookingBloc>().add(
+                            CancelBooking(
+                              bookingId: booking.id,
+                              agentUid: booking.agent?.uid ?? '',
+                              agentName: booking.agent?.name ?? '',
+                            ),
+                          );
+                      Navigator.of(context).pop();
+                    },
               child: Text(AppLocalizations.of(context)!.reject),
             ),
             const SizedBox(width: 8),
@@ -472,4 +606,5 @@ class BookingCards extends StatelessWidget {
       },
     );
   }
+
 }

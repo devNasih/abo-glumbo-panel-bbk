@@ -5,6 +5,7 @@ import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/account.dart';
+import 'package:aboglumbo_bbk_panel/pages/bookings/warranty_page.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/admin_home.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage_app.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/worker/dashboard.dart';
@@ -267,12 +268,14 @@ class _HomeState extends State<Home> {
         List<Widget> adminPages = [
           AdminHome(),
           const ManageApp(),
+          WarrantyPage(workerData: userData),
           AccountPage(workerData: userData),
         ];
         log("adminPages: $selectedBookingStatus");
         List<Widget> workerPages = [
           DashboardScreen(workerData: userData),
           WorkerHome(selectedIndex: selectedBookingStatus),
+          WarrantyPage(workerData: userData),
           AccountPage(workerData: userData),
         ];
         final currentPages = userData.isAdmin == true
@@ -362,6 +365,18 @@ class _HomeState extends State<Home> {
                     label: AppLocalizations.of(context)?.orders ?? 'Orders',
                   ),
                 },
+
+                NavigationDestination(
+                  icon: Icon(
+                    Icons.verified_user_rounded,
+                    color: AppColors.grey,
+                  ),
+                  selectedIcon: Icon(
+                    Icons.verified_user_rounded,
+                    color: AppColors.secondary,
+                  ),
+                  label: AppLocalizations.of(context)!.warrantyClaims,
+                ),
 
                 NavigationDestination(
                   icon: SvgPicture.asset(
