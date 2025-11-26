@@ -1195,5 +1195,6 @@
   "customerInformation": "معلومات العميل",
   "serviceInformation": "معلومات الخدمة",
   "copy": "نسخ",
+  "trackingActive": "الإيقاف النشط",
   "cannotRequestPayoutPendingRequest": "لديك طلب سحب قيد المعالجة. يرجى الانتظار حتى يتم الموافقة عليه أو رفضه."
 }

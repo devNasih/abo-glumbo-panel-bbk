@@ -3516,7 +3516,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trackingInactive => 'الإيقاف غير النشط';
 
   @override
-  String get trackingActive => 'Tracking Active';
+  String get trackingActive => 'الإيقاف النشط';
 
   @override
   String get fix => 'إصلاح';
