@@ -2,6 +2,7 @@ import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
+import 'package:aboglumbo_bbk_panel/models/booking.dart';
 import 'package:aboglumbo_bbk_panel/models/tipping.dart';
 import 'package:aboglumbo_bbk_panel/models/transaction.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
@@ -9,8 +10,9 @@ import 'package:aboglumbo_bbk_panel/pages/home/worker/payout_requests.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' show DateFormat;
 
 class WorkerEarningsPage extends StatefulWidget {
   final String workerId;
@@ -560,11 +562,12 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                           Navigator.of(context).pop();
                         },
                   context: context,
-                  backgroundColor: Colors.red,
+                  backgroundColor: Colors.white,
                   widget: Text(
                     AppLocalizations.of(context)!.cancel,
                     style: const TextStyle(
                       fontSize: 15,
+                      color: Colors.black,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -583,6 +586,30 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                       : isLoading
                       ? null
                       : () async {
+                          // Check if there's already a pending tip payout request
+                          if (tips?.payoutRequested == true) {
+                            if (mounted) {
+                              setState(() {
+                                errorMessage = AppLocalizations.of(
+                                  context,
+                                )!.cannotRequestPayoutPendingRequest;
+                              });
+                            }
+                            // Show snackbar if there's already a pending request
+                            // Navigator.of(context).pop();
+                            // ScaffoldMessenger.of(context).showSnackBar(
+                            //   SnackBar(
+                            //     content: Text(
+                            //       AppLocalizations.of(
+                            //         context,
+                            //       )!.cannotRequestPayoutPendingRequest,
+                            //     ),
+                            //     backgroundColor: Colors.orange,
+                            //   ),
+                            // );
+                            // return;
+                          }
+
                           // Clear previous error
                           if (mounted) {
                             setState(() {
@@ -829,6 +856,57 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () async {
+                    // First check if there's a pending earnings payout request
+                    final payoutRequests =
+                        await AppServices.getPayoutRequestsById(
+                          widget.workerId,
+                        ).first;
+
+                    // Check if there's a pending earnings payout request
+                    bool hasPendingEarningsRequest = false;
+                    if (payoutRequests.isNotEmpty) {
+                      // Filter for earnings type requests only
+                      final earningsRequests = payoutRequests
+                          .where((req) => req.type == 'earnings')
+                          .toList();
+
+                      if (earningsRequests.isNotEmpty) {
+                        // Sort by createdAt to get the most recent
+                        earningsRequests.sort((a, b) {
+                          if (a.createdAt == null && b.createdAt == null) {
+                            return 0;
+                          }
+                          if (a.createdAt == null) return 1;
+                          if (b.createdAt == null) return -1;
+                          return b.createdAt!.compareTo(a.createdAt!);
+                        });
+
+                        // Check if the most recent earnings request is pending
+                        final mostRecentEarningsRequest =
+                            earningsRequests.first;
+                        hasPendingEarningsRequest =
+                            mostRecentEarningsRequest.status == 'P';
+                      }
+                    }
+
+                    if (hasPendingEarningsRequest) {
+                      // Show snackbar if there's a pending earnings request
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.cannotRequestPayoutPendingRequest,
+                            ),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                      }
+                      return;
+                    }
+
+                    // Proceed with normal flow if no pending earnings request
                     final user = AppServices.getWorkerById(widget.workerId);
                     bool hasAtleastOnePayoutAccount = await user.then(
                       (value) => value.payoutAccounts!.isNotEmpty,
@@ -951,59 +1029,491 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
         transaction.paymentStatus.toLowerCase() == 'completed' ||
         transaction.paymentStatus.toLowerCase() == 'paid';
 
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      leading: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: !isCash
-              ? Colors.green.withOpacity(0.1)
-              : Colors.purple.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(
-          isCash ? Icons.money : Icons.credit_card,
-          color: !isCash ? Colors.green : Colors.purple,
-        ),
-      ),
-      title: Text(
-        "${AppLocalizations.of(context)!.id}: ${transaction.bookingId}",
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-      ),
-      subtitle: Text(
-        DateFormat('MMM dd, yyyy • hh:mm a').format(transaction.createdAt),
-        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-      ),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            '${transaction.amount.toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              color: isPaid ? Colors.black87 : Colors.grey,
-            ),
+    return FutureBuilder(
+      future: AppServices.getBookingById(transaction.bookingId),
+      builder: (context, snapshot) {
+        String customerName = '';
+        String serviceName = '';
+        String serviceNameAr = '';
+
+        if (snapshot.hasData && snapshot.data != null) {
+          customerName = snapshot.data!.customer.name ?? '';
+          serviceName = snapshot.data!.service.name ?? '';
+          serviceNameAr = snapshot.data!.service.name_ar ?? '';
+        }
+
+        return ListTile(
+          onTap: snapshot.hasData && snapshot.data != null
+              ? () => _showTransactionDetailsBottomSheet(
+                  context,
+                  transaction,
+                  snapshot.data!,
+                )
+              : null,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
           ),
-          const SizedBox(height: 4),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          leading: Container(
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: isPaid
+              color: !isCash
                   ? Colors.green.withOpacity(0.1)
                   : Colors.purple.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Text(
-              isCash
-                  ? AppLocalizations.of(context)!.cashInHand
-                  : AppLocalizations.of(context)!.card,
-              style: TextStyle(
-                fontSize: 10,
-                color: isPaid ? Colors.green[700] : Colors.orange[700],
-                fontWeight: FontWeight.w600,
+            child: Icon(
+              isCash ? Icons.money : Icons.credit_card,
+              color: !isCash ? Colors.green : Colors.purple,
+            ),
+          ),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (customerName.isNotEmpty) ...{
+                Text(
+                  customerName,
+
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              },
+              if (serviceName.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  Directionality.of(context) == TextDirection.rtl
+                      ? serviceNameAr
+                      : serviceName,
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+              ],
+            ],
+          ),
+          subtitle: Text(
+            DateFormat('MMM dd, yyyy • hh:mm a').format(transaction.createdAt),
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+          ),
+          trailing: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${transaction.amount.toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: isPaid ? Colors.black87 : Colors.grey,
+                ),
               ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showTransactionDetailsBottomSheet(
+    BuildContext context,
+    TransactionModel transaction,
+    BookingModel booking,
+  ) {
+    final isCash = transaction.paymentMethod.toLowerCase() == 'cash';
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+    final serviceName = isRtl
+        ? (booking.service.name_ar ?? booking.service.name ?? '')
+        : (booking.service.name ?? '');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      enableDrag: true,
+      isDismissible: true,
+
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                width: double.infinity,
+
+                decoration: BoxDecoration(
+                  color: AppColors.secondary,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                  border: Border(
+                    bottom: BorderSide(color: Colors.black, width: 1),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(top: 12, bottom: 8),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              isCash ? Icons.money : Icons.credit_card,
+                              color: isCash ? Colors.purple : Colors.green,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.transactionDetails,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  DateFormat(
+                                    'MMM dd, yyyy • hh:mm a',
+                                  ).format(transaction.createdAt),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const Divider(height: 1),
+
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Amount Card
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            isCash ? Colors.purple[700]! : Colors.green[700]!,
+                            isCash ? Colors.purple[500]! : Colors.green[500]!,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (isCash ? Colors.purple : Colors.green)
+                                .withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!.paidAmount,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${transaction.amount.toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              isCash
+                                  ? AppLocalizations.of(context)!.cashInHand
+                                  : AppLocalizations.of(context)!.card,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Booking & Order IDs
+                    _buildCopyableField(
+                      context,
+                      AppLocalizations.of(context)!.bookingId,
+                      transaction.bookingId,
+                      Icons.receipt_long,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildCopyableField(
+                      context,
+                      AppLocalizations.of(context)!.orderId,
+                      transaction.orderId,
+                      Icons.confirmation_number,
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Customer Information
+                    Text(
+                      AppLocalizations.of(context)!.customerInformation,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildInfoRow(
+                      context,
+                      AppLocalizations.of(context)!.name,
+                      booking.customer.name ?? 'N/A',
+                      Icons.person,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                      context,
+                      AppLocalizations.of(context)!.phone,
+                      booking.customer.phone ?? 'N/A',
+                      Icons.phone,
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Service Information
+                    Text(
+                      AppLocalizations.of(context)!.serviceInformation,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildInfoRow(
+                      context,
+                      AppLocalizations.of(context)!.serviceName,
+                      serviceName,
+                      Icons.build,
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Close Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey[200],
+                          foregroundColor: Colors.black87,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          AppLocalizations.of(context)!.close,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCopyableField(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: Colors.blue[700], size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              // Copy to clipboard
+              Clipboard.setData(ClipboardData(text: value));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    AppLocalizations.of(context)!.copiedToClipboard,
+                  ),
+                  duration: const Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            icon: Icon(Icons.copy, color: Colors.blue[700], size: 20),
+            tooltip: AppLocalizations.of(context)!.copy,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: Colors.grey[700], size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -1091,7 +1601,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
             backgroundColor: Colors.white,
             widget: Text(
               AppLocalizations.of(context)!.cancel,
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.black),
             ),
           ),
           eButton(

@@ -3633,4 +3633,20 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get cannotRequestPayoutPendingRequest =>
+      'You already have a payout request in progress. Please wait until it is approved or rejected';
+
+  @override
+  String get paidAmount => 'Paid Amount';
+
+  @override
+  String get customerInformation => 'Customer Information';
+
+  @override
+  String get serviceInformation => 'Service Information';
+
+  @override
+  String get copy => 'Copy';
 }

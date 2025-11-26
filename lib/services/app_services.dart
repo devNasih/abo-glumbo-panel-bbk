@@ -745,6 +745,21 @@ class AppServices {
     }
   }
 
+  static Future<BookingModel?> getBookingById(String bookingId) async {
+    try {
+      final doc = await AppFirestore.bookingsCollectionRef.doc(bookingId).get();
+      if (doc.exists) {
+        return BookingModel.fromDocumentSnapshot(doc);
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error fetching booking by ID: $e');
+      }
+      return null;
+    }
+  }
+
   static Stream<List<CategoryModel>> getAllCategoriesStream() {
     return AppFirestore.categoriesCollectionRef.snapshots().map((snapshot) {
       return snapshot.docs

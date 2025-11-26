@@ -96,31 +96,35 @@ GlobalKey<NavigatorState>? navigatorKey = GlobalKey();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   try {
     // STEP 1: Initialize Firebase FIRST
     debugPrint('🚀 Initializing Firebase...');
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     debugPrint('✅ Firebase initialized');
-    
+
     // STEP 2: Set Database Persistence IMMEDIATELY after Firebase init
     // This must be done BEFORE any other Firebase Database usage
     debugPrint('🔄 Setting Firebase Database persistence...');
     FirebaseDatabase.instance.setPersistenceEnabled(true);
-    FirebaseDatabase.instance.setPersistenceCacheSizeBytes(10000000); // 10MB cache
+    FirebaseDatabase.instance.setPersistenceCacheSizeBytes(
+      10000000,
+    ); // 10MB cache
     debugPrint('✅ Firebase Database persistence enabled');
-    
+
     // STEP 3: Initialize Hive
     debugPrint('🔄 Initializing Hive...');
     await Hive.initFlutter();
     await Hive.openBox(hiveBoxName);
     debugPrint('✅ Hive initialized');
-    
+
     // STEP 4: Setup FCM Background Handler
     debugPrint('🔄 Registering FCM background handler...');
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     debugPrint('✅ FCM background handler registered');
-    
+
     // STEP 5: Initialize Notifications with delay to avoid permission conflicts
     debugPrint('🔄 Initializing notifications...');
     await Future.delayed(const Duration(milliseconds: 500));
@@ -128,17 +132,21 @@ void main() async {
     await NotificationServices.setupFCMListeners();
     await NotificationServices.checkForInitialMessage();
     debugPrint('✅ Notification services initialized');
-    
-    // STEP 6: Setup System UI
+
+    // STEP 6: Setup System UI (with One UI 8 fix)
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarDividerColor: Colors.transparent,
+        systemNavigationBarContrastEnforced: false,
         statusBarColor: Colors.transparent,
+        statusBarBrightness: Brightness.dark,
+        statusBarIconBrightness: Brightness.dark,
       ),
     );
-    debugPrint('✅ System UI configured');
-    
+    debugPrint('✅ System UI configured (One UI 8 compatible)');
+
     // STEP 7: Configure Background Fetch
     try {
       debugPrint('🔄 Configuring background fetch...');
@@ -169,14 +177,13 @@ void main() async {
     } catch (e) {
       debugPrint('⚠️ Background Fetch registration failed: $e');
     }
-    
+
     debugPrint('🎉 All initialization complete! Starting app...');
-    
   } catch (e, stackTrace) {
     debugPrint('❌ Error during app initialization: $e');
     debugPrint('Stack trace: $stackTrace');
   }
-  
+
   runApp(MyApp(navigatorKey: navigatorKey));
 }
 
@@ -196,6 +203,21 @@ class MyApp extends StatelessWidget {
             child: MaterialApp(
               title: 'Worker Console',
               debugShowCheckedModeBanner: false,
+              builder: (context, child) {
+                final mq = MediaQuery.of(context);
+                final bottom = mq.padding.bottom;
+
+                // Samsung OneUI gesture nav bug → returns 0 bottom inset
+                final fixedBottom = bottom == 0 ? 16.0 : bottom;
+
+                return MediaQuery(
+                  data: mq.copyWith(
+                    padding: mq.padding.copyWith(bottom: fixedBottom),
+                  ),
+                  child: child!,
+                );
+              },
+
               localizationsDelegates: const [
                 AppLocalizations.delegate,
                 GlobalMaterialLocalizations.delegate,

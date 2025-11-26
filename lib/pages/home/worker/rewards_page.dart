@@ -943,6 +943,58 @@ class _RewardsPageState extends State<RewardsPage> {
                 child: ElevatedButton.icon(
                   onPressed: bonusAmount > 0
                       ? () async {
+                          // First check if there's a pending bonus payout request
+                          final payoutRequests =
+                              await AppServices.getPayoutRequestsById(
+                                widget.workerData.uid!,
+                              ).first;
+
+                          // Check if there's a pending bonus payout request
+                          bool hasPendingBonusRequest = false;
+                          if (payoutRequests.isNotEmpty) {
+                            // Filter for bonus type requests only
+                            final bonusRequests = payoutRequests
+                                .where((req) => req.type == 'bonus')
+                                .toList();
+
+                            if (bonusRequests.isNotEmpty) {
+                              // Sort by createdAt to get the most recent
+                              bonusRequests.sort((a, b) {
+                                if (a.createdAt == null &&
+                                    b.createdAt == null) {
+                                  return 0;
+                                }
+                                if (a.createdAt == null) return 1;
+                                if (b.createdAt == null) return -1;
+                                return b.createdAt!.compareTo(a.createdAt!);
+                              });
+
+                              // Check if the most recent bonus request is pending
+                              final mostRecentBonusRequest =
+                                  bonusRequests.first;
+                              hasPendingBonusRequest =
+                                  mostRecentBonusRequest.status == 'P';
+                            }
+                          }
+
+                          if (hasPendingBonusRequest) {
+                            // Show snackbar if there's a pending bonus request
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.cannotRequestPayoutPendingRequest,
+                                  ),
+                                  backgroundColor: Colors.orange,
+                                ),
+                              );
+                            }
+                            return;
+                          }
+
+                          // Proceed with normal flow if no pending bonus request
                           final user = await AppServices.getWorkerById(
                             widget.workerData.uid!,
                           );

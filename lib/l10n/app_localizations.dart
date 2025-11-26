@@ -6860,6 +6860,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one {{count} hour ago} other {{count} hours ago}}'**
   String hoursAgo(int count);
+
+  /// No description provided for @cannotRequestPayoutPendingRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have a payout request in progress. Please wait until it is approved or rejected'**
+  String get cannotRequestPayoutPendingRequest;
+
+  /// No description provided for @paidAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid Amount'**
+  String get paidAmount;
+
+  /// No description provided for @customerInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Information'**
+  String get customerInformation;
+
+  /// No description provided for @serviceInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Information'**
+  String get serviceInformation;
+
+  /// No description provided for @copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get copy;
 }
 
 class _AppLocalizationsDelegate

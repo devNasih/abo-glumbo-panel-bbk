@@ -1199,5 +1199,10 @@
         "example": "2"
       }
     }
-  }
+  },
+ "cannotRequestPayoutPendingRequest": "You already have a payout request in progress. Please wait until it is approved or rejected"
+    ,"paidAmount": "Paid Amount",
+  "customerInformation": "Customer Information",
+  "serviceInformation": "Service Information",
+  "copy": "Copy"
 }

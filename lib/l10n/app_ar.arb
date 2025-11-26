@@ -1190,5 +1190,10 @@
         "example": "3"
       }
     }
-  }
+  },
+  "paidAmount": "المبلغ المدفوع",
+  "customerInformation": "معلومات العميل",
+  "serviceInformation": "معلومات الخدمة",
+  "copy": "نسخ",
+  "cannotRequestPayoutPendingRequest": "لديك طلب سحب قيد المعالجة. يرجى الانتظار حتى يتم الموافقة عليه أو رفضه."
 }

@@ -3576,4 +3576,20 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get cannotRequestPayoutPendingRequest =>
+      'لديك طلب سحب قيد المعالجة. يرجى الانتظار حتى يتم الموافقة عليه أو رفضه.';
+
+  @override
+  String get paidAmount => 'المبلغ المدفوع';
+
+  @override
+  String get customerInformation => 'معلومات العميل';
+
+  @override
+  String get serviceInformation => 'معلومات الخدمة';
+
+  @override
+  String get copy => 'نسخ';
 }
