@@ -923,6 +923,7 @@
   "pleaseEnterBankName": "Please enter bank name",
   "pleaseEnterIfscCode": "Please enter IBAN",
   "copyId": "Copy ID",
+  "notSelected": "Not selected",
   "quickActions": "Quick Actions",
   "refresh": "Refresh",
   "loadingCustomers": "Loading customers",
@@ -1161,8 +1162,42 @@
       }
     }
   },
+  "locationTracking": "Location Tracking",
+  "trackingInactive": "Tracking Inactive",
+  "trackingActive": "Tracking Active",
+  "fix": "Fix",
+  "locationTrackingStartedSuccessfully": "Location tracking started successfully",
+  "locationTrackingHelpText": "Location tracking helps customers track your progress. Make sure to keep location services enabled.",
+  "batteryOptimizationEnabled": "Battery optimization is enabled. This may affect background location tracking.",
   "agentAssignedSuccessfully": "Technician assigned successfully",
   "orderRejectedSuccessfully": "Order rejected successfully",
   "copiedToClipboard": "Copied to clipboard",
-  "couldNotLaunchPhone": "Could not launch phone app"
+  "couldNotLaunchPhone": "Could not launch phone app",
+  "minutesAgo": "{count, plural, one {{count} minute ago} other {{count} minutes ago}}",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "daysAgo": "{count, plural, one {{count} day ago} other {{count} days ago}}",
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "hoursAgo": "{count, plural, one {{count} hour ago} other {{count} hours ago}}",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  }
 }

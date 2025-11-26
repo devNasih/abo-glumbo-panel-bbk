@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/tipping.dart';
 import 'package:date_time_format/date_time_format.dart';
@@ -302,6 +303,7 @@ class TipsDataSheet extends StatelessWidget {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
+          backgroundColor: Colors.white,
           actionsAlignment: MainAxisAlignment.center,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -408,6 +410,7 @@ class TipsDataSheet extends StatelessWidget {
                       final source = await showDialog<ImageSource>(
                         context: context,
                         builder: (context) => AlertDialog(
+                          backgroundColor: Colors.white,
                           title: Text(
                             AppLocalizations.of(context)?.selectSource ??
                                 'Select Source',
@@ -526,7 +529,17 @@ class TipsDataSheet extends StatelessWidget {
             ),
           ),
           actions: [
-            ElevatedButton(
+            eButton(
+              onPressed: () {
+                transactionIdController.clear();
+                Navigator.pop(context);
+              },
+              backgroundColor: Colors.white,
+              context: context,
+              text: AppLocalizations.of(context)?.cancel ?? 'Cancel',
+              textColor: Colors.black,
+            ),
+            eButton(
               onPressed: () {
                 if (formKey.currentState!.validate() && selectedFile != null) {
                   Navigator.pop(context);
@@ -550,26 +563,10 @@ class TipsDataSheet extends StatelessWidget {
                   );
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade600,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(AppLocalizations.of(context)?.confirm ?? 'Confirm'),
-            ),
-            SizedBox(width: 8),
-            TextButton(
-              onPressed: () {
-                transactionIdController.clear();
-                Navigator.pop(context);
-              },
-              child: Text(
-                AppLocalizations.of(context)?.cancel ?? 'Cancel',
-                style: TextStyle(color: Colors.grey.shade600),
-              ),
+              context: context,
+              backgroundColor: Colors.blue.shade600,
+              text: AppLocalizations.of(context)?.confirm ?? 'Confirm',
+              textColor: Colors.white,
             ),
           ],
         ),

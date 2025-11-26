@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
@@ -14,14 +15,19 @@ Future<bool?> showCropConfirmDialog(BuildContext context) async {
               'Do you want to keep the selected image without cropping?',
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(AppLocalizations.of(context)?.keep ?? 'Keep'),
-          ),
-            const SizedBox(width: 8),
-          TextButton(
+          eButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
+            text: AppLocalizations.of(context)?.cancel ?? 'Cancel',
+            context: context,
+            textColor: Colors.black,
+            backgroundColor: Colors.white,
+          ),
+          eButton(
+            onPressed: () => Navigator.of(context).pop(true),
+              text: AppLocalizations.of(context)?.keep ?? 'Keep',
+            context: context,
+            textColor: Colors.white,
+            backgroundColor: Colors.green,
           ),
         ],
       );

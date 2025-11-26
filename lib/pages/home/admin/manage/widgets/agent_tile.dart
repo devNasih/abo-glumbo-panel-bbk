@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,7 @@ class AgentTileMinimal extends StatelessWidget {
       builder: (context) {
         final TextTheme textTheme = Theme.of(context).textTheme;
         return AlertDialog(
+          backgroundColor: Colors.white,
           actionsAlignment: MainAxisAlignment.start,
           title: Text(
             (approve
@@ -44,19 +46,25 @@ class AgentTileMinimal extends StatelessWidget {
             style: textTheme.bodyMedium,
           ),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context, true);
-              },
-              child: Text(AppLocalizations.of(context)?.yesText ?? "Yes"),
-            ),
-            SizedBox(width: 8),
-            TextButton(
+                 eButton(
               onPressed: () {
                 Navigator.pop(context, false);
               },
-              child: Text(AppLocalizations.of(context)?.cancel ?? "Cancel"),
+              text: AppLocalizations.of(context)?.cancel ?? "Cancel",
+              context: context,
+              textColor: Colors.black,
+              backgroundColor: Colors.white,
             ),
+            eButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              text: AppLocalizations.of(context)?.yesText ?? "Yes",
+              context: context,
+              textColor: Colors.white,
+              backgroundColor: Colors.green,
+            ),
+       
           ],
         );
       },

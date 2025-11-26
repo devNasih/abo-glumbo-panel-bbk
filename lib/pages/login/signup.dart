@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/searchable_dropdown.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/text_form.dart';
@@ -392,6 +393,7 @@ class _SignupState extends State<Signup> {
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
+            backgroundColor: Colors.white,
             actionsAlignment: MainAxisAlignment.start,
             title: Text(AppLocalizations.of(context)?.delete ?? 'Delete'),
             content: Text(
@@ -399,17 +401,20 @@ class _SignupState extends State<Signup> {
                   'Are you sure you want to remove this file?',
             ),
             actions: [
-              TextButton(
+              eButton(
+                backgroundColor: Colors.red,
+                context: context,
                 onPressed: () => Navigator.pop(context, true),
-                child: Text(
-                  AppLocalizations.of(context)?.yes ?? 'Yes',
-                  style: const TextStyle(color: Colors.red),
-                ),
+                text: AppLocalizations.of(context)?.yes ?? 'Yes',
+                textColor: Colors.white,
               ),
               const SizedBox(width: 8),
-              TextButton(
+              eButton(
+                backgroundColor: Colors.grey,
+                context: context,
                 onPressed: () => Navigator.pop(context, false),
-                child: Text(AppLocalizations.of(context)?.no ?? 'No'),
+                text: AppLocalizations.of(context)?.no ?? 'No',
+                textColor: Colors.black,
               ),
             ],
           ),
@@ -673,6 +678,7 @@ class _SignupState extends State<Signup> {
         return PopScope(
           canPop: false,
           child: AlertDialog(
+            backgroundColor: Colors.white,
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -1338,23 +1344,26 @@ class _SignupState extends State<Signup> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
         actionsAlignment: MainAxisAlignment.start,
         title: Text(AppLocalizations.of(context)!.cancelRegistration),
         content: Text(
           AppLocalizations.of(context)!.cancelRegistrationConfirmation,
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(
-              AppLocalizations.of(context)!.yes,
-              style: const TextStyle(color: Colors.red),
-            ),
-          ),
-          const SizedBox(width: 8),
-          TextButton(
+          eButton(
+            backgroundColor: Colors.grey,
+            context: context,
             onPressed: () => Navigator.pop(context, false),
-            child: Text(AppLocalizations.of(context)!.no),
+            text: AppLocalizations.of(context)!.no,
+            textColor: Colors.black,
+          ),
+          eButton(
+            backgroundColor: Colors.red,
+            context: context,
+            onPressed: () => Navigator.pop(context, true),
+            text: AppLocalizations.of(context)!.yes,
+            textColor: Colors.white,
           ),
         ],
       ),

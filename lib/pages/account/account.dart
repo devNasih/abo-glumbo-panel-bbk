@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:aboglumbo_bbk_panel/common_widget/danger_alerts.dart';
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
@@ -65,6 +66,7 @@ class _AccountPageState extends State<AccountPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
+          backgroundColor: Colors.white,
           actionsAlignment: MainAxisAlignment.start,
           title: Text(
             AppLocalizations.of(context)?.selectLanguage ?? 'Select Language',
@@ -97,9 +99,12 @@ class _AccountPageState extends State<AccountPage> {
             }).toList(),
           ),
           actions: [
-            TextButton(
+            eButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
+              text: AppLocalizations.of(context)?.cancel ?? 'Cancel',
+              context: context,
+              textColor: Colors.black,
+              backgroundColor: Colors.white,
             ),
           ],
         );
@@ -449,6 +454,7 @@ class _AccountPageState extends State<AccountPage> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
+          backgroundColor: Colors.white,
           actionsAlignment: MainAxisAlignment.start,
           title: Row(
             children: [
@@ -540,28 +546,21 @@ class _AccountPageState extends State<AccountPage> {
             ],
           ),
           actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              child: Text(
-                AppLocalizations.of(dialogContext)?.deleteAccount ??
-                    'Delete Account',
-                style: GoogleFonts.dmSans(fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(width: 8),
-            TextButton(
+            eButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(
-                AppLocalizations.of(dialogContext)?.cancel ?? 'Cancel',
-                style: GoogleFonts.dmSans(
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              text: AppLocalizations.of(dialogContext)?.cancel ?? 'Cancel',
+              context: dialogContext,
+              textColor: Colors.black,
+              backgroundColor: Colors.white,
+            ),
+            eButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              text:
+                  AppLocalizations.of(dialogContext)?.deleteAccount ??
+                  'Delete Account',
+              context: dialogContext,
+              textColor: Colors.white,
+              backgroundColor: Colors.red,
             ),
           ],
         );
@@ -620,7 +619,7 @@ class _AccountPageState extends State<AccountPage> {
           return PopScope(
             canPop: false,
             child: AlertDialog(
-              
+              backgroundColor: Colors.white,
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -766,7 +765,6 @@ class _AccountPageState extends State<AccountPage> {
       if (authenticated && mounted) {
         setState(() => _isBiometricEnabled = true);
         BiometricService.setBiometricEnabled(true);
-        log('Biometric authentication enabled');
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -786,7 +784,7 @@ class _AccountPageState extends State<AccountPage> {
         context: context,
         builder: (BuildContext dialogContext) {
           return AlertDialog(
-
+            backgroundColor: Colors.white,
             actionsAlignment: MainAxisAlignment.start,
             title: Row(
               children: [
@@ -843,26 +841,19 @@ class _AccountPageState extends State<AccountPage> {
               ],
             ),
             actions: [
-              ElevatedButton(
-                onPressed: () => Navigator.of(dialogContext).pop(true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                ),
-                child: Text(
-                  AppLocalizations.of(dialogContext)?.disable ?? 'Disable',
-                  style: GoogleFonts.dmSans(fontWeight: FontWeight.bold),
-                ),
-              ),
-              TextButton(
+              eButton(
                 onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: Text(
-                  AppLocalizations.of(dialogContext)?.cancel ?? 'Cancel',
-                  style: GoogleFonts.dmSans(
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                text: AppLocalizations.of(dialogContext)?.cancel ?? 'Cancel',
+                context: dialogContext,
+                textColor: Colors.black,
+                backgroundColor: Colors.white,
+              ),
+              eButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                text: AppLocalizations.of(dialogContext)?.disable ?? 'Disable',
+                context: dialogContext,
+                textColor: Colors.white,
+                backgroundColor: Colors.red,
               ),
             ],
           );
@@ -882,7 +873,7 @@ class _AccountPageState extends State<AccountPage> {
                 AppLocalizations.of(context)?.biometricDisabled ??
                     'Biometric authentication disabled',
               ),
-              backgroundColor: Colors.orange,
+              backgroundColor: Colors.green,
             ),
           );
         }
@@ -918,7 +909,7 @@ class _AccountPageState extends State<AccountPage> {
         barrierDismissible: false,
         builder: (BuildContext dialogContext) {
           return AlertDialog(
-            
+            backgroundColor: Colors.white,
             key: const ValueKey('delete_account_progress_dialog'),
             content: Row(
               children: [

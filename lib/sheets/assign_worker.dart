@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/searchable_dropdown.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
@@ -318,37 +319,6 @@ class _AssignUserBottomSheetState extends State<AssignUserBottomSheet> {
     }
   }
 
-  // Future<void> _showRejectConfirmationDialog() async {
-  //   final confirmed = await showDialog<bool>(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: Text(
-  //         AppLocalizations.of(context)?.rejectBooking ?? 'Reject Booking',
-  //       ),
-  //       content: Text(
-  //         AppLocalizations.of(context)?.areYouSureYouWantToRejectThisBooking ??
-  //             'Are you sure you want to reject this booking?',
-  //       ),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () => Navigator.pop(context, false),
-  //           child: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
-  //         ),
-  //         TextButton(
-  //           onPressed: () => Navigator.pop(context, true),
-  //           style: TextButton.styleFrom(foregroundColor: Colors.red),
-  //           child: Text(AppLocalizations.of(context)?.reject ?? 'Reject'),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-
-  //   if (confirmed == true && mounted) {
-  //     widget.onRejectOrder(widget.booking);
-  //     Navigator.pop(context);
-  //   }
-  // }
-
   Future<void> _showConflictDialog(
     UserModel user,
     ConflictData conflictData,
@@ -538,6 +508,7 @@ class _AssignUserBottomSheetState extends State<AssignUserBottomSheet> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: Colors.white,
           title: Text(AppLocalizations.of(context)!.filterByLocation),
           content: SizedBox(
             width: MediaQuery.of(context).size.width * 0.8,
@@ -605,13 +576,19 @@ class _AssignUserBottomSheetState extends State<AssignUserBottomSheet> {
             ),
           ),
           actions: [
-            TextButton(
+            eButton(
+              backgroundColor: Colors.grey,
+              context: context,
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text(AppLocalizations.of(context)!.cancel),
+              text: AppLocalizations.of(context)!.cancel,
+              textColor: Colors.black,
             ),
-            ElevatedButton(
+            eButton(
+              backgroundColor: Colors.blue,
+              context: context,
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text(AppLocalizations.of(context)!.apply),
+              text: AppLocalizations.of(context)!.apply,
+              textColor: Colors.white,
             ),
           ],
         ),

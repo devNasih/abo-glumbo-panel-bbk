@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/faq.dart';
@@ -33,8 +34,17 @@ class _ManageFaqState extends State<ManageFaq> {
               showDialog(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => Center(
-                  child: SizedBox(height: 24, child: Loader(size: 20)),
+                builder: (context) => AlertDialog(
+                  constraints: BoxConstraints(
+                    maxWidth: 100,
+                    minWidth: 100,
+                    maxHeight: 100,
+                  ),
+                  backgroundColor: Colors.white,
+
+                  content: Center(
+                    child: SizedBox(height: 24, child: Loader(size: 20)),
+                  ),
                 ),
               ).then((_) => _isDeletingDialogShowing = false);
             }
@@ -82,14 +92,17 @@ class _ManageFaqState extends State<ManageFaq> {
           stream: AppServices.getFaqStream(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: Column(
-                mainAxisSize: MainAxisSize.min,children: [
-                  SizedBox(height: 24,child: Loader(), 
-                  ),
-                  SizedBox(height: 10,),
-                  Text(AppLocalizations.of(context)!.loadingFaqs),
-                ],
-              ));
+              return AlertDialog(
+                backgroundColor: Colors.white,
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(height: 24, child: Loader()),
+                    SizedBox(height: 10),
+                    Text(AppLocalizations.of(context)!.loadingFaqs),
+                  ],
+                ),
+              );
             }
 
             if (snapshot.hasError) {
@@ -195,7 +208,7 @@ class _ManageFaqState extends State<ManageFaq> {
                           const SizedBox(height: 12),
                           // Action buttons
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               // Edit button
                               Material(
@@ -306,6 +319,7 @@ class _ManageFaqState extends State<ManageFaq> {
 
   Widget confirmDeleteDialog(FaqModel entry) {
     return AlertDialog(
+      backgroundColor: Colors.white,
       actionsAlignment: MainAxisAlignment.start,
       title: Text(AppLocalizations.of(context)!.deleteFaqEntry),
       content: Column(
@@ -319,17 +333,21 @@ class _ManageFaqState extends State<ManageFaq> {
         ],
       ),
       actions: [
-       
-        TextButton(
-          child: Text(AppLocalizations.of(context)!.delete),
+        eButton(
+          text: AppLocalizations.of(context)!.cancel,
+          onPressed: () => Navigator.of(context).pop(),
+          context: context,
+          textColor: Colors.black,
+          backgroundColor: Colors.white,
+        ),
+        eButton(
+          text: AppLocalizations.of(context)!.delete,
           onPressed: () {
             context.read<ManageAppBloc>().add(DeleteFaqEvent(entry.id));
           },
-        ),
-        SizedBox(width: 8),
-      TextButton(
-          child: Text(AppLocalizations.of(context)!.cancel),
-          onPressed: () => Navigator.of(context).pop(),
+          context: context,
+          textColor: Colors.white,
+          backgroundColor: Colors.red,
         ),
       ],
     );

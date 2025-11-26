@@ -2,6 +2,7 @@ import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class HorizontalDateRangePicker extends StatefulWidget {
   const HorizontalDateRangePicker({super.key});
@@ -17,6 +18,7 @@ class _HorizontalDateRangePickerState extends State<HorizontalDateRangePicker> {
   DateTime? _startDate;
   DateTime? _endDate;
   bool _isSelectingEnd = false;
+  String _locale = 'en';
 
   @override
   void initState() {
@@ -24,6 +26,14 @@ class _HorizontalDateRangePickerState extends State<HorizontalDateRangePicker> {
     _currentMonth = DateTime.now();
     // Start with current month (index ~1200)
     _pageController = PageController(initialPage: 1200);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _locale = Localizations.localeOf(context).languageCode;
+    // Initialize date formatting for the current locale
+    initializeDateFormatting(_locale, null);
   }
 
   @override
@@ -179,8 +189,9 @@ class _HorizontalDateRangePickerState extends State<HorizontalDateRangePicker> {
                                 _startDate != null
                                     ? DateFormat(
                                         'MMM dd, yyyy',
+                                        _locale,
                                       ).format(_startDate!)
-                                    : 'Not selected',
+                                    : AppLocalizations.of(context)!.notSelected,
                                 style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.white,
@@ -213,8 +224,9 @@ class _HorizontalDateRangePickerState extends State<HorizontalDateRangePicker> {
                                 _endDate != null
                                     ? DateFormat(
                                         'MMM dd, yyyy',
+                                        _locale,
                                       ).format(_endDate!)
-                                    : 'Not selected',
+                                    : AppLocalizations.of(context)!.notSelected,
                                 style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.white,
@@ -251,7 +263,7 @@ class _HorizontalDateRangePickerState extends State<HorizontalDateRangePicker> {
                     ),
                   ),
                   Text(
-                    DateFormat('MMMM yyyy').format(_currentMonth),
+                    DateFormat('MMMM yyyy', _locale).format(_currentMonth),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -280,7 +292,7 @@ class _HorizontalDateRangePickerState extends State<HorizontalDateRangePicker> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
-                children: ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) {
+                children: _getLocalizedWeekdays().map((day) {
                   return Expanded(
                     child: Center(
                       child: Text(
@@ -486,5 +498,15 @@ class _HorizontalDateRangePickerState extends State<HorizontalDateRangePicker> {
         },
       ),
     );
+  }
+
+  List<String> _getLocalizedWeekdays() {
+    if (_locale == 'ar') {
+      // Arabic weekday abbreviations (starting from Sunday)
+      return ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'];
+    } else {
+      // English weekday abbreviations (starting from Sunday)
+      return ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    }
   }
 }

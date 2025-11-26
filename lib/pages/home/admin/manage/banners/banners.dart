@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/banner.dart';
@@ -117,6 +118,7 @@ class ManageBanners extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: Colors.white,
           actionsAlignment: MainAxisAlignment.start,
           title: Text(
             AppLocalizations.of(context)?.deleteBanner ?? 'Delete Banner',
@@ -126,20 +128,24 @@ class ManageBanners extends StatelessWidget {
                 'Are you sure you want to delete this banner? This action cannot be undone.',
           ),
           actions: [
-            TextButton(
+            eButton(
+              context: context,
+              onPressed: () => Navigator.of(context).pop(),
+              text: AppLocalizations.of(context)?.cancel ?? 'Cancel',
+              textColor: Colors.black,
+              backgroundColor: Colors.white,
+            ),
+            eButton(
+              context: context,
               onPressed: () {
                 Navigator.of(context).pop();
                 context.read<ManageAppBloc>().add(
                   DeleteBannerEvent(banner.id ?? ''),
                 );
               },
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: Text(AppLocalizations.of(context)?.delete ?? 'Delete'),
-            ),
-            SizedBox(width: 8),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
+              text: AppLocalizations.of(context)?.delete ?? 'Delete',
+              textColor: Colors.white,
+              backgroundColor: Colors.red,
             ),
           ],
         );

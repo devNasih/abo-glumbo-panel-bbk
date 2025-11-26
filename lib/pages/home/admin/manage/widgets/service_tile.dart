@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/service.dart';
@@ -220,6 +221,7 @@ class ServiceTileDevWidget extends StatelessWidget {
         final isDeleting = state is DeletingService;
 
         return AlertDialog(
+          backgroundColor: Colors.white,
           actionsAlignment: MainAxisAlignment.start,
           title: Text(
             AppLocalizations.of(context)?.deleteService ?? 'Delete Service',
@@ -229,7 +231,18 @@ class ServiceTileDevWidget extends StatelessWidget {
                 'Are you sure you want to delete this service? This action cannot be undone.',
           ),
           actions: [
-            TextButton(
+            eButton(
+              textColor: Colors.black,
+              context: context,
+              backgroundColor: Colors.white,
+              text: AppLocalizations.of(context)!.cancel,
+              onPressed: isDeleting ? null : () => Navigator.of(context).pop(),
+            ),
+            eButton(
+              textColor: Colors.white,
+              context: context,
+              backgroundColor: Colors.red,
+
               onPressed: isDeleting
                   ? null
                   : () {
@@ -237,21 +250,16 @@ class ServiceTileDevWidget extends StatelessWidget {
                         DeleteServiceEvent(service.id ?? ''),
                       );
                     },
-              child: isDeleting
+              widget: isDeleting
                   ? SizedBox(
                       width: 30,
                       height: 20,
-                      child: Loader(size: 12, color: AppColors.primary),
+                      child: Loader(size: 12, color: AppColors.bgWhite),
                     )
                   : Text(
                       AppLocalizations.of(context)!.delete,
-                      style: const TextStyle(color: Colors.red),
+                      style: const TextStyle(color: Colors.white),
                     ),
-            ),
-            SizedBox(width: 8),
-            TextButton(
-              onPressed: isDeleting ? null : () => Navigator.of(context).pop(),
-              child: Text(AppLocalizations.of(context)!.cancel),
             ),
           ],
         );

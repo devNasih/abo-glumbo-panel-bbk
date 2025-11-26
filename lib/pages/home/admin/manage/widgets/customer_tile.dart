@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/customer.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,7 @@ class CustomerTileMinimal extends StatelessWidget {
       builder: (context) {
         final TextTheme textTheme = Theme.of(context).textTheme;
         return AlertDialog(
+          backgroundColor: Colors.white,
           actionsAlignment: MainAxisAlignment.start,
           title: Text(
             (approve
@@ -43,18 +45,25 @@ class CustomerTileMinimal extends StatelessWidget {
             style: textTheme.bodyMedium,
           ),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context, true);
-              },
-              child: Text(AppLocalizations.of(context)?.yesText ?? "Yes"),
-            ),
-            SizedBox(width: 8),
-            TextButton(
+            eButton(
+              text: "",
               onPressed: () {
                 Navigator.pop(context, false);
               },
-              child: Text(AppLocalizations.of(context)?.cancel ?? "Cancel"),
+              widget: Text(AppLocalizations.of(context)?.cancel ?? "Cancel"),
+              context: context,
+              textColor: Colors.black,
+              backgroundColor: Colors.white,
+            ),
+            eButton(
+              text: "",
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              widget: Text(AppLocalizations.of(context)?.yesText ?? "Yes"),
+              context: context,
+              textColor: Colors.white,
+              backgroundColor: Colors.green,
             ),
           ],
         );

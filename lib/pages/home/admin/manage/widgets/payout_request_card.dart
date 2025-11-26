@@ -146,6 +146,7 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
               return StatefulBuilder(
                 builder: (context, setDialogState) {
                   return AlertDialog(
+                    backgroundColor: Colors.white,
                     actionsAlignment: MainAxisAlignment.start,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
@@ -740,6 +741,7 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
               final isProcessing = state is RejectingPayout;
 
               return AlertDialog(
+                backgroundColor: Colors.white,
                 actionsAlignment: MainAxisAlignment.start,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
@@ -968,75 +970,6 @@ class _PayoutRequestCardState extends State<PayoutRequestCard> {
       },
     );
   }
-
-  // Replace _buildShimmer method with:
-  // Widget _buildShimmerLoader() {
-  //   return Shimmer.fromColors(
-  //     baseColor: Colors.grey.shade300,
-  //     highlightColor: Colors.grey.shade100,
-  //     child: Container(
-  //       margin: const EdgeInsets.only(bottom: 12),
-  //       padding: const EdgeInsets.all(20),
-  //       decoration: BoxDecoration(
-  //         color: Colors.white,
-  //         borderRadius: BorderRadius.circular(16),
-  //         boxShadow: [
-  //           BoxShadow(
-  //             color: Colors.black.withOpacity(0.04),
-  //             blurRadius: 10,
-  //             offset: const Offset(0, 2),
-  //           ),
-  //         ],
-  //       ),
-  //       child: Row(
-  //         children: [
-  //           Expanded(
-  //             child: Column(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children: [
-  //                 Container(
-  //                   height: 12,
-  //                   width: 80,
-  //                   decoration: BoxDecoration(
-  //                     color: Colors.white,
-  //                     borderRadius: BorderRadius.circular(6),
-  //                   ),
-  //                 ),
-  //                 const SizedBox(height: 8),
-  //                 Container(
-  //                   height: 24,
-  //                   width: 120,
-  //                   decoration: BoxDecoration(
-  //                     color: Colors.white,
-  //                     borderRadius: BorderRadius.circular(8),
-  //                   ),
-  //                 ),
-  //                 const SizedBox(height: 8),
-  //                 Container(
-  //                   height: 14,
-  //                   width: 150,
-  //                   decoration: BoxDecoration(
-  //                     color: Colors.white,
-  //                     borderRadius: BorderRadius.circular(7),
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //           const SizedBox(width: 16),
-  //           Container(
-  //             width: 80,
-  //             height: 80,
-  //             decoration: BoxDecoration(
-  //               color: Colors.white,
-  //               borderRadius: BorderRadius.circular(12),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {

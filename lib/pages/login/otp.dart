@@ -595,6 +595,7 @@ class _OtpPageState extends State<OtpPage> {
 
   Widget _migratingDataDialog() {
     return AlertDialog(
+    
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       contentPadding: const EdgeInsets.all(32),

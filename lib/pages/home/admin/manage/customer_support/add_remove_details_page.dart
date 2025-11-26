@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/customer_support.dart';
@@ -365,6 +366,7 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.white,
         actionsAlignment: MainAxisAlignment.start,
         title: Text(AppLocalizations.of(context)!.deleteConfirmation),
         content: Text(
@@ -373,9 +375,16 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
           )!.areYouSureYouWantToDeleteThisSupportContact,
         ),
         actions: [
-          TextButton(
+          eButton(
+            context: context,
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            text: AppLocalizations.of(context)!.cancel,
+            textColor: Colors.black,
+            backgroundColor: Colors.white,
+          ),
+          eButton(
+            context: context,
             onPressed: () {
-              Navigator.of(dialogContext).pop();
               context.read<ManageAppBloc>().add(
                 DeleteCustomerServiceContactEvent(
                   contact.id ?? '',
@@ -383,16 +392,11 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
                   context,
                 ),
               );
+              Navigator.of(dialogContext).pop();
             },
-            child: Text(
-              AppLocalizations.of(context)!.delete,
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-          SizedBox(width: 8),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(AppLocalizations.of(context)!.cancel),
+            text: AppLocalizations.of(context)!.delete,
+            textColor: Colors.white,
+            backgroundColor: Colors.red,
           ),
         ],
       ),
@@ -434,6 +438,7 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
                       state is UpdatingCustomerSupport;
 
                   return AlertDialog(
+                    backgroundColor: Colors.white,
                     actionsAlignment: MainAxisAlignment.start,
                     title: Text(
                       isEdit ? getEditHeader() : getAddDialogHeader(),
@@ -582,9 +587,18 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
                     ),
 
                     actions: [
+                      eButton(
+                        onPressed: isLoading
+                            ? null
+                            : () => Navigator.of(dialogContext).pop(),
+                        text: AppLocalizations.of(context)!.cancel,
+                        context: context,
+                        textColor: Colors.black,
+                        backgroundColor: Colors.white,
+                      ),
                       isLoading
                           ? SizedBox(width: 70, height: 20, child: Loader())
-                          : TextButton(
+                          : eButton(
                               onPressed: () {
                                 if (formKey.currentState!.validate()) {
                                   // If adding and no contacts exist, set as primary automatically
@@ -629,19 +643,14 @@ class _AddRemoveDetailsPageState extends State<AddRemoveDetailsPage> {
                                   }
                                 }
                               },
-                              child: Text(
-                                isEdit
-                                    ? AppLocalizations.of(context)!.update
-                                    : AppLocalizations.of(context)!.add,
-                              ),
+
+                              text: isEdit
+                                  ? AppLocalizations.of(context)!.update
+                                  : AppLocalizations.of(context)!.add,
+                              context: context,
+                              textColor: Colors.white,
+                              backgroundColor: Colors.green,
                             ),
-                      SizedBox(width: 8),
-                      TextButton(
-                        onPressed: isLoading
-                            ? null
-                            : () => Navigator.of(dialogContext).pop(),
-                        child: Text(AppLocalizations.of(context)!.cancel),
-                      ),
                     ],
                   );
                 },

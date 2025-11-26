@@ -866,6 +866,7 @@
   "refresh": "تحديث",
   "loadingCustomers": "جارٍ تحميل العملاء",
   "processing": "جارٍ المعالجة",
+  "notSelected": "غير محدد",
   "payoutRequestSuccessful": "تم طلب الدفع بنجاح",
   "imageIsTooLargePleaseSelectAnImageSmallerThan5MB": "الصورة كبيرة جدًا، يرجى اختيار صورة أصغر من 5MB",
   "selectedFileCouldNotBeFound": "لم يتم العثور على الملف المحدد",
@@ -1139,6 +1140,12 @@
   "areYouSureYouWantToStartTrackingThisWarrantyRepair": "هل أنت متأكد أنك تريد بدء تتبع إصلاح الضمان؟",
   "anotherBookingIsAlreadyBeingTracked": "هناك حجز آخر يتم تتبعه بالفعل",
   "requested": "تم الطلب",
+  "locationTracking": "تتبع الموقع",
+  "trackingInactive": "الإيقاف غير النشط",
+  "fix": "إصلاح",
+  "locationTrackingStartedSuccessfully": "تم بدء تتبع الموقع بنجاح",
+  "locationTrackingHelpText": "تتبع الموقع يساعد العملاء على تتبع تقدمك. تأكد من تفعيل خدمات الموقع.",
+  "batteryOptimizationEnabled": "تم تفعيل تحسين البطارية. هذا قد يؤثر على تتبع الموقع في الخلفية.",
   "areYouSureYouWantToCancelThisWarrantyRepairThisActionCannotBeUndone": "هل أنت متأكد أنك تريد إلغاء إصلاح الضمان؟ لا يمكن التراجع عن هذا الإجراء.",
   "reasonMustBeAtLeast10Characters": "يجب أن يك تف السبب 10 أحرف على الأقل",
   "cancelWarrantyRepair": "إلغاء إصلاح الضمان",
@@ -1156,5 +1163,32 @@
   "agentAssignedSuccessfully": "تم تعيين الفني بنجاح",
   "orderRejectedSuccessfully": "تم رفض الطلب بنجاح",
   "copiedToClipboard": "تم النسخ إلى الحافظة",
-  "couldNotLaunchPhone": "تعذر فتح تطبيق الهاتف"
+  "couldNotLaunchPhone": "تعذر فتح تطبيق الهاتف",
+  "daysAgo": "{count, plural, one {منذ 1 يوم} other {أيام {count} منذ}}",
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "7"
+      }
+    }
+  },
+  "hoursAgo": "{count, plural, one {منذ 1 ساعة} other {ساعات {count} منذ}}",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "minutesAgo": "{count, plural, one {منذ 1 دقيقة} other {دقائق {count} منذ}}",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  }
 }

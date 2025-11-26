@@ -2934,6 +2934,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get copyId => 'Copy ID';
 
   @override
+  String get notSelected => 'Not selected';
+
+  @override
   String get quickActions => 'Quick Actions';
 
   @override
@@ -3563,6 +3566,30 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get locationTracking => 'Location Tracking';
+
+  @override
+  String get trackingInactive => 'Tracking Inactive';
+
+  @override
+  String get trackingActive => 'Tracking Active';
+
+  @override
+  String get fix => 'Fix';
+
+  @override
+  String get locationTrackingStartedSuccessfully =>
+      'Location tracking started successfully';
+
+  @override
+  String get locationTrackingHelpText =>
+      'Location tracking helps customers track your progress. Make sure to keep location services enabled.';
+
+  @override
+  String get batteryOptimizationEnabled =>
+      'Battery optimization is enabled. This may affect background location tracking.';
+
+  @override
   String get agentAssignedSuccessfully => 'Technician assigned successfully';
 
   @override
@@ -3573,4 +3600,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get couldNotLaunchPhone => 'Could not launch phone app';
+
+  @override
+  String minutesAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes ago',
+      one: '$count minute ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days ago',
+      one: '$count day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String hoursAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours ago',
+      one: '$count hour ago',
+    );
+    return '$_temp0';
+  }
 }

@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
@@ -75,6 +76,7 @@ class _HomeState extends State<Home> {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
+                    backgroundColor: Colors.white,
                     actionsAlignment: MainAxisAlignment.start,
                     title: Text(locale?.exitAppTitle ?? 'Exit App'),
                     content: Text(
@@ -82,14 +84,19 @@ class _HomeState extends State<Home> {
                           'Are you sure you want to exit the app?',
                     ),
                     actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        child: Text(locale?.exit ?? 'Exit'),
-                      ),
-                      SizedBox(width: 8),
-                      TextButton(
+                      eButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: Text(locale?.cancel ?? 'Cancel'),
+                        text: locale?.cancel ?? 'Cancel',
+                        context: context,
+                        textColor: Colors.white,
+                        backgroundColor: Colors.grey,
+                      ),
+                      eButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        text: locale?.exit ?? 'Exit',
+                        context: context,
+                        textColor: Colors.white,
+                        backgroundColor: AppColors.primary,
                       ),
                     ],
                   ),
@@ -142,6 +149,7 @@ class _HomeState extends State<Home> {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
+                    backgroundColor: Colors.white,
                     actionsAlignment: MainAxisAlignment.start,
                     title: Text(locale?.exitAppTitle ?? 'Exit App'),
                     content: Text(
@@ -149,14 +157,19 @@ class _HomeState extends State<Home> {
                           'Are you sure you want to exit the app?',
                     ),
                     actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        child: Text(locale?.exit ?? 'Exit'),
-                      ),
-                      SizedBox(width: 8),
-                      TextButton(
+                      eButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: Text(locale?.cancel ?? 'Cancel'),
+                        text: locale?.cancel ?? 'Cancel',
+                        context: context,
+                        textColor: Colors.white,
+                        backgroundColor: Colors.grey,
+                      ),
+                      eButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        text: locale?.exit ?? 'Exit',
+                        context: context,
+                        textColor: Colors.white,
+                        backgroundColor: AppColors.primary,
                       ),
                     ],
                   ),
@@ -175,6 +188,7 @@ class _HomeState extends State<Home> {
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
+                      backgroundColor: Colors.white,
                       actionsAlignment: MainAxisAlignment.start,
                       title: Text(locale?.exitAppTitle ?? 'Exit App'),
                       content: Text(
@@ -182,14 +196,19 @@ class _HomeState extends State<Home> {
                             'Are you sure you want to exit the app?',
                       ),
                       actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: Text(locale?.exit ?? 'Exit'),
-                        ),
-                        SizedBox(width: 8),
-                        TextButton(
+                        eButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          child: Text(locale?.cancel ?? 'Cancel'),
+                          text: locale?.cancel ?? 'Cancel',
+                          context: context,
+                          textColor: Colors.white,
+                          backgroundColor: Colors.grey,
+                        ),
+                        eButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          text: locale?.exit ?? 'Exit',
+                          context: context,
+                          textColor: Colors.white,
+                          backgroundColor: AppColors.primary,
                         ),
                       ],
                     ),
@@ -289,6 +308,7 @@ class _HomeState extends State<Home> {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
+                  backgroundColor: Colors.white,
                   actionsAlignment: MainAxisAlignment.start,
                   title: Text(locale?.exitAppTitle ?? 'Exit App'),
                   content: Text(
@@ -296,14 +316,19 @@ class _HomeState extends State<Home> {
                         'Are you sure you want to exit the app?',
                   ),
                   actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: Text(locale?.exit ?? 'Exit'),
-                    ),
-                    SizedBox(width: 8),
-                    TextButton(
+                    eButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: Text(locale?.cancel ?? 'Cancel'),
+                      text: locale?.cancel ?? 'Cancel',
+                      context: context,
+                      textColor: Colors.black,
+                      backgroundColor: Colors.grey.shade100,
+                    ),
+                    eButton(
+                      text: locale?.exit ?? 'Exit',
+                      onPressed: () => Navigator.of(context).pop(true),
+                      context: context,
+                      textColor: Colors.white,
+                      backgroundColor: Colors.red,
                     ),
                   ],
                 ),

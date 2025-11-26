@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:aboglumbo_bbk_panel/common_widget/crop_confirm_dialog.dart';
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/saving_stack.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/searchable_dropdown.dart';
@@ -256,6 +257,7 @@ class _EditProfileState extends State<EditProfile> {
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
+            backgroundColor: Colors.white,
             actionsAlignment: MainAxisAlignment.start,
             title: Text(AppLocalizations.of(context)?.delete ?? 'Delete'),
             content: Text(
@@ -263,17 +265,19 @@ class _EditProfileState extends State<EditProfile> {
                   'Are you sure you want to remove this file?',
             ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(
-                  AppLocalizations.of(context)?.yes ?? 'Yes',
-                  style: const TextStyle(color: Colors.red),
-                ),
-              ),
-              SizedBox(width: 8),
-              TextButton(
+              eButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: Text(AppLocalizations.of(context)?.no ?? 'No'),
+                text: AppLocalizations.of(context)?.no ?? 'No',
+                context: context,
+                textColor: Colors.white,
+                backgroundColor: Colors.grey.shade600,
+              ),
+              eButton(
+                onPressed: () => Navigator.pop(context, true),
+                text: AppLocalizations.of(context)?.remove ?? 'Remove',
+                context: context,
+                textColor: Colors.white,
+                backgroundColor: Colors.red,
               ),
             ],
           ),

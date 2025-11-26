@@ -1,4 +1,6 @@
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
+import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:flutter/material.dart';
 
 class AccountActionDialogs {
@@ -12,6 +14,7 @@ class AccountActionDialogs {
       barrierDismissible: true,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: Colors.white,
           actionsAlignment: MainAxisAlignment.start,
 
           shape: RoundedRectangleBorder(
@@ -40,43 +43,22 @@ class AccountActionDialogs {
             vertical: 16,
           ),
           actions: [
-            ElevatedButton(
+            eButton(
+              onPressed: () => Navigator.of(context).pop(),
+              text: AppLocalizations.of(context)?.cancel ?? 'Cancel',
+              context: context,
+              textColor: Colors.black,
+              backgroundColor: Colors.white,
+            ),
+            eButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 onConfirm();
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue[600],
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                AppLocalizations.of(context)?.logout ?? 'Logout',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-              ),
-              child: Text(
-                AppLocalizations.of(context)?.cancel ?? 'Cancel',
-                style: const TextStyle(fontSize: 16),
-              ),
+              text: AppLocalizations.of(context)?.logout ?? 'Logout',
+              context: context,
+              textColor: Colors.white,
+              backgroundColor: Colors.red,
             ),
           ],
         );
@@ -186,7 +168,17 @@ class AccountActionDialogs {
                 vertical: 16,
               ),
               actions: [
-                ElevatedButton(
+                eButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Future.microtask(() => passwordController.clear());
+                  },
+                  text: AppLocalizations.of(context)?.cancel ?? 'Cancel',
+                  backgroundColor: Colors.white,
+                  textColor: Colors.black,
+                  context: context,
+                ),
+                eButton(
                   onPressed: () {
                     final password = passwordController.text.trim();
                     if (password.isNotEmpty) {
@@ -212,42 +204,13 @@ class AccountActionDialogs {
                       );
                     }
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red[600],
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    AppLocalizations.of(context)?.deleteAccount ??
-                        'Delete Account',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Future.microtask(() => passwordController.clear());
-                  },
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: Text(
-                    AppLocalizations.of(context)?.cancel ?? 'Cancel',
-                    style: const TextStyle(fontSize: 16),
-                  ),
+
+                  text:
+                      AppLocalizations.of(context)?.deleteAccount ??
+                      'Delete Account',
+                  backgroundColor: Colors.red[600],
+                  textColor: Colors.white,
+                  context: context,
                 ),
               ],
             );

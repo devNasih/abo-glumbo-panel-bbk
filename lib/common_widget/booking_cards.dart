@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
@@ -456,7 +457,16 @@ class BookingCards extends StatelessWidget {
             AppLocalizations.of(context)!.areYouSureYouWantToAcceptThisBooking,
           ),
           actions: [
-            ElevatedButton(
+            eButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              text: AppLocalizations.of(context)!.cancel,
+              context: context,
+              textColor: Colors.white,
+              backgroundColor: Colors.grey,
+            ),
+            eButton(
               onPressed: isWarranty
                   ? () {
                       AppFirestore.bookingsCollectionRef
@@ -490,14 +500,10 @@ class BookingCards extends StatelessWidget {
                         (route) => false,
                       );
                     },
-              child: Text(AppLocalizations.of(context)!.accept),
-            ),
-            const SizedBox(width: 8),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(AppLocalizations.of(context)!.cancel),
+              text: AppLocalizations.of(context)!.accept,
+              context: context,
+              textColor: Colors.white,
+              backgroundColor: Colors.green,
             ),
           ],
         );
@@ -564,7 +570,16 @@ class BookingCards extends StatelessWidget {
                   )!.areYouSureYouWantToRejectThisBooking,
                 ),
           actions: [
-            ElevatedButton(
+            eButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              text: AppLocalizations.of(context)!.cancel,
+              context: context,
+              textColor: Colors.black,
+              backgroundColor: Colors.grey.shade100,
+            ),
+            eButton(
               onPressed: isWarranty
                   ? () async {
                       if (formKey.currentState!.validate()) {
@@ -603,14 +618,10 @@ class BookingCards extends StatelessWidget {
                       );
                       Navigator.of(context).pop();
                     },
-              child: Text(AppLocalizations.of(context)!.reject),
-            ),
-            const SizedBox(width: 8),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(AppLocalizations.of(context)!.cancel),
+              text: AppLocalizations.of(context)!.reject,
+              context: context,
+              textColor: Colors.white,
+              backgroundColor: Colors.red,
             ),
           ],
         );

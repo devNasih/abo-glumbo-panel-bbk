@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
@@ -1105,33 +1106,35 @@ class _RewardsPageState extends State<RewardsPage> {
           ],
         ),
         actions: [
-          ElevatedButton(
+          eButton(
+            backgroundColor: AppColors.primary,
+            context: context,
             onPressed: () {
               Navigator.pop(dialogContext);
               _submitBonusPayoutRequest(bonusAmount);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(
+
+            widget: Text(
               AppLocalizations.of(context)!.confirmRequest,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                fontSize: 15,
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           const SizedBox(width: 8),
-          TextButton(
+          eButton(
+            backgroundColor: Colors.white,
+            context: context,
             onPressed: () => Navigator.pop(dialogContext),
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            ),
-            child: Text(
+            widget: Text(
               AppLocalizations.of(context)!.cancel,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                fontSize: 15,
+                color: Colors.red,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

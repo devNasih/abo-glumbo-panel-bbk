@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
@@ -37,7 +38,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
   double fullcashTips = 0.0;
   double fullcardTips = 0.0;
   double total = 0.0;
-  double bonusAmounts =0.0;
+  double bonusAmounts = 0.0;
 
   @override
   void initState() {
@@ -72,7 +73,6 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
           return 0.0; // Return 0.0 on error
         }),
       ]);
-      
 
       // Assign results with null safety
       transactions = (results[0] as List<TransactionModel>?) ?? [];
@@ -400,6 +400,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
+              backgroundColor: Colors.white,
               actionsAlignment: MainAxisAlignment.start,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -552,7 +553,23 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                 ),
               ),
               actions: [
-                ElevatedButton(
+                eButton(
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          Navigator.of(context).pop();
+                        },
+                  context: context,
+                  backgroundColor: Colors.red,
+                  widget: Text(
+                    AppLocalizations.of(context)!.cancel,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                eButton(
                   onPressed: cardTips < 10.00
                       ? () {
                           if (mounted) {
@@ -603,40 +620,13 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                             });
                           }
                         },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
+                  context: context,
+                  backgroundColor: Colors.green,
+                  widget: Text(
                     AppLocalizations.of(context)!.requestPayout,
                     style: const TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                TextButton(
-                  onPressed: isLoading
-                      ? null
-                      : () {
-                          Navigator.of(context).pop();
-                        },
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: Text(
-                    AppLocalizations.of(context)!.cancel,
-                    style: const TextStyle(
-                      fontSize: 15,
+                      color: Colors.white,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -1032,6 +1022,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.white,
         actionsAlignment: MainAxisAlignment.start,
         title: Text(AppLocalizations.of(context)!.requestPayout),
         content: Column(
@@ -1094,7 +1085,16 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
           ],
         ),
         actions: [
-          ElevatedButton(
+          eButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            context: context,
+            backgroundColor: Colors.white,
+            widget: Text(
+              AppLocalizations.of(context)!.cancel,
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+          eButton(
             onPressed: () {
               final amount = double.tryParse(amountController.text);
 
@@ -1116,16 +1116,12 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
               Navigator.pop(dialogContext);
               _submitPayoutRequest(amount);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[700],
-              foregroundColor: Colors.white,
+            context: context,
+            backgroundColor: Colors.blue[700],
+            widget: Text(
+              AppLocalizations.of(context)!.submitRequest,
+              style: TextStyle(color: Colors.white),
             ),
-            child: Text(AppLocalizations.of(context)!.submitRequest),
-          ),
-          const SizedBox(width: 8),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(AppLocalizations.of(context)!.cancel),
           ),
         ],
       ),
@@ -1136,7 +1132,13 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
     try {
       final bloc = context.read<AccountBloc>();
 
-      bloc.add(RequestPayoutEvent(widget.workerId, amount.toStringAsFixed(2), 'earnings'));
+      bloc.add(
+        RequestPayoutEvent(
+          widget.workerId,
+          amount.toStringAsFixed(2),
+          'earnings',
+        ),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),

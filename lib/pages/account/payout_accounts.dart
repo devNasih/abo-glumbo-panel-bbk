@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
@@ -198,6 +199,7 @@ class _PayoutAccountsPageState extends State<PayoutAccountsPage> {
     return showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
+        backgroundColor: Colors.white,
         actionsAlignment: MainAxisAlignment.start,
         icon: Icon(
           Icons.delete_outline_rounded,
@@ -208,18 +210,19 @@ class _PayoutAccountsPageState extends State<PayoutAccountsPage> {
         content: Text(localizations.deleteAccountConfirmation),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: colorScheme.error,
-              foregroundColor: colorScheme.onError,
-            ),
-            child: Text(localizations.delete),
-          ),
-          SizedBox(width: 8),
-          TextButton(
+          eButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(localizations.cancel),
+            text: localizations.cancel,
+            context: context,
+            textColor: Colors.white,
+            backgroundColor: colorScheme.primary,
+          ),
+          eButton(
+            onPressed: () => Navigator.pop(context, true),
+            text: localizations.delete,
+            context: context,
+            textColor: Colors.white,
+            backgroundColor: colorScheme.error,
           ),
         ],
       ),

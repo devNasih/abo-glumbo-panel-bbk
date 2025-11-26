@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
@@ -76,7 +77,8 @@ class PayoutRequests extends StatelessWidget {
   Future<bool?> _showDeleteConfirmation(BuildContext context) async {
     return showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog( 
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
         actionsAlignment: MainAxisAlignment.start,
         title: Text(AppLocalizations.of(context)!.cancel),
         content: Text(
@@ -85,16 +87,23 @@ class PayoutRequests extends StatelessWidget {
           )!.areYouSureYouWantToCancelThisPayoutRequest,
         ),
         actions: [
-        
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(AppLocalizations.of(context)!.cancel),
-          ),
-          const SizedBox(width: 8),
-          TextButton(
+          eButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(AppLocalizations.of(context)!.back),
+            context: context,
+            backgroundColor: Colors.white,
+            widget: Text(
+              AppLocalizations.of(context)!.back,
+              style: TextStyle(color: Colors.black),
+            ),
+          ),
+          eButton(
+            onPressed: () => Navigator.pop(context, true),
+            context: context,
+            backgroundColor: Colors.red,
+            widget: Text(
+              AppLocalizations.of(context)!.cancel,
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),

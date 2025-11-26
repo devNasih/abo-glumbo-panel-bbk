@@ -95,9 +95,8 @@ class _BookingInfoState extends State<BookingInfo> {
                       SizedBox(height: 24, child: Loader()),
                       const SizedBox(height: 16),
                       Text(
-                        chatExists
-                            ? AppLocalizations.of(context)!.loadingChat
-                            : AppLocalizations.of(context)!.creatingChatRoom,
+                        AppLocalizations.of(context)!.loadingChat,
+
                         style: GoogleFonts.poppins(fontSize: 14),
                       ),
                     ],

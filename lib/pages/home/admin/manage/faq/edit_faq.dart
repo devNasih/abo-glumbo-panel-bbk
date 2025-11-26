@@ -115,7 +115,17 @@ class _AddFaqPageState extends State<AddFaqPage> {
                   context: context,
                   barrierDismissible: false,
                   useRootNavigator: true,
-                  builder: (context) => Center(child: Loader()),
+                  builder: (context) => AlertDialog(
+                    backgroundColor: Colors.white,
+                    constraints: BoxConstraints(
+                      maxWidth: 100,
+                      minWidth: 100,
+                      maxHeight: 100,
+                    ),
+                    content: Center(
+                      child: SizedBox(height: 24, child: Loader()),
+                    ),
+                  ),
                 ).then((_) {
                   // Dialog
                   _isDialogShowing = false;
@@ -151,7 +161,17 @@ class _AddFaqPageState extends State<AddFaqPage> {
                   context: context,
                   barrierDismissible: false,
                   useRootNavigator: true,
-                  builder: (context) => Center(child: Loader()),
+                  builder: (context) => AlertDialog(
+                    backgroundColor: Colors.white,
+                    constraints: BoxConstraints(
+                      maxWidth: 100,
+                      minWidth: 100,
+                      maxHeight: 100,
+                    ),
+                    content: Center(
+                      child: SizedBox(height: 24, child: Loader()),
+                    ),
+                  ),
                 ).then((_) {
                   // Dialog
                   _isDialogShowing = false;

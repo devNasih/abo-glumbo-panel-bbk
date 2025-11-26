@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/agents/agent_info.dart';
@@ -62,6 +63,7 @@ class _ManageAgentsState extends State<ManageAgents>
             return Transform.scale(
               scale: value,
               child: AlertDialog(
+                backgroundColor: Colors.white,
                 actionsAlignment: MainAxisAlignment.start,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
@@ -116,54 +118,21 @@ class _ManageAgentsState extends State<ManageAgents>
                   ),
                 ),
                 actions: [
-                  ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isApproval
-                          ? Colors.green.shade600
-                          : Colors.red.shade600,
-                      foregroundColor: Colors.white,
-                      elevation: 2,
-                      shadowColor: (isApproval ? Colors.green : Colors.red)
-                          .withOpacity(0.3),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 28,
-                        vertical: 14,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(
-                      AppLocalizations.of(context)!.confirm,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 8),
-
-                  TextButton(
+                  eButton(
                     onPressed: () => Navigator.of(context).pop(false),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 14,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(
-                      AppLocalizations.of(context)!.cancel,
-                      style: TextStyle(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
-                    ),
+                    text: AppLocalizations.of(context)!.cancel,
+                    context: context,
+                    textColor: Colors.black,
+                    backgroundColor: Colors.white,
+                  ),
+                  eButton(
+                    text: AppLocalizations.of(context)!.confirm,
+                    onPressed: () => Navigator.of(context).pop(true),
+                    context: context,
+                    textColor: Colors.white,
+                    backgroundColor: isApproval
+                        ? Colors.green.shade600
+                        : Colors.red.shade600,
                   ),
                 ],
               ),
@@ -205,7 +174,7 @@ class _ManageAgentsState extends State<ManageAgents>
                   ),
                 ],
               ),
-              duration: const Duration(seconds: 3),
+              duration: const Duration(seconds: 2),
               backgroundColor: state.isApproved
                   ? Colors.green.shade600
                   : Colors.red.shade600,

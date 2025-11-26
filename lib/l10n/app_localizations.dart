@@ -5642,6 +5642,12 @@ abstract class AppLocalizations {
   /// **'Copy ID'**
   String get copyId;
 
+  /// No description provided for @notSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not selected'**
+  String get notSelected;
+
   /// No description provided for @quickActions.
   ///
   /// In en, this message translates to:
@@ -6771,6 +6777,48 @@ abstract class AppLocalizations {
   /// **'{count, plural, one {Notification sent to 1 technician.} other {Notification sent to {count} technicians.}}'**
   String notificationSenttoTechnicians(int count);
 
+  /// No description provided for @locationTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Tracking'**
+  String get locationTracking;
+
+  /// No description provided for @trackingInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking Inactive'**
+  String get trackingInactive;
+
+  /// No description provided for @trackingActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking Active'**
+  String get trackingActive;
+
+  /// No description provided for @fix.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix'**
+  String get fix;
+
+  /// No description provided for @locationTrackingStartedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Location tracking started successfully'**
+  String get locationTrackingStartedSuccessfully;
+
+  /// No description provided for @locationTrackingHelpText.
+  ///
+  /// In en, this message translates to:
+  /// **'Location tracking helps customers track your progress. Make sure to keep location services enabled.'**
+  String get locationTrackingHelpText;
+
+  /// No description provided for @batteryOptimizationEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery optimization is enabled. This may affect background location tracking.'**
+  String get batteryOptimizationEnabled;
+
   /// No description provided for @agentAssignedSuccessfully.
   ///
   /// In en, this message translates to:
@@ -6794,6 +6842,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not launch phone app'**
   String get couldNotLaunchPhone;
+
+  /// No description provided for @minutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one {{count} minute ago} other {{count} minutes ago}}'**
+  String minutesAgo(int count);
+
+  /// No description provided for @daysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one {{count} day ago} other {{count} days ago}}'**
+  String daysAgo(int count);
+
+  /// No description provided for @hoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one {{count} hour ago} other {{count} hours ago}}'**
+  String hoursAgo(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -284,6 +284,7 @@ class _ManagePayoutsState extends State<ManagePayouts> {
                       final tech = technicians.firstWhere(
                         (t) => t.uid == payoutRequest.userId,
                       );
+
                       return PayoutRequestCard(
                         payoutRequest: payoutRequest,
                         technician: tech,

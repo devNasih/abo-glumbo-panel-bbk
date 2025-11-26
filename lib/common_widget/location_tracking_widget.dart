@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:flutter/material.dart';
 import 'package:aboglumbo_bbk_panel/services/location_services.dart';
@@ -61,7 +62,7 @@ class _LocationTrackingWidgetState extends State<LocationTrackingWidget> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Location tracking started successfully'),
+            content: Text(AppLocalizations.of(context)!.locationTrackingStartedSuccessfully),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 3),
           ),
@@ -151,9 +152,12 @@ class _LocationTrackingWidgetState extends State<LocationTrackingWidget> {
             ],
           ),
           actions: [
-            TextButton(
+            eButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(AppLocalizations.of(context)!.ok),
+              text: AppLocalizations.of(context)?.ok ?? 'OK',
+              context: context,
+              textColor: Colors.white,
+              backgroundColor: Colors.green,
             ),
           ],
         );
@@ -178,21 +182,26 @@ class _LocationTrackingWidgetState extends State<LocationTrackingWidget> {
                 'For reliable background location tracking, please disable battery optimization for this app. This ensures location updates continue even when the app is in the background.',
           ),
           actions: [
-            TextButton(
+             eButton(
+              onPressed: () => Navigator.of(context).pop(),
+              text: AppLocalizations.of(context)?.later ?? 'Later',
+              context: context,
+              textColor: Colors.white,
+              backgroundColor: Colors.grey,
+            ),
+            eButton(
               onPressed: () async {
                 Navigator.of(context).pop();
                 await BatteryOptimizationService.requestDisableBatteryOptimization();
                 _checkBatteryOptimization();
               },
-              child: Text(
-                AppLocalizations.of(context)?.openSettings ?? 'Open Settings',
-              ),
+              text:
+                  AppLocalizations.of(context)?.openSettings ?? 'Open Settings',
+              context: context,
+              textColor: Colors.white,
+              backgroundColor: Colors.green,
             ),
-            SizedBox(height: 16),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(AppLocalizations.of(context)?.later ?? 'Later'),
-            ),
+           
           ],
         );
       },
@@ -214,7 +223,7 @@ class _LocationTrackingWidgetState extends State<LocationTrackingWidget> {
                 Icon(Icons.location_on, color: Theme.of(context).primaryColor),
                 const SizedBox(width: 8),
                 Text(
-                  'Location Tracking',
+                  AppLocalizations.of(context)!.locationTracking,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ],
@@ -250,7 +259,7 @@ class _LocationTrackingWidgetState extends State<LocationTrackingWidget> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        isTracking ? 'Tracking Active' : 'Tracking Inactive',
+                        isTracking ? AppLocalizations.of(context)!.trackingActive : AppLocalizations.of(context)!.trackingInactive,
                         style: TextStyle(
                           color: isTracking
                               ? Colors.green.shade700
@@ -281,7 +290,7 @@ class _LocationTrackingWidgetState extends State<LocationTrackingWidget> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Battery optimization is enabled. This may affect background location tracking.',
+                        AppLocalizations.of(context)!.batteryOptimizationEnabled,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.orange.shade700,
@@ -290,7 +299,7 @@ class _LocationTrackingWidgetState extends State<LocationTrackingWidget> {
                     ),
                     TextButton(
                       onPressed: _showBatteryOptimizationDialog,
-                      child: const Text('Fix'),
+                      child:  Text(AppLocalizations.of(context)!.fix),
                     ),
                   ],
                 ),
@@ -369,7 +378,7 @@ class _LocationTrackingWidgetState extends State<LocationTrackingWidget> {
 
             // Help text
             Text(
-              'Location tracking helps customers track your progress. Make sure to keep location services enabled.',
+              AppLocalizations.of(context)!.locationTrackingHelpText,
               style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),

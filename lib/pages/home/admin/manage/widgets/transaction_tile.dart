@@ -4,7 +4,7 @@ import 'package:aboglumbo_bbk_panel/models/transaction.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:shimmer/shimmer.dart';
 
 class TransactionTile extends StatefulWidget {
@@ -153,8 +153,8 @@ class _TransactionTileState extends State<TransactionTile> {
             Expanded(
               child: Text(
                 widget.transaction.paymentMethod.toLowerCase().contains('cash')
-                    ? AppLocalizations.of(context)!.cashInHand
-                    : AppLocalizations.of(context)!.card,
+                    ? AppLocalizations.of(context)!.cashOnHands
+                    : AppLocalizations.of(context)!.cards,
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey.shade600,
@@ -262,11 +262,11 @@ class _TransactionTileState extends State<TransactionTile> {
       );
       return formatter.format(date);
     } else if (difference.inDays > 0) {
-      return '${difference.inDays} ${difference.inDays > 1 ? AppLocalizations.of(context)!.day : AppLocalizations.of(context)!.days} ${AppLocalizations.of(context)!.ago}';
+      return AppLocalizations.of(context)!.daysAgo(difference.inDays);
     } else if (difference.inHours > 0) {
-      return '${difference.inHours} ${difference.inHours > 1 ? AppLocalizations.of(context)!.hour : AppLocalizations.of(context)!.hours} ${AppLocalizations.of(context)!.ago}';
+      return AppLocalizations.of(context)!.hoursAgo(difference.inHours);
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} ${difference.inMinutes > 1 ? AppLocalizations.of(context)!.minute : AppLocalizations.of(context)!.minutes} ${AppLocalizations.of(context)!.ago}';
+      return AppLocalizations.of(context)!.minutesAgo(difference.inMinutes);
     } else {
       return AppLocalizations.of(context)!.justNow;
     }
@@ -453,7 +453,9 @@ class _TransactionTileState extends State<TransactionTile> {
                           _buildDetailRow(
                             context,
                             AppLocalizations.of(context)!.bookingName,
-                            booking.service.name ?? '-',
+                            Directionality.of(context) == TextDirection.rtl
+                                ? booking.service.name_ar ?? ""
+                                : booking.service.name ?? "",
                           ),
                           const SizedBox(height: 16),
                           _buildDetailRow(
@@ -500,7 +502,10 @@ class _TransactionTileState extends State<TransactionTile> {
                           _buildDetailRow(
                             context,
                             AppLocalizations.of(context)!.paymentMethod,
-                            widget.transaction.paymentMethod,
+                            getPaymentMethodText(
+                              context,
+                              widget.transaction.paymentMethod,
+                            ),
                           ),
                         ],
                       ),
@@ -540,6 +545,17 @@ class _TransactionTileState extends State<TransactionTile> {
         ),
       ),
     );
+  }
+
+  String getPaymentMethodText(BuildContext context, String method) {
+    switch (method.toLowerCase()) {
+      case "cash on hands":
+        return AppLocalizations.of(context)!.cashOnHands;
+      case "cards":
+        return AppLocalizations.of(context)!.card;
+      default:
+        return AppLocalizations.of(context)!.unknown;
+    }
   }
 
   Widget _buildInfoCard(
