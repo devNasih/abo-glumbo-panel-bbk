@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
@@ -20,6 +21,9 @@ class _NewNotificationsPageState extends State<NewNotificationsPage> {
   int _currentlyDisplayed = 30;
   bool _isLoadingMore = false;
 
+  // Cache the notifications list
+  List<NotificationModel> _cachedNotifications = [];
+
   @override
   void initState() {
     super.initState();
@@ -41,7 +45,7 @@ class _NewNotificationsPageState extends State<NewNotificationsPage> {
   }
 
   void _loadMore() {
-    if (!_isLoadingMore) {
+    if (!_isLoadingMore && _cachedNotifications.length > _currentlyDisplayed) {
       setState(() {
         _isLoadingMore = true;
       });
@@ -79,7 +83,6 @@ class _NewNotificationsPageState extends State<NewNotificationsPage> {
   }
 
   IconData _getNotificationIcon(NotificationModel notification) {
-    // You can customize this based on notification.data
     final type = notification.data['type'] as String?;
 
     switch (type) {
@@ -129,14 +132,16 @@ class _NewNotificationsPageState extends State<NewNotificationsPage> {
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_sweep_rounded),
-            tooltip: isAr ? 'حذف الكل' : 'Delete All',
-            onPressed: () async {
-              // Show confirmation dialog
-              final confirm = await showDialog<bool>(
+          if (_cachedNotifications.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.delete_sweep_rounded),
+              tooltip: isAr ? 'حذف الكل' : 'Delete All',
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
+                  actionsAlignment: MainAxisAlignment.start,
+
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -159,25 +164,21 @@ class _NewNotificationsPageState extends State<NewNotificationsPage> {
                     style: TextStyle(color: Colors.grey[700], fontSize: 15),
                   ),
                   actions: [
-                    TextButton(
+                    eButton(
+                      context: context,
+                      backgroundColor: Colors.white,
                       onPressed: () => Navigator.pop(context, false),
-                      child: Text(
+                      widget: Text(
                         AppLocalizations.of(context)?.cancel ?? 'Cancel',
-                        style: TextStyle(color: Colors.grey[600]),
+                        style: TextStyle(color: Colors.black),
                       ),
                     ),
-                    ElevatedButton(
+                    eButton(
                       onPressed: () => Navigator.pop(context, true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        AppLocalizations.of(context)?.delete ?? 'Delete',
-                      ),
+                      context: context,
+                      backgroundColor: Colors.red,
+                      text: AppLocalizations.of(context)?.delete ?? 'Delete',
+                      textColor: Colors.white,
                     ),
                   ],
                 ),
@@ -215,7 +216,8 @@ class _NewNotificationsPageState extends State<NewNotificationsPage> {
       body: StreamBuilder<List<NotificationModel>>(
         stream: AppServices.getNotificationsStream(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              _cachedNotifications.isEmpty) {
             return Center(child: SizedBox(height: 24, child: Loader()));
           }
 
@@ -235,9 +237,12 @@ class _NewNotificationsPageState extends State<NewNotificationsPage> {
             );
           }
 
-          final notifications = snapshot.data ?? [];
+          // Update cached notifications when new data arrives
+          if (snapshot.hasData) {
+            _cachedNotifications = snapshot.data!;
+          }
 
-          if (notifications.isEmpty) {
+          if (_cachedNotifications.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -269,10 +274,10 @@ class _NewNotificationsPageState extends State<NewNotificationsPage> {
           }
 
           // Get the notifications to display (limited by pagination)
-          final displayedNotifications = notifications
+          final displayedNotifications = _cachedNotifications
               .take(_currentlyDisplayed)
               .toList();
-          final hasMore = notifications.length > _currentlyDisplayed;
+          final hasMore = _cachedNotifications.length > _currentlyDisplayed;
 
           return ListView.builder(
             controller: _scrollController,

@@ -1523,7 +1523,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
 
   void _showPayoutRequestDialog() {
     final TextEditingController amountController = TextEditingController();
-    final availableAmount = cardPayments + totalTips;
+    final availableAmount = cardPayments;
 
     // Add a ValueNotifier to manage error state
     final errorNotifier = ValueNotifier<String?>(null);
