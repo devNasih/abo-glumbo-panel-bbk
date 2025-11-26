@@ -169,12 +169,6 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
       title: Text(
         AppLocalizations.of(context)?.manageOrders ?? "Manage Orders",
       ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.notifications),
-          onPressed: _navigateToNotifications,
-        ),
-      ],
     );
   }
 

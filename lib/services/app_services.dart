@@ -32,14 +32,35 @@ class AppServices {
   static Future<void> updateFCMToken(String token) async {
     try {
       String userId = LocalStore.getUID() ?? '';
-      if (userId.isNotEmpty) {
-        await AppFirestore.usersCollectionRef.doc(userId).update({
-          'fcmToken': token,
-        });
+      if (userId.isEmpty) {
+        debugPrint('❌ Cannot update FCM token: User ID is empty');
+        return;
       }
+
+      debugPrint('📤 Updating FCM token for user: $userId');
+      debugPrint('🔑 Token: ${token}...');
+
+      await AppFirestore.usersCollectionRef.doc(userId).set({
+        'fcmToken': token,
+        'fcmTokenUpdatedAt': Timestamp.now(),
+      }, SetOptions(merge: true));
+
+      debugPrint('✅ FCM token updated successfully in Firestore');
     } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error updating FCM token: $e');
+      debugPrint('❌ Error updating FCM token: $e');
+
+      // Try to create the document if it doesn't exist
+      try {
+        String userId = LocalStore.getUID() ?? '';
+        if (userId.isNotEmpty) {
+          await AppFirestore.usersCollectionRef.doc(userId).set({
+            'fcmToken': token,
+            'fcmTokenUpdatedAt': Timestamp.now(),
+          }, SetOptions(merge: true));
+          debugPrint('✅ FCM token set successfully with merge option');
+        }
+      } catch (setError) {
+        debugPrint('❌ Error setting FCM token with merge: $setError');
       }
     }
   }
@@ -67,20 +88,14 @@ class AppServices {
   ) async {
     try {
       String userId = '';
-      bool isCurrentUserAdmin = false;
 
       // Check if Hive is available (only in foreground)
       try {
         if (Hive.isBoxOpen('myBox')) {
           userId = LocalStore.getUID() ?? '';
-          UserModel? currentUser = LocalStore.getCachedUserData();
-          isCurrentUserAdmin = currentUser?.isAdmin ?? false;
         } else {
           // Background execution - try to get userId from message data
           userId = message.data['userId']?.toString() ?? '';
-          isCurrentUserAdmin =
-              message.data['isAdmin'] == 'true' ||
-              message.data['targetRole'] == 'admin';
 
           debugPrint('⚠️ Background notification - Hive not available');
         }
@@ -88,6 +103,12 @@ class AppServices {
         debugPrint('⚠️ Error accessing LocalStore: $e');
         // Continue with empty userId if Hive is not available
         userId = message.data['userId']?.toString() ?? '';
+      }
+
+      // If we don't have a userId, we can't store the notification
+      if (userId.isEmpty) {
+        debugPrint('⚠️ No userId available, cannot store notification');
+        return;
       }
 
       String title =
@@ -98,73 +119,32 @@ class AppServices {
           message.notification?.body ??
           message.data['body'] ??
           'You have a new notification';
-      Timestamp sentTime = message.sentTime != null
-          ? Timestamp.fromDate(message.sentTime!)
-          : Timestamp.now();
 
-      String targetRole = _determineNotificationTargetRole(
-        message,
-        isCurrentUserAdmin,
-      );
-
+      // Store notification data matching Cloud Functions format
       Map<String, dynamic> notificationData = {
-        'userId': userId,
-        'title': title,
-        'body': body,
+        'titleEn': message.data['titleEn'] ?? title,
+        'titleAr': message.data['titleAr'] ?? title,
+        'bodyEn': message.data['bodyEn'] ?? body,
+        'bodyAr': message.data['bodyAr'] ?? body,
         'data': message.data.isNotEmpty ? message.data : {},
-        'messageId': message.messageId ?? '',
-        'sentTime': sentTime,
+        'read': false,
         'createdAt': Timestamp.now(),
-        'isRead': false,
-        'category': message.data['category']?.toString() ?? 'general',
-        'action': message.data['action']?.toString() ?? '',
-        'platform': message.data['platform']?.toString() ?? 'mobile',
-        'targetRole': targetRole,
-        'userRole': isCurrentUserAdmin ? 'admin' : 'worker',
-        'isBackgroundReceived': !Hive.isBoxOpen(
-          'myBox',
-        ), // Track if received in background
       };
 
-      await AppFirestore.notificationsCollectionRef.add(notificationData);
+      // Store in user-specific subcollection: users/{userId}/notifications
+      await AppFirestore.usersCollectionRef
+          .doc(userId)
+          .collection('notifications')
+          .add(notificationData);
 
-      debugPrint('✅ Notification stored in Firestore successfully');
+      debugPrint(
+        '✅ Notification stored in users/$userId/notifications subcollection',
+      );
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error storing notification in Firestore: $e');
       }
     }
-  }
-
-  static String _determineNotificationTargetRole(
-    RemoteMessage message,
-    bool isCurrentUserAdmin,
-  ) {
-    if (message.data.containsKey('targetRole')) {
-      return message.data['targetRole'].toString();
-    }
-
-    String title = message.notification?.title ?? message.data['title'] ?? '';
-    String body = message.notification?.body ?? message.data['body'] ?? '';
-    String content = '$title $body'.toLowerCase();
-
-    if (content.contains('admin') ||
-        content.contains('new booking request') ||
-        content.contains('طلب حجز جديد') ||
-        content.contains('agent assigned') ||
-        content.contains('تم تعيين عامل')) {
-      return 'admin';
-    }
-
-    if (content.contains('assigned') ||
-        content.contains('booking') ||
-        content.contains('تم تعيينك') ||
-        content.contains('حجز جديد') ||
-        message.data['category'] == 'booking') {
-      return 'worker';
-    }
-
-    return isCurrentUserAdmin ? 'admin' : 'worker';
   }
 
   static Future<bool> checkTheMailExists(String email) async {

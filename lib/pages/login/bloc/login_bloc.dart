@@ -4,8 +4,10 @@ import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/services/auth_services.dart';
+import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -283,6 +285,21 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
         if (kDebugMode) {
           print('✅ Worker user found: ${userData?['name']}');
+        }
+
+        // Update FCM token after login
+        try {
+          final token = await FirebaseMessaging.instance.getToken();
+          if (token != null && token.isNotEmpty) {
+            await AppServices.updateFCMToken(token);
+            if (kDebugMode) {
+              print('✅ FCM token updated after login');
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('⚠️ Error updating FCM token after login: $e');
+          }
         }
 
         return UserModel.fromJson(userData ?? {});
