@@ -37,15 +37,13 @@ class AppServices {
         return;
       }
 
-      debugPrint('📤 Updating FCM token for user: $userId');
-      debugPrint('🔑 Token: ${token}...');
+     
 
       await AppFirestore.usersCollectionRef.doc(userId).set({
         'fcmToken': token,
         'fcmTokenUpdatedAt': Timestamp.now(),
       }, SetOptions(merge: true));
 
-      debugPrint('✅ FCM token updated successfully in Firestore');
     } catch (e) {
       debugPrint('❌ Error updating FCM token: $e');
 

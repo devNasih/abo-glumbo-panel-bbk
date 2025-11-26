@@ -151,7 +151,6 @@ class NotificationServices {
       }
 
       if (token != null && token.isNotEmpty) {
-        debugPrint('🔑 FCM Token: ${token}...');
         await AppServices.updateFCMToken(token);
       } else {
         debugPrint('⚠️ No FCM token available');
