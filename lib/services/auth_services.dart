@@ -74,16 +74,20 @@ class AuthServices {
     try {
       if (kDebugMode) {
         print('✅ Phone number: $phoneNumber');
+        print('📱 Platform: ${Platform.isIOS ? "iOS" : "Android"}');
+        print('🔢 Sanitized number: $sanitizedPhoneNumber');
       }
       AuthServices.phoneNumber = sanitizedPhoneNumber;
       _verificationId = null;
 
       // iOS specific configuration for reCAPTCHA
       if (Platform.isIOS) {
+        debugPrint('🍎 iOS detected - configuring Firebase Auth settings');
         await FirebaseAuth.instance.setSettings(
           appVerificationDisabledForTesting: false,
           userAccessGroup: null,
         );
+        debugPrint('🍎 iOS Firebase Auth settings configured');
       }
 
       await _auth.verifyPhoneNumber(
@@ -105,10 +109,13 @@ class AuthServices {
           );
 
           // Handle reCAPTCHA specific errors more gracefully
-          if (e.code == 'recaptcha-sdk-not-linked') {
+          if (e.code == 'recaptcha-sdk-not-linked' ||
+              e.code == 'web-context-cancelled' ||
+              e.code == 'web-context-canceled') {
             debugPrint(
-              "reCAPTCHA SDK not linked - continuing without reCAPTCHA validation",
+              "reCAPTCHA error (${e.code}) - this is expected on iOS, waiting for codeSent callback",
             );
+            // Don't call onError - wait for codeSent callback
             return;
           }
 
@@ -116,7 +123,10 @@ class AuthServices {
         },
         codeSent: (String verificationId, int? resendToken) {
           debugPrint(
-            "OTP code sent successfully. Verification ID: $verificationId",
+            "✅ OTP code sent successfully. Verification ID: $verificationId",
+          );
+          debugPrint(
+            "📱 Platform: ${Platform.isIOS ? 'iOS' : 'Android'}, ResendToken: $resendToken",
           );
           onCodeSent(verificationId, resendToken: resendToken);
         },

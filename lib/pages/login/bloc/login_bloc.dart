@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
@@ -59,9 +60,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         },
       );
 
-      // ✅ Wait for the callback to complete (with 30 second timeout)
+      // ✅ Wait for the callback to complete (with 120 second timeout for iOS reCAPTCHA)
       final result = await completer.future.timeout(
-        const Duration(seconds: 30),
+        Duration(seconds: Platform.isIOS ? 120 : 30),
         onTimeout: () => {'success': false, 'error': 'timeout'},
       );
 
