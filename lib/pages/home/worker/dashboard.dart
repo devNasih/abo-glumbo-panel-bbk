@@ -160,8 +160,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 // Badge showing unread count
                 if (unreadCount > 0)
                   Positioned(
-                    right: 9,
-                    top: 9,
+                    right: 6,
+                    top: 6,
                     child: Container(
                       padding: const EdgeInsets.all(3),
                       decoration: BoxDecoration(
@@ -169,14 +169,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         shape: BoxShape.circle,
                       ),
                       constraints: const BoxConstraints(
-                        minWidth: 20,
-                        minHeight: 20,
+                        minWidth: 16,
+                        minHeight: 16,
                       ),
                       child: Text(
                         unreadCount > 99 ? '99+' : unreadCount.toString(),
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 11,
+                          fontSize: 8,
                           fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,

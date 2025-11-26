@@ -1502,13 +1502,20 @@ exports.notifyCustomerOnWorkerCancellation = onDocumentUpdated(
 
     try {
       // Get the customer data to retrieve FCM token
+      const customerId = afterData.customer.uid || afterData.customer.uid;
+
+      if (!customerId) {
+        console.log("Customer ID not found in booking data");
+        return;
+      }
+
       const customerDoc = await db
         .collection("customers")
-        .doc(afterData.customer.id)
+        .doc(customerId)
         .get();
 
       if (!customerDoc.exists) {
-        console.log("Customer document not found");
+        console.log(`Customer document not found for ID: ${customerId}`);
         return;
       }
 
@@ -1540,7 +1547,7 @@ exports.notifyCustomerOnWorkerCancellation = onDocumentUpdated(
 
       await sendAndStoreNotification({
         targetRole: "customer",
-        targetId: afterData.customer.id,
+        targetId: customerId,
         titleEn: "Booking Rejected",
         titleAr: "تم رفض الحجز",
         bodyEn: `A Technician rejected your booking for ${serviceName}.`,
@@ -2050,41 +2057,124 @@ exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
       return;
     }
 
-    // Determine status change
-    let status = null;
-    let isTechnicianRejection = false;
+    // Get warranty status codes
+    const beforeStatusCode = beforeWarranty?.warrantyStatusCode;
+    const afterStatusCode = afterWarranty.warrantyStatusCode;
 
-    // 1. Warranty Placed (New warranty object created)
-    if (!beforeWarranty && afterWarranty) {
-      status = "placed";
+    // Determine status change based on warrantyStatusCode
+    let status = null;
+    let notificationData = {};
+
+    // 1. Warranty Created (bookingStatusCode changed to C, warranty added with status A)
+    if (!beforeWarranty && afterWarranty && afterStatusCode === "A") {
+      status = "warranty_available";
+      console.log(
+        `Warranty created for booking ${bookingId} with status A (Available)`
+      );
     }
-    // 2. Accepted (claimStatus changed to true)
-    else if (!beforeWarranty?.claimStatus && afterWarranty.claimStatus) {
-      status = "accepted";
+    // 2. Customer Requested Repair (warrantyStatusCode changed from A to R)
+    else if (beforeStatusCode === "A" && afterStatusCode === "R") {
+      status = "repair_requested";
+      console.log(
+        `Customer requested repair for booking ${bookingId} (A -> R)`
+      );
     }
-    // 3. Tracking Started (isTracking changed to true)
-    else if (!beforeWarranty?.isTracking && afterWarranty.isTracking) {
-      status = "tracking_started";
+    // 3. Warranty Accepted by Technician/Admin (warrantyStatusCode changed to S - Accepted/Started)
+    else if (
+      (beforeStatusCode === "R" || beforeStatusCode === "A") &&
+      afterStatusCode === "S"
+    ) {
+      status = "warranty_accepted";
+      console.log(
+        `Warranty accepted for booking ${bookingId} (${beforeStatusCode} -> S)`
+      );
     }
-    // 4. Completed (completed changed to true)
-    else if (!beforeWarranty?.completed && afterWarranty.completed) {
-      status = "completed";
+    // 4. Warranty Completed (warrantyStatusCode changed to C)
+    else if (afterStatusCode === "C" && beforeStatusCode !== "C") {
+      status = "warranty_completed";
+      console.log(
+        `Warranty completed for booking ${bookingId} (${beforeStatusCode} -> C)`
+      );
     }
-    // 5. Technician Rejected (rejectedTechnicians array grew)
+    // 5. Admin Rejected Warranty (warrantyStatusCode changed to X)
+    else if (afterStatusCode === "X" && beforeStatusCode !== "X") {
+      status = "warranty_rejected";
+      console.log(
+        `Warranty rejected by admin for booking ${bookingId} (${beforeStatusCode} -> X)`
+      );
+    }
+    // 6. Warranty Expired (warrantyStatusCode changed to E)
+    else if (afterStatusCode === "E" && beforeStatusCode !== "E") {
+      status = "warranty_expired";
+      console.log(
+        `Warranty expired for booking ${bookingId} (${beforeStatusCode} -> E)`
+      );
+    }
+    // 7. Technician Rejected (rejectedTechnicians array grew)
     else if (
       (beforeWarranty?.rejectedTechnicians?.length || 0) <
       (afterWarranty.rejectedTechnicians?.length || 0)
     ) {
-      isTechnicianRejection = true;
       status = "technician_rejected";
+      const latestRejection =
+        afterWarranty.rejectedTechnicians[
+          afterWarranty.rejectedTechnicians.length - 1
+        ];
+      notificationData = {
+        rejectedTechnicianName: latestRejection?.name || "Technician",
+        rejectedTechnicianUid: latestRejection?.uid || "",
+        rejectionReason: latestRejection?.reason || "Not specified",
+      };
+      console.log(
+        `Technician ${latestRejection?.name} rejected warranty for booking ${bookingId}`
+      );
     }
-    // 6. Cancelled (availability changed to false AND not expired)
+    // 8. Warranty-based Tracking Started
+    // Check if isStartTracking changed and tracking timestamps are after warranty.acceptedAt
     else if (
-      beforeWarranty?.availability === true &&
-      afterWarranty.availability === false &&
-      !afterWarranty.expiredAt // Avoid triggering on cron job expiration
+      !beforeData?.isStartTracking &&
+      afterData.isStartTracking &&
+      afterWarranty.acceptedAt &&
+      afterData.trackingStartedAt
     ) {
-      status = "cancelled";
+      // Convert timestamps for comparison
+      const acceptedAtTime = afterWarranty.acceptedAt.toDate
+        ? afterWarranty.acceptedAt.toDate().getTime()
+        : new Date(afterWarranty.acceptedAt).getTime();
+      const trackingStartedTime = afterData.trackingStartedAt.toDate
+        ? afterData.trackingStartedAt.toDate().getTime()
+        : new Date(afterData.trackingStartedAt).getTime();
+
+      // Only send notification if tracking started after warranty was accepted
+      if (trackingStartedTime > acceptedAtTime) {
+        status = "warranty_tracking_started";
+        console.log(
+          `Warranty-based tracking started for booking ${bookingId} (tracking started after warranty acceptance)`
+        );
+      }
+    }
+    // 9. Warranty-based Tracking Stopped
+    else if (
+      beforeData?.isStartTracking &&
+      !afterData.isStartTracking &&
+      afterWarranty.acceptedAt &&
+      afterData.trackingStoppedAt
+    ) {
+      // Convert timestamps for comparison
+      const acceptedAtTime = afterWarranty.acceptedAt.toDate
+        ? afterWarranty.acceptedAt.toDate().getTime()
+        : new Date(afterWarranty.acceptedAt).getTime();
+      const trackingStoppedTime = afterData.trackingStoppedAt.toDate
+        ? afterData.trackingStoppedAt.toDate().getTime()
+        : new Date(afterData.trackingStoppedAt).getTime();
+
+      // Only send notification if tracking stopped after warranty was accepted
+      if (trackingStoppedTime > acceptedAtTime) {
+        status = "warranty_tracking_stopped";
+        console.log(
+          `Warranty-based tracking stopped for booking ${bookingId} (tracking stopped after warranty acceptance)`
+        );
+      }
     }
 
     if (!status) {
@@ -2096,7 +2186,9 @@ exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
     );
 
     const customerId = afterData.customer?.uid;
+    const customerName = afterData.customer?.name || "Customer";
     const serviceName = afterData.service?.name || "Service";
+    const serviceNameAr = afterData.service?.name_ar || serviceName;
     const workerId = afterWarranty.assignedTechnicianId || afterData.agent?.uid;
 
     // Fetch customer data for notification
@@ -2144,64 +2236,106 @@ exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
 
     // Status-specific messages
     const statusMessages = {
-      placed: {
+      warranty_available: {
         customer: {
-          en: "Your warranty request has been submitted successfully.",
-          ar: "تم تقديم طلب الضمان الخاص بك بنجاح.",
+          en: "Your booking is now covered by warranty. You can request free repair within 7 days if needed.",
+          ar: "حجزك الآن مشمول بالضمان. يمكنك طلب الإصلاح المجاني خلال 7 أيام إذا لزم الأمر.",
         },
         admin: {
-          en: "A new warranty request has been placed.",
-          ar: "تم تقديم طلب ضمان جديد.",
+          en: `Warranty activated for ${serviceName} - Customer: ${customerName}`,
+          ar: `تم تفعيل الضمان لـ ${serviceNameAr} - العميل: ${customerName}`,
         },
       },
-      accepted: {
+      repair_requested: {
         customer: {
-          en: "Your warranty request has been accepted. A technician will contact you soon.",
-          ar: "تم قبول طلب الضمان الخاص بك. سيتصل بك فني قريبًا.",
+          en: "Your warranty repair request has been submitted. We will assign a technician soon.",
+          ar: "تم تقديم طلب إصلاح الضمان الخاص بك. سنقوم بتعيين فني قريبًا.",
         },
         admin: {
-          en: "Warranty request has been accepted by a technician.",
-          ar: "تم قبول طلب الضمان من قبل فني.",
+          en: `${customerName} requested warranty repair for ${serviceName}`,
+          ar: `${customerName} طلب إصلاح الضمان لـ ${serviceNameAr}`,
         },
       },
-      tracking_started: {
+      warranty_accepted: {
         customer: {
-          en: "The technician is on the way. You can now track their location.",
-          ar: "الفني في الطريق. يمكنك الآن تتبع موقعه.",
+          en: "Your warranty repair request has been accepted. A technician will contact you soon.",
+          ar: "تم قبول طلب إصلاح الضمان الخاص بك. سيتصل بك فني قريبًا.",
         },
         admin: {
-          en: "Technician started tracking for warranty request.",
-          ar: "بدأ الفني التتبع لطلب الضمان.",
+          en: `Warranty repair accepted for ${serviceName} - Customer: ${customerName}`,
+          ar: `تم قبول إصلاح الضمان لـ ${serviceNameAr} - العميل: ${customerName}`,
         },
       },
-      completed: {
+      warranty_tracking_started: {
         customer: {
-          en: "Your warranty service has been completed successfully. We hope you're satisfied with the service!",
-          ar: "تم إكمال خدمة الضمان الخاصة بك بنجاح. نأمل أن تكون راضيًا عن الخدمة!",
+          en: "The technician is on the way for your warranty repair. You can now track their location.",
+          ar: "الفني في الطريق لإصلاح الضمان الخاص بك. يمكنك الآن تتبع موقعه.",
         },
         admin: {
-          en: "Warranty request has been completed.",
-          ar: "تم إكمال طلب الضمان.",
+          en: `Technician started tracking for warranty repair - ${serviceName}`,
+          ar: `بدأ الفني التتبع لإصلاح الضمان - ${serviceNameAr}`,
+        },
+      },
+      warranty_tracking_stopped: {
+        customer: {
+          en: "The technician has arrived at your location for warranty repair.",
+          ar: "وصل الفني إلى موقعك لإصلاح الضمان.",
+        },
+        admin: {
+          en: `Technician arrived for warranty repair - ${serviceName}`,
+          ar: `وصل الفني لإصلاح الضمان - ${serviceNameAr}`,
+        },
+      },
+      warranty_completed: {
+        customer: {
+          en: "Your warranty repair has been completed successfully. Thank you for using our service!",
+          ar: "تم إكمال إصلاح الضمان الخاص بك بنجاح. شكرًا لاستخدام خدمتنا!",
+        },
+        admin: {
+          en: `Warranty repair completed for ${serviceName} - Customer: ${customerName}`,
+          ar: `تم إكمال إصلاح الضمان لـ ${serviceNameAr} - العميل: ${customerName}`,
+        },
+      },
+      warranty_rejected: {
+        customer: {
+          en: "Your warranty repair request has been rejected by the administrator.",
+          ar: "تم رفض طلب إصلاح الضمان الخاص بك من قبل المسؤول.",
+        },
+        admin: {
+          en: `Warranty repair rejected for ${serviceName} - Customer: ${customerName}`,
+          ar: `تم رفض إصلاح الضمان لـ ${serviceNameAr} - العميل: ${customerName}`,
+        },
+      },
+      warranty_expired: {
+        customer: {
+          en: "Your warranty period has expired (7 days). You can no longer request repair under warranty.",
+          ar: "انتهت فترة الضمان الخاصة بك (7 أيام). لم يعد بإمكانك طلب الإصلاح بموجب الضمان.",
+        },
+        admin: {
+          en: `Warranty expired for ${serviceName} - Customer: ${customerName}`,
+          ar: `انتهى الضمان لـ ${serviceNameAr} - العميل: ${customerName}`,
         },
       },
       technician_rejected: {
         customer: {
-          en: "A technician rejected your warranty request. We are looking for another one.",
-          ar: "رفض فني طلب الضمان الخاص بك. نحن نبحث عن فني آخر.",
+          en: `Technician ${
+            notificationData.rejectedTechnicianName || "has"
+          } declined your warranty repair request. We are assigning another technician.`,
+          ar: `رفض الفني ${
+            notificationData.rejectedTechnicianName || ""
+          } طلب إصلاح الضمان الخاص بك. نحن نقوم بتعيين فني آخر.`,
         },
         admin: {
-          en: "A technician rejected a warranty request.",
-          ar: "رفض فني طلب ضمان.",
-        },
-      },
-      cancelled: {
-        customer: {
-          en: "Your warranty request has been cancelled.",
-          ar: "تم إلغاء طلب الضمان الخاص بك.",
-        },
-        admin: {
-          en: "A warranty request has been cancelled.",
-          ar: "تم إلغاء طلب ضمان.",
+          en: `Technician ${
+            notificationData.rejectedTechnicianName || "Unknown"
+          } rejected warranty repair for ${serviceName}. Reason: ${
+            notificationData.rejectionReason || "Not specified"
+          }`,
+          ar: `رفض الفني ${
+            notificationData.rejectedTechnicianName || "غير معروف"
+          } إصلاح الضمان لـ ${serviceNameAr}. السبب: ${
+            notificationData.rejectionReason || "غير محدد"
+          }`,
         },
       },
     };
@@ -2213,23 +2347,23 @@ exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
       await sendAndStoreNotification({
         targetRole: "customer",
         targetId: customerId,
-        titleEn: "Warranty Request Update",
-        titleAr: "تحديث طلب الضمان",
-        bodyEn: `${
+        titleEn: "Warranty Update",
+        titleAr: "تحديث الضمان",
+        bodyEn:
           statusMessages[status]?.customer?.["en"] ||
-          `Your warranty request status has been updated to ${status}`
-        } (${serviceName})`,
-        bodyAr: `${
+          `Your warranty status has been updated`,
+        bodyAr:
           statusMessages[status]?.customer?.["ar"] ||
-          `تحديث حالة طلب الضمان إلى ${status}`
-        } (${serviceName})`,
+          `تم تحديث حالة الضمان الخاصة بك`,
         data: {
           targetRole: "customer",
           category: "warranty",
           bookingId: bookingId,
           status: status,
+          warrantyStatusCode: afterStatusCode,
           serviceName: serviceName,
           isWarranty: "true",
+          ...notificationData,
         },
         fcmToken: customerData.fcmToken,
         lanCode: customerLanCode,
@@ -2242,23 +2376,27 @@ exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
         await sendAndStoreNotification({
           targetRole: "admin",
           targetId: uid,
-          titleEn: "Warranty Request Update",
-          titleAr: "تحديث طلب الضمان",
+          titleEn: "Warranty Update",
+          titleAr: "تحديث الضمان",
           bodyEn:
             statusMessages[status]?.admin?.["en"] ||
-            `Warranty request for booking ${bookingId} updated to ${status}`,
+            `Warranty status updated for booking ${bookingId}`,
           bodyAr:
             statusMessages[status]?.admin?.["ar"] ||
-            `تم تحديث طلب الضمان للحجز ${bookingId} إلى ${status}`,
+            `تم تحديث حالة الضمان للحجز ${bookingId}`,
           data: {
             targetRole: "admin",
             category: "warranty",
             bookingId: bookingId,
             customerId: customerId || "",
+            customerName: customerName,
             workerId: workerId || "",
             status: status,
+            warrantyStatusCode: afterStatusCode,
             serviceName: serviceName,
             isWarranty: "true",
+            isAdmin: "true",
+            ...notificationData,
           },
           fcmToken: token,
           lanCode: lanCode,

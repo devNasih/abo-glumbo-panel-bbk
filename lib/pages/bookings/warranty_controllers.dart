@@ -37,12 +37,20 @@ class _WarrantyControlsWidgetState extends State<WarrantyControlsWidget> {
     _initializeCancelButtonState();
   }
 
+  final formKey = GlobalKey<FormState>();
+  final reasonController = TextEditingController();
   void _initializeCancelButtonState() {
     final isCurrentlyTracking =
         WarrantyControlsWidget._trackerService.isTracking.value;
     setState(() {
       isCancelButtonBlocked = isCurrentlyTracking;
     });
+  }
+
+  @override
+  void dispose() {
+    reasonController.dispose();
+    super.dispose();
   }
 
   @override
@@ -330,8 +338,6 @@ class _WarrantyControlsWidgetState extends State<WarrantyControlsWidget> {
   }
 
   void _showCancelBottomSheet(BuildContext context) {
-    final formKey = GlobalKey<FormState>();
-    final reasonController = TextEditingController();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -521,6 +527,7 @@ class _WarrantyControlsWidgetState extends State<WarrantyControlsWidget> {
                                         bookingId: widget.booking.id,
                                         technicianUid: technicianId,
                                         technicianName: tech.name ?? '',
+                                        technicianPhone: tech.phone ?? '',
                                         rejectionReason: reasonController.text
                                             .trim(),
                                       ),
@@ -795,6 +802,19 @@ class _WarrantyControlsWidgetState extends State<WarrantyControlsWidget> {
   }
 
   void _showCompleteWarrantyBottomSheet(BuildContext context) {
+    final trackerService = WarrantyControlsWidget._trackerService;
+    if (trackerService.isTracking.value) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.cannotCompleteBookingWhileTracking,
+          ),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(

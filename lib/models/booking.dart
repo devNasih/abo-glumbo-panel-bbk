@@ -9,25 +9,8 @@ class BookingModel {
   late ServiceModel service;
   late Timestamp bookingDateTime;
   late String bookingStatusCode;
-
-  String get bookingStatusGen {
-    switch (bookingStatusCode) {
-      case 'P':
-        return 'Pending';
-      case 'A':
-        return 'Accepted';
-      case 'R':
-        return 'Rejected';
-      case 'C':
-        return 'Completed';
-      case 'XC':
-      case 'X':
-        return 'Cancelled';
-      default:
-        return 'Unknown';
-    }
-  }
-
+  bool? isEscalated;
+  Timestamp? escalatedAt;
   late String notes;
   late String? issueImage;
   late String? issueVideo;
@@ -36,19 +19,6 @@ class BookingModel {
   completionData; // This now contains List<String> imageUrls
   late String paymentModeCode;
   String? chatroomId = "";
-
-  String get paymentModeGen {
-    switch (paymentModeCode) {
-      case 'C':
-        return 'Cards';
-      case 'A':
-        return 'Apple Pay';
-      case 'O':
-        return 'Cash On Hands';
-      default:
-        return 'Unknown';
-    }
-  }
 
   ReviewModel? review;
   UserModel? agent;
@@ -84,7 +54,7 @@ class BookingModel {
     required this.paymentModeCode,
     this.isStartTracking,
     this.review,
-    this.chatroomId,
+    this.chatroomId = '',
     this.agent,
     this.completionData, // Add this
     this.createdAt,
@@ -201,7 +171,7 @@ class BookingModel {
 }
 
 class ReviewModel {
-  int rating;
+  int? rating;
   String review;
   double? tipAmount;
   String? paymentType;
@@ -220,14 +190,27 @@ class ReviewModel {
 
   factory ReviewModel.fromMap(Map<String, dynamic> data) {
     return ReviewModel(
-      rating: data['rating'],
-      review: data['review'],
-      tipAmount: data['tipAmount'],
-      paymentType: data['paymentType'],
-      isTipPaid: data['isTipPaid'],
-      createdAt: data['createdAt'],
-      workerId: data['workerId'],
+      rating: data['rating'] != null
+          ? (data['rating'] is int
+                ? data['rating'] as int
+                : (data['rating'] as num).toInt())
+          : null,
+      review: data['review']?.toString() ?? '', // ✅ Fixed: Safe conversion
+      tipAmount:
+          data['tipAmount'] !=
+              null // ✅ Fixed: Check null first
+          ? (data['tipAmount'] is double
+                ? data['tipAmount'] as double
+                : (data['tipAmount'] as num).toDouble())
+          : null,
+      paymentType: data['paymentType'] as String?, // ✅ Make nullable
+      isTipPaid: data['isTipPaid'] as bool?, // ✅ Make nullable
+      createdAt: data['createdAt'] as Timestamp?, // ✅ Make nullable
+      workerId: data['workerId'] as String?, // ✅ Make nullable
     );
+  }
+  factory ReviewModel.fromJson(Map<String, dynamic> json) {
+    return ReviewModel.fromMap(json);
   }
 
   Map<String, dynamic> toJson() {
@@ -369,8 +352,6 @@ class CompletionDataModel {
     }).toList();
   }
 }
-
-enum BookingStatusType { pending, confirmed, completed, pastBookings }
 
 class BookingServiceItem {
   final String name;

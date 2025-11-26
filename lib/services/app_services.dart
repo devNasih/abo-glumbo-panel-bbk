@@ -381,44 +381,47 @@ class AppServices {
       bool isCurrentUserAdmin = currentUser?.isAdmin ?? false;
       String currentUserRole = isCurrentUserAdmin ? 'admin' : 'worker';
 
-      Query query = AppFirestore.notificationsCollectionRef
-          .where('userId', isEqualTo: userId)
+      // Query from subcollection: users/{userId}/notifications
+      Query query = AppFirestore.usersCollectionRef
+          .doc(userId)
+          .collection('notifications')
           .orderBy('createdAt', descending: true);
 
       if (onlyUnread) {
-        query = query.where('isRead', isEqualTo: false);
+        query = query.where('read', isEqualTo: false);
       }
 
-      QuerySnapshot querySnapshot = await query.limit(limit * 2).get();
+      QuerySnapshot querySnapshot = await query.limit(limit).get();
 
-      List<Map<String, dynamic>> allNotifications = querySnapshot.docs
-          .map((doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>})
-          .toList();
+      List<Map<String, dynamic>> notifications = querySnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
 
-      List<Map<String, dynamic>> filteredNotifications = [];
-
-      for (var notification in allNotifications) {
-        String? targetRole = notification['targetRole']?.toString();
-        String? userRole = notification['userRole']?.toString();
-
-        bool shouldInclude =
-            targetRole == null ||
-            targetRole == currentUserRole ||
-            targetRole == 'both' ||
-            userRole == currentUserRole;
-
-        if (shouldInclude && filteredNotifications.length < limit) {
-          filteredNotifications.add(notification);
-        }
-      }
+        // Convert to format expected by notifications page
+        // Cloud Functions store: titleEn, titleAr, bodyEn, bodyAr
+        // Notifications page expects: title, body (single language)
+        return {
+          'id': doc.id,
+          'title': data['titleEn'] ?? data['titleAr'] ?? '',
+          'body': data['bodyEn'] ?? data['bodyAr'] ?? '',
+          'titleEn': data['titleEn'] ?? '',
+          'titleAr': data['titleAr'] ?? '',
+          'bodyEn': data['bodyEn'] ?? '',
+          'bodyAr': data['bodyAr'] ?? '',
+          'data': data['data'] ?? {},
+          'isRead': data['read'] ?? false,
+          'createdAt': data['createdAt'],
+          'category':
+              (data['data'] as Map<String, dynamic>?)?['category'] ?? 'general',
+        };
+      }).toList();
 
       if (kDebugMode) {
         print(
-          '📱 Retrieved ${filteredNotifications.length} notifications for $currentUserRole',
+          '📱 Retrieved ${notifications.length} notifications for $currentUserRole from subcollection',
         );
       }
 
-      return filteredNotifications;
+      return notifications;
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error retrieving notifications: $e');

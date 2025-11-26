@@ -200,6 +200,8 @@ class _WarrantyPageState extends State<WarrantyPage>
         return AppLocalizations.of(context)!.cancelled;
       case 'rejected':
         return AppLocalizations.of(context)!.rejected;
+      case 'expired':
+        return AppLocalizations.of(context)!.expired;
       default:
         return name;
     }

@@ -214,7 +214,9 @@ class UserModel {
       'role': role,
       'fcmToken': fcmToken,
       'rating': rating,
-      'payoutAccounts': payoutAccounts,
+      'payoutAccounts': payoutAccounts
+          ?.map((account) => account.toJson())
+          .toList(),
       'availableBalance': availableBalance,
       'paidAmounts': paidAmounts,
       'highestTier': highestTier,
@@ -247,7 +249,9 @@ class UserModel {
       'fcmToken': fcmToken,
       'role': role,
       'rating': rating,
-      'payoutAccounts': payoutAccounts,
+      'payoutAccounts': payoutAccounts
+          ?.map((account) => account.toJson())
+          .toList(),
       'availableBalance': availableBalance,
       'paidAmounts': paidAmounts,
       'highestTier': highestTier,

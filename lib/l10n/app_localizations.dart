@@ -2306,11 +2306,23 @@ abstract class AppLocalizations {
   /// **'Quantity'**
   String get quantity;
 
+  /// No description provided for @warrantyRejectedTechnicians.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty Rejected Technicians'**
+  String get warrantyRejectedTechnicians;
+
   /// No description provided for @loadingBanners.
   ///
   /// In en, this message translates to:
   /// **'Loading Banners'**
   String get loadingBanners;
+
+  /// No description provided for @cancelledDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled Date'**
+  String get cancelledDate;
 
   /// No description provided for @paymentPending.
   ///
@@ -3559,6 +3571,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Warranty Claims'**
   String get warrantyClaims;
+
+  /// No description provided for @expired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get expired;
 
   /// No description provided for @tapToView.
   ///
@@ -5630,12 +5648,6 @@ abstract class AppLocalizations {
   /// **'Quick Actions'**
   String get quickActions;
 
-  /// No description provided for @copiedToClipboard.
-  ///
-  /// In en, this message translates to:
-  /// **'Copied to clipboard'**
-  String get copiedToClipboard;
-
   /// No description provided for @refresh.
   ///
   /// In en, this message translates to:
@@ -5767,6 +5779,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cannot cancel this booking while tracking is active. Please stop tracking first, then you can cancel the booking.'**
   String get cannotCancel;
+
+  /// No description provided for @cannotCompleteBookingWhileTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot complete this work while tracking is active. Please stop tracking first, then you can complete the work.'**
+  String get cannotCompleteBookingWhileTracking;
 
   /// No description provided for @editSelection.
   ///
@@ -6752,6 +6770,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one {Notification sent to 1 technician.} other {Notification sent to {count} technicians.}}'**
   String notificationSenttoTechnicians(int count);
+
+  /// No description provided for @agentAssignedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician assigned successfully'**
+  String get agentAssignedSuccessfully;
+
+  /// No description provided for @orderRejectedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Order rejected successfully'**
+  String get orderRejectedSuccessfully;
+
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get copiedToClipboard;
+
+  /// No description provided for @couldNotLaunchPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not launch phone app'**
+  String get couldNotLaunchPhone;
 }
 
 class _AppLocalizationsDelegate

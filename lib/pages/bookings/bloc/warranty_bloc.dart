@@ -83,6 +83,7 @@ class WarrantyBloc extends Bloc<WarrantyEvent, WarrantyState> {
         RejectedTechnicianModel(
           uid: event.technicianUid,
           name: event.technicianName,
+          phone: event.technicianPhone,
           reason: event.rejectionReason,
           rejectedAt: DateTime.now(),
         ),

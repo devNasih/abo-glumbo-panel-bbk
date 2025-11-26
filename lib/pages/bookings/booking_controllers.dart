@@ -701,6 +701,20 @@ class _BookingControlsWidgetState extends State<BookingControlsWidget> {
   }
 
   void _showCompleteWorkBottomSheet(BuildContext context) {
+    final trackerService = BookingControlsWidget._trackerService;
+    if (trackerService.isTracking.value) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.cannotCompleteBookingWhileTracking,
+          ),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

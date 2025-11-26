@@ -53,7 +53,6 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
       });
     }
   }
-  
 
   showAssignToUserBottomSheet(BookingModel booking) {
     final adminBloc = context.read<AdminBloc>();
@@ -93,8 +92,6 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
       }
     });
 
-   
-
     // Search listener
     _searchController.addListener(() {
       setState(() {
@@ -116,231 +113,280 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return BlocBuilder<AccountBloc, AccountState>(
-      builder: (context, accountState) {
-        return Scaffold(
-          appBar: AppBar(
-            titleSpacing: 16,
-            title: Text(
-              AppLocalizations.of(context)?.manageOrders ?? "Manage Orders",
-            ),
-            actions: [
-              StreamBuilder<int>(
-                stream: AppServices.getUnreadNotificationsCountStream(),
-                builder: (context, snapshot) {
-                  final unreadCount = snapshot.data ?? 0;
-
-                  return Stack(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.notifications),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const NewNotificationsPage(),
-                            ),
-                          );
-                        },
-                      ),
-                      // Badge
-                      if (unreadCount > 0)
-                        Positioned(
-                          right: 3,
-                          top: 3,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            constraints: const BoxConstraints(
-                              minWidth: 20,
-                              minHeight: 20,
-                            ),
-                            child: Center(
-                              child: Text(
-                                unreadCount > 99
-                                    ? '99+'
-                                    : unreadCount.toString(),
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: unreadCount > 99 ? 8 : 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  );
-                },
+    return BlocListener<AdminBloc, AdminState>(
+      listener: (context, state) {
+        if (state is AgentAssigned) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)?.agentAssignedSuccessfully ??
+                    'Technician assigned successfully',
               ),
-            ],
-          ),
-          body: SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _searchController,
-                          onChanged: (value) {
-                            setState(() {
-                              _searchQuery = value.toLowerCase();
-                            });
-                          },
-                          decoration: InputDecoration(
-                            hintStyle: TextStyle(fontSize: 12),
-                            hintText: AppLocalizations.of(
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        } else if (state is AgentAssignmentError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${AppLocalizations.of(context)?.failedToAssignAgent ?? 'Failed to assign technician'}: ${state.error}',
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        } else if (state is OrderRejected) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)?.orderRejectedSuccessfully ??
+                    'Order rejected successfully',
+              ),
+              backgroundColor: Colors.orange,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        } else if (state is OrderRejectionError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${AppLocalizations.of(context)?.failedToRejectOrder ?? 'Failed to reject order'}: ${state.error}',
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      },
+      child: BlocBuilder<AccountBloc, AccountState>(
+        builder: (context, accountState) {
+          return Scaffold(
+            appBar: AppBar(
+              titleSpacing: 16,
+              title: Text(
+                AppLocalizations.of(context)?.manageOrders ?? "Manage Orders",
+              ),
+              actions: [
+                StreamBuilder<int>(
+                  stream: AppServices.getUnreadNotificationsCountStream(),
+                  builder: (context, snapshot) {
+                    final unreadCount = snapshot.data ?? 0;
+
+                    return Stack(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.notifications),
+                          onPressed: () {
+                            Navigator.push(
                               context,
-                            )!.searchbyBookingIdnameTechnician,
-                            prefixIcon: const Icon(Icons.search),
-                            suffixIcon: _searchQuery.isNotEmpty
-                                ? IconButton(
-                                    icon: const Icon(Icons.clear),
-                                    onPressed: () {
-                                      setState(() {
-                                        _searchController.clear();
-                                        _searchQuery = '';
-                                      });
-                                    },
-                                  )
-                                : null,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 0,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      InkWell(
-                        onTap: () => _selectDateRange(context),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 14,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: _startDate != null
-                                  ? colorScheme.primary
-                                  : Colors.grey.shade400,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                            color: _startDate != null
-                                ? colorScheme.primary.withOpacity(0.1)
-                                : null,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.calendar_today_outlined,
-                                size: 20,
-                                color: _startDate != null
-                                    ? colorScheme.primary
-                                    : Colors.grey.shade600,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const NewNotificationsPage(),
                               ),
-                              if (_startDate != null && _endDate != null) ...[
-                                const SizedBox(width: 8),
-                                Text(
-                                  '${DateFormat('MMM dd').format(_startDate!)} - ${DateFormat('MMM dd').format(_endDate!)}',
+                            );
+                          },
+                        ),
+                        // Badge
+                        if (unreadCount > 0)
+                          Positioned(
+                            right: 6,
+                            top: 6,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 16,
+                                minHeight: 16,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  unreadCount > 99
+                                      ? '99+'
+                                      : unreadCount.toString(),
                                   style: TextStyle(
-                                    color: colorScheme.primary,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13,
+                                    color: Colors.white,
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold,
                                   ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                const SizedBox(width: 8),
-                                InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      _startDate = null;
-                                      _endDate = null;
-                                    });
-                                  },
-                                  child: Icon(
-                                    Icons.close,
-                                    size: 18,
-                                    color: colorScheme.primary,
-                                  ),
-                                ),
-                              ] else ...[
-                                const SizedBox(width: 8),
-                                Text(
-                                  AppLocalizations.of(context)?.filterByDate ??
-                                      "Filter Date",
-                                  style: TextStyle(
-                                    color: Colors.grey.shade600,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ],
-                            ],
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  height: 64,
-                  alignment: Alignment.centerLeft,
-                  child: TabBar(
-                    controller: _tabController,
-                    isScrollable: true,
-                    indicatorColor: Colors.transparent,
-                    tabAlignment: TabAlignment.start,
-                    splashFactory: NoSplash.splashFactory,
-                    labelPadding: EdgeInsets.zero,
-                    tabs: List.generate(bookingStatus.length, (index) {
-                      final status = bookingStatus[index];
-                      final isSelected = _tabController.index == index;
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          left: index == 0 ? 12 : 0,
-                          right: index < bookingStatus.length - 1 ? 8 : 12,
-                        ),
-                        child: _buildStatusChip(
-                          context,
-                          code: status['code']!,
-                          name: status['name']!,
-                          isSelected: isSelected,
-                          colorScheme: colorScheme,
-                          onPressed: () => _tabController.animateTo(index),
-                        ),
-                      );
-                    }),
-                  ),
-                ),
-
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: List.generate(bookingStatus.length, (index) {
-                      return _buildBookingsList(
-                        context,
-
-                        selectedBookingStatus: bookingStatus[index]['code']!,
-                      );
-                    }),
-                  ),
+                      ],
+                    );
+                  },
                 ),
               ],
             ),
-          ),
-        );
-      },
+            body: SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            onChanged: (value) {
+                              setState(() {
+                                _searchQuery = value.toLowerCase();
+                              });
+                            },
+                            decoration: InputDecoration(
+                              hintStyle: TextStyle(fontSize: 12),
+                              hintText: AppLocalizations.of(
+                                context,
+                              )!.searchbyBookingIdnameTechnician,
+                              prefixIcon: const Icon(Icons.search),
+                              suffixIcon: _searchQuery.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear),
+                                      onPressed: () {
+                                        setState(() {
+                                          _searchController.clear();
+                                          _searchQuery = '';
+                                        });
+                                      },
+                                    )
+                                  : null,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 0,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        InkWell(
+                          onTap: () => _selectDateRange(context),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: _startDate != null
+                                    ? colorScheme.primary
+                                    : Colors.grey.shade400,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              color: _startDate != null
+                                  ? colorScheme.primary.withOpacity(0.1)
+                                  : null,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.calendar_today_outlined,
+                                  size: 20,
+                                  color: _startDate != null
+                                      ? colorScheme.primary
+                                      : Colors.grey.shade600,
+                                ),
+                                if (_startDate != null && _endDate != null) ...[
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '${DateFormat('MMM dd').format(_startDate!)} - ${DateFormat('MMM dd').format(_endDate!)}',
+                                    style: TextStyle(
+                                      color: colorScheme.primary,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        _startDate = null;
+                                        _endDate = null;
+                                      });
+                                    },
+                                    child: Icon(
+                                      Icons.close,
+                                      size: 18,
+                                      color: colorScheme.primary,
+                                    ),
+                                  ),
+                                ] else ...[
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    AppLocalizations.of(
+                                          context,
+                                        )?.filterByDate ??
+                                        "Filter Date",
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    height: 64,
+                    alignment: Alignment.centerLeft,
+                    child: TabBar(
+                      controller: _tabController,
+                      isScrollable: true,
+                      indicatorColor: Colors.transparent,
+                      tabAlignment: TabAlignment.start,
+                      splashFactory: NoSplash.splashFactory,
+                      labelPadding: EdgeInsets.zero,
+                      tabs: List.generate(bookingStatus.length, (index) {
+                        final status = bookingStatus[index];
+                        final isSelected = _tabController.index == index;
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            left: index == 0 ? 12 : 0,
+                            right: index < bookingStatus.length - 1 ? 8 : 12,
+                          ),
+                          child: _buildStatusChip(
+                            context,
+                            code: status['code']!,
+                            name: status['name']!,
+                            isSelected: isSelected,
+                            colorScheme: colorScheme,
+                            onPressed: () => _tabController.animateTo(index),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: List.generate(bookingStatus.length, (index) {
+                        return _buildBookingsList(
+                          context,
+
+                          selectedBookingStatus: bookingStatus[index]['code']!,
+                        );
+                      }),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 

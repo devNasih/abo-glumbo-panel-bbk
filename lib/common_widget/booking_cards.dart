@@ -19,7 +19,7 @@ class BookingCards extends StatelessWidget {
   final VoidCallback? onAssign;
   final bool isWarranty;
 
-  const BookingCards({
+  BookingCards({
     super.key,
     required this.booking,
     this.isAdmin = false,
@@ -67,6 +67,9 @@ class BookingCards extends StatelessWidget {
       }
     }
   }
+
+  final TextEditingController reasonController = TextEditingController();
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -502,14 +505,11 @@ class BookingCards extends StatelessWidget {
     );
   }
 
- void showRejectBookingDialog(
+  void showRejectBookingDialog(
     BuildContext context,
     BookingModel booking,
     bool isWarranty,
   ) {
-    final TextEditingController reasonController = TextEditingController();
-    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-
     showDialog(
       context: context,
       builder: (context) {
@@ -524,24 +524,33 @@ class BookingCards extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        AppLocalizations.of(context)!
-                            .areYouSureYouWantToRejectThisBooking,
+                        AppLocalizations.of(
+                          context,
+                        )!.areYouSureYouWantToRejectThisBooking,
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: reasonController,
                         decoration: InputDecoration(
-                          labelText: AppLocalizations.of(context)!.reasonforrejection,
-                          hintText: AppLocalizations.of(context)!.enterReasonForReject,
+                          labelText: AppLocalizations.of(
+                            context,
+                          )!.reasonforrejection,
+                          hintText: AppLocalizations.of(
+                            context,
+                          )!.enterReasonForReject,
                           border: OutlineInputBorder(),
                         ),
                         maxLines: 3,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return AppLocalizations.of(context)!.pleaseProvideARejectionReason;
+                            return AppLocalizations.of(
+                              context,
+                            )!.pleaseProvideARejectionReason;
                           }
                           if (value.trim().length < 10) {
-                            return AppLocalizations.of(context)!.reasonMustBeAtLeast10Characters;
+                            return AppLocalizations.of(
+                              context,
+                            )!.reasonMustBeAtLeast10Characters;
                           }
                           return null;
                         },
@@ -550,8 +559,9 @@ class BookingCards extends StatelessWidget {
                   ),
                 )
               : Text(
-                  AppLocalizations.of(context)!
-                      .areYouSureYouWantToRejectThisBooking,
+                  AppLocalizations.of(
+                    context,
+                  )!.areYouSureYouWantToRejectThisBooking,
                 ),
           actions: [
             ElevatedButton(
@@ -569,27 +579,28 @@ class BookingCards extends StatelessWidget {
 
                         if (context.mounted) {
                           context.read<WarrantyBloc>().add(
-                                CancelWarranty(
-                                  bookingId: booking.id,
-                                  technicianName: tech.name ?? "",
-                                  technicianUid:
-                                      booking.warranty?.assignedTechnicianId ??
-                                          '',
-                                  rejectionReason: reasonController.text.trim(),
-                                ),
-                              );
+                            CancelWarranty(
+                              bookingId: booking.id,
+                              technicianName: tech.name ?? "",
+                              technicianPhone: tech.phone ?? "",
+                              technicianUid:
+                                  booking.warranty?.assignedTechnicianId ?? '',
+                              rejectionReason: reasonController.text.trim(),
+                            ),
+                          );
+
                           Navigator.of(context).pop();
                         }
                       }
                     }
                   : () {
                       context.read<BookingBloc>().add(
-                            CancelBooking(
-                              bookingId: booking.id,
-                              agentUid: booking.agent?.uid ?? '',
-                              agentName: booking.agent?.name ?? '',
-                            ),
-                          );
+                        CancelBooking(
+                          bookingId: booking.id,
+                          agentUid: booking.agent?.uid ?? '',
+                          agentName: booking.agent?.name ?? '',
+                        ),
+                      );
                       Navigator.of(context).pop();
                     },
               child: Text(AppLocalizations.of(context)!.reject),
@@ -606,5 +617,4 @@ class BookingCards extends StatelessWidget {
       },
     );
   }
-
 }

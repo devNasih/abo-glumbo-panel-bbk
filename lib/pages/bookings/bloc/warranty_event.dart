@@ -29,17 +29,25 @@ class CancelWarranty extends WarrantyEvent {
   final String bookingId;
   final String technicianUid;
   final String technicianName;
+  final String technicianPhone;
   final String rejectionReason;
 
   const CancelWarranty({
     required this.bookingId,
     required this.technicianUid,
     required this.technicianName,
+    required this.technicianPhone,
     required this.rejectionReason,
   });
 
   @override
-  List<Object> get props => [bookingId, technicianUid, technicianName, rejectionReason];
+  List<Object> get props => [
+    bookingId,
+    technicianUid,
+    technicianName,
+    technicianPhone,
+    rejectionReason,
+  ];
 }
 
 class CompleteWarranty extends WarrantyEvent {

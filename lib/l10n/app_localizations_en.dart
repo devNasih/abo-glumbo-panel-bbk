@@ -1152,7 +1152,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quantity => 'Quantity';
 
   @override
+  String get warrantyRejectedTechnicians => 'Warranty Rejected Technicians';
+
+  @override
   String get loadingBanners => 'Loading Banners';
+
+  @override
+  String get cancelledDate => 'Cancelled Date';
 
   @override
   String get paymentPending => 'Payment Pending';
@@ -1809,6 +1815,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get warrantyClaims => 'Warranty Claims';
+
+  @override
+  String get expired => 'Expired';
 
   @override
   String get tapToView => 'Tap to view';
@@ -2928,9 +2937,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quickActions => 'Quick Actions';
 
   @override
-  String get copiedToClipboard => 'Copied to clipboard';
-
-  @override
   String get refresh => 'Refresh';
 
   @override
@@ -2999,6 +3005,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cannotCancel =>
       'Cannot cancel this booking while tracking is active. Please stop tracking first, then you can cancel the booking.';
+
+  @override
+  String get cannotCompleteBookingWhileTracking =>
+      'Cannot complete this work while tracking is active. Please stop tracking first, then you can complete the work.';
 
   @override
   String get editSelection => 'Edit Selection';
@@ -3551,4 +3561,16 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get agentAssignedSuccessfully => 'Technician assigned successfully';
+
+  @override
+  String get orderRejectedSuccessfully => 'Order rejected successfully';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get couldNotLaunchPhone => 'Could not launch phone app';
 }

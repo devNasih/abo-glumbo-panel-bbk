@@ -306,6 +306,68 @@ class _NotificationsPageState extends State<NotificationsPage> {
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.notifications),
         actions: [
+          // Delete All button
+          IconButton(
+            icon: const Icon(Icons.delete_sweep),
+            onPressed: () async {
+              // Show confirmation dialog
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text(
+                    _currentLanguage == 'ar' ? 'حذف الكل' : 'Delete All',
+                  ),
+                  content: Text(
+                    _currentLanguage == 'ar'
+                        ? 'هل أنت متأكد أنك تريد حذف جميع الإشعارات؟'
+                        : 'Are you sure you want to delete all notifications?',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: Text(
+                        _currentLanguage == 'ar' ? 'إلغاء' : 'Cancel',
+                      ),
+                    ),
+                    TextButton(
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
+                      onPressed: () => Navigator.pop(context, true),
+                      child: Text(_currentLanguage == 'ar' ? 'حذف' : 'Delete'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true) {
+                if (!mounted) return;
+
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) =>
+                      Center(child: Loader(size: 32, color: AppColors.primary)),
+                );
+
+                await AppServices.deleteAllFirestoreNotifications();
+
+                if (!mounted) return;
+                Navigator.pop(context); // Close loading dialog
+
+                await _loadNotifications();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: Colors.green,
+                    content: Text(
+                      _currentLanguage == 'ar'
+                          ? 'تم حذف جميع الإشعارات'
+                          : 'All notifications deleted',
+                    ),
+                  ),
+                );
+              }
+            },
+            tooltip: _currentLanguage == 'ar' ? 'حذف الكل' : 'Delete all',
+          ),
           // Mark All as Read button
           IconButton(
             icon: const Icon(Icons.done_all),

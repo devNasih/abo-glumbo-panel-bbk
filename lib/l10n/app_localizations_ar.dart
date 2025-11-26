@@ -1144,7 +1144,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get quantity => 'الكمية';
 
   @override
+  String get warrantyRejectedTechnicians => 'الفنّيون الذين رفضوا الضمان';
+
+  @override
   String get loadingBanners => 'جارٍ تحميل البانرات';
+
+  @override
+  String get cancelledDate => 'تاريخ الإلغاء';
 
   @override
   String get paymentPending => 'دفع قيد الانتظار';
@@ -1780,7 +1786,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get technicianRejectedThisClaim => 'تم رفض هذا الطلب من قبل الفني';
 
   @override
-  String get warrantyClaims => 'طلبات التضامن';
+  String get warrantyClaims => 'طلبات الضمان';
+
+  @override
+  String get expired => 'انتهت';
 
   @override
   String get tapToView => 'انقر للمشاهدة';
@@ -2879,9 +2888,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get quickActions => 'إجراءات سريعة';
 
   @override
-  String get copiedToClipboard => 'تم نسخ الرقم إلى الحافظة';
-
-  @override
   String get refresh => 'تحديث';
 
   @override
@@ -2950,6 +2956,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get cannotCancel =>
       'لا يمكن إلغاء الحجز أثناء التتبع. يرجى إيقاف التتبع أولًا ثم يمكنك إلغاء الحجز.';
+
+  @override
+  String get cannotCompleteBookingWhileTracking =>
+      'لا يمكن إنهاء الحجز أثناء التتبع. يرجى إيقاف التتبع أولًا ثم يمكنك إنهاء الحجز.';
 
   @override
   String get editSelection => 'تعديل الاختيار';
@@ -3278,7 +3288,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reasonMustBeAtLeast10Characters =>
-      'يجب أن يكون السبب 10 أحرف على الأقل';
+      'يجب أن يك تف السبب 10 أحرف على الأقل';
 
   @override
   String get cancelWarrantyRepair => 'إلغاء إصلاح الضمان';
@@ -3495,4 +3505,16 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get agentAssignedSuccessfully => 'تم تعيين الفني بنجاح';
+
+  @override
+  String get orderRejectedSuccessfully => 'تم رفض الطلب بنجاح';
+
+  @override
+  String get copiedToClipboard => 'تم النسخ إلى الحافظة';
+
+  @override
+  String get couldNotLaunchPhone => 'تعذر فتح تطبيق الهاتف';
 }

@@ -76,7 +76,7 @@ class _WorkerReviewsPageState extends State<WorkerReviewsPage> {
 
     for (var booking in reviewedBookings) {
       if (booking.review != null) {
-        int rating = booking.review!.rating;
+        int rating = booking.review!.rating ?? 0;
         if (rating > 0 && rating <= 5) {
           totalRating += rating;
           validReviewCount++;
@@ -361,7 +361,7 @@ class _WorkerReviewsPageState extends State<WorkerReviewsPage> {
                   ],
                 ),
               ),
-              _buildStarRating(rating.toDouble(), size: 18),
+              _buildStarRating(rating?.toDouble() ?? 0.0, size: 18),
             ],
           ),
           if (review.review.isNotEmpty) ...[

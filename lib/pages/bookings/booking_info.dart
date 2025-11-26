@@ -433,7 +433,7 @@ class _BookingInfoState extends State<BookingInfo> {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Warranty Rejected Technicians', // Replace with AppLocalizations.of(context)!.warrantyRejectedTechnicians
+                  AppLocalizations.of(context)!.warrantyRejectedTechnicians,
                   style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -470,7 +470,7 @@ class _BookingInfoState extends State<BookingInfo> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Technician Name', // Replace with AppLocalizations.of(context)!.technicianName
+                          AppLocalizations.of(context)!.technicianName,
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -490,17 +490,17 @@ class _BookingInfoState extends State<BookingInfo> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Technician UID (copyable)
+                    // Technician Phone Number
                     Row(
                       children: [
                         Icon(
-                          Icons.badge,
+                          Icons.phone,
                           size: 16,
                           color: colorScheme.onSurface.withOpacity(0.6),
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Technician UID', // Replace with AppLocalizations.of(context)!.technicianUid
+                          AppLocalizations.of(context)!.phone,
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -514,24 +514,36 @@ class _BookingInfoState extends State<BookingInfo> {
                       children: [
                         Expanded(
                           child: Text(
-                            tech.uid ?? 'N/A',
+                            tech.phone ?? 'N/A',
                             style: GoogleFonts.poppins(
                               fontSize: 13,
                               color: colorScheme.onSurface,
                             ),
                           ),
                         ),
+                        // Call Button
                         IconButton(
-                          icon: const Icon(Icons.copy, size: 18),
-                          onPressed: () {
-                            if (tech.uid != null) {
-                              Clipboard.setData(ClipboardData(text: tech.uid!));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('UID copied to clipboard'),
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
+                          icon: const Icon(Icons.phone, size: 18),
+                          color: Colors.green,
+                          onPressed: () async {
+                            if (tech.phone != null && tech.phone!.isNotEmpty) {
+                              final phoneUrl = 'tel:${tech.phone}';
+                              if (await canLaunchUrlString(phoneUrl)) {
+                                await launchUrlString(phoneUrl);
+                              } else {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.couldNotLaunchPhone,
+                                      ),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              }
                             }
                           },
                         ),
@@ -549,7 +561,7 @@ class _BookingInfoState extends State<BookingInfo> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Cancellation Reason', // Replace with AppLocalizations.of(context)!.cancellationReason
+                          AppLocalizations.of(context)!.reasonforrejection,
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -578,7 +590,7 @@ class _BookingInfoState extends State<BookingInfo> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Cancelled Date', // Replace with AppLocalizations.of(context)!.cancelledDate
+                          AppLocalizations.of(context)!.cancelledDate,
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,

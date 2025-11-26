@@ -863,7 +863,6 @@
   "pleaseEnterIfscCode": "يرجى إدخال كود IFSC",
   "copyId": "نسخ الرقم",
   "quickActions": "إجراءات سريعة",
-  "copiedToClipboard": "تم نسخ الرقم إلى الحافظة",
   "refresh": "تحديث",
   "loadingCustomers": "جارٍ تحميل العملاء",
   "processing": "جارٍ المعالجة",
@@ -922,11 +921,14 @@
   "confirmDetails": "تأكيد البيانات",
   "rejectedBy": "تم الرفض بواسطة",
   "rejectedOn": "تم الرفض في",
+  "warrantyRejectedTechnicians": "الفنّيون الذين رفضوا الضمان",
   "acceptedOn": "تم القبول في",
+  "cancelledDate": "تاريخ الإلغاء",
   "acceptedBy": "تم القبول بواسطة",
   "completedOn": "تم الاكتمال في",
   "completedBy": "تم الاكتمال بواسطة",
   "cannotCancel": "لا يمكن إلغاء الحجز أثناء التتبع. يرجى إيقاف التتبع أولًا ثم يمكنك إلغاء الحجز.",
+  "cannotCompleteBookingWhileTracking": "لا يمكن إنهاء الحجز أثناء التتبع. يرجى إيقاف التتبع أولًا ثم يمكنك إنهاء الحجز.",
   "fifteenpercentBonusOnEarningsandASpecialBadge": "مكافأة 15% على الأرباح + شارة خاصة",
   "tenpercentBonusOnEarnings": "خصم 10% على الأرباح",
   "fivepercentBonusOnEarnings": "خصم 5% على الأرباح",
@@ -987,7 +989,8 @@
   "technicianCancelled": "تم إلغاء الفني",
   "cancelledByTechnician": "تم الغاء بواسطة الفني",
   "tapToView": "انقر للمشاهدة",
-  "warrantyClaims": "طلبات التضامن",
+  "warrantyClaims": "طلبات الضمان",
+  "expired": "انتهت",
   "couldNotOpenFile": "لا يمكن فتح الملف",
   "technicianPreviouslyCancelled": "تم إلغاء الفني مسبقاً",
   "technicianCancelledAtTime": "هذا الفني قام سابقًا بإلغاء حجز في نفس الوقت تمامًا. يُرجى التفكير في تعيين فني آخر لضمان موثوقية أفضل.",
@@ -1137,7 +1140,7 @@
   "anotherBookingIsAlreadyBeingTracked": "هناك حجز آخر يتم تتبعه بالفعل",
   "requested": "تم الطلب",
   "areYouSureYouWantToCancelThisWarrantyRepairThisActionCannotBeUndone": "هل أنت متأكد أنك تريد إلغاء إصلاح الضمان؟ لا يمكن التراجع عن هذا الإجراء.",
-  "reasonMustBeAtLeast10Characters": "يجب أن يكون السبب 10 أحرف على الأقل",
+  "reasonMustBeAtLeast10Characters": "يجب أن يك تف السبب 10 أحرف على الأقل",
   "cancelWarrantyRepair": "إلغاء إصلاح الضمان",
   "removeFileConfirmation": "هل أنت متأكد أنك تريد إزالة هذا الملف؟",
   "fillInBothEnglishAndArabicMessageContent": "الرجاء تعبئة محتوى الرسالة باللغتين الإنجليزية والعربية",
@@ -1149,5 +1152,9 @@
         "example": "4"
       }
     }
-  }
+  },
+  "agentAssignedSuccessfully": "تم تعيين الفني بنجاح",
+  "orderRejectedSuccessfully": "تم رفض الطلب بنجاح",
+  "copiedToClipboard": "تم النسخ إلى الحافظة",
+  "couldNotLaunchPhone": "تعذر فتح تطبيق الهاتف"
 }
