@@ -457,6 +457,98 @@ exports.notifyCustomerOnBookingStatusChange = onDocumentWritten(
     });
   }
 );
+exports.notifyTechnicianOnPaymentCompletion = onDocumentWritten(
+  "bookings/{bookingId}",
+  async (event) => {
+    const bookingId = event.params.bookingId;
+    const beforeData = event.data?.before?.data();
+    const afterData = event.data?.after?.data();
+
+    if (!afterData) {
+      console.log(`[${bookingId}] Document deleted, skipping...`);
+      return;
+    }
+
+    // Check if payment was just completed
+    const wasPaymentCompleted = beforeData?.paymentCompleted || false;
+    const isPaymentCompleted = afterData.paymentCompleted || false;
+
+    if (!isPaymentCompleted || wasPaymentCompleted) {
+      // Payment not completed or already was completed before
+      return;
+    }
+
+    // Only notify if booking is completed
+    if (afterData.bookingStatusCode !== "C") {
+      console.log(
+        `[${bookingId}] Payment completed but booking status is not 'C', skipping...`
+      );
+      return;
+    }
+
+    const agent = afterData.agent;
+    if (!agent?.uid) {
+      console.log(`[${bookingId}] No agent assigned, skipping notification`);
+      return;
+    }
+
+    // Fetch technician data
+    let technicianData;
+    try {
+      const technicianDoc = await admin
+        .firestore()
+        .collection("users")
+        .doc(agent.uid)
+        .get();
+
+      if (!technicianDoc.exists) {
+        console.log(`[${bookingId}] Technician document not found`);
+        return;
+      }
+
+      technicianData = technicianDoc.data();
+    } catch (error) {
+      console.error(`[${bookingId}] Error fetching technician data:`, error);
+      return;
+    }
+
+    const fcmToken = technicianData?.fcmToken;
+    const lanCode = technicianData?.lanCode || "en";
+
+    if (!fcmToken || fcmToken.trim() === "") {
+      console.log(`[${bookingId}] Technician has no valid FCM token`);
+      return;
+    }
+
+    const serviceName = afterData.service?.name || "Service";
+    const customerName = afterData.customer?.name || "Customer";
+    const totalAmount = afterData.totalAmount || 0;
+
+    await sendAndStoreNotification({
+      targetRole: "technician",
+      targetId: agent.uid,
+      titleEn: "Payment Received",
+      titleAr: "تم استلام الدفع",
+      bodyEn: `${customerName} has completed payment of ${totalAmount} for ${serviceName}. The transaction is now complete.`,
+      bodyAr: `قام ${customerName} بإكمال دفع ${totalAmount} مقابل ${serviceName}. اكتملت المعاملة الآن.`,
+      data: {
+        targetRole: "technician",
+        category: "payment",
+        bookingId,
+        serviceName,
+        customerName,
+        amount: totalAmount.toString(),
+        isAdmin: "false",
+      },
+      fcmToken: fcmToken,
+      lanCode: lanCode,
+    });
+
+    console.log(
+      `[${bookingId}] Payment completion notification sent to technician ${agent.uid}`
+    );
+  }
+);
 
 exports.customerTrackingNotification = onDocumentWritten(
   "bookings/{bookingId}",
