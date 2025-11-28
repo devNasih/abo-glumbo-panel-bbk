@@ -132,7 +132,7 @@ class TipsDataSheet extends StatelessWidget {
                         AppLocalizations.of(context)?.lastUpdated ??
                             'Last Updated',
                         tip.lastUpdated != null
-                            ? tip.lastUpdated!.format('d/m/Y - H:m A')
+                            ? tip.lastUpdated!.toDate().format('d/m/Y - H:m A')
                             // ? "${tip.lastUpdated!.day}/${tip.lastUpdated!.month}/${tip.lastUpdated!.year} at ${tip.lastUpdated!.hour}:${tip.lastUpdated!.minute.toString().padLeft(2, '0')} ${tip.lastUpdated!.hour > 12 ? AppLocalizations.of(context)!.pm : AppLocalizations.of(context)!.am}"
                             : "Never",
                       ),

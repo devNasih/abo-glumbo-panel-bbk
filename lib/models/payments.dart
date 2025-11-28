@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Payments {
   final String? id;
-  final String? date;
+  final Timestamp? date;
   final String? amount;
   final String? payerId;
   final String? jobId;
@@ -23,7 +25,9 @@ class Payments {
 
   Payments.fromJson(Map<String, dynamic> json)
     : id = json['id'],
-      date = json['date'],
+      date = json['date'] is Timestamp
+          ? (json['date'] as Timestamp)
+          : json['date'] as Timestamp?,
       amount = json['amount'],
       payerId = json['payerId'],
       jobId = json['jobId'],

@@ -123,7 +123,7 @@ class TipsTileCompact extends StatelessWidget {
             const SizedBox(width: 4),
             Expanded(
               child: Text(
-                formatLastUpdated?.call(tip.lastUpdated) ??
+                formatLastUpdated?.call(tip.lastUpdated?.toDate()) ??
                     _getDefaultFormattedDate(context),
                 style: TextStyle(
                   fontSize: 13,
@@ -225,11 +225,12 @@ class TipsTileCompact extends StatelessWidget {
   String _getDefaultFormattedDate(BuildContext context) {
     if (tip.lastUpdated == null) return 'No date';
 
+    final lastUpdatedDate = tip.lastUpdated!.toDate();
     final now = DateTime.now();
-    final difference = now.difference(tip.lastUpdated!);
+    final difference = now.difference(lastUpdatedDate);
 
     if (difference.inDays > 7) {
-      return '${tip.lastUpdated!.day}/${tip.lastUpdated!.month}/${tip.lastUpdated!.year}';
+      return '${lastUpdatedDate.day}/${lastUpdatedDate.month}/${lastUpdatedDate.year}';
     } else if (difference.inDays > 0) {
       return '${difference.inDays} ${AppLocalizations.of(context)!.day}${difference.inDays > 1 ? 's' : ''} ${AppLocalizations.of(context)!.ago}';
     } else if (difference.inHours > 0) {

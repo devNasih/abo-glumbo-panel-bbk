@@ -34,6 +34,7 @@ class BookingModel {
   Timestamp? cancelledAt;
   String? cancellationReason;
   String? orderId;
+  Timestamp? paymentCompletedAt;
 
   bool paymentCompleted = false;
   List<String>? cancelledWorkerUids;
@@ -42,7 +43,7 @@ class BookingModel {
 
   BookingModel({
     required this.id,
-
+    required this.paymentCompletedAt,
     required this.service,
     required this.bookingDateTime,
     required this.bookingStatusCode,
@@ -81,6 +82,7 @@ class BookingModel {
                 .map((e) => CancelledWorkers.fromMap(e))
                 .toList()
           : [],
+      paymentCompletedAt = data['paymentCompletedAt'],
       isStartTracking = data['isStarted'] ?? false,
       notes = data['notes'],
       id = data['id'] ?? '',
@@ -132,6 +134,7 @@ class BookingModel {
       'bookingDateTime': bookingDateTime,
       'bookingStatusCode': bookingStatusCode,
       'notes': notes,
+      'paymentCompletedAt': paymentCompletedAt,
       'issueImage': issueImage,
       'customer': customer.toJson(),
       'orderId': orderId,

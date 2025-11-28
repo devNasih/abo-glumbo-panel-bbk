@@ -174,7 +174,7 @@ class _TransactionTileState extends State<TransactionTile> {
             const SizedBox(width: 4),
             Expanded(
               child: Text(
-                _formatDate(widget.transaction.createdAt, context),
+                _formatDate(widget.transaction.createdAt.toDate(), context),
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey.shade500,
@@ -461,7 +461,10 @@ class _TransactionTileState extends State<TransactionTile> {
                           _buildDetailRow(
                             context,
                             AppLocalizations.of(context)!.date,
-                            _formatDate(widget.transaction.createdAt, context),
+                            _formatDate(
+                              widget.transaction.createdAt.toDate(),
+                              context,
+                            ),
                           ),
                         ],
                       ),

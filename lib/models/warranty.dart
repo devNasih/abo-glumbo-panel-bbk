@@ -6,13 +6,13 @@ class WarrantyModel {
   String warrantyStatusCode;
   bool? claimrequested;
   List<RejectedTechnicianModel>? rejectedTechnicians;
-  DateTime? createdAt;
-  DateTime? updatedAt;
-  DateTime? requestedOn;
-  DateTime? completedAt;
-  DateTime? acceptedAt;
-  DateTime? rejectedAt;
-  DateTime? expiredOn;
+  Timestamp? createdAt;
+  Timestamp? updatedAt;
+  Timestamp? requestedOn;
+  Timestamp? completedAt;
+  Timestamp? acceptedAt;
+  Timestamp? rejectedAt;
+  Timestamp? expiredOn;
 
   WarrantyModel({
     this.id,
@@ -36,29 +36,29 @@ class WarrantyModel {
       warrantyStatusCode: json['warrantyStatusCode']?.toString() ?? 'A',
       claimrequested: json['claimrequested'] as bool?,
       createdAt: json['createdAt'] is Timestamp
-          ? (json['createdAt'] as Timestamp).toDate()
-          : json['createdAt'] as DateTime?,
+          ? (json['createdAt'] as Timestamp)
+          : json['createdAt'] as Timestamp,
       updatedAt: json['updatedAt'] is Timestamp
-          ? (json['updatedAt'] as Timestamp).toDate()
-          : json['updatedAt'] as DateTime?,
+          ? (json['updatedAt'] as Timestamp)
+          : json['updatedAt'] as Timestamp,
       requestedOn: json['requestedOn'] is Timestamp
-          ? (json['requestedOn'] as Timestamp).toDate()
-          : json['requestedOn'] as DateTime?,
+          ? (json['requestedOn'] as Timestamp)
+          : json['requestedOn'] as Timestamp,
       completedAt: json['completedAt'] is Timestamp
-          ? (json['completedAt'] as Timestamp).toDate()
-          : json['completedAt'] as DateTime?,
+          ? (json['completedAt'] as Timestamp)
+          : json['completedAt'] as Timestamp,
       acceptedAt: json['acceptedAt'] is Timestamp
-          ? (json['acceptedAt'] as Timestamp).toDate()
-          : (json['acceptedAt'] as DateTime?) ??
+          ? (json['acceptedAt'] as Timestamp)
+          : (json['acceptedAt'] as Timestamp?) ??
                 (json['acceptedOn'] is Timestamp
-                    ? (json['acceptedOn'] as Timestamp).toDate()
-                    : json['acceptedOn'] as DateTime?),
+                    ? (json['acceptedOn'] as Timestamp)
+                    : json['acceptedOn'] as Timestamp?),
       rejectedAt: json['rejectedAt'] is Timestamp
-          ? (json['rejectedAt'] as Timestamp).toDate()
-          : json['rejectedAt'] as DateTime?,
+          ? (json['rejectedAt'] as Timestamp)
+          : json['rejectedAt'] as Timestamp?,
       expiredOn: json['expiredOn'] is Timestamp
-          ? (json['expiredOn'] as Timestamp).toDate()
-          : json['expiredOn'] as DateTime?,
+          ? (json['expiredOn'] as Timestamp)
+          : json['expiredOn'] as Timestamp?,
       rejectedTechnicians: (json['rejectedTechnicians'] is List)
           ? (json['rejectedTechnicians'] as List)
                 .map(
@@ -108,7 +108,7 @@ class RejectedTechnicianModel {
   String? name;
   String? phone;
   String? reason;
-  DateTime? rejectedAt;
+  Timestamp? rejectedAt;
 
   RejectedTechnicianModel({
     this.uid,
@@ -125,8 +125,8 @@ class RejectedTechnicianModel {
       phone: json['phone'],
       reason: json['reason'],
       rejectedAt: (json['rejectedAt'] is Timestamp)
-          ? (json['rejectedAt'] as Timestamp).toDate()
-          : (json['rejectedAt'] as DateTime?),
+          ? (json['rejectedAt'] as Timestamp)
+          : (json['rejectedAt'] as Timestamp),
     );
   }
 

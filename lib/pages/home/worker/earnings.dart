@@ -1092,7 +1092,9 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
             ],
           ),
           subtitle: Text(
-            DateFormat('MMM dd, yyyy • hh:mm a').format(transaction.createdAt),
+            DateFormat(
+              'MMM dd, yyyy • hh:mm a',
+            ).format(transaction.createdAt.toDate()),
             style: TextStyle(fontSize: 12, color: Colors.grey[600]),
           ),
           trailing: Column(
@@ -1209,7 +1211,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                                 Text(
                                   DateFormat(
                                     'MMM dd, yyyy • hh:mm a',
-                                  ).format(transaction.createdAt),
+                                  ).format(transaction.createdAt.toDate()),
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: Colors.white,

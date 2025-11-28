@@ -601,7 +601,10 @@ class _BookingInfoState extends State<BookingInfo> {
                     const SizedBox(height: 4),
                     Text(
                       tech.rejectedAt != null
-                          ? _formatDateLocalized(tech.rejectedAt!, context)
+                          ? _formatDateLocalized(
+                              tech.rejectedAt!.toDate(),
+                              context,
+                            )
                           : 'N/A',
                       style: GoogleFonts.poppins(
                         fontSize: 13,
@@ -1311,7 +1314,7 @@ class _BookingInfoState extends State<BookingInfo> {
             .firstWhereOrNull((tech) => tech.uid == currentTechId);
 
         if (cancelledByCurrentTech != null) {
-          currentTechCancelledAt = cancelledByCurrentTech.rejectedAt;
+          currentTechCancelledAt = cancelledByCurrentTech.rejectedAt!.toDate();
         }
       }
     }
@@ -1361,7 +1364,7 @@ class _BookingInfoState extends State<BookingInfo> {
 
       // Warranty requested
       if (widget.booking.warranty?.requestedOn != null) {
-        final eventDate = widget.booking.warranty!.requestedOn!;
+        final eventDate = widget.booking.warranty!.requestedOn!.toDate();
 
         if (currentTechCancelledAt == null ||
             eventDate.isBefore(currentTechCancelledAt) ||
@@ -1381,13 +1384,14 @@ class _BookingInfoState extends State<BookingInfo> {
       // Warranty accepted
       if (widget.booking.warranty?.acceptedAt != null) {
         final eventDate = widget.booking.warranty!.acceptedAt!;
+        final eventDateTime = eventDate.toDate();
 
         if (currentTechCancelledAt == null ||
-            eventDate.isBefore(currentTechCancelledAt) ||
-            eventDate.isAtSameMomentAs(currentTechCancelledAt)) {
+            eventDateTime.isBefore(currentTechCancelledAt) ||
+            eventDateTime.isAtSameMomentAs(currentTechCancelledAt)) {
           timelineItems.add({
             'title': AppLocalizations.of(context)!.warrantyRepairAccepted,
-            'time': _formatDateLocalized(eventDate, context),
+            'time': _formatDateLocalized(eventDateTime, context),
             'description': AppLocalizations.of(
               context,
             )!.technicianAcceptedTheRequest,
@@ -1436,13 +1440,14 @@ class _BookingInfoState extends State<BookingInfo> {
       // Warranty completed
       if (widget.booking.warranty?.completedAt != null) {
         final eventDate = widget.booking.warranty!.completedAt!;
+        final eventDateTime = eventDate.toDate();
 
         if (currentTechCancelledAt == null ||
-            eventDate.isBefore(currentTechCancelledAt) ||
-            eventDate.isAtSameMomentAs(currentTechCancelledAt)) {
+            eventDateTime.isBefore(currentTechCancelledAt) ||
+            eventDateTime.isAtSameMomentAs(currentTechCancelledAt)) {
           timelineItems.add({
             'title': AppLocalizations.of(context)!.warrantyRepairCompleted,
-            'time': _formatDateLocalized(eventDate, context),
+            'time': _formatDateLocalized(eventDateTime, context),
             'description': AppLocalizations.of(
               context,
             )!.technicianCompletedTheRequest,
@@ -1469,7 +1474,7 @@ class _BookingInfoState extends State<BookingInfo> {
             timelineItems.add({
               'title': AppLocalizations.of(context)!.youCancelledThisRequest,
               'time': _formatDateLocalized(
-                currentTechCancellation.rejectedAt!,
+                currentTechCancellation.rejectedAt!.toDate(),
                 context,
               ),
               'description': AppLocalizations.of(
@@ -1488,16 +1493,17 @@ class _BookingInfoState extends State<BookingInfo> {
           widget.booking.warranty!.rejectedTechnicians!.isNotEmpty) {
         for (var tech in widget.booking.warranty!.rejectedTechnicians!) {
           final eventDate = tech.rejectedAt!;
+          final eventDateTime = eventDate.toDate();
 
           if (currentTechCancelledAt == null ||
-              eventDate.isBefore(currentTechCancelledAt) ||
-              eventDate.isAtSameMomentAs(currentTechCancelledAt)) {
+              eventDateTime.isBefore(currentTechCancelledAt) ||
+              eventDateTime.isAtSameMomentAs(currentTechCancelledAt)) {
             final workerName =
                 tech.name ?? AppLocalizations.of(context)!.unknownTechnician;
 
             timelineItems.add({
               'title': AppLocalizations.of(context)!.technicianCancelled,
-              'time': _formatDateLocalized(eventDate, context),
+              'time': _formatDateLocalized(eventDateTime, context),
               'description':
                   '${AppLocalizations.of(context)!.cancelledByTechnician}: $workerName',
               'status': 'cancelled',
@@ -1509,7 +1515,7 @@ class _BookingInfoState extends State<BookingInfo> {
 
       // Warranty rejected by admin
       if (widget.booking.warranty?.rejectedAt != null) {
-        final eventDate = widget.booking.warranty!.rejectedAt!;
+        final eventDate = widget.booking.warranty!.rejectedAt!.toDate();
 
         if (currentTechCancelledAt == null ||
             eventDate.isBefore(currentTechCancelledAt) ||

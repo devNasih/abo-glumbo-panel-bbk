@@ -37,13 +37,10 @@ class AppServices {
         return;
       }
 
-     
-
       await AppFirestore.usersCollectionRef.doc(userId).set({
         'fcmToken': token,
         'fcmTokenUpdatedAt': Timestamp.now(),
       }, SetOptions(merge: true));
-
     } catch (e) {
       debugPrint('❌ Error updating FCM token: $e');
 
@@ -886,7 +883,7 @@ class AppServices {
       }
       final model = AllTipsModel(
         agentId: agentId,
-        createdAt: DateTime.now(),
+        createdAt: Timestamp.fromDate(DateTime.now()),
         totalTipAmount: tipmodel?.cardtip,
         paymentMethod: "card",
         id: agentId,
@@ -1145,15 +1142,17 @@ class AppServices {
             claimrequested: false,
             warrantyStatusCode: 'A',
             assignedTechnicianId: technicianId,
-            createdAt: DateTime.utc(
-              DateTime.now().year,
-              DateTime.now().month,
-              DateTime.now().day,
-              DateTime.now().hour,
-              DateTime.now().minute,
-              DateTime.now().second,
+            createdAt: Timestamp.fromDate(
+              DateTime.utc(
+                DateTime.now().year,
+                DateTime.now().month,
+                DateTime.now().day,
+                DateTime.now().hour,
+                DateTime.now().minute,
+                DateTime.now().second,
+              ),
             ),
-          ).toJson(),
+          ),
         },
       });
       return true;

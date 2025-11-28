@@ -5,7 +5,7 @@ class TippingModel {
   String? agentName;
   String? agentPhone;
   double? cashtip;
-  DateTime? lastUpdated;
+  Timestamp? lastUpdated;
   double? cardtip;
   String? walletId;
   bool? payoutRequested;
@@ -30,9 +30,9 @@ class TippingModel {
     cashtip = json['cashtip']?.toDouble();
     final timestamp = json['lastUpdated'];
     if (timestamp is Timestamp) {
-      lastUpdated = timestamp.toDate();
+      lastUpdated = timestamp;
     } else if (timestamp is String) {
-      lastUpdated = DateTime.tryParse(timestamp);
+      lastUpdated = Timestamp.fromDate(DateTime.parse(timestamp));
     }
     cardtip = json['cardtip']?.toDouble();
     walletId = json['walletId'];
@@ -46,7 +46,7 @@ class TippingModel {
       'agentName': agentName,
       'agentPhone': agentPhone,
       'cashtip': cashtip,
-      'lastUpdated': lastUpdated?.toIso8601String(),
+      'lastUpdated': lastUpdated,
       'cardtip': cardtip,
       'walletId': walletId,
       'payoutRequested': payoutRequested,
@@ -62,29 +62,40 @@ class TippingModel {
     cashtip = data['cashtip']?.toDouble();
     final timestamp = data['lastUpdated'];
     if (timestamp is Timestamp) {
-      lastUpdated = timestamp.toDate();
+      lastUpdated = timestamp;
     } else if (timestamp is String) {
-      lastUpdated = DateTime.tryParse(timestamp);
+      lastUpdated = Timestamp.fromDate(DateTime.parse(timestamp));
     }
     cardtip = data['cardtip']?.toDouble();
     walletId = data['walletId'];
     payoutRequested = data['payoutRequested'] ?? false;
     payoutAmount = data['payoutAmount']?.toDouble();
   }
+
   TippingModel.fromDocumentSnapshot(DocumentSnapshot snapshot)
     : this.fromSnapshot(snapshot);
 
-  factory TippingModel.fromMap(Map<String, dynamic> map) => TippingModel(
-    agentId: map['agentId'],
-    agentName: map['agentName'],
-    agentPhone: map['agentPhone'],
-    cashtip: map['cashtip']?.toDouble(),
-    lastUpdated: map['lastUpdated']?.toDate(),
-    cardtip: map['cardtip']?.toDouble(),
-    walletId: map['walletId'],
-    payoutRequested: map['payoutRequested'] ?? false,
-    payoutAmount: map['payoutAmount']?.toDouble(),
-  );
+  factory TippingModel.fromMap(Map<String, dynamic> map) {
+    final timestamp = map['lastUpdated'];
+    Timestamp? lastUpdatedTimestamp;
+    if (timestamp is Timestamp) {
+      lastUpdatedTimestamp = timestamp;
+    } else if (timestamp is String) {
+      lastUpdatedTimestamp = Timestamp.fromDate(DateTime.parse(timestamp));
+    }
+
+    return TippingModel(
+      agentId: map['agentId'],
+      agentName: map['agentName'],
+      agentPhone: map['agentPhone'],
+      cashtip: map['cashtip']?.toDouble(),
+      lastUpdated: lastUpdatedTimestamp,
+      cardtip: map['cardtip']?.toDouble(),
+      walletId: map['walletId'],
+      payoutRequested: map['payoutRequested'] ?? false,
+      payoutAmount: map['payoutAmount']?.toDouble(),
+    );
+  }
 
   Map<String, dynamic> toMap() => {
     'agentId': agentId,
@@ -100,8 +111,8 @@ class TippingModel {
 }
 
 class AllTipsModel {
-  DateTime? createdAt;
-  DateTime? updatedAt;
+  Timestamp? createdAt;
+  Timestamp? updatedAt;
   String? paymentMethod;
   String? agentId;
   String? id;
@@ -122,13 +133,13 @@ class AllTipsModel {
     return AllTipsModel(
       createdAt: json['createdAt'] != null
           ? (json['createdAt'] is Timestamp
-                ? (json['createdAt'] as Timestamp).toDate()
-                : json['createdAt'] as DateTime)
+                ? (json['createdAt'] as Timestamp)
+                : json['createdAt'] as Timestamp)
           : null,
       updatedAt: json['updatedAt'] != null
           ? (json['updatedAt'] is Timestamp
-                ? (json['updatedAt'] as Timestamp).toDate()
-                : json['updatedAt'] as DateTime)
+                ? (json['updatedAt'] as Timestamp)
+                : json['updatedAt'] as Timestamp)
           : null,
       agentId: json['agentId'] as String?,
       id: json['id'] as String?,
@@ -147,8 +158,8 @@ class AllTipsModel {
   Map<String, dynamic> toJson() {
     return {
       'agentId': agentId,
-      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : null,
-      'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
       'id': id,
       'totalTipAmount': totalTipAmount,
       'proofs': proofs,

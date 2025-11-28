@@ -85,7 +85,7 @@ class WarrantyBloc extends Bloc<WarrantyEvent, WarrantyState> {
           name: event.technicianName,
           phone: event.technicianPhone,
           reason: event.rejectionReason,
-          rejectedAt: DateTime.now(),
+          rejectedAt: Timestamp.now(),
         ),
       );
 
