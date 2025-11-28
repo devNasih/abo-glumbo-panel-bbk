@@ -1196,5 +1196,6 @@
   "serviceInformation": "معلومات الخدمة",
   "copy": "نسخ",
   "trackingActive": "الإيقاف النشط",
+  "waitingForAdminAction": "بانتظار إجراء المسؤول",
   "cannotRequestPayoutPendingRequest": "لديك طلب سحب قيد المعالجة. يرجى الانتظار حتى يتم الموافقة عليه أو رفضه."
 }

@@ -3649,4 +3649,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get copy => 'Copy';
+
+  @override
+  String get waitingForAdminAction => 'Waiting for admin action';
 }

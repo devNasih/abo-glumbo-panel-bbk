@@ -2268,6 +2268,17 @@ exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
         );
       }
     }
+    // 10. Warranty Technician Assigned/Reassigned
+    else if (
+      beforeWarranty?.assignedTechnicianId !==
+        afterWarranty.assignedTechnicianId &&
+      afterWarranty.assignedTechnicianId
+    ) {
+      status = "warranty_technician_assigned";
+      console.log(
+        `Warranty technician ${afterWarranty.assignedTechnicianId} assigned to booking ${bookingId}`
+      );
+    }
 
     if (!status) {
       return;
@@ -2493,6 +2504,65 @@ exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
           fcmToken: token,
           lanCode: lanCode,
         });
+      }
+    }
+
+    // Notify assigned technician for warranty_technician_assigned status
+    if (status === "warranty_technician_assigned" && workerId) {
+      try {
+        const technicianDoc = await admin
+          .firestore()
+          .collection("users")
+          .doc(workerId)
+          .get();
+
+        if (technicianDoc.exists) {
+          const technicianData = technicianDoc.data();
+          const technicianFcmToken = technicianData?.fcmToken;
+          const technicianLanCode = technicianData?.lanCode || "en";
+
+          if (technicianFcmToken && technicianFcmToken.trim() !== "") {
+            await sendAndStoreNotification({
+              targetRole: "technician",
+              targetId: workerId,
+              titleEn: "Warranty Repair Assigned",
+              titleAr: "تم تعيينك لإصلاح ضمان",
+              bodyEn: `You have been assigned to a warranty repair for ${serviceName}. Customer: ${customerName}. Please review and accept.`,
+              bodyAr: `تم تعيينك لإصلاح ضمان لـ ${serviceNameAr}. العميل: ${customerName}. يرجى المراجعة والقبول.`,
+              data: {
+                targetRole: "technician",
+                category: "warranty",
+                bookingId: bookingId,
+                customerId: customerId || "",
+                customerName: customerName,
+                status: status,
+                warrantyStatusCode: afterStatusCode,
+                serviceName: serviceName,
+                isWarranty: "true",
+                isAdmin: "false",
+                ...notificationData,
+              },
+              fcmToken: technicianFcmToken,
+              lanCode: technicianLanCode,
+            });
+            console.log(
+              `[${bookingId}] Warranty assignment notification sent to technician ${workerId}`
+            );
+          } else {
+            console.log(
+              `[${bookingId}] Technician ${workerId} has no valid FCM token`
+            );
+          }
+        } else {
+          console.log(
+            `[${bookingId}] Technician document not found for ID: ${workerId}`
+          );
+        }
+      } catch (error) {
+        console.error(
+          `[${bookingId}] Error sending notification to assigned warranty technician:`,
+          error
+        );
       }
     }
 
@@ -3360,5 +3430,110 @@ exports.updateTierStatsOnJobComplete = onDocumentUpdated(
       logger.error("Error updating tier stats:", error);
       throw error;
     }
+  }
+);
+
+// ============================================
+// Notify Technician on Warranty Assignment
+// ============================================
+exports.notifyTechnicianOnWarrantyAssignment = onDocumentWritten(
+  "bookings/{bookingId}",
+  async (event) => {
+    const bookingId = event.params.bookingId;
+    const beforeData = event.data?.before?.data();
+    const afterData = event.data?.after?.data();
+
+    if (!afterData) {
+      console.log(`[${bookingId}] Document deleted, skipping...`);
+      return;
+    }
+
+    const beforeWarranty = beforeData?.warranty;
+    const afterWarranty = afterData?.warranty;
+
+    // Check if warranty exists
+    if (!afterWarranty) {
+      return;
+    }
+
+    // Check if assignedTechnicianId changed
+    const beforeTechnicianId = beforeWarranty?.assignedTechnicianId;
+    const afterTechnicianId = afterWarranty.assignedTechnicianId;
+
+    if (beforeTechnicianId === afterTechnicianId || !afterTechnicianId) {
+      // No change in assigned technician or no technician assigned
+      return;
+    }
+
+    console.log(
+      `[${bookingId}] Warranty technician assignment detected: ${afterTechnicianId}`
+    );
+
+    // Fetch technician data
+    try {
+      const technicianDoc = await admin
+        .firestore()
+        .collection("users")
+        .doc(afterTechnicianId)
+        .get();
+
+      if (!technicianDoc.exists) {
+        console.log(
+          `[${bookingId}] Technician document not found for ID: ${afterTechnicianId}`
+        );
+        return;
+      }
+
+      const technicianData = technicianDoc.data();
+      const technicianFcmToken = technicianData?.fcmToken;
+      const technicianLanCode = technicianData?.lanCode || "en";
+
+      if (!technicianFcmToken || technicianFcmToken.trim() === "") {
+        console.log(
+          `[${bookingId}] Technician ${afterTechnicianId} has no valid FCM token`
+        );
+        return;
+      }
+
+      // Get booking details
+      const serviceName = afterData.service?.name || "Service";
+      const serviceNameAr = afterData.service?.name_ar || serviceName;
+      const customerName = afterData.customer?.name || "Customer";
+      const customerId = afterData.customer?.uid || "";
+
+      // Send notification
+      await sendAndStoreNotification({
+        targetRole: "technician",
+        targetId: afterTechnicianId,
+        titleEn: "Warranty Repair Assigned",
+        titleAr: "تم تعيينك لإصلاح ضمان",
+        bodyEn: `You have been assigned to a warranty repair for ${serviceName}. Customer: ${customerName}. Please review and accept.`,
+        bodyAr: `تم تعيينك لإصلاح ضمان لـ ${serviceNameAr}. العميل: ${customerName}. يرجى المراجعة والقبول.`,
+        data: {
+          targetRole: "technician",
+          category: "warranty",
+          bookingId: bookingId,
+          customerId: customerId,
+          customerName: customerName,
+          warrantyStatusCode: afterWarranty.warrantyStatusCode || "",
+          serviceName: serviceName,
+          isWarranty: "true",
+          isAdmin: "false",
+        },
+        fcmToken: technicianFcmToken,
+        lanCode: technicianLanCode,
+      });
+
+      console.log(
+        `[${bookingId}] ✅ Warranty assignment notification sent to technician ${afterTechnicianId}`
+      );
+    } catch (error) {
+      console.error(
+        `[${bookingId}] Error sending warranty assignment notification:`,
+        error
+      );
+    }
+
+    return null;
   }
 );

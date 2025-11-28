@@ -73,7 +73,7 @@ class AuthServices {
     );
     try {
       if (kDebugMode) {
-        print('✅ Phone number: $phoneNumber');
+        debugPrint('✅ Phone number: $phoneNumber');
         print('📱 Platform: ${Platform.isIOS ? "iOS" : "Android"}');
         print('🔢 Sanitized number: $sanitizedPhoneNumber');
       }
@@ -93,7 +93,9 @@ class AuthServices {
       await _auth.verifyPhoneNumber(
         phoneNumber: sanitizedPhoneNumber,
         forceResendingToken: forceResendingToken,
-        timeout: const Duration(seconds: 120), // Increased timeout for iOS
+        timeout: const Duration(
+          seconds: 120,
+        ), // 5 minutes timeout for OTP verification
         verificationCompleted: (PhoneAuthCredential credential) async {
           // Auto-retrieval or instant verification
           try {
@@ -173,7 +175,9 @@ class AuthServices {
       await _auth.verifyPhoneNumber(
         phoneNumber: sanitizedPhoneNumber,
         forceResendingToken: resendToken,
-        timeout: const Duration(seconds: 120),
+        timeout: const Duration(
+          seconds: 120,
+        ), // 5 minutes timeout for OTP verification
         verificationCompleted: (PhoneAuthCredential credential) async {
           await _auth.signInWithCredential(credential);
         },

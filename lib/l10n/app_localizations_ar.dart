@@ -3592,4 +3592,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get copy => 'نسخ';
+
+  @override
+  String get waitingForAdminAction => 'بانتظار إجراء المسؤول';
 }

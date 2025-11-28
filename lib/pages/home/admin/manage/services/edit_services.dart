@@ -361,7 +361,7 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
   @override
   Widget build(BuildContext context) {
     final safePadding = MediaQuery.of(context).padding;
-    final isArabic = AppLocalizations.of(context)?.localeName == 'ar';
+    // final isArabic = AppLocalizations.of(context)?.localeName == 'ar';
 
     return Scaffold(
       appBar: AppBar(
@@ -517,40 +517,40 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
                     ),
 
                     // Display selected locations as chips
-                    if (selectedLocations.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 4,
-                        children: selectedLocations.map((location) {
-                          final locationName = isArabic == true
-                              ? (location.name_ar ?? location.name ?? '')
-                              : (location.name ?? '');
-                          return Chip(
-                            label: Text(
-                              locationName,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.white,
-                              ),
-                            ),
-                            backgroundColor: AppColors.secondary,
-                            deleteIcon: const Icon(
-                              Icons.close,
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                            onDeleted: () {
-                              setState(() {
-                                selectedLocations.removeWhere(
-                                  (selected) => selected.id == location.id,
-                                );
-                              });
-                            },
-                          );
-                        }).toList(),
-                      ),
-                    ],
+                    // if (selectedLocations.isNotEmpty) ...[
+                    //   const SizedBox(height: 8),
+                    //   Wrap(
+                    //     spacing: 8,
+                    //     runSpacing: 4,
+                    //     children: selectedLocations.map((location) {
+                    //       final locationName = isArabic == true
+                    //           ? (location.name_ar ?? location.name ?? '')
+                    //           : (location.name ?? '');
+                    //       return Chip(
+                    //         label: Text(
+                    //           locationName,
+                    //           style: const TextStyle(
+                    //             fontSize: 12,
+                    //             color: Colors.white,
+                    //           ),
+                    //         ),
+                    //         backgroundColor: AppColors.secondary,
+                    //         deleteIcon: const Icon(
+                    //           Icons.close,
+                    //           size: 16,
+                    //           color: Colors.white,
+                    //         ),
+                    //         onDeleted: () {
+                    //           setState(() {
+                    //             selectedLocations.removeWhere(
+                    //               (selected) => selected.id == location.id,
+                    //             );
+                    //           });
+                    //         },
+                    //       );
+                    //     }).toList(),
+                    //   ),
+                    // ],
                   ],
                 ),
               ),

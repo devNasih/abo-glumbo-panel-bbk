@@ -245,7 +245,7 @@ class BookingCards extends StatelessWidget {
                   ),
 
                   // Agent row (if exists)
-                  if (isAdmin && booking.agent != null) ...[
+                  if (isAdmin && !isWarranty && booking.agent != null) ...[
                     const SizedBox(height: 12),
                     Row(
                       children: [
@@ -268,6 +268,116 @@ class BookingCards extends StatelessWidget {
                           ),
                         ),
                       ],
+                    ),
+                  ],
+
+                  // Assigned Technician row for warranty bookings
+                  if (isAdmin && isWarranty) ...[
+                    const SizedBox(height: 12),
+                    FutureBuilder<UserModel?>(
+                      future:
+                          booking.warranty?.assignedTechnicianId != null &&
+                              booking.warranty!.assignedTechnicianId!.isNotEmpty
+                          ? AppFirestore.usersCollectionRef
+                                .doc(booking.warranty!.assignedTechnicianId)
+                                .get()
+                                .then(
+                                  (doc) => doc.exists
+                                      ? UserModel.fromDocumentSnapshot(doc)
+                                      : null,
+                                )
+                          : Future.value(null),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 16,
+                                backgroundColor: colorScheme.secondaryContainer,
+                                child: SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: colorScheme.onSecondaryContainer,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  AppLocalizations.of(context)?.loading ??
+                                      'Loading...',
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurface.withOpacity(
+                                      0.6,
+                                    ),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+
+                        if (snapshot.hasData && snapshot.data != null) {
+                          final technician = snapshot.data!;
+                          return Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 16,
+                                backgroundColor: colorScheme.secondaryContainer,
+                                child: Icon(
+                                  Icons.support_agent,
+                                  size: 16,
+                                  color: colorScheme.onSecondaryContainer,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  technician.name ?? '',
+                                  style: textTheme.bodyMedium,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+
+                        // No technician assigned yet
+                        return Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 16,
+                              backgroundColor: colorScheme.errorContainer,
+                              child: Icon(
+                                Icons.pending_actions,
+                                size: 16,
+                                color: colorScheme.onErrorContainer,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                AppLocalizations.of(
+                                      context,
+                                    )?.waitingForAdminAction ??
+                                    'Waiting for admin action',
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.error,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ],
 
