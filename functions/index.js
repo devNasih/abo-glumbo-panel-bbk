@@ -93,7 +93,8 @@ exports.notifyAdminsOnNewBooking = onDocumentCreated(
       return null;
     }
 
-    const serviceName = booking.service?.name || "";
+    const serviceName = booking.service?.name || "Service";
+    const serviceNameAr = booking.service?.name_ar || serviceName;
 
     try {
       const adminUsersSnapshot = await admin
@@ -125,19 +126,16 @@ exports.notifyAdminsOnNewBooking = onDocumentCreated(
         await sendAndStoreNotification({
           targetRole: "admin",
           targetId: uid,
-          titleEn: "New Booking Request",
-          titleAr: "طلب حجز جديد",
-          bodyEn: serviceName
-            ? `New booking request for ${serviceName}`
-            : "Hey Admin, a new booking request just came in!",
-          bodyAr: serviceName
-            ? `طلب حجز جديد لخدمة ${serviceName}`
-            : "مرحبًا Admin، لقد تم تقديم طلب حجز جديد!",
+          titleEn: `New Booking Request: ${serviceName}`,
+          titleAr: `طلب حجز جديد: ${serviceNameAr}`,
+          bodyEn: `A new booking for ${serviceName} is pending approval.`,
+          bodyAr: `هناك حجز جديد لـ ${serviceNameAr} بانتظار الموافقة.`,
           data: {
             targetRole: "admin",
             category: "booking",
             bookingId: event.params.bookingId,
             serviceName: serviceName,
+            serviceNameAr: serviceNameAr,
             isAdmin: "true",
           },
           fcmToken: token,
@@ -163,7 +161,8 @@ exports.notifyAgentOnAssignment = onDocumentWritten(
       return;
     }
 
-    const serviceName = afterData?.service?.name || "";
+    const serviceName = afterData?.service?.name || "Service";
+    const serviceNameAr = afterData?.service?.name_ar || serviceName;
 
     // --- Fetch admin users once ---
     let adminTokens = [];
@@ -225,15 +224,16 @@ exports.notifyAgentOnAssignment = onDocumentWritten(
             await sendAndStoreNotification({
               targetRole: "technician",
               targetId: agent.uid,
-              titleEn: "New Booking Assigned",
-              titleAr: "تم تعيين حجز جديد لك",
+              titleEn: `New Booking Assigned: ${serviceName}`,
+              titleAr: `تم تعيين حجز جديد: ${serviceNameAr}`,
               bodyEn: `You have accepted a new booking for "${serviceName}"`,
-              bodyAr: `لقد قبلت حجزاً جديداً لخدمة "${serviceName}"`,
+              bodyAr: `لقد قبلت حجزاً جديداً لخدمة "${serviceNameAr}"`,
               data: {
                 targetRole: "technician",
                 category: "booking",
                 bookingId,
                 serviceName,
+                serviceNameAr: serviceNameAr,
                 isAdmin: "false",
               },
               fcmToken: agentFcmToken,
@@ -254,15 +254,16 @@ exports.notifyAgentOnAssignment = onDocumentWritten(
           await sendAndStoreNotification({
             targetRole: "admin",
             targetId: uid,
-            titleEn: "New Agent Assigned",
-            titleAr: "تم تعيين فني جديد لحجز",
-            bodyEn: `An Technician has been assigned to a new booking for "${serviceName}".`,
-            bodyAr: `تم تعيين الفني لحجز جديد لخدمة "${serviceName}".`,
+            titleEn: `New Agent Assigned: ${serviceName}`,
+            titleAr: `تم تعيين فني جديد: ${serviceNameAr}`,
+            bodyEn: `A technician has been assigned to a new booking for "${serviceName}".`,
+            bodyAr: `تم تعيين فني لحجز جديد لخدمة "${serviceNameAr}".`,
             data: {
               targetRole: "admin",
               category: "booking",
               bookingId,
               serviceName,
+              serviceNameAr: serviceNameAr,
               isAdmin: "true",
             },
             fcmToken: token,
@@ -395,7 +396,8 @@ exports.notifyCustomerOnBookingStatusChange = onDocumentWritten(
     }
 
     const service = afterData.service;
-    const serviceName = service?.name;
+    const serviceName = service?.name || "Service";
+    const serviceNameAr = service?.name_ar || serviceName;
     const bookingStatus = afterData.bookingStatusCode;
     const isPaymentCompleted = afterData.paymentCompleted;
 
@@ -443,13 +445,14 @@ exports.notifyCustomerOnBookingStatusChange = onDocumentWritten(
       titleEn: "Booking Status Update",
       titleAr: "تحديث حالة الحجز",
       bodyEn: `${bodyEn} (${serviceName})`,
-      bodyAr: `${bodyAr} (${serviceName})`,
+      bodyAr: `${bodyAr} (${serviceNameAr})`,
       data: {
         customerId: customerId,
         targetRole: "customer",
         bookingId: event.params.bookingId,
         status: bookingStatus,
-        serviceName: serviceName || "Service",
+        serviceName: serviceName,
+        serviceNameAr: serviceNameAr,
         paymentCompleted: isPaymentCompleted.toString(),
       },
       fcmToken: fcmToken,
@@ -521,6 +524,7 @@ exports.notifyTechnicianOnPaymentCompletion = onDocumentWritten(
     }
 
     const serviceName = afterData.service?.name || "Service";
+    const serviceNameAr = afterData.service?.name_ar || serviceName;
     const customerName = afterData.customer?.name || "Customer";
     const totalAmount = afterData.totalAmount || 0;
 
@@ -530,12 +534,13 @@ exports.notifyTechnicianOnPaymentCompletion = onDocumentWritten(
       titleEn: "Payment Received",
       titleAr: "تم استلام الدفع",
       bodyEn: `${customerName} has completed payment of ${totalAmount} for ${serviceName}. The transaction is now complete.`,
-      bodyAr: `قام ${customerName} بإكمال دفع ${totalAmount} مقابل ${serviceName}. اكتملت المعاملة الآن.`,
+      bodyAr: `قام ${customerName} بإكمال دفع ${totalAmount} مقابل ${serviceNameAr}. اكتملت المعاملة الآن.`,
       data: {
         targetRole: "technician",
         category: "payment",
         bookingId,
         serviceName,
+        serviceNameAr: serviceNameAr,
         customerName,
         amount: totalAmount.toString(),
         isAdmin: "false",
@@ -1122,6 +1127,7 @@ exports.notifyWorkerOnNewBooking = onDocumentCreated(
 
     const workerId = agent.uid;
     const serviceName = booking.service?.name || "Service";
+    const serviceNameAr = booking.service?.name_ar || serviceName;
     const customerName = booking.customer?.name || "A customer";
 
     // Fetch worker details from users collection
@@ -1152,31 +1158,19 @@ exports.notifyWorkerOnNewBooking = onDocumentCreated(
     }
 
     // Prepare notification messages
-    const notificationTitle = {
-      en: "New Booking Request!",
-      ar: "طلب حجز جديد!",
-    };
-
-    const notificationBody = {
-      en: `A customer has requested ${serviceName}. Please review and accept the booking.`,
-      ar: `طلب عميل ${serviceName}. يرجى المراجعة وقبول الحجز.`,
-    };
-
-    const title = notificationTitle[lanCode] || notificationTitle["en"];
-    const body = notificationBody[lanCode] || notificationBody["en"];
-
     await sendAndStoreNotification({
       targetRole: "technician",
       targetId: workerId,
-      titleEn: notificationTitle["en"],
-      titleAr: notificationTitle["ar"],
-      bodyEn: notificationBody["en"],
-      bodyAr: notificationBody["ar"],
+      titleEn: "New Booking Request!",
+      titleAr: "طلب حجز جديد!",
+      bodyEn: `A customer has requested ${serviceName}. Please review and accept the booking.`,
+      bodyAr: `طلب عميل ${serviceNameAr}. يرجى المراجعة وقبول الحجز.`,
       data: {
         targetRole: "technician",
         category: "booking",
         bookingId: bookingId,
         serviceName: serviceName,
+        serviceNameAr: serviceNameAr,
         customerName: customerName,
         isAdmin: "false",
       },
@@ -2086,8 +2080,10 @@ exports.notifyWorkerOnPaymentComplete = onDocumentUpdated(
 
     // Get payment details
     const inspectionOnly = afterData.completionData?.mode === 0 || false;
-    const totalCost = inspectionOnly? afterData.completionData?.inspectionFee : afterData.completionData?.totalCost || 0;
-    c
+    const totalCost = inspectionOnly
+      ? afterData.completionData?.inspectionFee
+      : afterData.completionData?.totalCost || 0;
+    c;
 
     try {
       const message = {

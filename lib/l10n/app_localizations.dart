@@ -6945,16 +6945,22 @@ abstract class AppLocalizations {
   /// **'Copy'**
   String get copy;
 
+  /// No description provided for @introduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Introduction'**
+  String get introduction;
+
   /// No description provided for @policy1title.
   ///
   /// In en, this message translates to:
-  /// **'Data Collection'**
+  /// **'Data We Collect'**
   String get policy1title;
 
   /// No description provided for @policy2title.
   ///
   /// In en, this message translates to:
-  /// **'How We Use Your Data'**
+  /// **'How We Use It'**
   String get policy2title;
 
   /// No description provided for @policy3title.
@@ -6966,104 +6972,182 @@ abstract class AppLocalizations {
   /// No description provided for @terms1title.
   ///
   /// In en, this message translates to:
-  /// **'Licenses and Qualifications'**
+  /// **'Responsibility for the Request'**
   String get terms1title;
 
   /// No description provided for @terms2title.
   ///
   /// In en, this message translates to:
-  /// **'Service Quality and Responsibility'**
+  /// **'Inspection Fees'**
   String get terms2title;
 
   /// No description provided for @terms3title.
   ///
   /// In en, this message translates to:
-  /// **'Fair Pricing'**
+  /// **'Payment and Final Cost'**
   String get terms3title;
 
   /// No description provided for @terms4title.
   ///
   /// In en, this message translates to:
-  /// **'Platform Commission'**
+  /// **'Warranty (Guarantee)'**
   String get terms4title;
 
   /// No description provided for @terms5title.
   ///
   /// In en, this message translates to:
-  /// **'Warranty'**
+  /// **'Rating'**
   String get terms5title;
 
-  /// No description provided for @terms6title.
+  /// No description provided for @phoneNumberUpdateInfo.
   ///
   /// In en, this message translates to:
-  /// **'Legal Liability Limits'**
-  String get terms6title;
+  /// **'Enter phone number starting with \'05\' for updating phone number'**
+  String get phoneNumberUpdateInfo;
 
-  /// No description provided for @policy1.
+  /// No description provided for @termsIntroduction.
   ///
   /// In en, this message translates to:
-  /// **'Professional license information, qualifications and experience, personal/professional photos, bank account details for payment reception, and rating history.'**
-  String get policy1;
-
-  /// No description provided for @policy2.
-  ///
-  /// In en, this message translates to:
-  /// **'Used to verify your identity and qualifications, process your payments, and display your professional profile to Users (ratings and experience).'**
-  String get policy2;
-
-  /// No description provided for @policy3.
-  ///
-  /// In en, this message translates to:
-  /// **'Your name, professional photo, and ratings are shared with Users. Your bank account information is NOT shared.'**
-  String get policy3;
+  /// **'Your use of the Application constitutes full and unconditional acceptance of these terms. The Application acts solely as an electronic intermediary platform connecting you with service providers (Technicians).'**
+  String get termsIntroduction;
 
   /// No description provided for @terms1.
   ///
   /// In en, this message translates to:
-  /// **'You guarantee that you possess all necessary professional licenses and qualifications to provide the services advertised.'**
+  /// **'Responsibility for the Request: You are committed to providing an accurate and sufficient description of the issue (text, photo, video) and the service location to enable the Technician to respond.'**
   String get terms1;
 
   /// No description provided for @terms2.
   ///
   /// In en, this message translates to:
-  /// **'You are solely responsible for the quality of the service provided, the tools used, and ensuring the safety of the premises during and after the work.'**
+  /// **'Inspection Fees: You are responsible for paying the determined inspection/call-out fees (if applicable) immediately upon the Technician accepting the request and proceeding to the location. These fees are generally non-refundable.'**
   String get terms2;
 
   /// No description provided for @terms3.
   ///
   /// In en, this message translates to:
-  /// **'You are committed to providing fair, reasonable, and upfront pricing to the User after inspection.'**
+  /// **'Payment and Final Cost: The total cost of the service is agreed upon directly with the Technician after inspection, and must be approved via the Application before work commences. You are responsible for paying the agreed-upon amount in full.'**
   String get terms3;
 
-  /// No description provided for @terms4.
+  /// No description provided for @terms4p1.
   ///
   /// In en, this message translates to:
-  /// **'You are committed to paying the pre-agreed commission to the Application, which will be deducted from the value of the completed service.'**
-  String get terms4;
+  /// **'Warranty (Guarantee): Completed work is subject to the Platform\'s'**
+  String get terms4p1;
+
+  /// No description provided for @warrantyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty Policy'**
+  String get warrantyPolicy;
+
+  /// No description provided for @terms4p2.
+  ///
+  /// In en, this message translates to:
+  /// **'the full details of which can be reviewed via the dedicated link.'**
+  String get terms4p2;
 
   /// No description provided for @terms5.
   ///
   /// In en, this message translates to:
-  /// **'You are obligated to provide a warranty on the work performed in accordance with the \"Warranty Policy\" and you bear the cost of repairs falling within the warranty period.'**
+  /// **'You have the right to rate the Technician\'s performance after service completion, and you must ensure that ratings are honest and objective.'**
   String get terms5;
 
-  /// No description provided for @terms6.
+  /// No description provided for @policy1.
   ///
   /// In en, this message translates to:
-  /// **'The Application is not responsible for any material damages or injuries resulting from your performance of the service.'**
-  String get terms6;
+  /// **'Name, phone number, email address, the precise service location address, order history, and Technician ratings.'**
+  String get policy1;
 
-  /// No description provided for @introduction.
+  /// No description provided for @policy2.
   ///
   /// In en, this message translates to:
-  /// **'Introduction'**
-  String get introduction;
+  /// **'Used to match you with Technicians, facilitate the booking and payment process, and send order notifications.'**
+  String get policy2;
+
+  /// No description provided for @policy3.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Name, phone number, and location address are shared ONLY with the Technician who accepted your request to enable service delivery.'**
+  String get policy3;
 
   /// No description provided for @waitingForAdminAction.
   ///
   /// In en, this message translates to:
   /// **'Waiting for admin action'**
   String get waitingForAdminAction;
+
+  /// No description provided for @whatsCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s Covered'**
+  String get whatsCovered;
+
+  /// No description provided for @issueone.
+  ///
+  /// In en, this message translates to:
+  /// **'Faulty installation or poor workmanship'**
+  String get issueone;
+
+  /// No description provided for @issuetwo.
+  ///
+  /// In en, this message translates to:
+  /// **'Substandard performance by technician'**
+  String get issuetwo;
+
+  /// No description provided for @issuethree.
+  ///
+  /// In en, this message translates to:
+  /// **'Same original fault that was repaired'**
+  String get issuethree;
+
+  /// No description provided for @issuefour.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid for one time, within 7 days from completion date'**
+  String get issuefour;
+
+  /// No description provided for @whatsNotCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s Not Covered'**
+  String get whatsNotCovered;
+
+  /// No description provided for @notissueone.
+  ///
+  /// In en, this message translates to:
+  /// **'Defective spare parts or materials'**
+  String get notissueone;
+
+  /// No description provided for @notissuetwo.
+  ///
+  /// In en, this message translates to:
+  /// **'Misuse or tampering after service'**
+  String get notissuetwo;
+
+  /// No description provided for @notissuethree.
+  ///
+  /// In en, this message translates to:
+  /// **'Third-party interventions'**
+  String get notissuethree;
+
+  /// No description provided for @notissuefour.
+  ///
+  /// In en, this message translates to:
+  /// **'Power surges, water leaks, natural disasters'**
+  String get notissuefour;
+
+  /// No description provided for @notissuefive.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal wear and tear'**
+  String get notissuefive;
+
+  /// No description provided for @claimText.
+  ///
+  /// In en, this message translates to:
+  /// **'To claim warranty, submit a request through the app within 7 days from service completion. The warranty can be claimed only once.'**
+  String get claimText;
 }
 
 class _AppLocalizationsDelegate

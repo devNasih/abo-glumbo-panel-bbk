@@ -3678,71 +3678,117 @@ class AppLocalizationsEn extends AppLocalizations {
   String get copy => 'Copy';
 
   @override
-  String get policy1title => 'Data Collection';
+  String get introduction => 'Introduction';
 
   @override
-  String get policy2title => 'How We Use Your Data';
+  String get policy1title => 'Data We Collect';
+
+  @override
+  String get policy2title => 'How We Use It';
 
   @override
   String get policy3title => 'Data Sharing';
 
   @override
-  String get terms1title => 'Licenses and Qualifications';
+  String get terms1title => 'Responsibility for the Request';
 
   @override
-  String get terms2title => 'Service Quality and Responsibility';
+  String get terms2title => 'Inspection Fees';
 
   @override
-  String get terms3title => 'Fair Pricing';
+  String get terms3title => 'Payment and Final Cost';
 
   @override
-  String get terms4title => 'Platform Commission';
+  String get terms4title => 'Warranty (Guarantee)';
 
   @override
-  String get terms5title => 'Warranty';
+  String get terms5title => 'Rating';
 
   @override
-  String get terms6title => 'Legal Liability Limits';
+  String get phoneNumberUpdateInfo =>
+      'Enter phone number starting with \'05\' for updating phone number';
 
   @override
-  String get policy1 =>
-      'Professional license information, qualifications and experience, personal/professional photos, bank account details for payment reception, and rating history.';
-
-  @override
-  String get policy2 =>
-      'Used to verify your identity and qualifications, process your payments, and display your professional profile to Users (ratings and experience).';
-
-  @override
-  String get policy3 =>
-      'Your name, professional photo, and ratings are shared with Users. Your bank account information is NOT shared.';
+  String get termsIntroduction =>
+      'Your use of the Application constitutes full and unconditional acceptance of these terms. The Application acts solely as an electronic intermediary platform connecting you with service providers (Technicians).';
 
   @override
   String get terms1 =>
-      'You guarantee that you possess all necessary professional licenses and qualifications to provide the services advertised.';
+      'Responsibility for the Request: You are committed to providing an accurate and sufficient description of the issue (text, photo, video) and the service location to enable the Technician to respond.';
 
   @override
   String get terms2 =>
-      'You are solely responsible for the quality of the service provided, the tools used, and ensuring the safety of the premises during and after the work.';
+      'Inspection Fees: You are responsible for paying the determined inspection/call-out fees (if applicable) immediately upon the Technician accepting the request and proceeding to the location. These fees are generally non-refundable.';
 
   @override
   String get terms3 =>
-      'You are committed to providing fair, reasonable, and upfront pricing to the User after inspection.';
+      'Payment and Final Cost: The total cost of the service is agreed upon directly with the Technician after inspection, and must be approved via the Application before work commences. You are responsible for paying the agreed-upon amount in full.';
 
   @override
-  String get terms4 =>
-      'You are committed to paying the pre-agreed commission to the Application, which will be deducted from the value of the completed service.';
+  String get terms4p1 =>
+      'Warranty (Guarantee): Completed work is subject to the Platform\'s';
+
+  @override
+  String get warrantyPolicy => 'Warranty Policy';
+
+  @override
+  String get terms4p2 =>
+      'the full details of which can be reviewed via the dedicated link.';
 
   @override
   String get terms5 =>
-      'You are obligated to provide a warranty on the work performed in accordance with the \"Warranty Policy\" and you bear the cost of repairs falling within the warranty period.';
+      'You have the right to rate the Technician\'s performance after service completion, and you must ensure that ratings are honest and objective.';
 
   @override
-  String get terms6 =>
-      'The Application is not responsible for any material damages or injuries resulting from your performance of the service.';
+  String get policy1 =>
+      'Name, phone number, email address, the precise service location address, order history, and Technician ratings.';
 
   @override
-  String get introduction => 'Introduction';
+  String get policy2 =>
+      'Used to match you with Technicians, facilitate the booking and payment process, and send order notifications.';
+
+  @override
+  String get policy3 =>
+      'Your Name, phone number, and location address are shared ONLY with the Technician who accepted your request to enable service delivery.';
 
   @override
   String get waitingForAdminAction => 'Waiting for admin action';
+
+  @override
+  String get whatsCovered => 'What\'s Covered';
+
+  @override
+  String get issueone => 'Faulty installation or poor workmanship';
+
+  @override
+  String get issuetwo => 'Substandard performance by technician';
+
+  @override
+  String get issuethree => 'Same original fault that was repaired';
+
+  @override
+  String get issuefour =>
+      'Valid for one time, within 7 days from completion date';
+
+  @override
+  String get whatsNotCovered => 'What\'s Not Covered';
+
+  @override
+  String get notissueone => 'Defective spare parts or materials';
+
+  @override
+  String get notissuetwo => 'Misuse or tampering after service';
+
+  @override
+  String get notissuethree => 'Third-party interventions';
+
+  @override
+  String get notissuefour => 'Power surges, water leaks, natural disasters';
+
+  @override
+  String get notissuefive => 'Normal wear and tear';
+
+  @override
+  String get claimText =>
+      'To claim warranty, submit a request through the app within 7 days from service completion. The warranty can be claimed only once.';
 }

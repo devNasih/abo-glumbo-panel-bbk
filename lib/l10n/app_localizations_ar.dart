@@ -3621,71 +3621,116 @@ class AppLocalizationsAr extends AppLocalizations {
   String get copy => 'نسخ';
 
   @override
+  String get introduction => 'مقدمة';
+
+  @override
   String get policy1title => 'البيانات التي نجمعها';
 
   @override
-  String get policy2title => 'كيفية استخدام بياناتك';
+  String get policy2title => 'كيفية الاستخدام';
 
   @override
   String get policy3title => 'مشاركة البيانات';
 
   @override
-  String get terms1title => 'التراخيص والمؤهلات';
+  String get terms1title => 'المسؤولية عن الطلب';
 
   @override
-  String get terms2title => 'جودة الخدمة والمسؤولية';
+  String get terms2title => 'رسوم المعاينة';
 
   @override
-  String get terms3title => 'تسعير عادل';
+  String get terms3title => 'الدفع والتكلفة النهائية';
 
   @override
-  String get terms4title => 'عمولة المنصة';
+  String get terms4title => 'الضمان (الكفالة)';
 
   @override
-  String get terms5title => 'الضمان';
+  String get terms5title => 'التقييم';
 
   @override
-  String get terms6title => 'الحدود القانونية للمسؤولية';
+  String get phoneNumberUpdateInfo =>
+      'Enter phone number starting with \'05\' for updating phone number';
 
   @override
-  String get policy1 =>
-      'معلومات التراخيص المهنية، المؤهلات والخبرة، صور شخصية/مهنية، معلومات الحساب البنكي لاستلام مستحقات الخدمات، وسجل التقييمات.';
-
-  @override
-  String get policy2 =>
-      'تستخدم للتحقق من هويتك ومؤهلاتك، ولإتمام الدفعات المالية لك، ولعرض ملفك الشخصي للمستخدمين (التقييمات والخبرة).';
-
-  @override
-  String get policy3 =>
-      'يتم مشاركة اسمك، صورتك المهنية، وتقييماتك مع المستخدمين. لا يتم مشاركة معلوماتك البنكية.';
+  String get termsIntroduction =>
+      'يُعد استخدامك للتطبيق قبولاً كاملاً وغير مشروط لهذه الشروط. التطبيق هو منصة وساطة إلكترونية تربطك بمقدمي الخدمات الفنية فقط.';
 
   @override
   String get terms1 =>
-      'تضمن أن لديك جميع التراخيص المهنية والمؤهلات اللازمة لتقديم الخدمات المُعلن عنها.';
+      'تلتزم بتقديم وصف دقيق وكافٍ للمشكلة (نص، صورة، فيديو) وموقع الخدمة لتمكين الفني من الاستجابة.';
 
   @override
   String get terms2 =>
-      'أنت المسؤول الوحيد عن جودة الخدمة المقدمة، الأدوات المستخدمة، وضمان سلامة المكان أثناء العمل وبعده.';
+      'أنت مسؤول عن دفع رسوم المعاينة/الفحص المحددة (إذا وجدت) بمجرد قبول الفني للطلب وتوجهه إلى الموقع. هذه الرسوم غير قابلة للاسترداد عادةً.';
 
   @override
   String get terms3 =>
-      'تلتزم بتقديم تسعير عادل ومعقول ومسبق للمستخدم بعد المعاينة.';
+      'الدفع والتكلفة النهائية: يتم الاتفاق على التكلفة الإجمالية للخدمة مباشرة مع الفني بعد المعاينة، وتتم الموافقة عليها عبر التطبيق قبل بدء العمل. أنت مسؤول عن سداد المبلغ المتفق عليه كاملاً.';
 
   @override
-  String get terms4 =>
-      'تتلتزم بدفع العمولة المتفق عليها مسبقاً للتطبيق، والتي تُخصم من قيمة الخدمة المكتملة.';
+  String get terms4p1 => 'يخضع العمل المنجز لـ';
+
+  @override
+  String get warrantyPolicy => 'سياسة الضمان';
+
+  @override
+  String get terms4p2 =>
+      'الخاصة بالمنصة، والتي يمكنك الاطلاع على تفاصيلها الكاملة عبر الرابط المخصص.';
 
   @override
   String get terms5 =>
-      'تلتزم بتقديم الضمان على العمل المنجز وفقاً لـ \"سياسة الضمان\"، وتتحمل تكلفة الإصلاحات التي تقع ضمن فترة الضمان.';
+      'يحق لك تقييم أداء الفني بعد إتمام الخدمة، وتلتزم بأن تكون التقييمات صادقة وموضوعية.';
 
   @override
-  String get terms6 =>
-      'التطبيق غير مسؤول عن أي أضرار مادية أو إصابات تنتج عن أدائك للخدمة.';
+  String get policy1 =>
+      'الاسم، رقم الهاتف، البريد الإلكتروني، عنوان الموقع الدقيق لتلقي الخدمة، سجل الطلبات، تقييمات الفنيين.';
 
   @override
-  String get introduction => 'Introduction';
+  String get policy2 =>
+      'تستخدم لربطك بالفنيين، وتسهيل عملية الحجز والدفع، وإرسال إشعارات الطلبات.';
+
+  @override
+  String get policy3 =>
+      'يتم مشاركة الاسم ورقم الهاتف وعنوان الموقع فقط مع الفني الذي تم قبول طلبه لتمكينه من أداء الخدمة.';
 
   @override
   String get waitingForAdminAction => 'بانتظار إجراء المسؤول';
+
+  @override
+  String get whatsCovered => 'ما يغطيه الضمان';
+
+  @override
+  String get issueone => 'خطأ في التركيب أو سوء المصنعية.';
+
+  @override
+  String get issuetwo => 'أداء دون المستوى المطلوب من الفني.';
+
+  @override
+  String get issuethree => 'نفس العطل الأصلي الذي تم إصلاحه.';
+
+  @override
+  String get issuefour => 'صالح لمرة واحدة خلال ٧ أيام من تاريخ الإكمال';
+
+  @override
+  String get whatsNotCovered => 'ما لا يغطيه الضمان';
+
+  @override
+  String get notissueone => 'قطع غيار أو مواد معيبة.';
+
+  @override
+  String get notissuetwo => 'إساءة الاستخدام أو العبث بعد الخدمة.';
+
+  @override
+  String get notissuethree => 'تدخلات طرف ثالث.';
+
+  @override
+  String get notissuefour =>
+      'زيادة التيار الكهربائي (Power surges)، تسربات المياه، الكوارث الطبيعية.';
+
+  @override
+  String get notissuefive => 'الاهتراء والتآكل الطبيعي.';
+
+  @override
+  String get claimText =>
+      'للمطالبة بالضمان، قدّم طلبًا عبر التطبيق خلال ٧ أيام من إتمام الخدمة. ويمكن المطالبة بالضمان مرة واحدة فقط.';
 }
