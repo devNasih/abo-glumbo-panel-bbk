@@ -11,6 +11,7 @@ import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/edit_profile.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/payout_accounts.dart';
+import 'package:aboglumbo_bbk_panel/pages/account/privacy_policy_page.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/terms_and_conditions_page.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
@@ -380,6 +381,21 @@ class _AccountPageState extends State<AccountPage> {
                   ),
                   title: Text(
                     AppLocalizations.of(context)?.termsAndConditions ?? '',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 16,
+                      color: AppColors.black1,
+                    ),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios_sharp, size: 15),
+                ),
+                ListTile(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const PrivacyPolicyPage(),
+                    ),
+                  ),
+                  title: Text(
+                    AppLocalizations.of(context)?.privacyPolicy ?? '',
                     style: GoogleFonts.dmSans(
                       fontSize: 16,
                       color: AppColors.black1,

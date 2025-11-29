@@ -2085,9 +2085,9 @@ exports.notifyWorkerOnPaymentComplete = onDocumentUpdated(
     const serviceName = afterData.service?.serviceName || "Service";
 
     // Get payment details
-    const totalCost = afterData.completionData?.totalCost || 0;
-    const paymentMethod =
-      afterData.completionData?.paymentMethod || afterData.paymentModeCode;
+    const inspectionOnly = afterData.completionData?.mode === 0 || false;
+    const totalCost = inspectionOnly? afterData.completionData?.inspectionFee : afterData.completionData?.totalCost || 0;
+    c
 
     try {
       const message = {
@@ -2108,7 +2108,6 @@ exports.notifyWorkerOnPaymentComplete = onDocumentUpdated(
           customerName: customerName,
           serviceName: serviceName,
           totalCost: totalCost.toString(),
-          paymentMethod: paymentMethod,
           bookingStatusCode: afterData.bookingStatusCode,
         },
         token: workerToken,
@@ -2272,7 +2271,8 @@ exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
     else if (
       beforeWarranty?.assignedTechnicianId !==
         afterWarranty.assignedTechnicianId &&
-      afterWarranty.assignedTechnicianId
+      afterWarranty.assignedTechnicianId &&
+      afterWarranty.warrantyStatusCode === "S"
     ) {
       status = "warranty_technician_assigned";
       console.log(

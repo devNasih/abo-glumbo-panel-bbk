@@ -176,11 +176,23 @@ abstract class AppLocalizations {
   /// **'Loading Technicians...'**
   String get loadingAgents;
 
+  /// No description provided for @noReview.
+  ///
+  /// In en, this message translates to:
+  /// **'No Review'**
+  String get noReview;
+
   /// No description provided for @reject.
   ///
   /// In en, this message translates to:
   /// **'Reject'**
   String get reject;
+
+  /// No description provided for @tip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip'**
+  String get tip;
 
   /// No description provided for @rejectingOrder.
   ///
@@ -6933,58 +6945,112 @@ abstract class AppLocalizations {
   /// **'Copy'**
   String get copy;
 
+  /// No description provided for @policy1title.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Collection'**
+  String get policy1title;
+
+  /// No description provided for @policy2title.
+  ///
+  /// In en, this message translates to:
+  /// **'How We Use Your Data'**
+  String get policy2title;
+
+  /// No description provided for @policy3title.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Sharing'**
+  String get policy3title;
+
+  /// No description provided for @terms1title.
+  ///
+  /// In en, this message translates to:
+  /// **'Licenses and Qualifications'**
+  String get terms1title;
+
+  /// No description provided for @terms2title.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Quality and Responsibility'**
+  String get terms2title;
+
+  /// No description provided for @terms3title.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair Pricing'**
+  String get terms3title;
+
+  /// No description provided for @terms4title.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform Commission'**
+  String get terms4title;
+
+  /// No description provided for @terms5title.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty'**
+  String get terms5title;
+
+  /// No description provided for @terms6title.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal Liability Limits'**
+  String get terms6title;
+
   /// No description provided for @policy1.
   ///
   /// In en, this message translates to:
-  /// **'Data We Collect: Professional license information, qualifications and experience, personal/professional photos, bank account details for payment reception, and rating history.'**
+  /// **'Professional license information, qualifications and experience, personal/professional photos, bank account details for payment reception, and rating history.'**
   String get policy1;
 
   /// No description provided for @policy2.
   ///
   /// In en, this message translates to:
-  /// **'How We Use It: Used to verify your identity and qualifications, process your payments, and display your professional profile to Users (ratings and experience).'**
+  /// **'Used to verify your identity and qualifications, process your payments, and display your professional profile to Users (ratings and experience).'**
   String get policy2;
 
   /// No description provided for @policy3.
   ///
   /// In en, this message translates to:
-  /// **'Sharing: Your name, professional photo, and ratings are shared with Users. Your bank account information is NOT shared.'**
+  /// **'Your name, professional photo, and ratings are shared with Users. Your bank account information is NOT shared.'**
   String get policy3;
 
   /// No description provided for @terms1.
   ///
   /// In en, this message translates to:
-  /// **'Licenses and Qualifications: You guarantee that you possess all necessary professional licenses and qualifications to provide the services advertised.'**
+  /// **'You guarantee that you possess all necessary professional licenses and qualifications to provide the services advertised.'**
   String get terms1;
 
   /// No description provided for @terms2.
   ///
   /// In en, this message translates to:
-  /// **'Service Quality and Responsibility: You are solely responsible for the quality of the service provided, the tools used, and ensuring the safety of the premises during and after the work.'**
+  /// **'You are solely responsible for the quality of the service provided, the tools used, and ensuring the safety of the premises during and after the work.'**
   String get terms2;
 
   /// No description provided for @terms3.
   ///
   /// In en, this message translates to:
-  /// **'Fair Pricing: You are committed to providing fair, reasonable, and upfront pricing to the User after inspection.'**
+  /// **'You are committed to providing fair, reasonable, and upfront pricing to the User after inspection.'**
   String get terms3;
 
   /// No description provided for @terms4.
   ///
   /// In en, this message translates to:
-  /// **'Platform Commission: You are committed to paying the pre-agreed commission to the Application, which will be deducted from the value of the completed service.'**
+  /// **'You are committed to paying the pre-agreed commission to the Application, which will be deducted from the value of the completed service.'**
   String get terms4;
 
   /// No description provided for @terms5.
   ///
   /// In en, this message translates to:
-  /// **'Warranty: You are obligated to provide a warranty on the work performed in accordance with the \"Warranty Policy\" and you bear the cost of repairs falling within the warranty period.'**
+  /// **'You are obligated to provide a warranty on the work performed in accordance with the \"Warranty Policy\" and you bear the cost of repairs falling within the warranty period.'**
   String get terms5;
 
   /// No description provided for @terms6.
   ///
   /// In en, this message translates to:
-  /// **'Legal Liability Limits: The Application is not responsible for any material damages or injuries resulting from your performance of the service.'**
+  /// **'The Application is not responsible for any material damages or injuries resulting from your performance of the service.'**
   String get terms6;
 
   /// No description provided for @introduction.

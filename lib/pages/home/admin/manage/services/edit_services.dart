@@ -1,3 +1,4 @@
+// ...existing imports...
 import 'dart:developer';
 import 'dart:io';
 import 'package:aboglumbo_bbk_panel/common_widget/crop_confirm_dialog.dart';
@@ -24,6 +25,9 @@ class AddServicesDevPage extends StatefulWidget {
 }
 
 class _AddServicesDevPageState extends State<AddServicesDevPage> {
+  /// Call this after deleting a service to remove it from all highlighted services
+ 
+
   final _formKey = GlobalKey<FormState>();
 
   bool contentLoading = true;

@@ -50,7 +50,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loadingAgents => 'Loading Technicians...';
 
   @override
+  String get noReview => 'No Review';
+
+  @override
   String get reject => 'Reject';
+
+  @override
+  String get tip => 'Tip';
 
   @override
   String get rejectingOrder => 'Rejecting Order';
@@ -3672,40 +3678,67 @@ class AppLocalizationsEn extends AppLocalizations {
   String get copy => 'Copy';
 
   @override
+  String get policy1title => 'Data Collection';
+
+  @override
+  String get policy2title => 'How We Use Your Data';
+
+  @override
+  String get policy3title => 'Data Sharing';
+
+  @override
+  String get terms1title => 'Licenses and Qualifications';
+
+  @override
+  String get terms2title => 'Service Quality and Responsibility';
+
+  @override
+  String get terms3title => 'Fair Pricing';
+
+  @override
+  String get terms4title => 'Platform Commission';
+
+  @override
+  String get terms5title => 'Warranty';
+
+  @override
+  String get terms6title => 'Legal Liability Limits';
+
+  @override
   String get policy1 =>
-      'Data We Collect: Professional license information, qualifications and experience, personal/professional photos, bank account details for payment reception, and rating history.';
+      'Professional license information, qualifications and experience, personal/professional photos, bank account details for payment reception, and rating history.';
 
   @override
   String get policy2 =>
-      'How We Use It: Used to verify your identity and qualifications, process your payments, and display your professional profile to Users (ratings and experience).';
+      'Used to verify your identity and qualifications, process your payments, and display your professional profile to Users (ratings and experience).';
 
   @override
   String get policy3 =>
-      'Sharing: Your name, professional photo, and ratings are shared with Users. Your bank account information is NOT shared.';
+      'Your name, professional photo, and ratings are shared with Users. Your bank account information is NOT shared.';
 
   @override
   String get terms1 =>
-      'Licenses and Qualifications: You guarantee that you possess all necessary professional licenses and qualifications to provide the services advertised.';
+      'You guarantee that you possess all necessary professional licenses and qualifications to provide the services advertised.';
 
   @override
   String get terms2 =>
-      'Service Quality and Responsibility: You are solely responsible for the quality of the service provided, the tools used, and ensuring the safety of the premises during and after the work.';
+      'You are solely responsible for the quality of the service provided, the tools used, and ensuring the safety of the premises during and after the work.';
 
   @override
   String get terms3 =>
-      'Fair Pricing: You are committed to providing fair, reasonable, and upfront pricing to the User after inspection.';
+      'You are committed to providing fair, reasonable, and upfront pricing to the User after inspection.';
 
   @override
   String get terms4 =>
-      'Platform Commission: You are committed to paying the pre-agreed commission to the Application, which will be deducted from the value of the completed service.';
+      'You are committed to paying the pre-agreed commission to the Application, which will be deducted from the value of the completed service.';
 
   @override
   String get terms5 =>
-      'Warranty: You are obligated to provide a warranty on the work performed in accordance with the \"Warranty Policy\" and you bear the cost of repairs falling within the warranty period.';
+      'You are obligated to provide a warranty on the work performed in accordance with the \"Warranty Policy\" and you bear the cost of repairs falling within the warranty period.';
 
   @override
   String get terms6 =>
-      'Legal Liability Limits: The Application is not responsible for any material damages or injuries resulting from your performance of the service.';
+      'The Application is not responsible for any material damages or injuries resulting from your performance of the service.';
 
   @override
   String get introduction => 'Introduction';

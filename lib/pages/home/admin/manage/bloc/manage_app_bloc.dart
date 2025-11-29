@@ -515,9 +515,28 @@ class ManageAppBloc extends Bloc<ManageAppEvent, ManageAppState> {
     emit(DeletingService());
     try {
       await AppFirestore.servicesCollectionRef.doc(event.serviceId).delete();
+      await removeServiceFromHighlightedServices(event.serviceId);
+
       emit(ServiceDeleted(true));
     } catch (e) {
       emit(ServiceDeleteError(e.toString()));
+    }
+  }
+
+  Future<void> removeServiceFromHighlightedServices(String serviceId) async {
+    final highlightedServicesRef =
+        AppFirestore.highlightedServicesCollectionRef;
+    final query = await highlightedServicesRef
+        .where('services', arrayContains: serviceId)
+        .get();
+    for (final doc in query.docs) {
+      final data = doc.data();
+      if (data == null) continue;
+      final map = data is Map<String, dynamic> ? data : null;
+      if (map == null) continue;
+      final List<dynamic> services = (map['services'] ?? []) as List<dynamic>;
+      services.removeWhere((id) => id == serviceId);
+      await highlightedServicesRef.doc(doc.id).update({'services': services});
     }
   }
 }

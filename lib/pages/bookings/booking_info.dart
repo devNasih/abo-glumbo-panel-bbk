@@ -239,6 +239,7 @@ class _BookingInfoState extends State<BookingInfo> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Review and Tip Card
             if ((widget.booking.bookingStatusCode.toLowerCase() == 'a' &&
                     !widget.isAdmin) ||
                 (!widget.isAdmin &&
@@ -360,6 +361,12 @@ class _BookingInfoState extends State<BookingInfo> {
             if (widget.booking.bookingStatusCode.toLowerCase() == 'c' &&
                 widget.booking.completionData != null) ...[
               _buildCompletionDataCard(context, textTheme, colorScheme),
+              const SizedBox(height: 16),
+            ],
+            if (widget.booking.review != null) ...[
+              _buildReviewCard(context, textTheme, colorScheme),
+              const SizedBox(height: 16),
+              _buildTipCard(context, textTheme, colorScheme),
               const SizedBox(height: 16),
             ],
             if (widget.isAdmin &&
@@ -2372,5 +2379,181 @@ class _BookingInfoState extends State<BookingInfo> {
 
   String _getFileName(String fileUrl) {
     return "file ${int.tryParse((fileUrl.split('/').last.split('?').first.split("_").elementAt(3).substring(0, 1)))! + 1}${(fileUrl.split('/').last.split('?').first.split("_").elementAt(3).substring(1))}";
+  }
+
+  Widget _buildReviewCard(
+    BuildContext context,
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+  ) {
+    final review = widget.booking.review;
+    if (review == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(0.1),
+          width: 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.reviews, color: Colors.amber),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  AppLocalizations.of(context)!.review,
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+            SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: 30,
+              child: ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                scrollDirection: Axis.horizontal,
+                itemCount: review.rating != null ? review.rating!.toInt() : 0,
+                itemBuilder: (context, index) {
+                  return Icon(Icons.star, color: Colors.amber, size: 20);
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (review.review.isNotEmpty) ...[
+              Text(
+                '"${review.review}"',
+                style: textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface.withOpacity(0.8),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ] else ...[
+              Text(
+                AppLocalizations.of(context)!.noReview,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface.withOpacity(0.5),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTipCard(
+    BuildContext context,
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+  ) {
+    final review = widget.booking.review;
+    if (review == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(0.1),
+          width: 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.monetization_on, color: AppColors.green),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  AppLocalizations.of(context)!.tip,
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+            if (review.tipAmount != null && review.tipAmount! > 0) ...[
+              _buildInfoRow(
+                value:
+                    '${review.tipAmount} ${AppLocalizations.of(context)!.sar}',
+                textTheme: textTheme,
+                colorScheme: colorScheme,
+                context,
+                label: AppLocalizations.of(context)!.amount,
+              ),
+              SizedBox(height: 16),
+              _buildInfoRow(
+                value: review.paymentType?.toLowerCase() == 'cash'
+                    ? AppLocalizations.of(context)!.cashInHand
+                    : review.paymentType?.toLowerCase() == 'card'
+                    ? AppLocalizations.of(context)!.card
+                    : AppLocalizations.of(context)!.unknown,
+
+                textTheme: textTheme,
+                colorScheme: colorScheme,
+                context,
+                label: AppLocalizations.of(context)!.paymentMode,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }
