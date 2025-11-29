@@ -3578,6 +3578,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get paymentCompletedAt => 'تم إكمال الدفع في';
+
+  @override
+  String get more => 'المزيد';
+
+  @override
+  String get amountToBePaid => 'المبلغ المطلوب دفعه';
+
+  @override
   String get cannotRequestPayoutPendingRequest =>
       'لديك طلب سحب قيد المعالجة. يرجى الانتظار حتى يتم الموافقة عليه أو رفضه.';
 
@@ -3591,7 +3600,58 @@ class AppLocalizationsAr extends AppLocalizations {
   String get serviceInformation => 'معلومات الخدمة';
 
   @override
+  String get termsAndConditions => 'الشروط والأحكام';
+
+  @override
+  String get termsOfUse => 'شروط الاستخدام';
+
+  @override
+  String get privacyPolicy => 'سياسة الخصوصية';
+
+  @override
+  String get and => 'و';
+
+  @override
   String get copy => 'نسخ';
+
+  @override
+  String get policy1 =>
+      'البيانات التي نجمعها: معلومات التراخيص المهنية، المؤهلات والخبرة، صور شخصية/مهنية، معلومات الحساب البنكي لاستلام مستحقات الخدمات، وسجل التقييمات.';
+
+  @override
+  String get policy2 =>
+      'كيفية الاستخدام: تستخدم للتحقق من هويتك ومؤهلاتك، ولإتمام الدفعات المالية لك، ولعرض ملفك الشخصي للمستخدمين (التقييمات والخبرة).';
+
+  @override
+  String get policy3 =>
+      'المشاركة: يتم مشاركة اسمك، صورتك المهنية، وتقييماتك مع المستخدمين. لا يتم مشاركة معلوماتك البنكية.';
+
+  @override
+  String get terms1 =>
+      'التراخيص والمؤهلات: تضمن أن لديك جميع التراخيص المهنية والمؤهلات اللازمة لتقديم الخدمات المُعلن عنها.';
+
+  @override
+  String get terms2 =>
+      'جودة الخدمة والمسؤولية: أنت المسؤول الوحيد عن جودة الخدمة المقدمة، الأدوات المستخدمة، وضمان سلامة المكان أثناء العمل وبعده.';
+
+  @override
+  String get terms3 =>
+      'تسعير عادل: تلتزم بتقديم تسعير عادل ومعقول ومسبق للمستخدم بعد المعاينة.';
+
+  @override
+  String get terms4 =>
+      'عمولة المنصة: تلتزم بدفع العمولة المتفق عليها مسبقاً للتطبيق، والتي تُخصم من قيمة الخدمة المكتملة.';
+
+  @override
+  String get terms5 =>
+      ' الضمان: تلتزم بتقديم الضمان على العمل المنجز وفقاً لـ \"سياسة الضمان\"، وتتحمل تكلفة الإصلاحات التي تقع ضمن فترة الضمان.';
+
+  @override
+  String get terms6 =>
+      'الحدود القانونية للمسؤولية: التطبيق غير مسؤول عن أي أضرار مادية أو إصابات تنتج عن أدائك للخدمة.';
+
+  @override
+  String get introduction => 'Introduction';
 
   @override
   String get waitingForAdminAction => 'بانتظار إجراء المسؤول';

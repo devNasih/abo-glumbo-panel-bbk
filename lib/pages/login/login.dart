@@ -1,6 +1,8 @@
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
+import 'package:aboglumbo_bbk_panel/pages/account/privacy_policy_page.dart';
+import 'package:aboglumbo_bbk_panel/pages/account/terms_and_conditions_page.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/otp.dart';
@@ -9,6 +11,7 @@ import 'package:aboglumbo_bbk_panel/services/notification.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:aboglumbo_bbk_panel/styles/images.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -370,9 +373,32 @@ class _LoginPageState extends State<LoginPage> {
               style: GoogleFonts.dmSans(fontSize: 11, color: Colors.white60),
             ),
             TextSpan(
-              text:
-                  AppLocalizations.of(context)?.termsOfUseAndPrivacyPolicy ??
-                  '',
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const TermsAndConditionsPage(isFromLogin: true),
+                    ),
+                  );
+                },
+              text: AppLocalizations.of(context)?.termsOfUse ?? '',
+              style: GoogleFonts.dmSans(fontSize: 11, color: Colors.blue),
+            ),
+            TextSpan(
+              text: ' ${AppLocalizations.of(context)?.and ?? ''} ',
+              style: GoogleFonts.dmSans(fontSize: 11, color: Colors.white60),
+            ),
+            TextSpan(
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const PrivacyPolicyPage(),
+                    ),
+                  );
+                },
+              text: AppLocalizations.of(context)?.privacyPolicy ?? '',
               style: GoogleFonts.dmSans(fontSize: 11, color: Colors.blue),
             ),
           ],

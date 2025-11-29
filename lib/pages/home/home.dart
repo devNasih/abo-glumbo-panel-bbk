@@ -88,8 +88,8 @@ class _HomeState extends State<Home> {
                         onPressed: () => Navigator.of(context).pop(),
                         text: locale?.cancel ?? 'Cancel',
                         context: context,
-                        textColor: Colors.white,
-                        backgroundColor: Colors.grey,
+                        textColor: Colors.black,
+                        backgroundColor: Colors.white,
                       ),
                       eButton(
                         onPressed: () => Navigator.of(context).pop(true),
@@ -161,8 +161,8 @@ class _HomeState extends State<Home> {
                         onPressed: () => Navigator.of(context).pop(),
                         text: locale?.cancel ?? 'Cancel',
                         context: context,
-                        textColor: Colors.white,
-                        backgroundColor: Colors.grey,
+                        textColor: Colors.black,
+                        backgroundColor: Colors.white,
                       ),
                       eButton(
                         onPressed: () => Navigator.of(context).pop(true),
@@ -200,8 +200,8 @@ class _HomeState extends State<Home> {
                           onPressed: () => Navigator.of(context).pop(),
                           text: locale?.cancel ?? 'Cancel',
                           context: context,
-                          textColor: Colors.white,
-                          backgroundColor: Colors.grey,
+                          textColor: Colors.black,
+                          backgroundColor: Colors.white,
                         ),
                         eButton(
                           onPressed: () => Navigator.of(context).pop(true),
@@ -321,7 +321,7 @@ class _HomeState extends State<Home> {
                       text: locale?.cancel ?? 'Cancel',
                       context: context,
                       textColor: Colors.black,
-                      backgroundColor: Colors.grey.shade100,
+                      backgroundColor: Colors.white,
                     ),
                     eButton(
                       text: locale?.exit ?? 'Exit',

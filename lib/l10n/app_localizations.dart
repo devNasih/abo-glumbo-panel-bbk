@@ -6861,10 +6861,28 @@ abstract class AppLocalizations {
   /// **'{count, plural, one {{count} hour ago} other {{count} hours ago}}'**
   String hoursAgo(int count);
 
+  /// No description provided for @paymentCompletedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Completed At'**
+  String get paymentCompletedAt;
+
+  /// No description provided for @more.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get more;
+
+  /// No description provided for @amountToBePaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount to be paid'**
+  String get amountToBePaid;
+
   /// No description provided for @cannotRequestPayoutPendingRequest.
   ///
   /// In en, this message translates to:
-  /// **'You already have a payout request in progress. Please wait until it is approved or rejected'**
+  /// **'You already have a payout request in progress. Please wait until it is approved or rejected'**
   String get cannotRequestPayoutPendingRequest;
 
   /// No description provided for @paidAmount.
@@ -6885,11 +6903,95 @@ abstract class AppLocalizations {
   /// **'Service Information'**
   String get serviceInformation;
 
+  /// No description provided for @termsAndConditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms and Conditions'**
+  String get termsAndConditions;
+
+  /// No description provided for @termsOfUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Use'**
+  String get termsOfUse;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicy;
+
+  /// No description provided for @and.
+  ///
+  /// In en, this message translates to:
+  /// **'and'**
+  String get and;
+
   /// No description provided for @copy.
   ///
   /// In en, this message translates to:
   /// **'Copy'**
   String get copy;
+
+  /// No description provided for @policy1.
+  ///
+  /// In en, this message translates to:
+  /// **'Data We Collect: Professional license information, qualifications and experience, personal/professional photos, bank account details for payment reception, and rating history.'**
+  String get policy1;
+
+  /// No description provided for @policy2.
+  ///
+  /// In en, this message translates to:
+  /// **'How We Use It: Used to verify your identity and qualifications, process your payments, and display your professional profile to Users (ratings and experience).'**
+  String get policy2;
+
+  /// No description provided for @policy3.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing: Your name, professional photo, and ratings are shared with Users. Your bank account information is NOT shared.'**
+  String get policy3;
+
+  /// No description provided for @terms1.
+  ///
+  /// In en, this message translates to:
+  /// **'Licenses and Qualifications: You guarantee that you possess all necessary professional licenses and qualifications to provide the services advertised.'**
+  String get terms1;
+
+  /// No description provided for @terms2.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Quality and Responsibility: You are solely responsible for the quality of the service provided, the tools used, and ensuring the safety of the premises during and after the work.'**
+  String get terms2;
+
+  /// No description provided for @terms3.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair Pricing: You are committed to providing fair, reasonable, and upfront pricing to the User after inspection.'**
+  String get terms3;
+
+  /// No description provided for @terms4.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform Commission: You are committed to paying the pre-agreed commission to the Application, which will be deducted from the value of the completed service.'**
+  String get terms4;
+
+  /// No description provided for @terms5.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty: You are obligated to provide a warranty on the work performed in accordance with the \"Warranty Policy\" and you bear the cost of repairs falling within the warranty period.'**
+  String get terms5;
+
+  /// No description provided for @terms6.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal Liability Limits: The Application is not responsible for any material damages or injuries resulting from your performance of the service.'**
+  String get terms6;
+
+  /// No description provided for @introduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Introduction'**
+  String get introduction;
 
   /// No description provided for @waitingForAdminAction.
   ///

@@ -1,3 +1,4 @@
+import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class LocationSelectorWidget<T> extends StatelessWidget {
@@ -258,7 +259,7 @@ class LocationSelectorWidgetEnhanced<T> extends StatelessWidget {
           if (maxChips != null && selectedLocations.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
-              '${selectedLocations.length}/$maxChips locations selected',
+              '${selectedLocations.length}/$maxChips ${AppLocalizations.of(context)!.locationsSelected}',
               style: TextStyle(
                 fontSize: 11,
                 color: selectedLocations.length >= maxChips! 
@@ -322,7 +323,7 @@ class LocationSelectorWidgetEnhanced<T> extends StatelessWidget {
         if (hiddenCount > 0)
           Chip(
             label: Text(
-              '+$hiddenCount more',
+              '+$hiddenCount ${AppLocalizations.of(context)!.more}',
               style: TextStyle(
                 fontSize: chipFontSize,
                 color: chipTextColor,

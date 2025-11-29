@@ -1137,22 +1137,14 @@ class AppServices {
         },
 
         if (mode == 1) ...{
-          'warranty': WarrantyModel(
-            id: bookingId,
-            claimrequested: false,
-            warrantyStatusCode: 'A',
-            assignedTechnicianId: technicianId,
-            createdAt: Timestamp.fromDate(
-              DateTime.utc(
-                DateTime.now().year,
-                DateTime.now().month,
-                DateTime.now().day,
-                DateTime.now().hour,
-                DateTime.now().minute,
-                DateTime.now().second,
-              ),
-            ),
-          ),
+          'warranty': {
+            'id': bookingId,
+            'claimrequested': false,
+            'warrantyStatusCode': 'A',
+            'assignedTechnicianId': technicianId,
+            'createdAt': FieldValue.serverTimestamp(),
+            'rejectedTechnicians': [],
+          },
         },
       });
       return true;
@@ -1401,7 +1393,8 @@ class AppServices {
       return 0.0;
     }
 
-    return snapshot.docs.first['amount'] ?? 0.0;
+    final amount = snapshot.docs.first['amount'] as num? ?? 0.0;
+    return amount.toDouble();
   }
 
   static Future<List<TransactionModel>> getWorkerTransactions(
@@ -1709,10 +1702,11 @@ class AppServices {
         .get()
         .then(
           (snapshot) =>
-              (snapshot.data() as Map<String, dynamic>?)?['availableBalance'] ??
+              (snapshot.data() as Map<String, dynamic>?)?['availableBalance']
+                  as num? ??
               0.0,
         );
-    return balance;
+    return balance.toDouble();
   }
 
   static Future<double> getWorkerPaidAmounts(String workerId) async {
@@ -1721,9 +1715,11 @@ class AppServices {
         .get()
         .then(
           (snapshot) =>
-              (snapshot.data() as Map<String, dynamic>?)?['paidAmounts'] ?? 0.0,
+              (snapshot.data() as Map<String, dynamic>?)?['paidAmounts']
+                  as num? ??
+              0.0,
         );
-    return paidAmounts;
+    return paidAmounts.toDouble();
   }
 
   static Future<double> getWorkerBonusAmounts(String workerId) async {
@@ -1750,6 +1746,9 @@ class AppServices {
   static Future<List<AllTipsModel>> getTipsById(String workerId) async {
     try {
       // Get the specific document
+      final docPath = 'tipping/$workerId/totalTipsCollectionRef/$workerId';
+      debugPrint('🔍 Querying tips from path: $docPath');
+
       final docSnapshot = await AppFirestore.tippingCollectionRef
           .doc(workerId)
           .collection("totalTipsCollectionRef")
@@ -1757,22 +1756,34 @@ class AppServices {
           .get();
 
       if (!docSnapshot.exists) {
-        debugPrint('No tips document found for worker: $workerId');
+        debugPrint(
+          '❌ No tips document found for worker: $workerId at path: $docPath',
+        );
         return [];
       }
 
+      debugPrint('✅ Tips document exists for worker: $workerId');
+
       final data = docSnapshot.data();
       if (data == null) {
-        debugPrint('No data found for worker: $workerId');
+        debugPrint('⚠️ Document exists but data is null for worker: $workerId');
         return [];
       }
+
+      debugPrint('📄 Document data keys: ${data.keys.toList()}');
+
       if (data['tipData'] == null) {
-        debugPrint('No tipdata field found');
+        debugPrint(
+          '⚠️ No tipData field found in document for worker: $workerId',
+        );
         return [];
       }
 
       // Get the tipdata array field and convert to List<AllTipsModel>
       final List<dynamic> tipdataList = data['tipData'] as List<dynamic>;
+
+      debugPrint('📊 tipData array length: ${tipdataList.length}');
+      debugPrint('📊 tipData contents: $tipdataList');
 
       final List<AllTipsModel> tipsList = tipdataList
           .map(
@@ -1780,10 +1791,19 @@ class AppServices {
           )
           .toList();
 
-      debugPrint('Fetched ${tipsList.length} tips for worker: $workerId');
+      debugPrint('✅ Fetched ${tipsList.length} tips for worker: $workerId');
+
+      // Log each tip's details
+      for (int i = 0; i < tipsList.length; i++) {
+        final tip = tipsList[i];
+        debugPrint(
+          '  Tip $i: ID=${tip.id}, Amount=${tip.totalTipAmount}, PaymentMethod=${tip.paymentMethod}, CreatedAt=${tip.createdAt}',
+        );
+      }
+
       return tipsList;
     } catch (e) {
-      debugPrint('Error fetching tips: $e');
+      debugPrint('❌ Error fetching tips: $e');
       return [];
     }
   }

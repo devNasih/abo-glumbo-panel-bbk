@@ -1352,7 +1352,7 @@ class _SignupState extends State<Signup> {
         ),
         actions: [
           eButton(
-            backgroundColor: Colors.grey,
+            backgroundColor: Colors.white,
             context: context,
             onPressed: () => Navigator.pop(context, false),
             text: AppLocalizations.of(context)!.no,

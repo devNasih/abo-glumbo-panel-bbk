@@ -82,7 +82,7 @@ class BookingModel {
                 .map((e) => CancelledWorkers.fromMap(e))
                 .toList()
           : [],
-      paymentCompletedAt = data['paymentCompletedAt'],
+      paymentCompletedAt = data['paymentCompletedAt'] as Timestamp?,
       isStartTracking = data['isStarted'] ?? false,
       notes = data['notes'],
       id = data['id'] ?? '',
@@ -101,20 +101,20 @@ class BookingModel {
           ? CompletionDataModel.fromMap(data['completionData'])
           : null, // Parse completion data
       agent = data['agent'] != null ? UserModel.fromJson(data['agent']) : null,
-      createdAt = data['createdAt'],
-      updatedAt = data['updatedAt'],
-      acceptedAt = data['acceptedAt'],
-      rejectedAt = data['rejectedAt'],
-      completedAt = data['completedAt'],
+      createdAt = data['createdAt'] as Timestamp?,
+      updatedAt = data['updatedAt'] as Timestamp?,
+      acceptedAt = data['acceptedAt'] as Timestamp?,
+      rejectedAt = data['rejectedAt'] as Timestamp?,
+      completedAt = data['completedAt'] as Timestamp?,
       cancellationReason = data['cancellationReason'],
       paymentCompleted = data['paymentCompleted'] ?? false,
-      trackingStartedAt = data['trackingStartedAt'],
-      trackingStoppedAt = data['trackingStoppedAt'],
+      trackingStartedAt = data['trackingStartedAt'] as Timestamp?,
+      trackingStoppedAt = data['trackingStoppedAt'] as Timestamp?,
       orderId = data['orderId'],
       cancelledWorkerUids = data['cancelledWorkerUids'] != null
           ? List<String>.from(data['cancelledWorkerUids'])
           : null,
-      cancelledAt = data['cancelledAt'];
+      cancelledAt = data['cancelledAt'] as Timestamp?;
 
   factory BookingModel.fromQueryDocumentSnapshot(
     QueryDocumentSnapshot snapshot,

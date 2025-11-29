@@ -1200,10 +1200,27 @@
       }
     }
   },
-  "cannotRequestPayoutPendingRequest": "You already have a payout request in progress. Please wait until it is approved or rejected",
+  "paymentCompletedAt": "Payment Completed At",
+  "more": "More",
+  "amountToBePaid": "Amount to be paid",
+  "cannotRequestPayoutPendingRequest": "You already have a payout request in progress. Please wait until it is approved or rejected",
   "paidAmount": "Paid Amount",
   "customerInformation": "Customer Information",
   "serviceInformation": "Service Information",
+  "termsAndConditions": "Terms and Conditions",
+  "termsOfUse": "Terms of Use",
+  "privacyPolicy": "Privacy Policy",
+  "and": "and",
   "copy": "Copy",
+  "policy1": "Data We Collect: Professional license information, qualifications and experience, personal/professional photos, bank account details for payment reception, and rating history.",
+  "policy2": "How We Use It: Used to verify your identity and qualifications, process your payments, and display your professional profile to Users (ratings and experience).",
+  "policy3": "Sharing: Your name, professional photo, and ratings are shared with Users. Your bank account information is NOT shared.",
+  "terms1": "Licenses and Qualifications: You guarantee that you possess all necessary professional licenses and qualifications to provide the services advertised.",
+  "terms2": "Service Quality and Responsibility: You are solely responsible for the quality of the service provided, the tools used, and ensuring the safety of the premises during and after the work.",
+  "terms3": "Fair Pricing: You are committed to providing fair, reasonable, and upfront pricing to the User after inspection.",
+  "terms4": "Platform Commission: You are committed to paying the pre-agreed commission to the Application, which will be deducted from the value of the completed service.",
+  "terms5": "Warranty: You are obligated to provide a warranty on the work performed in accordance with the \"Warranty Policy\" and you bear the cost of repairs falling within the warranty period.",
+  "terms6": "Legal Liability Limits: The Application is not responsible for any material damages or injuries resulting from your performance of the service.",
+  "introduction": "Introduction",
   "waitingForAdminAction": "Waiting for admin action"
 }

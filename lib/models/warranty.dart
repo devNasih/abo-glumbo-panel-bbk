@@ -30,35 +30,34 @@ class WarrantyModel {
   });
 
   factory WarrantyModel.fromJson(Map<String, dynamic> json) {
+    // Helper function to safely convert timestamp fields
+    Timestamp? parseTimestamp(dynamic value) {
+      if (value == null) return null;
+      if (value is Timestamp) return value;
+      if (value is String) {
+        try {
+          return Timestamp.fromDate(DateTime.parse(value));
+        } catch (e) {
+          return null;
+        }
+      }
+      return null;
+    }
+
     return WarrantyModel(
       id: json['id'],
       assignedTechnicianId: json['assignedTechnicianId'],
       warrantyStatusCode: json['warrantyStatusCode']?.toString() ?? 'A',
       claimrequested: json['claimrequested'] as bool?,
-      createdAt: json['createdAt'] is Timestamp
-          ? (json['createdAt'] as Timestamp)
-          : json['createdAt'] as Timestamp,
-      updatedAt: json['updatedAt'] is Timestamp
-          ? (json['updatedAt'] as Timestamp)
-          : json['updatedAt'] as Timestamp,
-      requestedOn: json['requestedOn'] is Timestamp
-          ? (json['requestedOn'] as Timestamp)
-          : json['requestedOn'] as Timestamp,
-      completedAt: json['completedAt'] is Timestamp
-          ? (json['completedAt'] as Timestamp)
-          : json['completedAt'] as Timestamp,
-      acceptedAt: json['acceptedAt'] is Timestamp
-          ? (json['acceptedAt'] as Timestamp)
-          : (json['acceptedAt'] as Timestamp?) ??
-                (json['acceptedOn'] is Timestamp
-                    ? (json['acceptedOn'] as Timestamp)
-                    : json['acceptedOn'] as Timestamp?),
-      rejectedAt: json['rejectedAt'] is Timestamp
-          ? (json['rejectedAt'] as Timestamp)
-          : json['rejectedAt'] as Timestamp?,
-      expiredOn: json['expiredOn'] is Timestamp
-          ? (json['expiredOn'] as Timestamp)
-          : json['expiredOn'] as Timestamp?,
+      createdAt: parseTimestamp(json['createdAt']),
+      updatedAt: parseTimestamp(json['updatedAt']),
+      requestedOn: parseTimestamp(json['requestedOn']),
+      completedAt: parseTimestamp(json['completedAt']),
+      acceptedAt:
+          parseTimestamp(json['acceptedAt']) ??
+          parseTimestamp(json['acceptedOn']),
+      rejectedAt: parseTimestamp(json['rejectedAt']),
+      expiredOn: parseTimestamp(json['expiredOn']),
       rejectedTechnicians: (json['rejectedTechnicians'] is List)
           ? (json['rejectedTechnicians'] as List)
                 .map(
@@ -119,14 +118,29 @@ class RejectedTechnicianModel {
   });
 
   factory RejectedTechnicianModel.fromJson(Map<String, dynamic> json) {
+    // Safely parse timestamp
+    Timestamp? rejectedAtTimestamp;
+    final rejectedAtValue = json['rejectedAt'];
+    if (rejectedAtValue != null) {
+      if (rejectedAtValue is Timestamp) {
+        rejectedAtTimestamp = rejectedAtValue;
+      } else if (rejectedAtValue is String) {
+        try {
+          rejectedAtTimestamp = Timestamp.fromDate(
+            DateTime.parse(rejectedAtValue),
+          );
+        } catch (e) {
+          rejectedAtTimestamp = null;
+        }
+      }
+    }
+
     return RejectedTechnicianModel(
       uid: json['uid'],
       name: json['name'],
       phone: json['phone'],
       reason: json['reason'],
-      rejectedAt: (json['rejectedAt'] is Timestamp)
-          ? (json['rejectedAt'] as Timestamp)
-          : (json['rejectedAt'] as Timestamp),
+      rejectedAt: rejectedAtTimestamp,
     );
   }
 

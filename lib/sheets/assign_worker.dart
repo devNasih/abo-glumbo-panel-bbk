@@ -577,7 +577,7 @@ class _AssignUserBottomSheetState extends State<AssignUserBottomSheet> {
           ),
           actions: [
             eButton(
-              backgroundColor: Colors.grey,
+              backgroundColor: Colors.white,
               context: context,
               onPressed: () => Navigator.of(context).pop(false),
               text: AppLocalizations.of(context)!.cancel,

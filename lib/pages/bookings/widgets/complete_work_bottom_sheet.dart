@@ -241,8 +241,8 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
               onPressed: () => Navigator.of(context).pop(),
               text: AppLocalizations.of(context)!.cancel,
               context: context,
-              textColor: Colors.white,
-              backgroundColor: Colors.grey,
+              textColor: Colors.black,
+              backgroundColor: Colors.white,
             ),
             ElevatedButton(
               onPressed: () {
@@ -529,8 +529,8 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
               onPressed: () => Navigator.of(context).pop(),
               text: AppLocalizations.of(context)!.cancel,
               context: context,
-              textColor: Colors.white,
-              backgroundColor: Colors.grey,
+              textColor: Colors.black,
+              backgroundColor: Colors.white,
             ),
             ElevatedButton(
               onPressed: () {
@@ -805,8 +805,8 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
               onPressed: () => Navigator.of(context).pop(),
               text: AppLocalizations.of(context)!.cancel,
               context: context,
-              textColor: Colors.white,
-              backgroundColor: Colors.grey,
+              textColor: Colors.black,
+              backgroundColor: Colors.white,
             ),
             ElevatedButton(
               onPressed: () {

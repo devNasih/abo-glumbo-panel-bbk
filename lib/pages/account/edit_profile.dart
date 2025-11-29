@@ -270,7 +270,7 @@ class _EditProfileState extends State<EditProfile> {
                 text: AppLocalizations.of(context)?.no ?? 'No',
                 context: context,
                 textColor: Colors.white,
-                backgroundColor: Colors.grey.shade600,
+                backgroundColor: Colors.white,
               ),
               eButton(
                 onPressed: () => Navigator.pop(context, true),

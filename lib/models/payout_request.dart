@@ -73,13 +73,27 @@ class PayoutRequestModel {
   }
 
   factory PayoutRequestModel.fromJson(Map<String, dynamic> json) {
+    // Helper function to safely parse timestamps
+    Timestamp? parseTimestamp(dynamic value) {
+      if (value == null) return null;
+      if (value is Timestamp) return value;
+      if (value is String) {
+        try {
+          return Timestamp.fromDate(DateTime.parse(value));
+        } catch (e) {
+          return null;
+        }
+      }
+      return null;
+    }
+
     return PayoutRequestModel(
       id: json['id'],
       userId: json['userId'],
       amount: json['amount'],
       status: json['status'],
-      createdAt: json['createdAt'],
-      updatedAt: json['updatedAt'],
+      createdAt: parseTimestamp(json['createdAt']),
+      updatedAt: parseTimestamp(json['updatedAt']),
       payoutAccount: json['payoutAccount'] != null
           ? PayoutAccountModel.fromJson(json['payoutAccount'])
           : null,

@@ -186,8 +186,8 @@ class _LocationTrackingWidgetState extends State<LocationTrackingWidget> {
               onPressed: () => Navigator.of(context).pop(),
               text: AppLocalizations.of(context)?.later ?? 'Later',
               context: context,
-              textColor: Colors.white,
-              backgroundColor: Colors.grey,
+              textColor: Colors.black,
+              backgroundColor: Colors.white,
             ),
             eButton(
               onPressed: () async {

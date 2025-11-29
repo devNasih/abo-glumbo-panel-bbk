@@ -51,6 +51,8 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
   Future<void> _loadEarningsData() async {
     setState(() => isLoading = true);
 
+    debugPrint('💰 Loading earnings data for workerId: ${widget.workerId}');
+
     try {
       // Execute all independent data fetches in parallel with individual error handling
       final results = await Future.wait([
@@ -100,6 +102,15 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
 
       //lifetime total tips
       totalTips = fullcashTips + fullcardTips;
+
+      debugPrint('💡 Tip Calculation Summary:');
+      debugPrint(
+        '   From TippingModel: cardTips=$cardTips, cashTips=$cashTips, total=${cardTips + cashTips}',
+      );
+      debugPrint(
+        '   From tipsList: fullcardTips=$fullcardTips, fullcashTips=$fullcashTips, total=$totalTips',
+      );
+      debugPrint('   Discrepancy: ${totalTips - (cardTips + cashTips)}');
 
       // Sort transactions only if not empty
       if (transactions.isNotEmpty) {
@@ -327,7 +338,8 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                 },
                 child: _buildPaymentCard(
                   title: AppLocalizations.of(context)!.totalTips,
-                  amount: cardTips + cashTips,
+                  amount:
+                      totalTips, // Use calculated totalTips instead of cardTips + cashTips
                   icon: Icons.star,
                   color: Colors.orange,
                 ),
@@ -442,7 +454,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                           _buildTipRow(
                             context,
                             "${AppLocalizations.of(context)!.cashTips} (${AppLocalizations.of(context)!.inHand})",
-                            cashTips,
+                            fullcashTips,
                             Icons.money,
                             Colors.green,
                           ),
@@ -450,7 +462,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                           _buildTipRow(
                             context,
                             AppLocalizations.of(context)!.cardTips,
-                            cardTips,
+                            fullcardTips,
                             Icons.credit_card,
                             Colors.blue,
                           ),

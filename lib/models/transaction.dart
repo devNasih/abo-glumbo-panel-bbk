@@ -54,15 +54,37 @@ class TransactionModel {
     );
   }
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
+    // Handle createdAt - can be Timestamp or String
+    final createdAtValue = json['createdAt'];
+    Timestamp createdAtTimestamp;
+    if (createdAtValue is Timestamp) {
+      createdAtTimestamp = createdAtValue;
+    } else if (createdAtValue is String) {
+      createdAtTimestamp = Timestamp.fromDate(DateTime.parse(createdAtValue));
+    } else {
+      createdAtTimestamp = Timestamp.now();
+    }
+
+    // Handle updatedAt - can be Timestamp or String
+    final updatedAtValue = json['updatedAt'];
+    Timestamp updatedAtTimestamp;
+    if (updatedAtValue is Timestamp) {
+      updatedAtTimestamp = updatedAtValue;
+    } else if (updatedAtValue is String) {
+      updatedAtTimestamp = Timestamp.fromDate(DateTime.parse(updatedAtValue));
+    } else {
+      updatedAtTimestamp = Timestamp.now();
+    }
+
     return TransactionModel(
-      json['updatedAt'],
+      updatedAtTimestamp,
       amount: json['amount'],
       bookingId: json['bookingId'],
       customerId: json['customerId'],
       workerId: json['workerId'],
       paymentStatus: json['paymentStatus'],
       paymentMethod: json['paymentMethod'],
-      createdAt: json['createdAt'],
+      createdAt: createdAtTimestamp,
       orderId: json['orderId'],
     );
   }

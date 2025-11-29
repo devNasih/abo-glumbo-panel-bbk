@@ -438,7 +438,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                               Expanded(
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.grey[200],
+                                    backgroundColor: Colors.white,
                                   ),
                                   onPressed: () {
                                     setModalState(() {
@@ -448,7 +448,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                   },
                                   child: Text(
                                     AppLocalizations.of(context)!.removeAll,
-                                    style: TextStyle(color: Colors.grey[800]),
+                                    style: TextStyle(color: Colors.black),
                                   ),
                                 ),
                               )

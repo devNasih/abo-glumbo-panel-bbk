@@ -130,24 +130,48 @@ class AllTipsModel {
   });
 
   factory AllTipsModel.fromJson(Map<String, dynamic> json) {
+    // Handle createdAt - can be Timestamp or String
+    Timestamp? createdAtTimestamp;
+    final createdAtValue = json['createdAt'];
+    if (createdAtValue != null) {
+      if (createdAtValue is Timestamp) {
+        createdAtTimestamp = createdAtValue;
+      } else if (createdAtValue is String) {
+        createdAtTimestamp = Timestamp.fromDate(DateTime.parse(createdAtValue));
+      }
+    }
+
+    // Handle updatedAt - can be Timestamp or String
+    Timestamp? updatedAtTimestamp;
+    final updatedAtValue = json['updatedAt'];
+    if (updatedAtValue != null) {
+      if (updatedAtValue is Timestamp) {
+        updatedAtTimestamp = updatedAtValue;
+      } else if (updatedAtValue is String) {
+        updatedAtTimestamp = Timestamp.fromDate(DateTime.parse(updatedAtValue));
+      }
+    }
+
+    // Handle totalTipAmount - Firebase stores it as 'Amount' (capital A)
+    double? tipAmount;
+    if (json['Amount'] != null) {
+      // Firebase uses 'Amount' field
+      tipAmount = json['Amount'] is double
+          ? json['Amount'] as double
+          : (json['Amount'] as num).toDouble();
+    } else if (json['totalTipAmount'] != null) {
+      // Fallback to 'totalTipAmount' field
+      tipAmount = json['totalTipAmount'] is double
+          ? json['totalTipAmount'] as double
+          : (json['totalTipAmount'] as num).toDouble();
+    }
+
     return AllTipsModel(
-      createdAt: json['createdAt'] != null
-          ? (json['createdAt'] is Timestamp
-                ? (json['createdAt'] as Timestamp)
-                : json['createdAt'] as Timestamp)
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? (json['updatedAt'] is Timestamp
-                ? (json['updatedAt'] as Timestamp)
-                : json['updatedAt'] as Timestamp)
-          : null,
+      createdAt: createdAtTimestamp,
+      updatedAt: updatedAtTimestamp,
       agentId: json['agentId'] as String?,
       id: json['id'] as String?,
-      totalTipAmount: json['totalTipAmount'] != null
-          ? (json['totalTipAmount'] is double
-                ? json['totalTipAmount'] as double
-                : (json['totalTipAmount'] as num).toDouble())
-          : null,
+      totalTipAmount: tipAmount,
       proofs: json['proofs'] != null
           ? List<Map<String, dynamic>>.from(json['proofs'])
           : null,
@@ -161,7 +185,7 @@ class AllTipsModel {
       'createdAt': createdAt,
       'updatedAt': updatedAt,
       'id': id,
-      'totalTipAmount': totalTipAmount,
+      'Amount': totalTipAmount, // Use 'Amount' to match Firebase field name
       'proofs': proofs,
       'paymentMethod': paymentMethod,
     };

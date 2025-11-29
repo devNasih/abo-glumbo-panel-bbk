@@ -119,6 +119,7 @@ class BookingCards extends StatelessWidget {
                 ),
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
                     width: 8,
@@ -137,7 +138,7 @@ class BookingCards extends StatelessWidget {
                       style: textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -453,23 +454,35 @@ class BookingCards extends StatelessWidget {
                           ),
                       } else if (booking.bookingStatusCode == 'C') ...{
                         if (booking.completedAt != null)
-                          Text(
-                            "${AppLocalizations.of(context)!.completedOn}: ${LocalizationHelper().formatDateLocalized(booking.completedAt!.toDate(), context)}",
-                            style: textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurface.withOpacity(0.5),
+                          if (booking.paymentCompleted == false) ...{
+                            Text(
+                              "${AppLocalizations.of(context)!.completedOn}: ${LocalizationHelper().formatDateLocalized(booking.completedAt!.toDate(), context)}",
+                              style: textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurface.withOpacity(0.5),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        if (isAdmin)
-                          Text(
-                            "${AppLocalizations.of(context)!.completedBy}: ${booking.agent?.name ?? ''}",
-                            style: textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurface.withOpacity(0.5),
+                            if (isAdmin)
+                              Text(
+                                "${AppLocalizations.of(context)!.completedBy}: ${booking.agent?.name ?? ''}",
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.onSurface.withOpacity(0.5),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                          } else if (booking.paymentCompleted == true &&
+                              booking.paymentCompletedAt != null) ...{
+                            Text(
+                              "${AppLocalizations.of(context)!.paymentCompletedAt}: ${LocalizationHelper().formatDateLocalized(booking.paymentCompletedAt!.toDate(), context)}",
+                              style: textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurface.withOpacity(0.5),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          },
                       } else if (booking.bookingStatusCode == 'XC') ...{
                         if (booking.cancelledAt != null)
                           Text(
@@ -558,6 +571,7 @@ class BookingCards extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           actionsAlignment: MainAxisAlignment.start,
+          backgroundColor: Colors.white,
           title: Text(
             isWarranty
                 ? AppLocalizations.of(context)!.acceptWarrantyRepair
@@ -573,8 +587,8 @@ class BookingCards extends StatelessWidget {
               },
               text: AppLocalizations.of(context)!.cancel,
               context: context,
-              textColor: Colors.white,
-              backgroundColor: Colors.grey,
+              textColor: Colors.black,
+              backgroundColor: Colors.white,
             ),
             eButton(
               onPressed: isWarranty
@@ -630,6 +644,7 @@ class BookingCards extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
+          backgroundColor: Colors.white,
           actionsAlignment: MainAxisAlignment.start,
           title: Text(AppLocalizations.of(context)!.rejectBooking),
           content: isWarranty
@@ -687,7 +702,7 @@ class BookingCards extends StatelessWidget {
               text: AppLocalizations.of(context)!.cancel,
               context: context,
               textColor: Colors.black,
-              backgroundColor: Colors.grey.shade100,
+              backgroundColor: Colors.white,
             ),
             eButton(
               onPressed: isWarranty

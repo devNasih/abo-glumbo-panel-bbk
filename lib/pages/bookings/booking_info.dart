@@ -358,7 +358,6 @@ class _BookingInfoState extends State<BookingInfo> {
             const SizedBox(height: 16),
 
             if (widget.booking.bookingStatusCode.toLowerCase() == 'c' &&
-                widget.booking.paymentCompleted &&
                 widget.booking.completionData != null) ...[
               _buildCompletionDataCard(context, textTheme, colorScheme),
               const SizedBox(height: 16),
@@ -745,6 +744,7 @@ class _BookingInfoState extends State<BookingInfo> {
               colorScheme: colorScheme,
               needCopyButton: true,
             ),
+            const SizedBox(height: 16),
 
             // Service Name
             _buildInfoRow(
@@ -804,7 +804,6 @@ class _BookingInfoState extends State<BookingInfo> {
         ),
         const SizedBox(height: 4),
         Container(
-          height: isDescription ? null : 55,
           width: double.infinity,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -816,6 +815,7 @@ class _BookingInfoState extends State<BookingInfo> {
             children: [
               Expanded(
                 child: Text(
+                  maxLines: isDescription ? null : 2,
                   value,
                   style: GoogleFonts.poppins(
                     fontSize: isDescription ? 14 : 16,
@@ -2062,16 +2062,18 @@ class _BookingInfoState extends State<BookingInfo> {
               ],
             ),
             const SizedBox(height: 12),
-            _buildInfoRow(
-              context,
-              label: AppLocalizations.of(context)!.transactionId,
-              value: widget.booking.orderId ?? "",
-              textTheme: textTheme,
-              colorScheme: colorScheme,
-              needCopyButton: true,
-            ),
+            if (widget.booking.paymentCompleted) ...[
+              _buildInfoRow(
+                context,
+                label: AppLocalizations.of(context)!.transactionId,
+                value: widget.booking.orderId ?? "",
+                textTheme: textTheme,
+                colorScheme: colorScheme,
+                needCopyButton: true,
+              ),
+              const SizedBox(height: 16),
+            ],
 
-            const SizedBox(height: 16),
             _buildInfoRow(
               context,
               label: AppLocalizations.of(context)!.invoiceType,
@@ -2201,12 +2203,27 @@ class _BookingInfoState extends State<BookingInfo> {
               ),
             ],
 
-            if (completionData.serviceCost <= 0) ...[
-              const SizedBox(height: 12),
-              _buildCostRow(
+            const SizedBox(height: 12),
+            _buildCostRow(
+              context,
+              label: AppLocalizations.of(context)!.inspectionFee,
+              amount: widget.booking.service.price ?? 0.0,
+              colorScheme: colorScheme,
+            ),
+
+            // Payment Mode (before total)
+            if (widget.booking.bookingStatusCode.toLowerCase() == 'c' &&
+                widget.booking.paymentCompleted) ...[
+              const SizedBox(height: 16),
+              _buildInfoRow(
                 context,
-                label: AppLocalizations.of(context)!.inspectionFee,
-                amount: widget.booking.service.price ?? 0.0,
+                label: AppLocalizations.of(context)!.paymentMode,
+                value: widget.booking.paymentModeCode.toLowerCase() == 'c'
+                    ? AppLocalizations.of(context)!.card
+                    : widget.booking.paymentModeCode.toLowerCase() == 'a'
+                    ? AppLocalizations.of(context)!.applePay
+                    : AppLocalizations.of(context)!.cashInHand,
+                textTheme: textTheme,
                 colorScheme: colorScheme,
               ),
             ],
@@ -2224,7 +2241,9 @@ class _BookingInfoState extends State<BookingInfo> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    AppLocalizations.of(context)!.amountPaid,
+                    widget.booking.paymentCompleted
+                        ? AppLocalizations.of(context)!.amountPaid
+                        : AppLocalizations.of(context)!.amountToBePaid,
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -2243,20 +2262,6 @@ class _BookingInfoState extends State<BookingInfo> {
               ),
             ),
             SizedBox(height: 12),
-            if (widget.booking.bookingStatusCode.toLowerCase() == 'c' &&
-                widget.booking.paymentCompleted) ...{
-              _buildInfoRow(
-                context,
-                label: AppLocalizations.of(context)!.paymentMode,
-                value: widget.booking.paymentModeCode.toLowerCase() == 'c'
-                    ? AppLocalizations.of(context)!.card
-                    : widget.booking.paymentModeCode.toLowerCase() == 'a'
-                    ? AppLocalizations.of(context)!.applePay
-                    : AppLocalizations.of(context)!.cashInHand,
-                textTheme: textTheme,
-                colorScheme: colorScheme,
-              ),
-            },
           ],
         ),
       ),
