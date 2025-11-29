@@ -2959,6 +2959,56 @@ exports.notifyOnNewChatMessage = onValueCreated(
       const titleEn = `New message from ${senderName}`;
       const titleAr = `رسالة جديدة من ${senderName}`;
 
+      // Get sender and receiver details for navigation
+      let senderPhoto = "";
+      let receiverName = "User";
+      let receiverPhoto = "";
+
+      try {
+        // Get sender photo
+        if (senderType === "customer") {
+          const senderDoc = await db
+            .collection("customers")
+            .doc(senderId)
+            .get();
+          if (senderDoc.exists) {
+            senderPhoto = senderDoc.data().photo || "";
+          }
+        } else {
+          const senderDoc = await db.collection("users").doc(senderId).get();
+          if (senderDoc.exists) {
+            senderPhoto = senderDoc.data().photo || "";
+          }
+        }
+
+        // Get receiver name and photo
+        if (receiverType === "customer") {
+          const receiverDoc = await db
+            .collection("customers")
+            .doc(receiverId)
+            .get();
+          if (receiverDoc.exists) {
+            const receiverData = receiverDoc.data();
+            receiverName =
+              receiverData.name || receiverData.fullName || "Customer";
+            receiverPhoto = receiverData.photo || "";
+          }
+        } else {
+          const receiverDoc = await db
+            .collection("users")
+            .doc(receiverId)
+            .get();
+          if (receiverDoc.exists) {
+            const receiverData = receiverDoc.data();
+            receiverName =
+              receiverData.name || receiverData.fullName || "Technician";
+            receiverPhoto = receiverData.photo || "";
+          }
+        }
+      } catch (error) {
+        console.error(`[${chatId}] Error fetching user details:`, error);
+      }
+
       await sendAndStoreNotification({
         targetRole: receiverType,
         targetId: receiverId,
@@ -2967,7 +3017,7 @@ exports.notifyOnNewChatMessage = onValueCreated(
         bodyEn: bodyEn,
         bodyAr: bodyAr,
         data: {
-          type: "chat_message",
+          type: "chat",
           chatId: chatId,
           senderId: senderId,
           senderType: senderType,
@@ -2977,6 +3027,22 @@ exports.notifyOnNewChatMessage = onValueCreated(
           targetRole: receiverType,
           serviceName: serviceName,
           isWarranty: isWarranty,
+          // Navigation fields for technician/admin app
+          // When receiver is technician/admin, participant is the sender (customer)
+          // When receiver is customer, this won't be used but we set it anyway
+          participantName: senderName,
+          participantId: senderId,
+          participantPhoto: senderPhoto,
+          isAdmin: receiverType === "admin" ? "true" : "false",
+          technicianName:
+            receiverType !== "customer" ? receiverName : senderName,
+          technicianPhoto:
+            receiverType !== "customer" ? receiverPhoto : senderPhoto,
+          // Navigation fields for customer app
+          // When receiver is customer, participant is the sender (technician/admin)
+          customerName: receiverType === "customer" ? receiverName : senderName,
+          customerPhoto:
+            receiverType === "customer" ? receiverPhoto : senderPhoto,
         },
         fcmToken: receiverFcmToken,
         lanCode: receiverLanCode,

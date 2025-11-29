@@ -5,7 +5,8 @@ import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/splash.dart';
 import 'package:aboglumbo_bbk_panel/providers.dart';
-import 'package:aboglumbo_bbk_panel/services/notification.dart';
+import 'package:aboglumbo_bbk_panel/services/notification_services.dart';
+
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:background_fetch/background_fetch.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -201,6 +202,7 @@ class MyApp extends StatelessWidget {
           return MultiBlocProvider(
             providers: providers,
             child: MaterialApp(
+              navigatorKey: navigatorKey,
               title: 'Worker Console',
               debugShowCheckedModeBanner: false,
               builder: (context, child) {

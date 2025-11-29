@@ -15,7 +15,8 @@ import 'package:aboglumbo_bbk_panel/pages/account/terms_and_conditions_page.dart
 import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/services/biometric_service.dart';
-import 'package:aboglumbo_bbk_panel/services/notification.dart';
+import 'package:aboglumbo_bbk_panel/services/notification_services.dart';
+
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';

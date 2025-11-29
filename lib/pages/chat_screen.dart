@@ -44,6 +44,8 @@ class _TechnicianChatScreenState extends State<TechnicianChatScreen> {
   final List<Map<String, dynamic>> _pendingMessages = [];
   final Set<String> _failedMessageIds = {};
 
+  double _previousKeyboardHeight = 0;
+
   @override
   void initState() {
     super.initState();
@@ -55,6 +57,26 @@ class _TechnicianChatScreenState extends State<TechnicianChatScreen> {
 
     // Listen to scroll position to determine if user is viewing older messages
     _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Listen for keyboard changes
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    if (keyboardHeight != _previousKeyboardHeight) {
+      _previousKeyboardHeight = keyboardHeight;
+
+      // If keyboard is opening (height > 0), scroll to bottom
+      if (keyboardHeight > 0) {
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) {
+            _scrollToBottom(force: true);
+          }
+        });
+      }
+    }
   }
 
   void _onScroll() {
@@ -72,17 +94,14 @@ class _TechnicianChatScreenState extends State<TechnicianChatScreen> {
   }
 
   void _scrollToBottom({bool force = false}) {
-    if (_scrollController.hasClients && (force || _shouldScrollToBottom)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scrollController.hasClients) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        }
-      });
-    }
+    if (!_scrollController.hasClients) return;
+    if (!force && !_shouldScrollToBottom) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      }
+    });
   }
 
   Future<void> _sendMessage() async {
@@ -109,8 +128,12 @@ class _TechnicianChatScreenState extends State<TechnicianChatScreen> {
       _pendingMessages.add(optimisticMessage);
     });
 
-    // Scroll to show the new message
-    _scrollToBottom(force: true);
+    // Scroll to show the new message with delay for keyboard animation
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        _scrollToBottom(force: true);
+      }
+    });
 
     try {
       final senderType = widget.isAdmin ? "admin" : "technician";
@@ -131,8 +154,12 @@ class _TechnicianChatScreenState extends State<TechnicianChatScreen> {
         });
       }
 
-      // Scroll to bottom after message is sent
-      _scrollToBottom(force: true);
+      // Scroll to bottom after message is sent with delay for rendering
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          _scrollToBottom(force: true);
+        }
+      });
     } catch (e) {
       // Mark message as failed
       if (mounted) {
@@ -222,6 +249,7 @@ class _TechnicianChatScreenState extends State<TechnicianChatScreen> {
     final localization = AppLocalizations.of(context)!;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         elevation: 1,
@@ -277,215 +305,222 @@ class _TechnicianChatScreenState extends State<TechnicianChatScreen> {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder<DatabaseEvent>(
-              stream: _chatService.getMessagesStream(widget.chatId),
-              builder: (context, snapshot) {
-                // Only show loading on initial load, not on reconnections
-                if (snapshot.connectionState == ConnectionState.waiting &&
-                    !snapshot.hasData) {
-                  return Center(child: SizedBox(height: 26, child: Loader()));
-                }
-
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 48,
-                          color: Colors.red[300],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          localization.errorLoadingMessages,
-                          style: GoogleFonts.dmSans(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                // Parse real messages from Firebase
-                List<Map<String, dynamic>> realMessages = [];
-                if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
-                  final messagesMap = snapshot.data!.snapshot.value as Map;
-                  realMessages = messagesMap.entries.map((entry) {
-                    final message = Map<String, dynamic>.from(
-                      entry.value as Map,
-                    );
-                    message['id'] = entry.key;
-                    message['isOptimistic'] = false;
-                    return message;
-                  }).toList();
-                }
-
-                // Filter out optimistic messages that match real messages
-                // to prevent duplicates
-                final List<String> messagesToRemove = [];
-                final filteredPendingMessages = _pendingMessages.where((
-                  pending,
-                ) {
-                  final pendingText = pending['text'] as String;
-                  final pendingTimestamp = pending['timestamp'] as int;
-                  final pendingId = pending['id'] as String;
-
-                  // Check if a real message with similar content exists
-                  // (within 5 seconds of the optimistic message)
-                  final hasDuplicate = realMessages.any((real) {
-                    final realText = real['text'] as String? ?? '';
-                    final realTimestamp = real['timestamp'] as int? ?? 0;
-                    final timeDiff = (realTimestamp - pendingTimestamp).abs();
-
-                    return realText == pendingText && timeDiff < 5000;
-                  });
-
-                  // Mark for removal if duplicate found
-                  if (hasDuplicate && pending['status'] != 'failed') {
-                    messagesToRemove.add(pendingId);
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Column(
+          children: [
+            Expanded(
+              child: StreamBuilder<DatabaseEvent>(
+                stream: _chatService.getMessagesStream(widget.chatId),
+                builder: (context, snapshot) {
+                  // Only show loading on initial load, not on reconnections
+                  if (snapshot.connectionState == ConnectionState.waiting &&
+                      !snapshot.hasData) {
+                    return Center(child: SizedBox(height: 26, child: Loader()));
                   }
 
-                  return !hasDuplicate;
-                }).toList();
-
-                // Clean up successfully sent messages from pending list
-                if (messagesToRemove.isNotEmpty) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) {
-                      setState(() {
-                        _pendingMessages.removeWhere(
-                          (msg) => messagesToRemove.contains(msg['id']),
-                        );
-                      });
-                    }
-                  });
-                }
-
-                // Combine real messages with filtered pending optimistic messages
-                final allMessages = [
-                  ...realMessages,
-                  ...filteredPendingMessages,
-                ];
-                allMessages.sort(
-                  (a, b) =>
-                      (a['timestamp'] ?? 0).compareTo(b['timestamp'] ?? 0),
-                );
-
-                // Auto-scroll only when message count increases
-                final currentMessageCount = allMessages.length;
-                if (currentMessageCount > _lastMessageCount &&
-                    _shouldScrollToBottom) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    _scrollToBottom();
-                  });
-                }
-                // Update count directly without setState to avoid rebuild loop
-                _lastMessageCount = currentMessageCount;
-
-                if (allMessages.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.chat_bubble_outline,
-                          size: 64,
-                          color: Colors.grey[300],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          localization.noMessages,
-                          style: GoogleFonts.dmSans(
-                            fontSize: 16,
-                            color: Colors.grey[600],
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: Colors.red[300],
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          localization.startConversationWithCustomer,
-                          style: GoogleFonts.dmSans(
-                            fontSize: 14,
-                            color: Colors.grey[500],
+                          const SizedBox(height: 16),
+                          Text(
+                            localization.errorLoadingMessages,
+                            style: GoogleFonts.dmSans(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                  itemCount: allMessages.length,
-                  itemBuilder: (context, index) {
-                    final message = allMessages[index];
-
-                    final senderId = message['senderId'] as String? ?? '';
-
-                    String text = message['text'] as String? ?? '';
-                    if (text.isEmpty) {
-                      text = message['message'] as String? ?? '';
-                    }
-                    if (text.isEmpty) {
-                      final mediaUrl = message['mediaUrl'] as String?;
-                      if (mediaUrl != null && mediaUrl.isNotEmpty) {
-                        final mediaType = message['mediaType'] as String? ?? '';
-                        text = mediaType == 'image'
-                            ? '📷 Photo'
-                            : (mediaType == 'video' ? '🎥 Video' : '[Media]');
-                      } else {
-                        text = '[Empty message]';
-                      }
-                    }
-
-                    final timestamp = message['timestamp'] as int? ?? 0;
-                    final isMe = senderId == _chatService.currentUserId;
-                    final status = message['status'] as String? ?? 'sent';
-                    final isOptimistic =
-                        message['isOptimistic'] as bool? ?? false;
-
-                    bool showDateSeparator = false;
-                    if (index == 0) {
-                      showDateSeparator = true;
-                    } else {
-                      final prevMessage = allMessages[index - 1];
-                      final prevTimestamp =
-                          prevMessage['timestamp'] as int? ?? 0;
-                      if (!_isSameDay(timestamp, prevTimestamp)) {
-                        showDateSeparator = true;
-                      }
-                    }
-
-                    return Column(
-                      children: [
-                        if (showDateSeparator)
-                          _buildDateSeparator(timestamp, localization),
-                        _buildMessageBubble(
-                          message: text,
-                          isMe: isMe,
-                          timestamp: timestamp,
-                          status: status,
-                          isOptimistic: isOptimistic,
-                          messageId: message['id'] as String,
-                        ),
-                      ],
+                        ],
+                      ),
                     );
-                  },
-                );
-              },
+                  }
+
+                  // Parse real messages from Firebase
+                  List<Map<String, dynamic>> realMessages = [];
+                  if (snapshot.hasData &&
+                      snapshot.data!.snapshot.value != null) {
+                    final messagesMap = snapshot.data!.snapshot.value as Map;
+                    realMessages = messagesMap.entries.map((entry) {
+                      final message = Map<String, dynamic>.from(
+                        entry.value as Map,
+                      );
+                      message['id'] = entry.key;
+                      message['isOptimistic'] = false;
+                      return message;
+                    }).toList();
+                  }
+
+                  // Filter out optimistic messages that match real messages
+                  // to prevent duplicates
+                  final List<String> messagesToRemove = [];
+                  final filteredPendingMessages = _pendingMessages.where((
+                    pending,
+                  ) {
+                    final pendingText = pending['text'] as String;
+                    final pendingTimestamp = pending['timestamp'] as int;
+                    final pendingId = pending['id'] as String;
+
+                    // Check if a real message with similar content exists
+                    // (within 5 seconds of the optimistic message)
+                    final hasDuplicate = realMessages.any((real) {
+                      final realText = real['text'] as String? ?? '';
+                      final realTimestamp = real['timestamp'] as int? ?? 0;
+                      final timeDiff = (realTimestamp - pendingTimestamp).abs();
+
+                      return realText == pendingText && timeDiff < 5000;
+                    });
+
+                    // Mark for removal if duplicate found
+                    if (hasDuplicate && pending['status'] != 'failed') {
+                      messagesToRemove.add(pendingId);
+                    }
+
+                    return !hasDuplicate;
+                  }).toList();
+
+                  // Clean up successfully sent messages from pending list
+                  if (messagesToRemove.isNotEmpty) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) {
+                        setState(() {
+                          _pendingMessages.removeWhere(
+                            (msg) => messagesToRemove.contains(msg['id']),
+                          );
+                        });
+                      }
+                    });
+                  }
+
+                  // Combine real messages with filtered pending optimistic messages
+                  final allMessages = [
+                    ...realMessages,
+                    ...filteredPendingMessages,
+                  ];
+                  allMessages.sort(
+                    (a, b) =>
+                        (a['timestamp'] ?? 0).compareTo(b['timestamp'] ?? 0),
+                  );
+
+                  // Auto-scroll only when message count increases
+                  final currentMessageCount = allMessages.length;
+                  if (currentMessageCount > _lastMessageCount &&
+                      _shouldScrollToBottom) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _scrollToBottom();
+                    });
+                  }
+                  // Update count directly without setState to avoid rebuild loop
+                  _lastMessageCount = currentMessageCount;
+
+                  if (allMessages.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.chat_bubble_outline,
+                            size: 64,
+                            color: Colors.grey[300],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            localization.noMessages,
+                            style: GoogleFonts.dmSans(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            localization.startConversationWithCustomer,
+                            style: GoogleFonts.dmSans(
+                              fontSize: 14,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.only(
+                      left: 16,
+                      right: 16,
+                      top: 16,
+                      bottom: 16,
+                    ),
+                    itemCount: allMessages.length,
+                    itemBuilder: (context, index) {
+                      final message = allMessages[index];
+
+                      final senderId = message['senderId'] as String? ?? '';
+
+                      String text = message['text'] as String? ?? '';
+                      if (text.isEmpty) {
+                        text = message['message'] as String? ?? '';
+                      }
+                      if (text.isEmpty) {
+                        final mediaUrl = message['mediaUrl'] as String?;
+                        if (mediaUrl != null && mediaUrl.isNotEmpty) {
+                          final mediaType =
+                              message['mediaType'] as String? ?? '';
+                          text = mediaType == 'image'
+                              ? '📷 Photo'
+                              : (mediaType == 'video' ? '🎥 Video' : '[Media]');
+                        } else {
+                          text = '[Empty message]';
+                        }
+                      }
+
+                      final timestamp = message['timestamp'] as int? ?? 0;
+                      final isMe = senderId == _chatService.currentUserId;
+                      final status = message['status'] as String? ?? 'sent';
+                      final isOptimistic =
+                          message['isOptimistic'] as bool? ?? false;
+
+                      bool showDateSeparator = false;
+                      if (index == 0) {
+                        showDateSeparator = true;
+                      } else {
+                        final prevMessage = allMessages[index - 1];
+                        final prevTimestamp =
+                            prevMessage['timestamp'] as int? ?? 0;
+                        if (!_isSameDay(timestamp, prevTimestamp)) {
+                          showDateSeparator = true;
+                        }
+                      }
+
+                      return Column(
+                        children: [
+                          if (showDateSeparator)
+                            _buildDateSeparator(timestamp, localization),
+                          _buildMessageBubble(
+                            message: text,
+                            isMe: isMe,
+                            timestamp: timestamp,
+                            status: status,
+                            isOptimistic: isOptimistic,
+                            messageId: message['id'] as String,
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-          _buildMessageInput(localization),
-        ],
+            _buildMessageInput(localization),
+          ],
+        ),
       ),
     );
   }
@@ -653,7 +688,12 @@ class _TechnicianChatScreenState extends State<TechnicianChatScreen> {
 
   Widget _buildMessageInput(AppLocalizations localization) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 12,
+        bottom: 12 + MediaQuery.of(context).padding.bottom,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -664,60 +704,59 @@ class _TechnicianChatScreenState extends State<TechnicianChatScreen> {
           ),
         ],
       ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: TextField(
-                  controller: _messageController,
-                  textInputAction: TextInputAction.send,
-                  maxLines: null,
-                  keyboardType: TextInputType.multiline,
-                  onSubmitted: (_) => _sendMessage(),
-                  style: GoogleFonts.dmSans(fontSize: 15),
-                  decoration: InputDecoration(
-                    hintText: localization.typeMessageToCustomer,
-                    hintStyle: GoogleFonts.dmSans(
-                      fontSize: 15,
-                      color: Colors.grey[500],
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: TextField(
+                controller: _messageController,
+                textInputAction: TextInputAction.send,
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
+                onSubmitted: (_) => _sendMessage(),
+                style: GoogleFonts.dmSans(fontSize: 15),
+                decoration: InputDecoration(
+                  hintText: localization.typeMessageToCustomer,
+                  hintStyle: GoogleFonts.dmSans(
+                    fontSize: 15,
+                    color: Colors.grey[500],
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: _isLoading ? Colors.grey[400] : AppColors.blue1,
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: _isLoading
-                    ? SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: Loader(size: 16, color: Colors.white),
-                      )
-                    : const Icon(
-                        Icons.send_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                onPressed: _isLoading ? null : _sendMessage,
-              ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: _isLoading ? Colors.grey[400] : AppColors.blue1,
+              shape: BoxShape.circle,
             ),
-          ],
-        ),
+            child: IconButton(
+              icon: _isLoading
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Loader(size: 16, color: Colors.white),
+                    )
+                  : const Icon(
+                      Icons.send_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+              onPressed: _isLoading ? null : _sendMessage,
+            ),
+          ),
+        ],
       ),
     );
   }

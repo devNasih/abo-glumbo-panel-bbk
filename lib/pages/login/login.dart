@@ -7,7 +7,7 @@ import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/otp.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/widgets/language_selector.dart';
-import 'package:aboglumbo_bbk_panel/services/notification.dart';
+import 'package:aboglumbo_bbk_panel/services/notification_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:aboglumbo_bbk_panel/styles/images.dart';
 import 'package:firebase_auth/firebase_auth.dart';
