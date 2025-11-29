@@ -334,6 +334,20 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
             Expanded(
               child: GestureDetector(
                 onTap: () {
+                  // Check if there's already a pending tip payout request
+                  if (tips?.payoutRequested == true) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          AppLocalizations.of(
+                            context,
+                          )!.cannotRequestPayoutPendingRequest,
+                        ),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                    return;
+                  }
                   _showTipsDialog(context, widget.workerId);
                 },
                 child: _buildPaymentCard(
@@ -598,30 +612,6 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                       : isLoading
                       ? null
                       : () async {
-                          // Check if there's already a pending tip payout request
-                          if (tips?.payoutRequested == true) {
-                            if (mounted) {
-                              setState(() {
-                                errorMessage = AppLocalizations.of(
-                                  context,
-                                )!.cannotRequestPayoutPendingRequest;
-                              });
-                            }
-                            // Show snackbar if there's already a pending request
-                            // Navigator.of(context).pop();
-                            // ScaffoldMessenger.of(context).showSnackBar(
-                            //   SnackBar(
-                            //     content: Text(
-                            //       AppLocalizations.of(
-                            //         context,
-                            //       )!.cannotRequestPayoutPendingRequest,
-                            //     ),
-                            //     backgroundColor: Colors.orange,
-                            //   ),
-                            // );
-                            // return;
-                          }
-
                           // Clear previous error
                           if (mounted) {
                             setState(() {

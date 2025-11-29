@@ -489,6 +489,14 @@ exports.notifyTechnicianOnPaymentCompletion = onDocumentWritten(
       return;
     }
 
+    // Skip if this is a warranty scenario (warranty exists)
+    if (afterData.warranty) {
+      console.log(
+        `[${bookingId}] Skipping payment notification - this is a warranty booking`
+      );
+      return;
+    }
+
     const agent = afterData.agent;
     if (!agent?.uid) {
       console.log(`[${bookingId}] No agent assigned, skipping notification`);
@@ -526,7 +534,12 @@ exports.notifyTechnicianOnPaymentCompletion = onDocumentWritten(
     const serviceName = afterData.service?.name || "Service";
     const serviceNameAr = afterData.service?.name_ar || serviceName;
     const customerName = afterData.customer?.name || "Customer";
-    const totalAmount = afterData.totalAmount || 0;
+
+    // Get payment amount from completionData
+    const inspectionOnly = afterData.completionData?.mode === 0 || false;
+    const totalAmount = inspectionOnly
+      ? afterData.completionData?.inspectionFee || 0
+      : afterData.completionData?.totalCost || 0;
 
     await sendAndStoreNotification({
       targetRole: "technician",
@@ -638,7 +651,6 @@ exports.customerTrackingNotification = onDocumentWritten(
       fcmToken: fcmToken,
       lanCode: lanCode,
     });
-    console.log("✅ Final Message Object:", JSON.stringify(message, null, 2));
   }
 );
 exports.onBookingUpdateToTip = onDocumentWritten(
@@ -2264,15 +2276,17 @@ exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
       }
     }
     // 10. Warranty Technician Assigned/Reassigned
+    // Only notify if assignedTechnicianId is different from original agent.uid
+    // AND status changed from R to S
     else if (
-      beforeWarranty?.assignedTechnicianId !==
-        afterWarranty.assignedTechnicianId &&
+      beforeStatusCode === "R" &&
+      afterStatusCode === "S" &&
       afterWarranty.assignedTechnicianId &&
-      afterWarranty.warrantyStatusCode === "S"
+      afterWarranty.assignedTechnicianId !== afterData.agent?.uid
     ) {
       status = "warranty_technician_assigned";
       console.log(
-        `Warranty technician ${afterWarranty.assignedTechnicianId} assigned to booking ${bookingId}`
+        `Warranty technician ${afterWarranty.assignedTechnicianId} assigned to booking ${bookingId} (different from original agent ${afterData.agent?.uid})`
       );
     }
 

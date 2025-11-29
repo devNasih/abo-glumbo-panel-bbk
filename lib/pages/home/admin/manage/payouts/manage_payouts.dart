@@ -253,18 +253,6 @@ class _ManagePayoutsState extends State<ManagePayouts> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _selectedFilter == 'all'
-                              ? AppLocalizations.of(
-                                  context,
-                                )!.noPayoutRequestsYet
-                              : '${AppLocalizations.of(context)!.no} ${_getFilterLabel(_selectedFilter)} ${AppLocalizations.of(context)!.requests}',
-                          style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 14,
-                          ),
-                        ),
                       ],
                     ),
                   );
@@ -298,19 +286,6 @@ class _ManagePayoutsState extends State<ManagePayouts> {
         ],
       ),
     );
-  }
-
-  String _getFilterLabel(String filter) {
-    switch (filter) {
-      case 'p':
-        return AppLocalizations.of(context)!.pending;
-      case 'c':
-        return AppLocalizations.of(context)!.approved;
-      case 'r':
-        return AppLocalizations.of(context)!.rejected;
-      default:
-        return filter;
-    }
   }
 
   // Shimmer for stats cards

@@ -232,11 +232,11 @@ class TipsTileCompact extends StatelessWidget {
     if (difference.inDays > 7) {
       return '${lastUpdatedDate.day}/${lastUpdatedDate.month}/${lastUpdatedDate.year}';
     } else if (difference.inDays > 0) {
-      return '${difference.inDays} ${AppLocalizations.of(context)!.day}${difference.inDays > 1 ? 's' : ''} ${AppLocalizations.of(context)!.ago}';
+      return AppLocalizations.of(context)!.daysAgo(difference.inDays);
     } else if (difference.inHours > 0) {
-      return '${difference.inHours} ${AppLocalizations.of(context)!.hour}${difference.inHours > 1 ? 's' : ''} ${AppLocalizations.of(context)!.ago}';
+      return AppLocalizations.of(context)!.hoursAgo(difference.inHours);
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} ${AppLocalizations.of(context)!.minute}${difference.inMinutes > 1 ? 's' : ''} ${AppLocalizations.of(context)!.ago}';
+      return AppLocalizations.of(context)!.minutesAgo(difference.inMinutes);
     } else {
       return AppLocalizations.of(context)!.justNow;
     }
