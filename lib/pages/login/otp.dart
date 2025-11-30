@@ -70,77 +70,103 @@ class _OtpPageState extends State<OtpPage> {
     });
   }
 
-  void resendOTP() {
+  void resendOTP() async {
     if (resendSeconds > 0) return;
 
     setState(() {
       isResendingOtp = true;
     });
 
-    AuthServices().resendOTP(
-      phoneNumber: widget.phoneNumber ?? '',
-      resendToken: _resendToken,
-      onCodeSent: (verificationId, {int? resendToken}) {
+    try {
+      await AuthServices().resendOTP(
+        phoneNumber: widget.phoneNumber ?? '',
+        resendToken: _resendToken,
+        onCodeSent: (verificationId, {int? resendToken}) {
+          if (mounted) {
+            setState(() {
+              isResendingOtp = false;
+              _verificationId = verificationId;
+              _resendToken = resendToken;
+            });
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(AppLocalizations.of(context)!.otpSent),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+                margin: EdgeInsets.all(16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            );
+
+            startTimer();
+          }
+        },
+        onError: (error) {
+          if (mounted) {
+            setState(() {
+              isResendingOtp = false;
+            });
+
+            String errorMessage;
+            switch (error.code) {
+              case 'too-many-requests':
+                errorMessage =
+                    AppLocalizations.of(context)?.tooManyRequests ??
+                    'Too many attempts. Please wait and try again.';
+                break;
+              case 'quota-exceeded':
+                errorMessage =
+                    AppLocalizations.of(context)?.quotaExceeded ??
+                    'SMS quota exceeded. Try again later.';
+                break;
+              case 'network-request-failed':
+                errorMessage =
+                    AppLocalizations.of(context)?.networkError ??
+                    'Network error. Please check your connection.';
+                break;
+              case 'session-expired':
+                errorMessage =
+                    AppLocalizations.of(context)?.otpExpired ??
+                    'OTP expired. Please request a new OTP.';
+                break;
+              case 'internal-error':
+                errorMessage =
+                    AppLocalizations.of(context)?.internalError ??
+                    'An internal error occurred. Please try again later.';
+                break;
+              default:
+                errorMessage = error.message ?? 'Failed to resend OTP';
+            }
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(errorMessage),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 3),
+                behavior: SnackBarBehavior.floating,
+                margin: EdgeInsets.all(16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            );
+          }
+        },
+      );
+    } catch (e) {
+      // Catch any unexpected errors that weren't handled by onError callback
+      if (mounted) {
         setState(() {
           isResendingOtp = false;
-          _verificationId = verificationId;
-          _resendToken = resendToken;
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.otpSent),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.all(16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-
-        startTimer();
-      },
-      onError: (error) {
-        setState(() {
-          isResendingOtp = false;
-        });
-
-        String errorMessage;
-        switch (error.code) {
-          case 'too-many-requests':
-            errorMessage =
-                AppLocalizations.of(context)?.tooManyRequests ??
-                'Too many attempts. Please wait and try again.';
-            break;
-          case 'quota-exceeded':
-            errorMessage =
-                AppLocalizations.of(context)?.quotaExceeded ??
-                'SMS quota exceeded. Try again later.';
-            break;
-          case 'network-request-failed':
-            errorMessage =
-                AppLocalizations.of(context)?.networkError ??
-                'Network error. Please check your connection.';
-            break;
-          case 'session-expired':
-            errorMessage =
-                AppLocalizations.of(context)?.otpExpired ??
-                'OTP expired. Please request a new OTP.';
-            break;
-          case 'internal-error':
-            errorMessage =
-                AppLocalizations.of(context)?.internalError ??
-                'An internal error occurred. Please try again later.';
-            break;
-          default:
-            errorMessage = error.message ?? 'Failed to resend OTP';
-        }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
+            content: Text('Failed to resend OTP. Please try again.'),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 3),
             behavior: SnackBarBehavior.floating,
@@ -150,8 +176,8 @@ class _OtpPageState extends State<OtpPage> {
             ),
           ),
         );
-      },
-    );
+      }
+    }
   }
 
   Future<void> migrateUserData(

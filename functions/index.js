@@ -878,240 +878,6 @@ exports.sendNotificationToFCM = onRequest(async (req, res) => {
   }
 });
 
-exports.notifyAdminsOnPayoutRequest = onDocumentCreated(
-  "payoutRequests/{requestId}",
-  async (event) => {
-    const snap = event.data;
-    if (!snap) {
-      console.log("No data associated with the event");
-      return;
-    }
-
-    const payoutRequest = snap.data();
-    const requestId = event.params.requestId;
-    const userId = payoutRequest.userId;
-    const amount = payoutRequest.amount || "0";
-
-    if (!userId) {
-      console.log("No userId found in payout request");
-      return null;
-    }
-
-    // Fetch worker details from users collection
-    let workerData;
-    try {
-      const workerDoc = await admin
-        .firestore()
-        .collection("users")
-        .doc(userId)
-        .get();
-
-      if (!workerDoc.exists) {
-        console.log(`Worker document not found for userId: ${userId}`);
-        return null;
-      }
-
-      workerData = workerDoc.data();
-    } catch (error) {
-      console.error("Error fetching worker data:", error);
-      return null;
-    }
-
-    const workerName =
-      workerData.name || workerData.fullName || "Unknown Worker";
-    const workerPhone = workerData.phone || "";
-
-    try {
-      const adminUsersSnapshot = await admin
-        .firestore()
-        .collection("users")
-        .where("isAdmin", "==", true)
-        .get();
-
-      const tokensWithLanguage = [];
-      adminUsersSnapshot.forEach((doc) => {
-        const user = doc.data();
-        if (user.fcmToken && user.fcmToken.trim() !== "") {
-          tokensWithLanguage.push({
-            uid: doc.id,
-            token: user.fcmToken,
-            lanCode: user.lanCode || "en",
-          });
-        }
-      });
-
-      if (tokensWithLanguage.length === 0) {
-        console.log("No admin tokens found.");
-        return null;
-      }
-
-      const results = [];
-
-      for (const { uid, token, lanCode } of tokensWithLanguage) {
-        await sendAndStoreNotification({
-          targetRole: "admin",
-          targetId: uid,
-          titleEn: "New Payout Request",
-          titleAr: "طلب دفع جديد",
-          bodyEn: `${workerName} requested a payout of ₹${amount}`,
-          bodyAr: `${workerName} طلب دفع بقيمة ₹${amount}`,
-          data: {
-            targetRole: "admin",
-            category: "payout",
-            requestId: requestId,
-            workerId: userId,
-            workerName: workerName,
-            amount: amount,
-            isAdmin: "true",
-          },
-          fcmToken: token,
-          lanCode: lanCode,
-        });
-      }
-
-      console.log(
-        `Notified ${
-          results.filter((r) => r.success).length
-        } admins about payout request`
-      );
-    } catch (error) {
-      console.error("Error sending admin notifications:", error);
-    }
-
-    return null;
-  }
-);
-exports.notifyWorkerOnPayoutStatusChange = onDocumentWritten(
-  "payoutRequests/{requestId}",
-  async (event) => {
-    const beforeData = event.data?.before?.data();
-    const afterData = event.data?.after?.data();
-    const requestId = event.params.requestId;
-
-    if (!afterData) {
-      console.log("Document deleted, skipping...");
-      return;
-    }
-
-    // Check if status changed
-    const statusChanged = beforeData?.status !== afterData.status;
-    if (!statusChanged) {
-      console.log("Payout status did not change, skipping...");
-      return;
-    }
-
-    const userId = afterData.userId;
-    const status = afterData.status; // Expected: "pending", "approved", "rejected"
-
-    if (!userId) {
-      console.log("No userId found in payout request.");
-      return;
-    }
-
-    // Only notify on approved or rejected, not pending
-    if (status !== "approved" && status !== "rejected") {
-      console.log(`Status ${status} doesn't require notification.`);
-      return;
-    }
-
-    // Fetch worker details
-    let workerData;
-    try {
-      const workerDoc = await admin
-        .firestore()
-        .collection("users")
-        .doc(userId)
-        .get();
-
-      if (!workerDoc.exists) {
-        console.log("Worker document not found.");
-        return;
-      }
-
-      workerData = workerDoc.data();
-    } catch (error) {
-      console.error("Error fetching worker data:", error);
-      return;
-    }
-
-    const fcmToken = workerData?.fcmToken;
-    const lanCode = workerData?.lanCode || "en";
-
-    if (!fcmToken || fcmToken.trim() === "") {
-      console.log("Worker has no valid FCM token.");
-      return;
-    }
-
-    const amount = afterData.amount || "0";
-    const accountType = afterData.payoutAccount?.accountType || "";
-
-    const statusMessages = {
-      approved: {
-        en: `Your payout request of ₹${amount} has been approved! The amount will be transferred to your ${accountType} account shortly.`,
-        ar: `تمت الموافقة على طلب الدفع الخاص بك بقيمة ₹${amount}! سيتم تحويل المبلغ إلى حسابك ${accountType} قريبًا.`,
-      },
-      rejected: {
-        en: `Your payout request of ₹${amount} has been rejected. Please contact support for more details.`,
-        ar: `تم رفض طلب الدفع الخاص بك بقيمة ₹${amount}. يرجى الاتصال بالدعم لمزيد من التفاصيل.`,
-      },
-    };
-
-    const notificationTitle = {
-      approved: {
-        en: "Payout Approved ✅",
-        ar: "تمت الموافقة على الدفع ✅",
-      },
-      rejected: {
-        en: "Payout Rejected ❌",
-        ar: "تم رفض الدفع ❌",
-      },
-    };
-
-    const notificationBody =
-      statusMessages[status]?.[lanCode] || statusMessages[status]?.["en"];
-    const title =
-      notificationTitle[status]?.[lanCode] || notificationTitle[status]?.["en"];
-
-    await sendAndStoreNotification({
-      targetRole: "technician",
-      targetId: userId,
-      titleEn: notificationTitle[status]?.["en"],
-      titleAr: notificationTitle[status]?.["ar"],
-      bodyEn: statusMessages[status]?.["en"],
-      bodyAr: statusMessages[status]?.["ar"],
-      data: {
-        targetRole: "technician",
-        category: "payout",
-        requestId: requestId,
-        status: status,
-        amount: amount,
-        isAdmin: "false",
-      },
-      fcmToken: fcmToken,
-      lanCode: lanCode,
-    });
-
-    try {
-      await admin.messaging().send(message);
-      console.log(
-        `✅ Notification sent to worker ${userId} for payout status: ${status}`
-      );
-    } catch (error) {
-      console.error("❌ Error sending FCM notification:", error);
-
-      // Handle invalid token errors
-      if (
-        error.code === "messaging/invalid-registration-token" ||
-        error.code === "messaging/registration-token-not-registered"
-      ) {
-        console.log(
-          `Invalid FCM token for user ${userId}, consider removing it from database`
-        );
-      }
-    }
-  }
-);
-
 exports.notifyWorkerOnNewBooking = onDocumentCreated(
   "bookings/{bookingId}",
   async (event) => {
@@ -3606,6 +3372,472 @@ exports.notifyTechnicianOnWarrantyAssignment = onDocumentWritten(
     } catch (error) {
       console.error(
         `[${bookingId}] Error sending warranty assignment notification:`,
+        error
+      );
+    }
+
+    return null;
+  }
+);
+
+// ============================================
+// Notify Admins on New Payout Request
+// ============================================
+
+exports.notifyAdminsOnPayoutRequest = onDocumentCreated(
+  "payouts/{payoutId}",
+  async (event) => {
+    const payoutId = event.params.payoutId;
+    const payoutData = event.data?.data();
+
+    if (!payoutData) {
+      console.log(`[${payoutId}] No payout data found`);
+      return;
+    }
+
+    const userId = payoutData.userId;
+    const amount = payoutData.amount || "0";
+    const type = payoutData.type || "earnings"; // earnings, bonus,
+    const status = payoutData.status;
+
+    // Only notify on pending requests
+    if (status !== "P") {
+      console.log(`[${payoutId}] Payout status is not pending, skipping...`);
+      return;
+    }
+
+    console.log(
+      `[${payoutId}] New ${type} payout request detected for user ${userId}, amount: ${amount}`
+    );
+
+    // Fetch technician data
+    let technicianData;
+    try {
+      const technicianDoc = await admin
+        .firestore()
+        .collection("users")
+        .doc(userId)
+        .get();
+
+      if (!technicianDoc.exists) {
+        console.log(`[${payoutId}] Technician document not found`);
+        return;
+      }
+
+      technicianData = technicianDoc.data();
+    } catch (error) {
+      console.error(`[${payoutId}] Error fetching technician data:`, error);
+      return;
+    }
+
+    const technicianName = technicianData?.name || "Technician";
+
+    // Determine notification content based on payout type
+    let titleEn, titleAr, bodyEn, bodyAr;
+
+    switch (type) {
+      case "earnings":
+        titleEn = "New Earnings Payout Request";
+        titleAr = "طلب صرف أرباح جديد";
+        bodyEn = `${technicianName} has requested an earnings payout of ${amount}.`;
+        bodyAr = `طلب ${technicianName} صرف أرباح بقيمة ${amount}.`;
+        break;
+      case "bonus":
+        titleEn = "New Bonus Payout Request";
+        titleAr = "طلب صرف مكافأة جديد";
+        bodyEn = `${technicianName} has requested a bonus payout of ${amount}.`;
+        bodyAr = `طلب ${technicianName} صرف مكافأة بقيمة ${amount}.`;
+        break;
+      default:
+        titleEn = "New Payout Request";
+        titleAr = "طلب صرف جديد";
+        bodyEn = `${technicianName} has requested a payout of ${amount}.`;
+        bodyAr = `طلب ${technicianName} صرف بقيمة ${amount}.`;
+    }
+
+    // Fetch all admin users
+    try {
+      const adminSnapshot = await admin
+        .firestore()
+        .collection("users")
+        .where("isAdmin", "==", true)
+        .get();
+
+      if (adminSnapshot.empty) {
+        console.log(`[${payoutId}] No admin users found`);
+        return;
+      }
+
+      // Send notification to each admin
+      for (const adminDoc of adminSnapshot.docs) {
+        const adminData = adminDoc.data();
+        const adminFcmToken = adminData?.fcmToken;
+        const adminLanCode = adminData?.lanCode || "en";
+
+        if (!adminFcmToken || adminFcmToken.trim() === "") {
+          console.log(
+            `[${payoutId}] Admin ${adminDoc.id} has no valid FCM token`
+          );
+          continue;
+        }
+
+        await sendAndStoreNotification({
+          targetRole: "admin",
+          targetId: adminDoc.id,
+          titleEn,
+          titleAr,
+          bodyEn,
+          bodyAr,
+          data: {
+            targetRole: "admin",
+            category: "payout",
+            payoutId,
+            userId,
+            technicianName,
+            amount,
+            type,
+            isAdmin: "true",
+          },
+          fcmToken: adminFcmToken,
+          lanCode: adminLanCode,
+        });
+      }
+
+      console.log(
+        `[${payoutId}] ✅ Payout request notifications sent to admins`
+      );
+    } catch (error) {
+      console.error(
+        `[${payoutId}] Error sending payout request notifications:`,
+        error
+      );
+    }
+
+    return null;
+  }
+);
+
+// ============================================
+// Notify Admins on Tip Payout Request
+// ============================================
+
+exports.notifyAdminsOnTipPayoutRequest = onDocumentWritten(
+  "tipping/{agentId}",
+  async (event) => {
+    const agentId = event.params.agentId;
+    const beforeData = event.data?.before?.data();
+    const afterData = event.data?.after?.data();
+
+    if (!afterData) {
+      console.log(`[${agentId}] Document deleted, skipping...`);
+      return;
+    }
+
+    const wasPayoutRequested = beforeData?.payoutRequested || false;
+    const isPayoutRequested = afterData.payoutRequested || false;
+
+    // Only notify when payoutRequested changes from false to true
+    if (!isPayoutRequested || wasPayoutRequested) {
+      return;
+    }
+
+    const technicianName = afterData.agentName || "Technician";
+    const cardTips = afterData.cardtip || 0;
+
+    console.log(
+      `[${agentId}] Tip payout request detected for ${technicianName}, amount: ${cardTips}`
+    );
+
+    // Fetch all admin users
+    try {
+      const adminSnapshot = await admin
+        .firestore()
+        .collection("users")
+        .where("isAdmin", "==", true)
+        .get();
+
+      if (adminSnapshot.empty) {
+        console.log(`[${agentId}] No admin users found`);
+        return;
+      }
+
+      // Send notification to each admin
+      for (const adminDoc of adminSnapshot.docs) {
+        const adminData = adminDoc.data();
+        const adminFcmToken = adminData?.fcmToken;
+        const adminLanCode = adminData?.lanCode || "en";
+
+        if (!adminFcmToken || adminFcmToken.trim() === "") {
+          console.log(
+            `[${agentId}] Admin ${adminDoc.id} has no valid FCM token`
+          );
+          continue;
+        }
+
+        await sendAndStoreNotification({
+          targetRole: "admin",
+          targetId: adminDoc.id,
+          titleEn: "New Tips Payout Request",
+          titleAr: "طلب صرف إكراميات جديد",
+          bodyEn: `${technicianName} has requested a tips payout of ${cardTips}.`,
+          bodyAr: `طلب ${technicianName} صرف إكراميات بقيمة ${cardTips}.`,
+          data: {
+            targetRole: "admin",
+            category: "tips_payout",
+            agentId,
+            technicianName,
+            amount: cardTips.toString(),
+            type: "tips",
+            isAdmin: "true",
+          },
+          fcmToken: adminFcmToken,
+          lanCode: adminLanCode,
+        });
+      }
+
+      console.log(
+        `[${agentId}] ✅ Tip payout request notifications sent to admins`
+      );
+    } catch (error) {
+      console.error(
+        `[${agentId}] Error sending tip payout request notifications:`,
+        error
+      );
+    }
+
+    return null;
+  }
+);
+
+// ============================================
+// Notify Technician on Tip Payout Completion
+// ============================================
+exports.notifyTechnicianOnTipPayoutCompletion = onDocumentWritten(
+  "tipping/{agentId}",
+  async (event) => {
+    const agentId = event.params.agentId;
+    const beforeData = event.data?.before?.data();
+    const afterData = event.data?.after?.data();
+
+    if (!afterData) {
+      console.log(`[${agentId}] Document deleted, skipping...`);
+      return;
+    }
+
+    const beforeCardTip = beforeData?.cardtip || 0;
+    const afterCardTip = afterData.cardtip || 0;
+    const beforePayoutRequested = beforeData?.payoutRequested || false;
+    const afterPayoutRequested = afterData.payoutRequested || false;
+
+    // Notify when cardtip is cleared (goes to 0) and payoutRequested changes from true to false
+    // This indicates admin has processed the tip payout
+    if (
+      beforePayoutRequested &&
+      !afterPayoutRequested &&
+      beforeCardTip > 0 &&
+      afterCardTip === 0
+    ) {
+      console.log(
+        `[${agentId}] Tip payout completed, amount cleared: ${beforeCardTip}`
+      );
+
+      // Fetch technician data
+      let technicianData;
+      try {
+        const technicianDoc = await admin
+          .firestore()
+          .collection("users")
+          .doc(agentId)
+          .get();
+
+        if (!technicianDoc.exists) {
+          console.log(`[${agentId}] Technician document not found`);
+          return;
+        }
+
+        technicianData = technicianDoc.data();
+      } catch (error) {
+        console.error(`[${agentId}] Error fetching technician data:`, error);
+        return;
+      }
+
+      const technicianFcmToken = technicianData?.fcmToken;
+      const technicianLanCode = technicianData?.lanCode || "en";
+
+      if (!technicianFcmToken || technicianFcmToken.trim() === "") {
+        console.log(`[${agentId}] Technician has no valid FCM token`);
+        return;
+      }
+
+      // Send notification to technician
+      try {
+        await sendAndStoreNotification({
+          targetRole: "technician",
+          targetId: agentId,
+          titleEn: "Tips Payout Completed",
+          titleAr: "تم صرف الإكراميات",
+          bodyEn: `Your tips payout of ${beforeCardTip} has been processed and sent to your account.`,
+          bodyAr: `تم معالجة صرف إكراميات ك بقيمة ${beforeCardTip} وإرسالها إلى حسابك.`,
+          data: {
+            targetRole: "technician",
+            category: "tips_payout",
+            amount: beforeCardTip.toString(),
+            type: "tips",
+            status: "completed",
+            isAdmin: "false",
+          },
+          fcmToken: technicianFcmToken,
+          lanCode: technicianLanCode,
+        });
+
+        console.log(
+          `[${agentId}] ✅ Tip payout completion notification sent to technician`
+        );
+      } catch (error) {
+        console.error(
+          `[${agentId}] Error sending tip payout completion notification:`,
+          error
+        );
+      }
+    }
+
+    return null;
+  }
+);
+// ============================================
+// Notify Technician on Payout Approval/Rejection
+// ============================================
+exports.notifyTechnicianOnPayoutStatusChange = onDocumentWritten(
+  "payouts/{payoutId}",
+  async (event) => {
+    const payoutId = event.params.payoutId;
+    const beforeData = event.data?.before?.data();
+    const afterData = event.data?.after?.data();
+
+    if (!afterData) {
+      console.log(`[${payoutId}] Document deleted, skipping...`);
+      return;
+    }
+
+    const beforeStatus = beforeData?.status;
+    const afterStatus = afterData.status;
+
+    // Check if status changed to approved (C) or rejected (R)
+    if (beforeStatus === afterStatus) {
+      console.log(`[${payoutId}] No status change detected, skipping...`);
+      return;
+    }
+
+    // Only notify on approval or rejection
+    if (afterStatus !== "C" && afterStatus !== "R") {
+      console.log(
+        `[${payoutId}] Status is not approved or rejected, skipping...`
+      );
+      return;
+    }
+
+    const userId = afterData.userId;
+    const amount = afterData.amount || "0";
+    const type = afterData.type || "earnings";
+    const transactionNumber = afterData.transactionNumber || "";
+    const rejectionReason = afterData.rejectionReason || "";
+
+    console.log(
+      `[${payoutId}] Payout status changed to ${afterStatus} for user ${userId}`
+    );
+
+    // Fetch technician data
+    let technicianData;
+    try {
+      const technicianDoc = await admin
+        .firestore()
+        .collection("users")
+        .doc(userId)
+        .get();
+
+      if (!technicianDoc.exists) {
+        console.log(`[${payoutId}] Technician document not found`);
+        return;
+      }
+
+      technicianData = technicianDoc.data();
+    } catch (error) {
+      console.error(`[${payoutId}] Error fetching technician data:`, error);
+      return;
+    }
+
+    const technicianFcmToken = technicianData?.fcmToken;
+    const technicianLanCode = technicianData?.lanCode || "en";
+
+    if (!technicianFcmToken || technicianFcmToken.trim() === "") {
+      console.log(`[${payoutId}] Technician has no valid FCM token`);
+      return;
+    }
+
+    // Determine notification content based on status and type
+    let titleEn, titleAr, bodyEn, bodyAr;
+
+    // Get type-specific labels
+    const typeLabels = {
+      earnings: { en: "earnings", ar: "الأرباح" },
+      bonus: { en: "bonus", ar: "المكافأة" },
+      tips: { en: "tips", ar: "الإكراميات" },
+    };
+
+    const typeLabel = typeLabels[type] || typeLabels.earnings;
+
+    if (afterStatus === "C") {
+      // Approved
+      titleEn = "Payout Request Approved";
+      titleAr = "تمت الموافقة على طلب الصرف";
+      bodyEn = `Your ${typeLabel.en} payout request of ${amount} has been approved. Transaction number: ${transactionNumber}`;
+      bodyAr = `تمت الموافقة على طلب صرف ${typeLabel.ar} الخاص بك بقيمة ${amount}. رقم المعاملة: ${transactionNumber}`;
+    } else if (afterStatus === "R") {
+      // Rejected
+      titleEn = "Payout Request Rejected";
+      titleAr = "تم رفض طلب الصرف";
+      bodyEn = `Your ${
+        typeLabel.en
+      } payout request of ${amount} has been rejected.${
+        rejectionReason ? ` Reason: ${rejectionReason}` : ""
+      }`;
+      bodyAr = `تم رفض طلب صرف ${typeLabel.ar} الخاص بك بقيمة ${amount}.${
+        rejectionReason ? ` السبب: ${rejectionReason}` : ""
+      }`;
+    }
+
+    // Send notification to technician
+    try {
+      await sendAndStoreNotification({
+        targetRole: "technician",
+        targetId: userId,
+        titleEn,
+        titleAr,
+        bodyEn,
+        bodyAr,
+        data: {
+          targetRole: "technician",
+          category: "payout",
+          payoutId,
+          amount,
+          type,
+          status: afterStatus,
+          transactionNumber: transactionNumber || "",
+          rejectionReason: rejectionReason || "",
+          isAdmin: "false",
+        },
+        fcmToken: technicianFcmToken,
+        lanCode: technicianLanCode,
+      });
+
+      console.log(
+        `[${payoutId}] ✅ Payout ${
+          afterStatus === "C" ? "approval" : "rejection"
+        } notification sent to technician ${userId}`
+      );
+    } catch (error) {
+      console.error(
+        `[${payoutId}] Error sending payout status notification:`,
         error
       );
     }

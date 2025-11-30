@@ -294,282 +294,325 @@ class TipsDataSheet extends StatelessWidget {
   }
 
   void _showClearWalletConfirmation(TippingModel tip, BuildContext context) {
-    XFile? selectedFile;
-    final TextEditingController transactionIdController =
-        TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          backgroundColor: Colors.white,
-          actionsAlignment: MainAxisAlignment.center,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+      builder: (context) =>
+          _ClearWalletDialog(tip: tip, onClearWallet: onClearWallet),
+    );
+  }
+}
+
+class _ClearWalletDialog extends StatefulWidget {
+  final TippingModel tip;
+  final Function(TippingModel tip, XFile? image, String transactionId)
+  onClearWallet;
+
+  const _ClearWalletDialog({required this.tip, required this.onClearWallet});
+
+  @override
+  State<_ClearWalletDialog> createState() => _ClearWalletDialogState();
+}
+
+class _ClearWalletDialogState extends State<_ClearWalletDialog> {
+  late final TextEditingController transactionIdController;
+  final formKey = GlobalKey<FormState>();
+  XFile? selectedFile;
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    transactionIdController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    transactionIdController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AbsorbPointer(
+      absorbing: isLoading,
+      child: AlertDialog(
+        backgroundColor: Colors.white,
+        actionsAlignment: MainAxisAlignment.start,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          AppLocalizations.of(context)?.clearWallet ?? 'Clear Wallet',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade800,
           ),
-          title: Text(
-            AppLocalizations.of(context)?.clearWallet ?? 'Clear Wallet',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade800,
-            ),
-          ),
-          content: Form(
-            key: formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "${AppLocalizations.of(context)!.areYouSureYouWantToSend} ${AppLocalizations.of(context)!.sar}${tip.cardtip?.toStringAsFixed(2)} ${AppLocalizations.of(context)!.to} ${tip.agentName} ${AppLocalizations.of(context)!.andClearTheirWallet}?",
-                    style: TextStyle(color: Colors.grey.shade600),
+        ),
+        content: Form(
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "${AppLocalizations.of(context)!.areYouSureYouWantToSend} ${AppLocalizations.of(context)!.sar}${widget.tip.cardtip?.toStringAsFixed(2)} ${AppLocalizations.of(context)!.to} ${widget.tip.agentName} ${AppLocalizations.of(context)!.andClearTheirWallet}?",
+                  style: TextStyle(color: Colors.grey.shade600),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Colors.orange.shade200,
+                      width: 0.5,
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        color: Colors.orange.shade600,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          AppLocalizations.of(context)?.clearWalletWarning ??
+                              'This action cannot be undone. The agent will receive the total amount in their wallet, and it will be reset to zero.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.orange.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Transaction ID Field
+                TextFormField(
+                  controller: transactionIdController,
+                  decoration: InputDecoration(
+                    labelText:
+                        AppLocalizations.of(context)?.transactionNumber ??
+                        'Transaction ID *',
+                    hintText:
+                        AppLocalizations.of(context)?.enterTransactionNumber ??
+                        'Enter transaction ID',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return AppLocalizations.of(
+                            context,
+                          )?.transactionNumberRequired ??
+                          'Transaction ID is required';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                // File Upload Section
+                Text(
+                  AppLocalizations.of(context)?.uploadProof ??
+                      'Upload Payment Proof *',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: () async {
+                    final ImagePicker picker = ImagePicker();
+
+                    // Show options to pick from gallery or camera
+                    final source = await showDialog<ImageSource>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        backgroundColor: Colors.white,
+                        title: Text(
+                          AppLocalizations.of(context)?.selectSource ??
+                              'Select Source',
+                        ),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.photo_library),
+                              title: Text(
+                                AppLocalizations.of(context)?.gallery ??
+                                    'Gallery',
+                              ),
+                              onTap: () =>
+                                  Navigator.pop(context, ImageSource.gallery),
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.camera_alt),
+                              title: Text(
+                                AppLocalizations.of(context)?.camera ??
+                                    'Camera',
+                              ),
+                              onTap: () =>
+                                  Navigator.pop(context, ImageSource.camera),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+
+                    if (source != null) {
+                      final XFile? pickedFile = await picker.pickImage(
+                        source: source,
+                        imageQuality: 80,
+                      );
+
+                      if (pickedFile != null) {
+                        setState(() {
+                          selectedFile = pickedFile;
+                        });
+                      }
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.orange.shade50,
+                      color: Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: Colors.orange.shade200,
-                        width: 0.5,
+                        color: selectedFile == null
+                            ? Colors.red.shade300
+                            : Colors.grey.shade300,
+                        width: 1,
                       ),
                     ),
                     child: Row(
                       children: [
                         Icon(
-                          Icons.warning_amber_rounded,
-                          color: Colors.orange.shade600,
-                          size: 20,
+                          selectedFile == null
+                              ? Icons.upload_file
+                              : Icons.check_circle,
+                          color: selectedFile == null
+                              ? Colors.grey.shade600
+                              : Colors.green.shade600,
+                          size: 24,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            AppLocalizations.of(context)?.clearWalletWarning ??
-                                'This action cannot be undone. The agent will receive the total amount in their wallet, and it will be reset to zero.',
+                            selectedFile == null
+                                ? (AppLocalizations.of(context)?.tapToUpload ??
+                                      'Tap to upload image/file')
+                                : selectedFile!.name,
                             style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.orange.shade700,
-                              fontWeight: FontWeight.w500,
+                              color: selectedFile == null
+                                  ? Colors.grey.shade600
+                                  : Colors.green.shade700,
+                              fontWeight: selectedFile == null
+                                  ? FontWeight.normal
+                                  : FontWeight.w500,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        if (selectedFile != null)
+                          IconButton(
+                            icon: const Icon(Icons.close, size: 20),
+                            onPressed: () {
+                              setState(() {
+                                selectedFile = null;
+                              });
+                            },
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  // Transaction ID Field
-                  TextFormField(
-                    controller: transactionIdController,
-                    decoration: InputDecoration(
-                      labelText:
-                          AppLocalizations.of(context)?.transactionNumber ??
-                          'Transaction ID *',
-                      hintText:
-                          AppLocalizations.of(
-                            context,
-                          )?.enterTransactionNumber ??
-                          'Enter transaction ID',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
+                ),
+                if (selectedFile == null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8, left: 4),
+                    child: Text(
+                      AppLocalizations.of(context)?.fileRequired ??
+                          'File is required',
+                      style: TextStyle(
+                        color: Colors.red.shade700,
+                        fontSize: 12,
                       ),
                     ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return AppLocalizations.of(
-                              context,
-                            )?.transactionNumberRequired ??
-                            'Transaction ID is required';
-                      }
-                      return null;
-                    },
                   ),
-                  const SizedBox(height: 16),
-                  // File Upload Section
-                  Text(
-                    AppLocalizations.of(context)?.uploadProof ??
-                        'Upload Payment Proof *',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey.shade800,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  InkWell(
-                    onTap: () async {
-                      final ImagePicker picker = ImagePicker();
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          eButton(
+            onPressed: isLoading
+                ? null
+                : () {
+                    Navigator.pop(context);
+                  },
+            backgroundColor: Colors.white,
+            context: context,
+            text: AppLocalizations.of(context)?.cancel ?? 'Cancel',
+            textColor: Colors.black,
+          ),
+          eButton(
+            onPressed: isLoading
+                ? null
+                : () async {
+                    if (formKey.currentState!.validate() &&
+                        selectedFile != null) {
+                      setState(() {
+                        isLoading = true;
+                      });
 
-                      // Show options to pick from gallery or camera
-                      final source = await showDialog<ImageSource>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          backgroundColor: Colors.white,
-                          title: Text(
-                            AppLocalizations.of(context)?.selectSource ??
-                                'Select Source',
-                          ),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ListTile(
-                                leading: const Icon(Icons.photo_library),
-                                title: Text(
-                                  AppLocalizations.of(context)?.gallery ??
-                                      'Gallery',
-                                ),
-                                onTap: () =>
-                                    Navigator.pop(context, ImageSource.gallery),
-                              ),
-                              ListTile(
-                                leading: const Icon(Icons.camera_alt),
-                                title: Text(
-                                  AppLocalizations.of(context)?.camera ??
-                                      'Camera',
-                                ),
-                                onTap: () =>
-                                    Navigator.pop(context, ImageSource.camera),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-
-                      if (source != null) {
-                        final XFile? pickedFile = await picker.pickImage(
-                          source: source,
-                          imageQuality: 80,
+                      try {
+                        Navigator.pop(context);
+                        widget.onClearWallet(
+                          widget.tip,
+                          selectedFile,
+                          transactionIdController.text.trim(),
                         );
-
-                        if (pickedFile != null) {
+                      } finally {
+                        if (mounted) {
                           setState(() {
-                            selectedFile = pickedFile;
+                            isLoading = false;
                           });
                         }
                       }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: selectedFile == null
-                              ? Colors.red.shade300
-                              : Colors.grey.shade300,
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            selectedFile == null
-                                ? Icons.upload_file
-                                : Icons.check_circle,
-                            color: selectedFile == null
-                                ? Colors.grey.shade600
-                                : Colors.green.shade600,
-                            size: 24,
+                    } else if (selectedFile == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            AppLocalizations.of(
+                                  context,
+                                )?.pleaseuploadpaymentproof ??
+                                'Please upload payment proof',
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              selectedFile == null
-                                  ? (AppLocalizations.of(
-                                          context,
-                                        )?.tapToUpload ??
-                                        'Tap to upload image/file')
-                                  : selectedFile!.name,
-                              style: TextStyle(
-                                color: selectedFile == null
-                                    ? Colors.grey.shade600
-                                    : Colors.green.shade700,
-                                fontWeight: selectedFile == null
-                                    ? FontWeight.normal
-                                    : FontWeight.w500,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (selectedFile != null)
-                            IconButton(
-                              icon: const Icon(Icons.close, size: 20),
-                              onPressed: () {
-                                setState(() {
-                                  selectedFile = null;
-                                });
-                              },
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (selectedFile == null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8, left: 4),
-                      child: Text(
-                        AppLocalizations.of(context)?.fileRequired ??
-                            'File is required',
-                        style: TextStyle(
-                          color: Colors.red.shade700,
-                          fontSize: 12,
+                          backgroundColor: Colors.red.shade600,
                         ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
+                      );
+                    }
+                  },
+            context: context,
+            backgroundColor: Colors.blue.shade600,
+            text: isLoading
+                ? AppLocalizations.of(context)?.processing ?? 'Processing...'
+                : AppLocalizations.of(context)?.confirm ?? 'Confirm',
+            textColor: Colors.white,
           ),
-          actions: [
-            eButton(
-              onPressed: () {
-                transactionIdController.clear();
-                Navigator.pop(context);
-              },
-              backgroundColor: Colors.white,
-              context: context,
-              text: AppLocalizations.of(context)?.cancel ?? 'Cancel',
-              textColor: Colors.black,
-            ),
-            eButton(
-              onPressed: () {
-                if (formKey.currentState!.validate() && selectedFile != null) {
-                  Navigator.pop(context);
-                  onClearWallet(
-                    tip,
-                    selectedFile,
-                    transactionIdController.text.trim(),
-                  );
-                  transactionIdController.dispose();
-                } else if (selectedFile == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        AppLocalizations.of(
-                              context,
-                            )?.pleaseuploadpaymentproof ??
-                            'Please upload payment proof',
-                      ),
-                      backgroundColor: Colors.red.shade600,
-                    ),
-                  );
-                }
-              },
-              context: context,
-              backgroundColor: Colors.blue.shade600,
-              text: AppLocalizations.of(context)?.confirm ?? 'Confirm',
-              textColor: Colors.white,
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }

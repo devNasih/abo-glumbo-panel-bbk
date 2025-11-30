@@ -13,7 +13,8 @@ import '../main.dart';
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   debugPrint('📨 Background message received: ${message.messageId}');
-  await AppServices.storeNotificationInFirestore(message);
+  // Note: Notification is already stored by backend in sendAndStoreNotification
+  // No need to store it again here to avoid duplicates
 }
 
 class NotificationServices {
@@ -109,7 +110,8 @@ class NotificationServices {
               body: notification.body ?? '',
               payload: json.encode(message.data),
             );
-            AppServices.storeNotificationInFirestore(message);
+            // Note: Notification is already stored by backend in sendAndStoreNotification
+            // No need to store it again here to avoid duplicates
           }
         });
 

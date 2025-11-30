@@ -185,6 +185,18 @@ class AuthServices {
           debugPrint(
             "Firebase Auth resend verification failed: ${e.code} - ${e.message}",
           );
+
+          // Handle reCAPTCHA specific errors more gracefully
+          if (e.code == 'recaptcha-sdk-not-linked' ||
+              e.code == 'web-context-cancelled' ||
+              e.code == 'web-context-canceled') {
+            debugPrint(
+              "reCAPTCHA error (${e.code}) - this is expected on iOS, waiting for codeSent callback",
+            );
+            // Don't call onError - wait for codeSent callback
+            return;
+          }
+
           onError(e);
         },
         codeSent: (String verificationId, int? token) {
@@ -201,6 +213,13 @@ class AuthServices {
     } catch (e) {
       debugPrint("Error resending OTP: $e");
       if (e is FirebaseAuthException) {
+        // Special handling for reCAPTCHA errors
+        if (e.code == 'recaptcha-sdk-not-linked') {
+          debugPrint(
+            "reCAPTCHA SDK not linked - this might be a configuration issue",
+          );
+        }
+
         onError(e);
       } else {
         onError(FirebaseAuthException(code: 'unknown', message: e.toString()));

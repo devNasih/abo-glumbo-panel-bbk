@@ -895,11 +895,13 @@ class AppServices {
           .doc(agentId)
           .collection('tipPayoutCollectionsRef')
           .doc(agentId)
-          .set({"": model.toJson()});
+          .set({
+            'tipdata': FieldValue.arrayUnion([model.toJson()]),
+            'updatedAt': Timestamp.now(),
+          }, SetOptions(merge: true));
 
       await AppFirestore.tippingCollectionRef.doc(agentId).update({
         'cardtip': 0.0,
-        'cashtip': 0.0,
         'payoutRequested': false,
         'updatedAt': Timestamp.now(),
         'payoutAmount': FieldValue.increment(tipmodel?.cardtip ?? 0.0),
