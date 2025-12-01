@@ -2659,6 +2659,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reviews => 'التقييمات';
 
   @override
+  String get smsRetrievalTimedOut =>
+      'انتهت مهلة استرجاع رسالة الـ SMS. يرجى التحقق مما إذا كنت قد استلمت الرمز أو حاول مرة أخرى.';
+
+  @override
   String get payoutRequirement =>
       'لطلب سحب الإكرامية، يجب أن يكون لديك ما لا يقل عن 10 ريالات متاحة للسحب.';
 

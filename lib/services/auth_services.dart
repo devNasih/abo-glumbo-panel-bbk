@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
@@ -68,77 +69,128 @@ class AuthServices {
     required Function(FirebaseAuthException e) onError,
     int? forceResendingToken,
   }) async {
+    debugPrint('🟢 [AUTH SERVICE] sendOTP method called');
+    debugPrint('📱 [AUTH SERVICE] Phone number: $phoneNumber');
+
     String sanitizedPhoneNumber = _formatToE164(
       _sanitizePhoneNumber(phoneNumber),
     );
-    try {
-      if (kDebugMode) {
-        debugPrint('✅ Phone number: $phoneNumber');
-        print('📱 Platform: ${Platform.isIOS ? "iOS" : "Android"}');
-        print('🔢 Sanitized number: $sanitizedPhoneNumber');
-      }
-      AuthServices.phoneNumber = sanitizedPhoneNumber;
-      _verificationId = null;
+    debugPrint('🔢 [AUTH SERVICE] Sanitized number: $sanitizedPhoneNumber');
+    debugPrint(
+      '📱 [AUTH SERVICE] Platform: ${Platform.isIOS ? "iOS" : "Android"}',
+    );
 
+    AuthServices.phoneNumber = sanitizedPhoneNumber;
+    _verificationId = null;
+
+    // Create a Completer to wait for the Firebase callbacks
+    final completer = Completer<void>();
+
+    try {
       // iOS specific configuration for reCAPTCHA
       if (Platform.isIOS) {
-        debugPrint('🍎 iOS detected - configuring Firebase Auth settings');
+        debugPrint(
+          '🍎 [AUTH SERVICE] iOS detected - configuring Firebase Auth settings',
+        );
         await FirebaseAuth.instance.setSettings(
           appVerificationDisabledForTesting: false,
           userAccessGroup: null,
         );
-        debugPrint('🍎 iOS Firebase Auth settings configured');
+        debugPrint('🍎 [AUTH SERVICE] iOS Firebase Auth settings configured');
       }
 
+      debugPrint('📞 [AUTH SERVICE] Calling Firebase verifyPhoneNumber...');
       await _auth.verifyPhoneNumber(
         phoneNumber: sanitizedPhoneNumber,
         forceResendingToken: forceResendingToken,
         timeout: const Duration(
           seconds: 120,
-        ), // 5 minutes timeout for OTP verification
+        ), // 2 minutes timeout for OTP verification
         verificationCompleted: (PhoneAuthCredential credential) async {
+          debugPrint(
+            '✅ [AUTH SERVICE] verificationCompleted callback triggered',
+          );
+          debugPrint('🔐 [AUTH SERVICE] Auto-signing in with credential...');
           // Auto-retrieval or instant verification
           try {
             AuthServices.phoneNumber = sanitizedPhoneNumber;
             await _auth.signInWithCredential(credential);
+            debugPrint('✅ [AUTH SERVICE] Auto sign-in successful');
+            if (!completer.isCompleted) {
+              completer.complete();
+            }
           } catch (e) {
-            debugPrint("Auto verification failed: $e");
+            debugPrint("❌ [AUTH SERVICE] Auto verification failed: $e");
+            if (!completer.isCompleted) {
+              completer.completeError(e);
+            }
           }
         },
         verificationFailed: (FirebaseAuthException e) {
-          debugPrint(
-            "Firebase Auth verification failed: ${e.code} - ${e.message}",
-          );
+          debugPrint('❌ [AUTH SERVICE] verificationFailed callback triggered');
+          debugPrint('❌ [AUTH SERVICE] Error code: ${e.code}');
+          debugPrint('❌ [AUTH SERVICE] Error message: ${e.message}');
 
           // Handle reCAPTCHA specific errors more gracefully
           if (e.code == 'recaptcha-sdk-not-linked' ||
               e.code == 'web-context-cancelled' ||
               e.code == 'web-context-canceled') {
             debugPrint(
-              "reCAPTCHA error (${e.code}) - this is expected on iOS, waiting for codeSent callback",
+              "⚠️ [AUTH SERVICE] reCAPTCHA error (${e.code}) - this is expected on iOS, waiting for codeSent callback",
             );
-            // Don't call onError - wait for codeSent callback
+            // Don't call onError or complete - wait for codeSent callback
             return;
           }
 
+          debugPrint('❌ [AUTH SERVICE] Calling onError callback');
           onError(e);
+
+          if (!completer.isCompleted) {
+            debugPrint('❌ [AUTH SERVICE] Completing with error');
+            completer.completeError(e);
+          }
         },
         codeSent: (String verificationId, int? resendToken) {
+          debugPrint('✅ [AUTH SERVICE] codeSent callback triggered');
+          debugPrint('🆔 [AUTH SERVICE] Verification ID: $verificationId');
+          debugPrint('🔑 [AUTH SERVICE] ResendToken: $resendToken');
           debugPrint(
-            "✅ OTP code sent successfully. Verification ID: $verificationId",
+            '📱 [AUTH SERVICE] Platform: ${Platform.isIOS ? 'iOS' : 'Android'}',
           );
-          debugPrint(
-            "📱 Platform: ${Platform.isIOS ? 'iOS' : 'Android'}, ResendToken: $resendToken",
-          );
+
+          debugPrint('📞 [AUTH SERVICE] Calling onCodeSent callback');
           onCodeSent(verificationId, resendToken: resendToken);
+          debugPrint('✅ [AUTH SERVICE] onCodeSent callback completed');
+
+          if (!completer.isCompleted) {
+            debugPrint('✅ [AUTH SERVICE] Completing successfully');
+            completer.complete();
+          }
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           debugPrint(
-            "Auto retrieval timeout for verification ID: $verificationId",
+            '⏰ [AUTH SERVICE] codeAutoRetrievalTimeout callback triggered',
           );
+          debugPrint(
+            '🆔 [AUTH SERVICE] Timeout verification ID: $verificationId',
+          );
+          // Don't complete here - this is just a timeout for auto-retrieval, not the whole process
         },
       );
+      debugPrint(
+        '✅ [AUTH SERVICE] verifyPhoneNumber call completed (setup done, waiting for callbacks)',
+      );
+
+      // Wait for the completer to be completed by one of the callbacks
+      debugPrint(
+        '⏳ [AUTH SERVICE] Waiting for Firebase callbacks to complete...',
+      );
+      await completer.future;
+      debugPrint('✅ [AUTH SERVICE] Firebase callbacks completed');
     } catch (e) {
+      debugPrint('💥 [AUTH SERVICE] Exception caught in sendOTP: $e');
+      debugPrint('💥 [AUTH SERVICE] Exception type: ${e.runtimeType}');
+
       if (e is FirebaseAuthException) {
         log("Firebase Auth error: ${e.code} - ${e.message}");
 
@@ -147,11 +199,23 @@ class AuthServices {
           log("reCAPTCHA SDK not linked - this might be a configuration issue");
         }
 
+        debugPrint(
+          '❌ [AUTH SERVICE] Calling onError callback from catch block',
+        );
         onError(e);
       } else {
+        debugPrint(
+          '❌ [AUTH SERVICE] Unknown error - wrapping in FirebaseAuthException',
+        );
         onError(FirebaseAuthException(code: 'unknown', message: e.toString()));
       }
+
+      if (!completer.isCompleted) {
+        completer.completeError(e);
+      }
+      rethrow;
     }
+    debugPrint('🏁 [AUTH SERVICE] sendOTP method complete');
   }
 
   Future<void> resendOTP({
@@ -159,72 +223,156 @@ class AuthServices {
     required int? resendToken,
     required Function(String verificationId, {int? resendToken}) onCodeSent,
     required Function(FirebaseAuthException e) onError,
+    Function(String verificationId)? onAutoRetrievalTimeout,
   }) async {
+    debugPrint('🔵 [AUTH SERVICE] resendOTP method called');
+    debugPrint('📱 [AUTH SERVICE] Phone number: $phoneNumber');
+    debugPrint('🔑 [AUTH SERVICE] Resend token: $resendToken');
+
     String sanitizedPhoneNumber = _formatToE164(
       _sanitizePhoneNumber(phoneNumber),
     );
+    debugPrint(
+      '🔢 [AUTH SERVICE] Sanitized phone number: $sanitizedPhoneNumber',
+    );
+
+    // Create a Completer to wait for the Firebase callbacks
+    final completer = Completer<void>();
+
     try {
       // iOS specific configuration for reCAPTCHA
       if (Platform.isIOS) {
+        debugPrint(
+          '🍎 [AUTH SERVICE] iOS detected - configuring Firebase Auth settings',
+        );
         await FirebaseAuth.instance.setSettings(
           appVerificationDisabledForTesting: false,
           userAccessGroup: null,
         );
+        debugPrint('🍎 [AUTH SERVICE] iOS Firebase Auth settings configured');
       }
 
+      debugPrint('📞 [AUTH SERVICE] Calling Firebase verifyPhoneNumber...');
       await _auth.verifyPhoneNumber(
         phoneNumber: sanitizedPhoneNumber,
         forceResendingToken: resendToken,
         timeout: const Duration(
           seconds: 120,
-        ), // 5 minutes timeout for OTP verification
+        ), // 2 minutes timeout for OTP verification
         verificationCompleted: (PhoneAuthCredential credential) async {
-          await _auth.signInWithCredential(credential);
+          debugPrint(
+            '✅ [AUTH SERVICE] verificationCompleted callback triggered',
+          );
+          debugPrint('🔐 [AUTH SERVICE] Auto-signing in with credential...');
+          try {
+            await _auth.signInWithCredential(credential);
+            debugPrint('✅ [AUTH SERVICE] Auto sign-in successful');
+            if (!completer.isCompleted) {
+              completer.complete();
+            }
+          } catch (e) {
+            debugPrint('❌ [AUTH SERVICE] Auto sign-in failed: $e');
+            if (!completer.isCompleted) {
+              completer.completeError(e);
+            }
+          }
         },
         verificationFailed: (FirebaseAuthException e) {
-          debugPrint(
-            "Firebase Auth resend verification failed: ${e.code} - ${e.message}",
-          );
+          debugPrint('❌ [AUTH SERVICE] verificationFailed callback triggered');
+          debugPrint('❌ [AUTH SERVICE] Error code: ${e.code}');
+          debugPrint('❌ [AUTH SERVICE] Error message: ${e.message}');
 
           // Handle reCAPTCHA specific errors more gracefully
           if (e.code == 'recaptcha-sdk-not-linked' ||
               e.code == 'web-context-cancelled' ||
               e.code == 'web-context-canceled') {
             debugPrint(
-              "reCAPTCHA error (${e.code}) - this is expected on iOS, waiting for codeSent callback",
+              "⚠️ [AUTH SERVICE] reCAPTCHA error (${e.code}) - this is expected on iOS, waiting for codeSent callback",
             );
-            // Don't call onError - wait for codeSent callback
+            // Don't call onError or complete - wait for codeSent callback
             return;
           }
 
+          debugPrint('❌ [AUTH SERVICE] Calling onError callback');
           onError(e);
+
+          if (!completer.isCompleted) {
+            debugPrint('❌ [AUTH SERVICE] Completing with error');
+            completer.completeError(e);
+          }
         },
         codeSent: (String verificationId, int? token) {
+          debugPrint('✅ [AUTH SERVICE] codeSent callback triggered');
+          debugPrint('🆔 [AUTH SERVICE] Verification ID: $verificationId');
+          debugPrint('🔑 [AUTH SERVICE] New resend token: $token');
+
           _verificationId = verificationId;
+          debugPrint('📞 [AUTH SERVICE] Calling onCodeSent callback');
           onCodeSent(verificationId, resendToken: token);
+          debugPrint('✅ [AUTH SERVICE] onCodeSent callback completed');
+
+          if (!completer.isCompleted) {
+            debugPrint('✅ [AUTH SERVICE] Completing successfully');
+            completer.complete();
+          }
         },
         codeAutoRetrievalTimeout: (String verificationId) {
-          _verificationId = verificationId;
           debugPrint(
-            "Resend auto retrieval timeout for verification ID: $verificationId",
+            '⏰ [AUTH SERVICE] codeAutoRetrievalTimeout callback triggered',
           );
+          debugPrint(
+            '🆔 [AUTH SERVICE] Timeout verification ID: $verificationId',
+          );
+
+          _verificationId = verificationId;
+          if (onAutoRetrievalTimeout != null) {
+            debugPrint(
+              '📞 [AUTH SERVICE] Calling onAutoRetrievalTimeout callback',
+            );
+            onAutoRetrievalTimeout(verificationId);
+          }
+          // Don't complete here - this is just a timeout for auto-retrieval, not the whole process
         },
       );
+      debugPrint(
+        '✅ [AUTH SERVICE] verifyPhoneNumber call completed (setup done, waiting for callbacks)',
+      );
+
+      // Wait for the completer to be completed by one of the callbacks
+      debugPrint(
+        '⏳ [AUTH SERVICE] Waiting for Firebase callbacks to complete...',
+      );
+      await completer.future;
+      debugPrint('✅ [AUTH SERVICE] Firebase callbacks completed');
     } catch (e) {
-      debugPrint("Error resending OTP: $e");
+      debugPrint('💥 [AUTH SERVICE] Exception caught in resendOTP: $e');
+      debugPrint('💥 [AUTH SERVICE] Exception type: ${e.runtimeType}');
+
       if (e is FirebaseAuthException) {
         // Special handling for reCAPTCHA errors
         if (e.code == 'recaptcha-sdk-not-linked') {
           debugPrint(
-            "reCAPTCHA SDK not linked - this might be a configuration issue",
+            "⚠️ [AUTH SERVICE] reCAPTCHA SDK not linked - this might be a configuration issue",
           );
         }
 
+        debugPrint(
+          '❌ [AUTH SERVICE] Calling onError callback from catch block',
+        );
         onError(e);
       } else {
+        debugPrint(
+          '❌ [AUTH SERVICE] Unknown error - wrapping in FirebaseAuthException',
+        );
         onError(FirebaseAuthException(code: 'unknown', message: e.toString()));
       }
+
+      if (!completer.isCompleted) {
+        completer.completeError(e);
+      }
+      rethrow;
     }
+    debugPrint('🏁 [AUTH SERVICE] resendOTP method complete');
   }
 
   Future<UserCredential> verifyOTP(

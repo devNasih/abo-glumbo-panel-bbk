@@ -15,11 +15,13 @@ import 'package:google_fonts/google_fonts.dart';
 class OtpPage extends StatefulWidget {
   final String? phoneNumber;
   final String? verificationId;
+  final int? resendToken;
   final bool? isFromProfile;
   const OtpPage({
     super.key,
     this.phoneNumber,
     this.verificationId,
+    this.resendToken,
     this.isFromProfile,
   });
 
@@ -43,6 +45,7 @@ class _OtpPageState extends State<OtpPage> {
   void initState() {
     super.initState();
     _verificationId = widget.verificationId;
+    _resendToken = widget.resendToken;
     startTimer();
   }
 
@@ -70,20 +73,35 @@ class _OtpPageState extends State<OtpPage> {
   }
 
   void resendOTP() async {
-    if (resendSeconds > 0) return;
+    if (resendSeconds > 0) {
+      debugPrint(
+        '🚫 [RESEND OTP] Cannot resend - timer still active: $resendSeconds seconds remaining',
+      );
+      return;
+    }
+
+    debugPrint('🔄 [RESEND OTP] Starting resend OTP process');
+    debugPrint('📱 [RESEND OTP] Phone number: ${widget.phoneNumber}');
+    debugPrint('🔑 [RESEND OTP] Current resend token: $_resendToken');
+    debugPrint('🆔 [RESEND OTP] Current verification ID: $_verificationId');
 
     setState(() {
       isResendingOtp = true;
     });
+    debugPrint('⏳ [RESEND OTP] Loading state set to TRUE');
 
     try {
+      debugPrint('📞 [RESEND OTP] Calling AuthServices().resendOTP...');
       await AuthServices().resendOTP(
         phoneNumber: widget.phoneNumber ?? '',
         resendToken: _resendToken,
         onCodeSent: (verificationId, {int? resendToken}) {
+          debugPrint('✅ [RESEND OTP] onCodeSent callback triggered!');
+          debugPrint('🆔 [RESEND OTP] New verification ID: $verificationId');
+          debugPrint('🔑 [RESEND OTP] New resend token: $resendToken');
+
           if (mounted) {
             setState(() {
-              isResendingOtp = false;
               _verificationId = verificationId;
               _resendToken = resendToken;
             });
@@ -102,14 +120,43 @@ class _OtpPageState extends State<OtpPage> {
             );
 
             startTimer();
+            debugPrint('⏱️ [RESEND OTP] Timer restarted');
+          }
+        },
+        onAutoRetrievalTimeout: (verificationId) {
+          debugPrint(
+            '⏰ [RESEND OTP] onAutoRetrievalTimeout callback triggered',
+          );
+          debugPrint(
+            '🆔 [RESEND OTP] Timeout verification ID: $verificationId',
+          );
+
+          if (mounted) {
+            setState(() {
+              _verificationId = verificationId;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  AppLocalizations.of(context)!.smsRetrievalTimedOut,
+                ),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 3),
+                behavior: SnackBarBehavior.floating,
+                margin: EdgeInsets.all(16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            );
           }
         },
         onError: (error) {
-          if (mounted) {
-            setState(() {
-              isResendingOtp = false;
-            });
+          debugPrint('❌ [RESEND OTP] onError callback triggered');
+          debugPrint('❌ [RESEND OTP] Error code: ${error.code}');
+          debugPrint('❌ [RESEND OTP] Error message: ${error.message}');
 
+          if (mounted) {
             String errorMessage;
             switch (error.code) {
               case 'too-many-requests':
@@ -141,6 +188,7 @@ class _OtpPageState extends State<OtpPage> {
                 errorMessage = error.message ?? 'Failed to resend OTP';
             }
 
+            debugPrint('📢 [RESEND OTP] Showing error message: $errorMessage');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(errorMessage),
@@ -156,13 +204,15 @@ class _OtpPageState extends State<OtpPage> {
           }
         },
       );
+      debugPrint(
+        '✅ [RESEND OTP] AuthServices().resendOTP completed (await finished)',
+      );
     } catch (e) {
+      debugPrint('💥 [RESEND OTP] Exception caught in try-catch: $e');
+      debugPrint('💥 [RESEND OTP] Exception type: ${e.runtimeType}');
+
       // Catch any unexpected errors that weren't handled by onError callback
       if (mounted) {
-        setState(() {
-          isResendingOtp = false;
-        });
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to resend OTP. Please try again.'),
@@ -176,6 +226,16 @@ class _OtpPageState extends State<OtpPage> {
           ),
         );
       }
+    } finally {
+      debugPrint('🏁 [RESEND OTP] Finally block executing');
+      // Always reset the loading state, regardless of success or failure
+      if (mounted) {
+        setState(() {
+          isResendingOtp = false;
+        });
+        debugPrint('⏳ [RESEND OTP] Loading state set to FALSE');
+      }
+      debugPrint('🏁 [RESEND OTP] Resend OTP process complete');
     }
   }
 
@@ -391,10 +451,7 @@ class _OtpPageState extends State<OtpPage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-      ),
+      appBar: AppBar(backgroundColor: AppColors.primary, elevation: 0),
       body: AbsorbPointer(
         absorbing: _isMigratingCustomerData,
         child: SafeArea(
@@ -597,7 +654,6 @@ class _OtpPageState extends State<OtpPage> {
 
   Widget _migratingDataDialog() {
     return AlertDialog(
-    
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       contentPadding: const EdgeInsets.all(32),

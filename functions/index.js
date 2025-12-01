@@ -63,7 +63,24 @@ async function sendAndStoreNotification({
 
     const message = {
       notification: { title, body },
-      data: { ...data, lanCode: lanCode || "en" },
+      android: {
+        priority: "high",
+        notification: {
+          channelId: "abo_glumbo_channel",
+          priority: "high",
+          defaultSound: true,
+          defaultVibrateTimings: true,
+          defaultLightSettings: true,
+          visibility: "public",
+          notificationPriority: "PRIORITY_HIGH",
+        },
+      },
+      data: {
+        ...data,
+        lanCode: lanCode || "en",
+        title: title,
+        body: body,
+      },
       token: fcmToken,
     };
 

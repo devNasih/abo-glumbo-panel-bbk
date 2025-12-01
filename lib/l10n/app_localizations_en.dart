@@ -2702,6 +2702,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reviews => 'Reviews';
 
   @override
+  String get smsRetrievalTimedOut =>
+      'SMS retrieval timed out. Please check if you received the code or try again.';
+
+  @override
   String get payoutRequirement =>
       'To request a tip payout, you\'ll need at least 10 SAR available for payout.';
 

@@ -872,6 +872,7 @@
   "loadingCustomers": "جارٍ تحميل العملاء",
   "processing": "جارٍ المعالجة",
   "notSelected": "غير محدد",
+  "smsRetrievalTimedOut": "انتهت مهلة استرجاع رسالة الـ SMS. يرجى التحقق مما إذا كنت قد استلمت الرمز أو حاول مرة أخرى.",
   "payoutRequestSuccessful": "تم طلب الدفع بنجاح",
   "imageIsTooLargePleaseSelectAnImageSmallerThan5MB": "الصورة كبيرة جدًا، يرجى اختيار صورة أصغر من 5MB",
   "selectedFileCouldNotBeFound": "لم يتم العثور على الملف المحدد",

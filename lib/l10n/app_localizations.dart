@@ -5204,6 +5204,12 @@ abstract class AppLocalizations {
   /// **'Reviews'**
   String get reviews;
 
+  /// No description provided for @smsRetrievalTimedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS retrieval timed out. Please check if you received the code or try again.'**
+  String get smsRetrievalTimedOut;
+
   /// No description provided for @payoutRequirement.
   ///
   /// In en, this message translates to:
