@@ -756,10 +756,8 @@ exports.onBookingUpdateToTip = onDocumentWritten(
           targetId: agent.uid,
           titleEn: "New Tip Received",
           titleAr: "تم استلام إكرامية جديدة",
-          bodyEn: `You have received a new ${tipType} tip of ${tipAmount}.`,
-          bodyAr: `لقد تلقيت إكرامية ${
-            tipType === "card" ? "بطاقة" : "نقدية"
-          } جديدة بقيمة ${tipAmount}.`,
+          bodyEn: `Customer gave you a tip of ${tipAmount} SAR.`,
+          bodyAr: `العميل قدّم لك إكرامية بقيمة ${tipAmount} ر.س.`,
           data: {
             category: "tip",
             amount: tipAmount.toString(),
