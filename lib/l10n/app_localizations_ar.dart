@@ -2659,6 +2659,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reviews => 'التقييمات';
 
   @override
+  String get payoutHistory => 'تاريخ الدفع';
+
+  @override
+  String get searchByTechnicianNameOrAmount => 'ابحث باسم الفني أو المبلغ...';
+
+  @override
+  String get tipDetails => 'تفاصيل الإكرامية';
+
+  @override
+  String get tipsSummary => 'ملخص الإكرامية';
+
+  @override
+  String get noPayoutHistoryAvailable => 'لا يوجد تاريخ دفع متاح';
+
+  @override
   String get smsRetrievalTimedOut =>
       'انتهت مهلة استرجاع رسالة الـ SMS. يرجى التحقق مما إذا كنت قد استلمت الرمز أو حاول مرة أخرى.';
 

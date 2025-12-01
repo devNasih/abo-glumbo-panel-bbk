@@ -117,12 +117,6 @@ class TipsDataSheet extends StatelessWidget {
                         'Tip Information',
                     children: [
                       _buildDetailRow(
-                        AppLocalizations.of(context)!.cashTips,
-                        "${tip.cashtip?.toStringAsFixed(2) ?? '0.00'} ${AppLocalizations.of(context)!.sar}",
-                        valueColor: Colors.green.shade700,
-                        isHighlighted: true,
-                      ),
-                      _buildDetailRow(
                         AppLocalizations.of(context)!.cardTips,
                         "${tip.cardtip?.toStringAsFixed(2) ?? '0.00'} ${AppLocalizations.of(context)!.sar}",
                         valueColor: Colors.green.shade700,
@@ -173,7 +167,10 @@ class TipsDataSheet extends StatelessWidget {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: tip.cashtip != null && tip.cardtip! > 0
+                  onPressed:
+                      tip.payoutRequested == true &&
+                          tip.cashtip != null &&
+                          tip.cardtip! > 0
                       ? () {
                           _showClearWalletConfirmation(tip, context);
                         }
@@ -568,7 +565,7 @@ class _ClearWalletDialogState extends State<_ClearWalletDialog> {
             textColor: Colors.black,
           ),
           eButton(
-            onPressed: isLoading
+            onPressed: isLoading || widget.tip.payoutRequested != true
                 ? null
                 : () async {
                     if (formKey.currentState!.validate() &&

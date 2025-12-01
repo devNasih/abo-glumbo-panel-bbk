@@ -1,12 +1,12 @@
 import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
-import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
 import 'package:aboglumbo_bbk_panel/models/tipping.dart';
 import 'package:aboglumbo_bbk_panel/models/transaction.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/worker/payout_requests.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/worker/technician_tip_details_page.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:flutter/material.dart';
@@ -364,24 +364,15 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  // Check if there's already a pending tip payout request
-                  if (tips?.payoutRequested == true) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          AppLocalizations.of(
-                            context,
-                          )!.cannotRequestPayoutPendingRequest,
-                        ),
-                        backgroundColor: Colors.orange,
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => TechnicianTipDetailsPage(
+                        workerId: widget.workerId,
+                        cashTips: cashTips,
+                        cardTips: cardTips,
+                        availableCardTips: availableCardTips,
                       ),
-                    );
-                    return;
-                  }
-                  _showTipsDialog(
-                    context,
-                    widget.workerId,
-                    tips?.payoutRequested ?? false,
+                    ),
                   );
                 },
                 child: _buildPaymentCard(
@@ -450,300 +441,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
     );
   }
 
-  void _showTipsDialog(
-    BuildContext context,
-    String agentId,
-    bool payoutRequested,
-  ) {
-    String? errorMessage; // To hold error messages
-    bool isLoading = false; // To show loading state
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              backgroundColor: Colors.white,
-              actionsAlignment: MainAxisAlignment.start,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              title: Row(
-                children: [
-                  Icon(
-                    Icons.account_balance_wallet,
-                    color: Theme.of(context).primaryColor,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    AppLocalizations.of(context)!.requestTipPayout,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Tips Summary Card
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Column(
-                        children: [
-                          _buildTipRow(
-                            context,
-                            AppLocalizations.of(context)!.lifetimeTips,
-                            cashTips + cardTips,
-                            Icons.money,
-                            Colors.green,
-                          ),
-                          const Divider(height: 20),
-                          _buildTipRow(
-                            context,
-                            AppLocalizations.of(context)!.availableForPayout,
-                            availableCardTips,
-                            Icons.credit_card,
-                            Colors.blue,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Requirement Info
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.blue.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.info_outline,
-                            color: Colors.blue.shade700,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              AppLocalizations.of(context)!.payoutRequirement,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.blue.shade900,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Confirmation Text
-                    Text(
-                      AppLocalizations.of(
-                        context,
-                      )!.areYouSureYouWantToRequestAPayoutForTheAccumulatedTips,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.black87,
-                      ),
-                    ),
-
-                    // Error Message Display
-                    if (errorMessage != null) ...[
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.red.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Colors.red.shade300,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              color: Colors.red.shade700,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                errorMessage!,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.red.shade900,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-
-                    // Loading Indicator
-                    if (isLoading) ...[
-                      const SizedBox(height: 16),
-                      Center(child: Loader(color: AppColors.primary, size: 12)),
-                    ],
-                  ],
-                ),
-              ),
-              actions: [
-                eButton(
-                  onPressed: isLoading
-                      ? null
-                      : () {
-                          Navigator.of(context).pop();
-                        },
-                  context: context,
-                  backgroundColor: Colors.white,
-                  widget: Text(
-                    AppLocalizations.of(context)!.cancel,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: Colors.black,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                eButton(
-                  onPressed: availableCardTips < 10.00
-                      ? () {
-                          if (mounted) {
-                            setState(() {
-                              errorMessage = AppLocalizations.of(
-                                context,
-                              )!.notEnoughBalanceforRequestingTipPayout;
-                            });
-                          }
-                        }
-                      : payoutRequested == true
-                      ? () {
-                          if (mounted) {
-                            setState(() {
-                              errorMessage = AppLocalizations.of(
-                                context,
-                              )!.cannotRequestPayoutPendingRequest;
-                            });
-                          }
-                        }
-                      : isLoading
-                      ? null
-                      : () async {
-                          if (payoutRequested == false) {
-                            // Clear previous error
-                            if (mounted) {
-                              setState(() {
-                                errorMessage = null;
-                                isLoading = true;
-                              });
-                            }
-
-                            try {
-                              await AppFirestore.tippingCollectionRef
-                                  .doc(widget.workerId)
-                                  .update({'payoutRequested': true});
-
-                              if (context.mounted) {
-                                Navigator.of(context).pop();
-
-                                // Show success message
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.payoutRequestSubmittedSuccessfully,
-                                    ),
-                                    backgroundColor: Colors.green,
-                                  ),
-                                );
-                              }
-                            } catch (e) {
-                              // Display error in dialog
-                              setState(() {
-                                errorMessage =
-                                    '${AppLocalizations.of(context)!.errorRequestingPayout}: ${e.toString()}';
-                                isLoading = false;
-                              });
-                            }
-                          } else {
-                            null;
-                          }
-                        },
-                  context: context,
-                  backgroundColor: Colors.green,
-                  widget: Text(
-                    AppLocalizations.of(context)!.requestPayout,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
   // Helper method to build tip rows
-  Widget _buildTipRow(
-    BuildContext context,
-    String label,
-    double amount,
-    IconData icon,
-    Color color, {
-    bool isTotal = false,
-  }) {
-    return Row(
-      children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: isTotal ? 16 : 14,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
-              color: Colors.black87,
-            ),
-          ),
-        ),
-        Text(
-          '${amount.toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}',
-          style: TextStyle(
-            fontSize: isTotal ? 18 : 15,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-            color: color,
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildPaymentCard({
     required String title,

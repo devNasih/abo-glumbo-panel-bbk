@@ -5204,6 +5204,36 @@ abstract class AppLocalizations {
   /// **'Reviews'**
   String get reviews;
 
+  /// No description provided for @payoutHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout History'**
+  String get payoutHistory;
+
+  /// No description provided for @searchByTechnicianNameOrAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by technician name or amount...'**
+  String get searchByTechnicianNameOrAmount;
+
+  /// No description provided for @tipDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip Details'**
+  String get tipDetails;
+
+  /// No description provided for @tipsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Tips Summary'**
+  String get tipsSummary;
+
+  /// No description provided for @noPayoutHistoryAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No payout history available'**
+  String get noPayoutHistoryAvailable;
+
   /// No description provided for @smsRetrievalTimedOut.
   ///
   /// In en, this message translates to:

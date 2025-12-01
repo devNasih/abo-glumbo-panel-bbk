@@ -2702,6 +2702,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reviews => 'Reviews';
 
   @override
+  String get payoutHistory => 'Payout History';
+
+  @override
+  String get searchByTechnicianNameOrAmount =>
+      'Search by technician name or amount...';
+
+  @override
+  String get tipDetails => 'Tip Details';
+
+  @override
+  String get tipsSummary => 'Tips Summary';
+
+  @override
+  String get noPayoutHistoryAvailable => 'No payout history available';
+
+  @override
   String get smsRetrievalTimedOut =>
       'SMS retrieval timed out. Please check if you received the code or try again.';
 

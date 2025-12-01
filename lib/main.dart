@@ -109,11 +109,16 @@ void main() async {
     // STEP 2: Set Database Persistence IMMEDIATELY after Firebase init
     // This must be done BEFORE any other Firebase Database usage
     debugPrint('🔄 Setting Firebase Database persistence...');
-    FirebaseDatabase.instance.setPersistenceEnabled(true);
-    FirebaseDatabase.instance.setPersistenceCacheSizeBytes(
-      10000000,
-    ); // 10MB cache
-    debugPrint('✅ Firebase Database persistence enabled');
+    try {
+      FirebaseDatabase.instance.setPersistenceEnabled(true);
+      FirebaseDatabase.instance.setPersistenceCacheSizeBytes(
+        10000000,
+      ); // 10MB cache
+      debugPrint('✅ Firebase Database persistence enabled');
+    } catch (e) {
+      debugPrint('⚠️ Could not set persistence (may already be set): $e');
+      // This is not critical - continue without persistence or it's already enabled
+    }
 
     // STEP 3: Initialize Hive
     debugPrint('🔄 Initializing Hive...');

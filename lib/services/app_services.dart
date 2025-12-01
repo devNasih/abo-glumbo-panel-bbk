@@ -887,6 +887,7 @@ class AppServices {
         totalTipAmount: tipmodel?.cardtip,
         paymentMethod: "card",
         id: agentId,
+        updatedAt: Timestamp.now(),
         proofs: [
           {'transactionId': transactionId, 'proofImageUrl': imageUrl},
         ],
@@ -897,10 +898,10 @@ class AppServices {
           .doc(agentId)
           .set({
             'tipdata': FieldValue.arrayUnion([model.toJson()]),
-            'updatedAt': Timestamp.now(),
           }, SetOptions(merge: true));
 
       await AppFirestore.tippingCollectionRef.doc(agentId).update({
+        'cardtip': 0.0,
         'payoutRequested': false,
         'updatedAt': Timestamp.now(),
         'payoutAmount': FieldValue.increment(tipmodel?.cardtip ?? 0.0),
@@ -1845,6 +1846,99 @@ class AppServices {
       debugPrint('Error fetching job categories: $e');
       return {};
     }
+  }
+
+  /// Get all tip payouts from all workers
+  static Stream<List<Map<String, dynamic>>> getAllTipPayoutsHistory() {
+    return FirebaseFirestore.instance
+        .collectionGroup('tipPayoutCollectionsRef')
+        .snapshots()
+        .map((snapshot) {
+          List<Map<String, dynamic>> allPayouts = [];
+
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+            // Check for 'tipdata' (lowercase) as seen in Firestore, fallback to 'tipData'
+            final tipDataField = data['tipdata'] ?? data['tipData'];
+
+            if (tipDataField != null) {
+              final List<dynamic> tipDataList = tipDataField as List<dynamic>;
+
+              for (var tipJson in tipDataList) {
+                final tipData = tipJson as Map<String, dynamic>;
+
+                // Normalize data using AllTipsModel to ensure consistent fields (like 'Amount')
+                final model = AllTipsModel.fromJson(tipData);
+                final normalizedData = model.toJson();
+
+                // Add worker ID from the document path
+                final workerId = doc.reference.parent.parent?.id;
+                allPayouts.add({...normalizedData, 'workerId': workerId});
+              }
+            }
+          }
+
+          // Sort by createdAt descending (most recent first)
+          allPayouts.sort((a, b) {
+            final aTime = a['createdAt'] as Timestamp?;
+            final bTime = b['createdAt'] as Timestamp?;
+            if (aTime == null || bTime == null) return 0;
+            return bTime.compareTo(aTime);
+          });
+
+          debugPrint(
+            '✅ Fetched ${allPayouts.length} total tip payouts from all workers',
+          );
+          return allPayouts;
+        });
+  }
+
+  /// Get tip payout history for a specific worker
+  static Stream<List<AllTipsModel>> getTipPayoutsHistoryByWorkerId(
+    String workerId,
+  ) {
+    return AppFirestore.tippingCollectionRef
+        .doc(workerId)
+        .collection('tipPayoutCollectionsRef')
+        .doc(workerId)
+        .snapshots()
+        .map((docSnapshot) {
+          List<AllTipsModel> payouts = [];
+
+          if (!docSnapshot.exists) {
+            debugPrint('❌ No tip payout history found for worker: $workerId');
+            return payouts;
+          }
+
+          final data = docSnapshot.data();
+          // Check for 'tipdata' (lowercase) as seen in Firestore, fallback to 'tipData' just in case
+          final tipDataField = data?['tipdata'] ?? data?['tipData'];
+
+          if (data == null || tipDataField == null) {
+            debugPrint('⚠️ No tipdata found for worker: $workerId');
+            return payouts;
+          }
+
+          final List<dynamic> tipDataList = tipDataField as List<dynamic>;
+
+          for (var tipJson in tipDataList) {
+            final tipData = tipJson as Map<String, dynamic>;
+            payouts.add(AllTipsModel.fromJson(tipData));
+          }
+
+          // Sort by createdAt descending (most recent first)
+          payouts.sort((a, b) {
+            final aTime = a.createdAt;
+            final bTime = b.createdAt;
+            if (aTime == null || bTime == null) return 0;
+            return bTime.compareTo(aTime);
+          });
+
+          debugPrint(
+            '✅ Fetched ${payouts.length} tip payouts for worker: $workerId',
+          );
+          return payouts;
+        });
   }
 
   // ---------------------------------------------------------------------------------------------------------
