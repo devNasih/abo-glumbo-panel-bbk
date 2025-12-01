@@ -1632,15 +1632,21 @@ class _BookingInfoState extends State<BookingInfo> {
 
       // Rejected
       if (widget.booking.bookingStatusCode.toLowerCase() == 'r') {
+        final isAdminRejection = widget.booking.rejectedBy == "Admin";
+
         timelineItems.add({
-          'title': AppLocalizations.of(context)!.rejectedAt,
+          'title': isAdminRejection
+              ? AppLocalizations.of(context)!.cancelledByAdmin
+              : AppLocalizations.of(context)!.rejectedAt,
           'time': _formatDateLocalized(
             widget.booking.rejectedAt!.toDate(),
             context,
           ),
-          'description': AppLocalizations.of(
-            context,
-          )!.bookingWasRejectedByServiceProvider,
+          'description': isAdminRejection
+              ? '${AppLocalizations.of(context)!.cancelledBy}: ${AppLocalizations.of(context)!.admin}'
+              : AppLocalizations.of(
+                  context,
+                )!.bookingWasRejectedByServiceProvider,
           'status': 'rejected',
           'date': widget.booking.rejectedAt!.toDate(),
         });
@@ -1682,9 +1688,20 @@ class _BookingInfoState extends State<BookingInfo> {
     }
 
     // Sort ALL events by actual date (chronological order)
-    timelineItems.sort(
-      (a, b) => (a['date'] as DateTime).compareTo(b['date'] as DateTime),
-    );
+    timelineItems.sort((a, b) {
+      final aDate = a['date'];
+      final bDate = b['date'];
+
+      // Convert Timestamp to DateTime if needed
+      final aDateTime = aDate is DateTime
+          ? aDate
+          : (aDate as Timestamp).toDate();
+      final bDateTime = bDate is DateTime
+          ? bDate
+          : (bDate as Timestamp).toDate();
+
+      return aDateTime.compareTo(bDateTime);
+    });
 
     // === ADD CURRENT/PENDING STATUS (ONLY if technician hasn't cancelled) ===
 
@@ -1718,15 +1735,36 @@ class _BookingInfoState extends State<BookingInfo> {
               'date': DateTime.now(),
             });
           } else {
-            timelineItems.add({
-              'title': AppLocalizations.of(context)!.waitingForServiceProvider,
-              'time': AppLocalizations.of(context)!.pending,
-              'description': AppLocalizations.of(
-                context,
-              )!.waitingForServiceProviderResponse,
-              'status': 'current',
-              'date': DateTime.now(),
-            });
+            // Check if there are any rejected technicians
+            final hasRejectedTechnicians =
+                widget.booking.warranty?.rejectedTechnicians != null &&
+                widget.booking.warranty!.rejectedTechnicians!.isNotEmpty;
+
+            if (hasRejectedTechnicians) {
+              // After technician rejection, waiting for admin to reassign
+              timelineItems.add({
+                'title': AppLocalizations.of(context)!.waitingForAdmin,
+                'time': AppLocalizations.of(context)!.pending,
+                'description': AppLocalizations.of(
+                  context,
+                )!.waitingForAdminToReassign,
+                'status': 'current',
+                'date': DateTime.now(),
+              });
+            } else {
+              // Initial state, waiting for technician to accept
+              timelineItems.add({
+                'title': AppLocalizations.of(
+                  context,
+                )!.waitingForServiceProvider,
+                'time': AppLocalizations.of(context)!.pending,
+                'description': AppLocalizations.of(
+                  context,
+                )!.waitingForServiceProviderResponse,
+                'status': 'current',
+                'date': DateTime.now(),
+              });
+            }
           }
         }
       } else {

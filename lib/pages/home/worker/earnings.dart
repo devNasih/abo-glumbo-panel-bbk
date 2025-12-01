@@ -9,6 +9,7 @@ import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/worker/payout_requests.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,6 +29,10 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
   TippingModel? tips;
   List<AllTipsModel> tipsList = []; // Add this line
   bool isLoading = true;
+  int _transactionsToShow = 5; // Track how many transactions to display
+  bool _isLoadingMore = false; // Track if loading more transactions
+  final Map<String, Future<BookingModel?>> _bookingFutures =
+      {}; // Cache for booking futures
 
   double cashPayments = 0.0;
   double cardPayments = 0.0;
@@ -37,15 +42,25 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
   double totalTips = 0.0;
   double cashTips = 0.0;
   double cardTips = 0.0;
+  double availableCardTips = 0.0;
   double fullcashTips = 0.0;
   double fullcardTips = 0.0;
   double total = 0.0;
   double bonusAmounts = 0.0;
+  double availableAmount = 0.0;
+  List<ReviewModel> reviews = [];
 
   @override
   void initState() {
     super.initState();
     _loadEarningsData();
+  }
+
+  @override
+  void dispose() {
+    // Reset transactions to show when navigating away
+    _transactionsToShow = 5;
+    super.dispose();
   }
 
   Future<void> _loadEarningsData() async {
@@ -76,6 +91,12 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
           debugPrint('Error fetching bonus amounts: $error');
           return 0.0; // Return 0.0 on error
         }),
+        AppServices.getWorkerReviewsWithTipAmounts(widget.workerId).catchError((
+          error,
+        ) {
+          debugPrint('Error fetching reviews with tip amounts: $error');
+          return <ReviewModel>[];
+        }),
       ]);
 
       // Assign results with null safety
@@ -84,7 +105,9 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
       tips = results[2] as TippingModel;
       paidAmounts = (results[3] as double?) ?? 0.0;
       bonusAmounts = (results[4] as double?) ?? 0.0;
+      reviews = (results[5] as List<ReviewModel>?) ?? [];
       int count = tipsList.length;
+      int reviewsCount = reviews.length;
 
       //get lifetime tips
       for (int i = 0; i < count; i++) {
@@ -95,20 +118,27 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
         }
       }
 
+      for (int j = 0; j < reviewsCount; j++) {
+        if (reviews[j].paymentType?.toLowerCase() == "card") {
+          cardTips += reviews[j].tipAmount ?? 0.0;
+        } else {
+          cashTips += reviews[j].tipAmount ?? 0.0;
+        }
+      }
       // changing tips to total tips
 
-      cardTips = tips?.cardtip ?? 0.0;
-      cashTips = tips?.cashtip ?? 0.0;
+      availableCardTips = tips?.cardtip ?? 0.0;
+      // cashTips = tips?.cashtip ?? 0.0;
 
       //lifetime total tips
-      totalTips = fullcashTips + fullcardTips;
+      totalTips = cashTips + cardTips;
 
       debugPrint('💡 Tip Calculation Summary:');
       debugPrint(
         '   From TippingModel: cardTips=$cardTips, cashTips=$cashTips, total=${cardTips + cashTips}',
       );
       debugPrint(
-        '   From tipsList: fullcardTips=$fullcardTips, fullcashTips=$fullcashTips, total=$totalTips',
+        '   From tipsList: fullcardTips=$fullcardTips, fullcashTips=$fullcashTips, total=${fullcardTips + fullcashTips}',
       );
       debugPrint('   Discrepancy: ${totalTips - (cardTips + cashTips)}');
 
@@ -135,7 +165,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
     }
   }
 
-  void _calculateEarnings() {
+  Future<void> _calculateEarnings() async {
     cashPayments = 0.0;
     cardPayments = 0.0;
     // get payments
@@ -150,8 +180,9 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
       }
     }
 
-    totalEarnings = cashPayments + cardPayments;
-    lifetimeEarnings = cashPayments + cardPayments + totalTips + bonusAmounts;
+    lifetimeEarnings =
+        cashPayments + cardPayments + cashTips + cardTips + bonusAmounts;
+    availableAmount = cardPayments - paidAmounts;
   }
 
   @override
@@ -348,12 +379,15 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                     );
                     return;
                   }
-                  _showTipsDialog(context, widget.workerId);
+                  _showTipsDialog(
+                    context,
+                    widget.workerId,
+                    tips?.payoutRequested ?? false,
+                  );
                 },
                 child: _buildPaymentCard(
                   title: AppLocalizations.of(context)!.totalTips,
-                  amount:
-                      totalTips, // Use calculated totalTips instead of cardTips + cashTips
+                  amount: totalTips,
                   icon: Icons.star,
                   color: Colors.orange,
                 ),
@@ -417,7 +451,11 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
     );
   }
 
-  void _showTipsDialog(BuildContext context, String agentId) {
+  void _showTipsDialog(
+    BuildContext context,
+    String agentId,
+    bool payoutRequested,
+  ) {
     String? errorMessage; // To hold error messages
     bool isLoading = false; // To show loading state
 
@@ -467,27 +505,18 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                         children: [
                           _buildTipRow(
                             context,
-                            "${AppLocalizations.of(context)!.cashTips} (${AppLocalizations.of(context)!.inHand})",
-                            fullcashTips,
+                            AppLocalizations.of(context)!.lifetimeTips,
+                            cashTips + cardTips,
                             Icons.money,
                             Colors.green,
                           ),
                           const Divider(height: 20),
                           _buildTipRow(
                             context,
-                            AppLocalizations.of(context)!.cardTips,
-                            fullcardTips,
+                            AppLocalizations.of(context)!.availableForPayout,
+                            availableCardTips,
                             Icons.credit_card,
                             Colors.blue,
-                          ),
-                          const Divider(height: 20),
-                          _buildTipRow(
-                            context,
-                            AppLocalizations.of(context)!.totalTips,
-                            totalTips,
-                            Icons.account_balance_wallet,
-                            Theme.of(context).primaryColor,
-                            isTotal: true,
                           ),
                         ],
                       ),
@@ -599,54 +628,68 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
                   ),
                 ),
                 eButton(
-                  onPressed: cardTips < 10.00
+                  onPressed: availableCardTips < 10.00
                       ? () {
                           if (mounted) {
                             setState(() {
                               errorMessage = AppLocalizations.of(
                                 context,
-                              )!.payoutRequirement;
+                              )!.notEnoughBalanceforRequestingTipPayout;
+                            });
+                          }
+                        }
+                      : payoutRequested == true
+                      ? () {
+                          if (mounted) {
+                            setState(() {
+                              errorMessage = AppLocalizations.of(
+                                context,
+                              )!.cannotRequestPayoutPendingRequest;
                             });
                           }
                         }
                       : isLoading
                       ? null
                       : () async {
-                          // Clear previous error
-                          if (mounted) {
-                            setState(() {
-                              errorMessage = null;
-                              isLoading = true;
-                            });
-                          }
-
-                          try {
-                            await AppFirestore.tippingCollectionRef
-                                .doc(widget.workerId)
-                                .update({'payoutRequested': true});
-
-                            if (context.mounted) {
-                              Navigator.of(context).pop();
-
-                              // Show success message
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    AppLocalizations.of(
-                                      context,
-                                    )!.payoutRequestSubmittedSuccessfully,
-                                  ),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
+                          if (payoutRequested == false) {
+                            // Clear previous error
+                            if (mounted) {
+                              setState(() {
+                                errorMessage = null;
+                                isLoading = true;
+                              });
                             }
-                          } catch (e) {
-                            // Display error in dialog
-                            setState(() {
-                              errorMessage =
-                                  '${AppLocalizations.of(context)!.errorRequestingPayout}: ${e.toString()}';
-                              isLoading = false;
-                            });
+
+                            try {
+                              await AppFirestore.tippingCollectionRef
+                                  .doc(widget.workerId)
+                                  .update({'payoutRequested': true});
+
+                              if (context.mounted) {
+                                Navigator.of(context).pop();
+
+                                // Show success message
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.payoutRequestSubmittedSuccessfully,
+                                    ),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              // Display error in dialog
+                              setState(() {
+                                errorMessage =
+                                    '${AppLocalizations.of(context)!.errorRequestingPayout}: ${e.toString()}';
+                                isLoading = false;
+                              });
+                            }
+                          } else {
+                            null;
                           }
                         },
                   context: context,
@@ -1000,6 +1043,12 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
       );
     }
 
+    // Calculate how many transactions to display
+    final displayCount = _transactionsToShow > transactions.length
+        ? transactions.length
+        : _transactionsToShow;
+    final hasMore = displayCount < transactions.length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1010,9 +1059,10 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
             border: Border.all(color: Colors.grey[200]!),
           ),
           child: ListView.separated(
+            padding: EdgeInsets.zero,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: transactions.length > 10 ? 10 : transactions.length,
+            itemCount: displayCount,
             separatorBuilder: (context, index) =>
                 Divider(height: 1, color: Colors.grey[200]),
             itemBuilder: (context, index) {
@@ -1021,6 +1071,75 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
             },
           ),
         ),
+        const SizedBox(height: 24),
+        // Show More button
+        if (hasMore) ...[
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _isLoadingMore
+                  ? null
+                  : () async {
+                      setState(() {
+                        _isLoadingMore = true;
+                      });
+
+                      // Calculate which new transactions will be shown
+                      final currentCount = _transactionsToShow;
+                      final nextCount = currentCount + 5;
+                      final total = transactions.length;
+                      final end = nextCount > total ? total : nextCount;
+
+                      // Pre-fetch data for the new transactions
+                      final List<Future<BookingModel?>> futuresToWait = [];
+                      for (int i = currentCount; i < end; i++) {
+                        final transaction = transactions[i];
+                        if (!_bookingFutures.containsKey(
+                          transaction.bookingId,
+                        )) {
+                          final future = AppServices.getBookingById(
+                            transaction.bookingId,
+                          );
+                          _bookingFutures[transaction.bookingId] = future;
+                          futuresToWait.add(future);
+                        }
+                      }
+
+                      // Wait for all new data to load
+                      if (futuresToWait.isNotEmpty) {
+                        await Future.wait(futuresToWait);
+                      } else {
+                        // Minimal delay if data was already cached/no new data needed
+                        await Future.delayed(const Duration(milliseconds: 300));
+                      }
+
+                      if (mounted) {
+                        setState(() {
+                          _transactionsToShow += 5;
+                          _isLoadingMore = false;
+                        });
+                      }
+                    },
+              icon: _isLoadingMore ? null : const Icon(Icons.expand_more),
+              label: _isLoadingMore
+                  ? SizedBox(width: 24, height: 24, child: Loader())
+                  : Text(AppLocalizations.of(context)!.showMore),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: AppColors.primary,
+                side: BorderSide(color: AppColors.primary),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
       ],
     );
   }
@@ -1031,8 +1150,14 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
         transaction.paymentStatus.toLowerCase() == 'completed' ||
         transaction.paymentStatus.toLowerCase() == 'paid';
 
+    // Use cached future or create new one and cache it
+    final future = _bookingFutures.putIfAbsent(
+      transaction.bookingId,
+      () => AppServices.getBookingById(transaction.bookingId),
+    );
+
     return FutureBuilder(
-      future: AppServices.getBookingById(transaction.bookingId),
+      future: future,
       builder: (context, snapshot) {
         String customerName = '';
         String serviceName = '';
@@ -1071,6 +1196,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
           ),
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               if (customerName.isNotEmpty) ...{
                 Text(
@@ -1102,6 +1228,7 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
           trailing: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 '${transaction.amount.toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}',
@@ -1527,7 +1654,6 @@ class _WorkerEarningsPageState extends State<WorkerEarningsPage> {
 
   void _showPayoutRequestDialog() {
     final TextEditingController amountController = TextEditingController();
-    final availableAmount = cardPayments;
 
     // Add a ValueNotifier to manage error state
     final errorNotifier = ValueNotifier<String?>(null);

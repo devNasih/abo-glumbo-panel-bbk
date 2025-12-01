@@ -1704,6 +1704,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Waiting for Technician response';
 
   @override
+  String get waitingForAdmin => 'Waiting for Admin';
+
+  @override
+  String get waitingForAdminToReassign =>
+      'Waiting for admin to reassign technician';
+
+  @override
   String get orderRejected => 'Order Rejected Successfully';
 
   @override
@@ -1714,6 +1721,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get confirmReject => 'Confirm Reject';
+
+  @override
+  String get updatedOn => 'Updated On';
+
+  @override
+  String get approvedOn => 'Approved On';
 
   @override
   String get confirmRejectMessage =>
@@ -2690,7 +2703,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get payoutRequirement =>
-      'To request a payout, you\'ll need at least 10 SAR in card tips available.';
+      'To request a tip payout, you\'ll need at least 10 SAR available for payout.';
+
+  @override
+  String get notEnoughBalanceforRequestingTipPayout =>
+      'Not enough balance to request a tip payout';
 
   @override
   String get cashTips => 'Cash Tips';
@@ -2727,9 +2744,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get failedToLoadVideo => 'Failed to load video';
 
   @override
-  String get loading => 'Loading...';
-
-  @override
   String get payoutAmount => 'Payout Amount';
 
   @override
@@ -2754,7 +2768,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transactionNumberRequired => 'Transaction number is required';
 
   @override
+  String get viewAndManageEarnings => 'View and manage earnings';
+
+  @override
   String get supportedFormats => 'Supported formats:';
+
+  @override
+  String get lifetimeTips => 'Lifetime Tips';
 
   @override
   String get pleaseProvideTransactionDetails =>
@@ -3787,6 +3807,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notissuefive => 'Normal wear and tear';
+
+  @override
+  String get showMore => 'Show More';
+
+  @override
+  String get loading => 'Loading...';
 
   @override
   String get claimText =>

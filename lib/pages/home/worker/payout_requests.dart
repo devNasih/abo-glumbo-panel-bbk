@@ -37,18 +37,18 @@ class PayoutRequests extends StatelessWidget {
     }
   }
 
-  String _getStatusText(String? status) {
+  String _getStatusText(String? status, BuildContext context) {
     switch (status) {
       case 'C':
-        return 'Completed';
+        return AppLocalizations.of(context)!.completed;
       case 'P':
-        return 'Pending';
+        return AppLocalizations.of(context)!.pending;
       case 'R':
-        return 'Rejected';
+        return AppLocalizations.of(context)!.rejected;
       case 'X':
-        return 'Cancelled';
+        return AppLocalizations.of(context)!.cancelled;
       default:
-        return 'Pending';
+        return AppLocalizations.of(context)!.pending;
     }
   }
 
@@ -189,7 +189,7 @@ class PayoutRequests extends StatelessWidget {
             itemBuilder: (context, index) {
               final payoutRequest = payoutRequests[index];
               final statusColor = _getStatusColor(payoutRequest.status);
-              final statusText = _getStatusText(payoutRequest.status);
+              final statusText = _getStatusText(payoutRequest.status, context);
 
               return Dismissible(
                 key: Key(payoutRequest.id ?? 'payout_$index'),
@@ -306,24 +306,31 @@ class PayoutRequests extends StatelessWidget {
                           const SizedBox(height: 12),
 
                           // Request Details
-                          if (payoutRequest.createdAt != null)
+                          if (payoutRequest.createdAt != null &&
+                              payoutRequest.status!.toLowerCase() == 'p')
                             _buildInfoRow(
                               icon: Icons.calendar_today_outlined,
-                              label: 'Requested',
+                              label: AppLocalizations.of(context)!.requestedOn,
                               value: _formatDate(payoutRequest.createdAt),
                             ),
 
-                          if (payoutRequest.updatedAt != null &&
-                              payoutRequest.updatedAt !=
-                                  payoutRequest.createdAt)
+                          if (payoutRequest.approvedAt != null &&
+                              payoutRequest.status!.toLowerCase() == 'c')
                             Padding(
                               padding: const EdgeInsets.only(top: 8),
                               child: _buildInfoRow(
                                 icon: Icons.update,
-                                label: 'Updated',
-                                value: _formatDate(payoutRequest.updatedAt),
+                                label: AppLocalizations.of(context)!.approvedOn,
+                                value: _formatDate(payoutRequest.approvedAt),
                               ),
                             ),
+                          if (payoutRequest.status!.toLowerCase() == 'r') ...{
+                            _buildInfoRow(
+                              icon: Icons.update,
+                              label: AppLocalizations.of(context)!.rejectedOn,
+                              value: _formatDate(payoutRequest.updatedAt),
+                            ),
+                          },
                         ],
                       ),
                     ),

@@ -9,6 +9,7 @@ class PayoutRequestModel {
   String? type;
   Timestamp? createdAt;
   Timestamp? updatedAt;
+  Timestamp? approvedAt;
   PayoutAccountModel? payoutAccount;
 
   PayoutRequestModel({
@@ -18,6 +19,7 @@ class PayoutRequestModel {
     this.status,
     this.createdAt,
     this.updatedAt,
+    this.approvedAt,
     this.payoutAccount,
     this.type,
   });
@@ -28,6 +30,7 @@ class PayoutRequestModel {
     String? amount,
     String? status,
     Timestamp? createdAt,
+    Timestamp? approvedAt,
     Timestamp? updatedAt,
     PayoutAccountModel? payoutAccount,
     String? type,
@@ -37,6 +40,7 @@ class PayoutRequestModel {
       userId: userId ?? this.userId,
       amount: amount ?? this.amount,
       status: status ?? this.status,
+      approvedAt: approvedAt ?? this.approvedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       payoutAccount: payoutAccount ?? this.payoutAccount,
@@ -51,6 +55,7 @@ class PayoutRequestModel {
       'amount': amount,
       'status': status,
       'createdAt': createdAt,
+      'approvedAt': approvedAt,
       'updatedAt': updatedAt,
       'payoutAccount': payoutAccount?.toJson(),
       'type': type,
@@ -63,6 +68,7 @@ class PayoutRequestModel {
       userId: map['userId'],
       amount: map['amount'],
       status: map['status'],
+      approvedAt: map['approvedAt'],
       createdAt: map['createdAt'],
       updatedAt: map['updatedAt'],
       payoutAccount: map['payoutAccount'] != null
@@ -92,6 +98,7 @@ class PayoutRequestModel {
       userId: json['userId'],
       amount: json['amount'],
       status: json['status'],
+      approvedAt: parseTimestamp(json['approvedAt']),
       createdAt: parseTimestamp(json['createdAt']),
       updatedAt: parseTimestamp(json['updatedAt']),
       payoutAccount: json['payoutAccount'] != null

@@ -280,7 +280,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ElevatedButton.icon(
                 onPressed: _handleRefresh,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
+                label: Text(AppLocalizations.of(context)!.retry),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -310,7 +310,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 16),
             _buildStatsSection(data.stats),
             const SizedBox(height: 16),
-            _buildEarningsCard(data.totalEarnings),
+            SizedBox(
+              height: 160,
+              width: MediaQuery.of(context).size.width,
+              child: _buildEarningsCard(),
+            ),
             const SizedBox(height: 16),
             _buildQuickActionsGrid(),
             const SizedBox(height: 16),
@@ -576,20 +580,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   /// Build earnings card
-  Widget _buildEarningsCard(double totalEarnings) {
-    return _buildStatCard(
-      _StatData(
-        title: AppLocalizations.of(context)!.earnings,
-        subtitle: "",
-        value: totalEarnings.toStringAsFixed(2),
-        icon: Icons.wallet,
-        color: Colors.deepPurple,
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) =>
-                WorkerEarningsPage(workerId: widget.workerData.uid ?? ""),
-          ),
+  Widget _buildEarningsCard() {
+    return _buildActionButton(
+      AppLocalizations.of(context)!.earnings,
+      AppLocalizations.of(context)!.viewAndManageEarnings,
+      Icons.wallet,
+      Colors.deepPurple,
+      () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              WorkerEarningsPage(workerId: widget.workerData.uid ?? ""),
         ),
       ),
     );

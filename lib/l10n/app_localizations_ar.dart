@@ -1682,6 +1682,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get waitingForServiceProviderResponse => 'انتظار رد الفني';
 
   @override
+  String get waitingForAdmin => 'في انتظار المسؤول';
+
+  @override
+  String get waitingForAdminToReassign =>
+      'في انتظار المسؤول لإعادة تعيين الفني';
+
+  @override
   String get orderRejected => 'تم رفض الطلب';
 
   @override
@@ -1692,6 +1699,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get confirmReject => 'تأكيد الرفض';
+
+  @override
+  String get updatedOn => 'تم التحديث';
+
+  @override
+  String get approvedOn => 'تم الموافقة على';
 
   @override
   String get confirmRejectMessage => 'هل أنت متأكد أنك تريد رفض هذا الطلب؟';
@@ -2647,7 +2660,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get payoutRequirement =>
-      'لطلب الدفع، يجب أن يكون لديك على الأقل 10 ريال سعودي في نقاط القبول المتاحة.';
+      'لطلب سحب الإكرامية، يجب أن يكون لديك ما لا يقل عن 10 ريالات متاحة للسحب.';
+
+  @override
+  String get notEnoughBalanceforRequestingTipPayout =>
+      'لا يوجد كافية لطلب سحب الإكرامية';
 
   @override
   String get cashTips => 'نقاط الإكراميات النقدية';
@@ -2684,9 +2701,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToLoadVideo => 'فشل تحميل الفيديو';
 
   @override
-  String get loading => 'جارٍ التحميل...';
-
-  @override
   String get payoutAmount => 'مبلغ الدفعة';
 
   @override
@@ -2711,7 +2725,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transactionNumberRequired => 'رقم المعاملة مطلوب';
 
   @override
+  String get viewAndManageEarnings => 'عرض وإدارة الأرباح';
+
+  @override
   String get supportedFormats => 'الصيغ المدعومة:';
+
+  @override
+  String get lifetimeTips => 'إجمالي التحفيزات';
 
   @override
   String get pleaseProvideTransactionDetails =>
@@ -3054,12 +3074,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String payoutRequestSuccessfulMessage(String amount) {
-    return '[translate:طلب الدفع ($amount ر.س) مقدم بنجاح]';
+    return 'طلب الدفع ($amount ر.س) مقدم بنجاح';
   }
 
   @override
   String cashPaymentsMessage(String amount) {
-    return '[translate:المدفوعات النقدية ($amount ر.س) معك بالفعل]';
+    return 'المدفوعات النقدية ($amount ر.س) معك بالفعل';
   }
 
   @override
@@ -3729,6 +3749,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notissuefive => 'الاهتراء والتآكل الطبيعي.';
+
+  @override
+  String get showMore => 'عرض المزيد';
+
+  @override
+  String get loading => 'جارٍ التحميل...';
 
   @override
   String get claimText =>

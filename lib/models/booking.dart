@@ -33,6 +33,7 @@ class BookingModel {
   Timestamp? trackingStoppedAt;
   Timestamp? cancelledAt;
   String? cancellationReason;
+  String? rejectedBy;
   String? orderId;
   Timestamp? paymentCompletedAt;
 
@@ -67,6 +68,7 @@ class BookingModel {
     this.trackingStoppedAt,
     this.cancelledAt,
     this.cancellationReason,
+    this.rejectedBy,
     this.orderId,
     this.cancelledWorkerUids,
     this.paymentCompleted = false,
@@ -114,6 +116,7 @@ class BookingModel {
       cancelledWorkerUids = data['cancelledWorkerUids'] != null
           ? List<String>.from(data['cancelledWorkerUids'])
           : null,
+      rejectedBy = data['rejectedBy'] as String?,
       cancelledAt = data['cancelledAt'] as Timestamp?;
 
   factory BookingModel.fromQueryDocumentSnapshot(
@@ -153,6 +156,7 @@ class BookingModel {
       'cancelledWorkerUids': cancelledWorkerUids,
       'cancelledAt': cancelledAt,
       'cancellationReason': cancellationReason,
+      'rejectedBy': rejectedBy,
       'paymentCompleted': paymentCompleted,
     };
 

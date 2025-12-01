@@ -901,7 +901,6 @@ class AppServices {
           }, SetOptions(merge: true));
 
       await AppFirestore.tippingCollectionRef.doc(agentId).update({
-        'cardtip': 0.0,
         'payoutRequested': false,
         'updatedAt': Timestamp.now(),
         'payoutAmount': FieldValue.increment(tipmodel?.cardtip ?? 0.0),
@@ -1381,6 +1380,17 @@ class AppServices {
     return TippingModel.fromJson(
       snapshot.docs.first.data() as Map<String, dynamic>,
     );
+  }
+
+  static Future<List<ReviewModel>> getWorkerReviewsWithTipAmounts(
+    String workerId,
+  ) async {
+    final snapshot = await AppFirestore.bookingsCollectionRef
+        .where('review.workerId', isEqualTo: workerId)
+        .get();
+    return snapshot.docs
+        .map((doc) => ReviewModel.fromJson(doc.data() as Map<String, dynamic>))
+        .toList();
   }
 
   static Future<double> getTotalTipping(String workerId) async {
@@ -2021,40 +2031,25 @@ class AppServices {
         .startWith(0) // Start immediately
         .switchMap((_) {
           debugPrint('📊 Dashboard data refresh initiated');
-          return Rx.combineLatest4(
+          return Rx.combineLatest5(
             _getStatsStream(uid),
             _getTransactionsRealTimeStream(uid),
             _getTipsRealTimeStream(uid),
             _getPaidAmountsStream(uid),
+            _getLiveTipsStream(uid),
             (
               Map<String, dynamic> stats,
 
               List<TransactionModel> transactions,
               List<AllTipsModel> tips,
               double paidAmounts,
+              TippingModel liveTips,
             ) {
               debugPrint('📊 Dashboard stream updated - combining all data');
 
-              double cashPayments = 0.0;
-              double cardPayments = 0.0;
-
-              for (var transaction in transactions) {
-                final status = transaction.paymentStatus.toLowerCase();
-                if (status == 'completed' || status == 'paid') {
-                  final method = transaction.paymentMethod.toLowerCase();
-                  if (method == 'cash on hands') {
-                    cashPayments += transaction.amount;
-                  } else if (method == 'cards') {
-                    cardPayments += transaction.amount;
-                  }
-                }
-              }
-
-              final totalEarnings = cashPayments + cardPayments - paidAmounts;
-
               return DashboardDataStream(
                 stats: stats,
-                totalEarnings: totalEarnings,
+                totalEarnings: 0.0,
                 transactions: transactions,
                 tips: tips,
                 paidAmounts: paidAmounts,
@@ -2077,6 +2072,15 @@ class AppServices {
             paidAmounts: 0.0,
           );
         });
+  }
+
+  static Stream<TippingModel> _getLiveTipsStream(String uid) {
+    final stream = AppFirestore.tippingCollectionRef.doc(uid).snapshots();
+    return stream.map((snapshot) {
+      final data = snapshot.data();
+      if (!snapshot.exists || data == null) return TippingModel();
+      return TippingModel.fromJson(data as Map<String, dynamic>);
+    });
   }
 
   /// Stream user data

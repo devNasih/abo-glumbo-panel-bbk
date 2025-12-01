@@ -3368,6 +3368,18 @@ abstract class AppLocalizations {
   /// **'Waiting for Technician response'**
   String get waitingForServiceProviderResponse;
 
+  /// No description provided for @waitingForAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for Admin'**
+  String get waitingForAdmin;
+
+  /// No description provided for @waitingForAdminToReassign.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for admin to reassign technician'**
+  String get waitingForAdminToReassign;
+
   /// No description provided for @orderRejected.
   ///
   /// In en, this message translates to:
@@ -3391,6 +3403,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm Reject'**
   String get confirmReject;
+
+  /// No description provided for @updatedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated On'**
+  String get updatedOn;
+
+  /// No description provided for @approvedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved On'**
+  String get approvedOn;
 
   /// No description provided for @confirmRejectMessage.
   ///
@@ -5183,8 +5207,14 @@ abstract class AppLocalizations {
   /// No description provided for @payoutRequirement.
   ///
   /// In en, this message translates to:
-  /// **'To request a payout, you\'ll need at least 10 SAR in card tips available.'**
+  /// **'To request a tip payout, you\'ll need at least 10 SAR available for payout.'**
   String get payoutRequirement;
+
+  /// No description provided for @notEnoughBalanceforRequestingTipPayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough balance to request a tip payout'**
+  String get notEnoughBalanceforRequestingTipPayout;
 
   /// No description provided for @cashTips.
   ///
@@ -5252,12 +5282,6 @@ abstract class AppLocalizations {
   /// **'Failed to load video'**
   String get failedToLoadVideo;
 
-  /// No description provided for @loading.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading...'**
-  String get loading;
-
   /// No description provided for @payoutAmount.
   ///
   /// In en, this message translates to:
@@ -5306,11 +5330,23 @@ abstract class AppLocalizations {
   /// **'Transaction number is required'**
   String get transactionNumberRequired;
 
+  /// No description provided for @viewAndManageEarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'View and manage earnings'**
+  String get viewAndManageEarnings;
+
   /// No description provided for @supportedFormats.
   ///
   /// In en, this message translates to:
   /// **'Supported formats:'**
   String get supportedFormats;
+
+  /// No description provided for @lifetimeTips.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifetime Tips'**
+  String get lifetimeTips;
 
   /// No description provided for @pleaseProvideTransactionDetails.
   ///
@@ -7142,6 +7178,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Normal wear and tear'**
   String get notissuefive;
+
+  /// No description provided for @showMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Show More'**
+  String get showMore;
+
+  /// No description provided for @loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get loading;
 
   /// No description provided for @claimText.
   ///
