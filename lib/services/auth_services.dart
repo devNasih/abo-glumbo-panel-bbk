@@ -89,11 +89,23 @@ class AuthServices {
         debugPrint(
           '🍎 [AUTH SERVICE] iOS detected - configuring Firebase Auth settings',
         );
-        await FirebaseAuth.instance.setSettings(
-          appVerificationDisabledForTesting: false,
-          userAccessGroup: null,
-        );
-        debugPrint('🍎 [AUTH SERVICE] iOS Firebase Auth settings configured');
+        // Enable app verification for production, disable for testing
+        final isTestMode =
+            false; // Set to true if you want to test without reCAPTCHA
+        try {
+          await FirebaseAuth.instance.setSettings(
+            appVerificationDisabledForTesting: isTestMode,
+            userAccessGroup: null,
+          );
+          debugPrint(
+            '🍎 [AUTH SERVICE] iOS Firebase Auth settings configured (appVerificationDisabledForTesting: $isTestMode)',
+          );
+        } catch (settingsError) {
+          debugPrint(
+            '⚠️ [AUTH SERVICE] Error configuring Firebase settings: $settingsError',
+          );
+          // Continue anyway - Firebase might already be configured
+        }
       }
 
       debugPrint('📞 [AUTH SERVICE] Calling Firebase verifyPhoneNumber...');
@@ -242,11 +254,23 @@ class AuthServices {
         debugPrint(
           '🍎 [AUTH SERVICE] iOS detected - configuring Firebase Auth settings',
         );
-        await FirebaseAuth.instance.setSettings(
-          appVerificationDisabledForTesting: false,
-          userAccessGroup: null,
-        );
-        debugPrint('🍎 [AUTH SERVICE] iOS Firebase Auth settings configured');
+        // Enable app verification for production, disable for testing
+        final isTestMode =
+            false; // Set to true if you want to test without reCAPTCHA
+        try {
+          await FirebaseAuth.instance.setSettings(
+            appVerificationDisabledForTesting: isTestMode,
+            userAccessGroup: null,
+          );
+          debugPrint(
+            '🍎 [AUTH SERVICE] iOS Firebase Auth settings configured (appVerificationDisabledForTesting: $isTestMode)',
+          );
+        } catch (settingsError) {
+          debugPrint(
+            '⚠️ [AUTH SERVICE] Error configuring Firebase settings: $settingsError',
+          );
+          // Continue anyway - Firebase might already be configured
+        }
       }
 
       debugPrint('📞 [AUTH SERVICE] Calling Firebase verifyPhoneNumber...');
