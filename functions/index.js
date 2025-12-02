@@ -506,13 +506,24 @@ exports.notifyTechnicianOnPaymentCompletion = onDocumentWritten(
       return;
     }
 
-    // Skip if this is a warranty scenario (warranty exists)
+    // Skip payment notification only for warranty REPAIRS (not initial warranty)
+    // Flow: Warranty is added when technician completes work (bookingStatusCode = "C") with status "A"
+    // When customer completes payment, warranty still has status "A" - allow payment notification
+    // When warranty repair is requested/in-progress (R, S, C), skip payment notification
     if (afterData.warranty) {
+      const warrantyStatus = afterData.warranty.warrantyStatusCode;
+      if (warrantyStatus !== "A") {
+        console.log(
+          `[${bookingId}] ⚠️ SKIPPING payment notification - this is a warranty repair. Warranty status: ${warrantyStatus}`
+        );
+        return;
+      }
       console.log(
-        `[${bookingId}] Skipping payment notification - this is a warranty booking`
+        `[${bookingId}] ℹ️ Warranty exists with status A (available) - proceeding with payment notification`
       );
-      return;
     }
+
+    console.log(`[${bookingId}] ✅ Proceeding with payment notification`);
 
     const agent = afterData.agent;
     if (!agent?.uid) {
@@ -2298,64 +2309,8 @@ exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
       }
     }
 
-    // Notify assigned technician for warranty_technician_assigned status
-    if (status === "warranty_technician_assigned" && workerId) {
-      try {
-        const technicianDoc = await admin
-          .firestore()
-          .collection("users")
-          .doc(workerId)
-          .get();
-
-        if (technicianDoc.exists) {
-          const technicianData = technicianDoc.data();
-          const technicianFcmToken = technicianData?.fcmToken;
-          const technicianLanCode = technicianData?.lanCode || "en";
-
-          if (technicianFcmToken && technicianFcmToken.trim() !== "") {
-            await sendAndStoreNotification({
-              targetRole: "technician",
-              targetId: workerId,
-              titleEn: "Warranty Repair Assigned",
-              titleAr: "تم تعيينك لإصلاح ضمان",
-              bodyEn: `You have been assigned to a warranty repair for ${serviceName}. Customer: ${customerName}. Please review and accept.`,
-              bodyAr: `تم تعيينك لإصلاح ضمان لـ ${serviceNameAr}. العميل: ${customerName}. يرجى المراجعة والقبول.`,
-              data: {
-                targetRole: "technician",
-                category: "warranty",
-                bookingId: bookingId,
-                customerId: customerId || "",
-                customerName: customerName,
-                status: status,
-                warrantyStatusCode: afterStatusCode,
-                serviceName: serviceName,
-                isWarranty: "true",
-                isAdmin: "false",
-                ...notificationData,
-              },
-              fcmToken: technicianFcmToken,
-              lanCode: technicianLanCode,
-            });
-            console.log(
-              `[${bookingId}] Warranty assignment notification sent to technician ${workerId}`
-            );
-          } else {
-            console.log(
-              `[${bookingId}] Technician ${workerId} has no valid FCM token`
-            );
-          }
-        } else {
-          console.log(
-            `[${bookingId}] Technician document not found for ID: ${workerId}`
-          );
-        }
-      } catch (error) {
-        console.error(
-          `[${bookingId}] Error sending notification to assigned warranty technician:`,
-          error
-        );
-      }
-    }
+    // Note: Warranty technician assignment notifications are handled by
+    // the separate notifyTechnicianOnWarrantyAssignment function to avoid duplicates
 
     return null;
   }
@@ -3313,17 +3268,47 @@ exports.notifyTechnicianOnWarrantyAssignment = onDocumentWritten(
       return;
     }
 
+    // Check warranty status codes
+    const beforeStatusCode = beforeWarranty?.warrantyStatusCode;
+    const afterStatusCode = afterWarranty.warrantyStatusCode;
+
     // Check if assignedTechnicianId changed
     const beforeTechnicianId = beforeWarranty?.assignedTechnicianId;
     const afterTechnicianId = afterWarranty.assignedTechnicianId;
 
-    if (beforeTechnicianId === afterTechnicianId || !afterTechnicianId) {
-      // No change in assigned technician or no technician assigned
+    // Only trigger notification when:
+    // 1. assignedTechnicianId changes from null/undefined to a technician UID
+    // 2. AND warranty status changes from "R" (requested) to "S" (started/assigned)
+    // This prevents false triggers when warranty is created with status "A" after payment
+
+    // Skip if no technician assigned now
+    if (!afterTechnicianId) {
+      return;
+    }
+
+    // Skip if technician didn't change
+    if (beforeTechnicianId === afterTechnicianId) {
+      return;
+    }
+
+    // Skip if there was already a technician assigned before (should be null/undefined)
+    if (beforeTechnicianId != null) {
+      console.log(
+        `[${bookingId}] Skipping warranty notification - technician reassignment (was ${beforeTechnicianId}, now ${afterTechnicianId})`
+      );
+      return;
+    }
+
+    // Skip if status didn't change from R to S
+    if (beforeStatusCode !== "R" || afterStatusCode !== "S") {
+      console.log(
+        `[${bookingId}] Skipping warranty notification - status not R→S (was ${beforeStatusCode}, now ${afterStatusCode})`
+      );
       return;
     }
 
     console.log(
-      `[${bookingId}] Warranty technician assignment detected: ${afterTechnicianId}`
+      `[${bookingId}] 🔔 Warranty technician assignment detected: Admin assigned technician ${afterTechnicianId} (status R→S)`
     );
 
     // Fetch technician data
