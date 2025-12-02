@@ -994,7 +994,7 @@
   "cannotDeleteLastContact": "لا يمكن حذف آخر جهة اتصال {contactType}. مطلوب جهة اتصال واحدة على الأقل.",
   "netTechnicianror": "حدث خطأ في تحميل الفنيين",
   "viewAndManageEarnings": "عرض وإدارة الأرباح",
-  "lifetimeTips": "إجمالي التحفيزات",
+  "lifetimeTips":"اجمالي الاكراميات",
   "loadingTechnicians": "جاري تحميل الفنيين",
   "creatingChatRoom": "جاري انشاء غرفة الدردشة",
   "loadingChat": "جاري تحميل الدردشة",

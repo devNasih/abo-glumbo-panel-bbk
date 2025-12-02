@@ -2750,7 +2750,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get supportedFormats => 'الصيغ المدعومة:';
 
   @override
-  String get lifetimeTips => 'إجمالي التحفيزات';
+  String get lifetimeTips => 'اجمالي الاكراميات';
 
   @override
   String get pleaseProvideTransactionDetails =>
