@@ -1,0 +1,697 @@
+import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
+import 'package:aboglumbo_bbk_panel/models/unified_payout.dart';
+import 'package:aboglumbo_bbk_panel/services/app_services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
+
+/// Unified Payout Services
+/// Handles all payout-related operations for earnings, tips, and bonus
+class UnifiedPayoutServices {
+  /// Get or create unified wallet for a worker
+  static Future<UnifiedWalletModel> getUnifiedWallet(String workerId) async {
+    try {
+      final doc = await AppFirestore.unifiedWalletCollectionRef
+          .doc(workerId)
+          .get();
+
+      if (doc.exists) {
+        return UnifiedWalletModel.fromSnapshot(doc);
+      } else {
+        // Create new wallet if doesn't exist
+        final wallet = UnifiedWalletModel(
+          workerId: workerId,
+          totalEarnings: 0.0,
+          paidEarnings: 0.0,
+          availableEarnings: 0.0,
+          totalTips: 0.0,
+          cardTips: 0.0,
+          cashTips: 0.0,
+          paidTips: 0.0,
+          totalBonus: 0.0,
+          paidBonus: 0.0,
+          availableBonus: 0.0,
+          totalAvailableBalance: 0.0,
+          lifetimeTotal: 0.0,
+          payoutRequested: false,
+          requestedAmount: 0.0,
+          lastUpdated: Timestamp.now(),
+        );
+
+        await AppFirestore.unifiedWalletCollectionRef
+            .doc(workerId)
+            .set(wallet.toJson());
+        return wallet;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error getting unified wallet: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// Stream unified wallet for a worker
+  static Stream<UnifiedWalletModel> getUnifiedWalletStream(String workerId) {
+    return AppFirestore.unifiedWalletCollectionRef
+        .doc(workerId)
+        .snapshots()
+        .map((snapshot) {
+          if (!snapshot.exists) {
+            return UnifiedWalletModel(
+              workerId: workerId,
+              totalAvailableBalance: 0.0,
+              lifetimeTotal: 0.0,
+            );
+          }
+          return UnifiedWalletModel.fromSnapshot(snapshot);
+        });
+  }
+
+  /// Update wallet amounts (called when transactions/tips/bonus are added)
+  static Future<void> updateWalletAmounts({
+    required String workerId,
+    double? earningsIncrement,
+    double? tipsIncrement,
+    double? bonusIncrement,
+    bool? isCashTip,
+    bool? isCashEarning,
+  }) async {
+    try {
+      final walletRef = AppFirestore.unifiedWalletCollectionRef.doc(workerId);
+      final walletDoc = await walletRef.get();
+
+      UnifiedWalletModel wallet;
+      if (walletDoc.exists) {
+        wallet = UnifiedWalletModel.fromSnapshot(walletDoc);
+      } else {
+        wallet = UnifiedWalletModel(workerId: workerId);
+      }
+
+      // Update earnings
+      if (earningsIncrement != null && earningsIncrement > 0) {
+        if (isCashEarning == true) {
+          // Cash earnings - info only, already in hand
+          wallet = wallet.copyWith(
+            cashEarnings: (wallet.cashEarnings ?? 0.0) + earningsIncrement,
+          );
+        } else {
+          // Card earnings - available for payout
+          wallet = wallet.copyWith(
+            totalEarnings: (wallet.totalEarnings ?? 0.0) + earningsIncrement,
+            availableEarnings:
+                (wallet.availableEarnings ?? 0.0) + earningsIncrement,
+          );
+        }
+      }
+
+      // Update tips
+      if (tipsIncrement != null && tipsIncrement > 0) {
+        wallet = wallet.copyWith(
+          totalTips: (wallet.totalTips ?? 0.0) + tipsIncrement,
+        );
+
+        if (isCashTip == true) {
+          wallet = wallet.copyWith(
+            cashTips: (wallet.cashTips ?? 0.0) + tipsIncrement,
+          );
+        } else {
+          wallet = wallet.copyWith(
+            cardTips: (wallet.cardTips ?? 0.0) + tipsIncrement,
+          );
+        }
+      }
+
+      // Update bonus
+      if (bonusIncrement != null && bonusIncrement > 0) {
+        wallet = wallet.copyWith(
+          totalBonus: (wallet.totalBonus ?? 0.0) + bonusIncrement,
+          availableBonus: (wallet.availableBonus ?? 0.0) + bonusIncrement,
+        );
+      }
+
+      // Calculate totals
+      final totalAvailable =
+          (wallet.availableEarnings ?? 0.0) +
+          (wallet.cardTips ?? 0.0) +
+          (wallet.availableBonus ?? 0.0);
+
+      final lifetimeTotal =
+          (wallet.totalEarnings ?? 0.0) +
+          (wallet.cashEarnings ?? 0.0) +
+          (wallet.totalTips ?? 0.0) +
+          (wallet.totalBonus ?? 0.0);
+
+      wallet = wallet.copyWith(
+        totalAvailableBalance: totalAvailable,
+        lifetimeTotal: lifetimeTotal,
+        lastUpdated: Timestamp.now(),
+      );
+
+      await walletRef.set(wallet.toJson(), SetOptions(merge: true));
+
+      if (kDebugMode) {
+        print('✅ Wallet updated for worker $workerId');
+        print('   Available Balance: ${wallet.totalAvailableBalance}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error updating wallet amounts: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// Request a unified payout
+  static Future<String> requestUnifiedPayout({
+    required String workerId,
+    required double earningsAmount,
+    required double tipsAmount,
+    required double bonusAmount,
+  }) async {
+    try {
+      // Get worker details
+      final worker = await AppServices.getWorkerById(workerId);
+
+      // Get primary payout account
+      final payoutAccount = await AppServices.getPrimaryPayoutAccount(workerId);
+      if (payoutAccount == null) {
+        throw Exception('No payout account found');
+      }
+
+      // Get current wallet
+      final wallet = await getUnifiedWallet(workerId);
+
+      // Validate amounts
+      if (earningsAmount > (wallet.availableEarnings ?? 0.0)) {
+        throw Exception('Insufficient earnings balance');
+      }
+      if (tipsAmount > (wallet.cardTips ?? 0.0)) {
+        throw Exception('Insufficient tips balance');
+      }
+      if (bonusAmount > (wallet.availableBonus ?? 0.0)) {
+        throw Exception('Insufficient bonus balance');
+      }
+
+      final totalAmount = earningsAmount + tipsAmount + bonusAmount;
+      if (totalAmount <= 0) {
+        throw Exception('Total amount must be greater than 0');
+      }
+
+      // Create payout request
+      final requestId = AppFirestore.unifiedPayoutRequestsCollectionRef
+          .doc()
+          .id;
+      final request = UnifiedPayoutRequestModel(
+        id: requestId,
+        workerId: workerId,
+        workerName: worker.name,
+        earningsAmount: earningsAmount,
+        tipsAmount: tipsAmount,
+        bonusAmount: bonusAmount,
+        totalAmount: totalAmount,
+        payoutAccount: payoutAccount.toJson(),
+        status: 'P', // Pending
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      );
+
+      await AppFirestore.unifiedPayoutRequestsCollectionRef
+          .doc(requestId)
+          .set(request.toJson());
+
+      // Update wallet status
+      await AppFirestore.unifiedWalletCollectionRef.doc(workerId).update({
+        'payoutRequested': true,
+        'requestedAmount': totalAmount,
+        'lastPayoutRequestedAt': Timestamp.now(),
+        'lastUpdated': Timestamp.now(),
+      });
+
+      if (kDebugMode) {
+        print('✅ Payout request created: $requestId');
+        print('   Total Amount: $totalAmount');
+      }
+
+      return requestId;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error requesting payout: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// Get payout requests for a worker
+  static Stream<List<UnifiedPayoutRequestModel>> getWorkerPayoutRequests(
+    String workerId,
+  ) {
+    return AppFirestore.unifiedPayoutRequestsCollectionRef
+        .where('workerId', isEqualTo: workerId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => UnifiedPayoutRequestModel.fromSnapshot(doc))
+              .toList();
+        });
+  }
+
+  /// Get all payout requests (for admin)
+  static Stream<List<UnifiedPayoutRequestModel>> getAllPayoutRequests({
+    String? status,
+  }) {
+    Query query = AppFirestore.unifiedPayoutRequestsCollectionRef;
+
+    if (status != null) {
+      query = query.where('status', isEqualTo: status);
+    }
+
+    return query.orderBy('createdAt', descending: true).snapshots().map((
+      snapshot,
+    ) {
+      return snapshot.docs
+          .map((doc) => UnifiedPayoutRequestModel.fromSnapshot(doc))
+          .toList();
+    });
+  }
+
+  /// Approve and complete payout (admin only)
+  static Future<void> approvePayout({
+    required String requestId,
+    required String transactionId,
+    XFile? paymentProof,
+  }) async {
+    try {
+      // Get the request
+      final requestDoc = await AppFirestore.unifiedPayoutRequestsCollectionRef
+          .doc(requestId)
+          .get();
+
+      if (!requestDoc.exists) {
+        throw Exception('Payout request not found');
+      }
+
+      final request = UnifiedPayoutRequestModel.fromSnapshot(requestDoc);
+
+      if (request.workerId == null) {
+        throw Exception('Worker ID not found in request');
+      }
+
+      // Upload payment proof if provided
+      String? proofUrl;
+      if (paymentProof != null) {
+        proofUrl = await _uploadPaymentProof(request.workerId!, paymentProof);
+      }
+
+      // Update wallet - deduct amounts and mark as paid
+      final walletRef = AppFirestore.unifiedWalletCollectionRef.doc(
+        request.workerId,
+      );
+      final walletDoc = await walletRef.get();
+
+      if (!walletDoc.exists) {
+        throw Exception('Wallet not found');
+      }
+
+      final wallet = UnifiedWalletModel.fromSnapshot(walletDoc);
+
+      // Calculate new values
+      final newAvailableEarnings =
+          (wallet.availableEarnings ?? 0.0) - (request.earningsAmount ?? 0.0);
+      final newCardTips =
+          (wallet.cardTips ?? 0.0) - (request.tipsAmount ?? 0.0);
+      final newAvailableBonus =
+          (wallet.availableBonus ?? 0.0) - (request.bonusAmount ?? 0.0);
+
+      final newPaidEarnings =
+          (wallet.paidEarnings ?? 0.0) + (request.earningsAmount ?? 0.0);
+      final newPaidTips =
+          (wallet.paidTips ?? 0.0) + (request.tipsAmount ?? 0.0);
+      final newPaidBonus =
+          (wallet.paidBonus ?? 0.0) + (request.bonusAmount ?? 0.0);
+
+      final newTotalAvailable =
+          newAvailableEarnings + newCardTips + newAvailableBonus;
+
+      // Update wallet
+      await walletRef.update({
+        'availableEarnings': newAvailableEarnings,
+        'cardTips': newCardTips,
+        'availableBonus': newAvailableBonus,
+        'paidEarnings': newPaidEarnings,
+        'paidTips': newPaidTips,
+        'paidBonus': newPaidBonus,
+        'totalAvailableBalance': newTotalAvailable,
+        'payoutRequested': false,
+        'requestedAmount': 0.0,
+        'lastPayoutCompletedAt': Timestamp.now(),
+        'lastUpdated': Timestamp.now(),
+      });
+
+      // Update request status
+      await AppFirestore.unifiedPayoutRequestsCollectionRef
+          .doc(requestId)
+          .update({
+            'status': 'A', // Approved
+            'approvedAt': Timestamp.now(),
+            'updatedAt': Timestamp.now(),
+            'transactionId': transactionId,
+            'paymentProofUrl': proofUrl,
+          });
+
+      // Create history record
+      final historyId = AppFirestore.payoutHistoryCollectionRef.doc().id;
+      final history = PayoutHistoryModel(
+        id: historyId,
+        workerId: request.workerId,
+        workerName: request.workerName,
+        earningsAmount: request.earningsAmount,
+        tipsAmount: request.tipsAmount,
+        bonusAmount: request.bonusAmount,
+        totalAmount: request.totalAmount,
+        completedAt: Timestamp.now(),
+        transactionId: transactionId,
+        paymentProofUrl: proofUrl,
+        payoutAccount: request.payoutAccount,
+      );
+
+      await AppFirestore.payoutHistoryCollectionRef
+          .doc(historyId)
+          .set(history.toJson());
+
+      if (kDebugMode) {
+        print('✅ Payout approved: $requestId');
+        print('   Transaction ID: $transactionId');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error approving payout: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// Reject payout request (admin only)
+  static Future<void> rejectPayout({
+    required String requestId,
+    required String reason,
+  }) async {
+    try {
+      // Get the request
+      final requestDoc = await AppFirestore.unifiedPayoutRequestsCollectionRef
+          .doc(requestId)
+          .get();
+
+      if (!requestDoc.exists) {
+        throw Exception('Payout request not found');
+      }
+
+      final request = UnifiedPayoutRequestModel.fromSnapshot(requestDoc);
+
+      // Update request status
+      await AppFirestore.unifiedPayoutRequestsCollectionRef
+          .doc(requestId)
+          .update({
+            'status': 'R', // Rejected
+            'rejectedAt': Timestamp.now(),
+            'updatedAt': Timestamp.now(),
+            'rejectionReason': reason,
+          });
+
+      // Update wallet status
+      if (request.workerId != null) {
+        await AppFirestore.unifiedWalletCollectionRef
+            .doc(request.workerId)
+            .update({
+              'payoutRequested': false,
+              'requestedAmount': 0.0,
+              'lastUpdated': Timestamp.now(),
+            });
+      }
+
+      if (kDebugMode) {
+        print('✅ Payout rejected: $requestId');
+        print('   Reason: $reason');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error rejecting payout: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// Get payout history for a worker
+  static Stream<List<PayoutHistoryModel>> getWorkerPayoutHistory(
+    String workerId,
+  ) {
+    return AppFirestore.payoutHistoryCollectionRef
+        .where('workerId', isEqualTo: workerId)
+        .orderBy('completedAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => PayoutHistoryModel.fromSnapshot(doc))
+              .toList();
+        });
+  }
+
+  /// Get all payout history (for admin)
+  static Stream<List<PayoutHistoryModel>> getAllPayoutHistory() {
+    return AppFirestore.payoutHistoryCollectionRef
+        .orderBy('completedAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => PayoutHistoryModel.fromSnapshot(doc))
+              .toList();
+        });
+  }
+
+  /// Cancel payout request (worker can cancel pending requests)
+  static Future<void> cancelPayoutRequest(String requestId) async {
+    try {
+      final requestDoc = await AppFirestore.unifiedPayoutRequestsCollectionRef
+          .doc(requestId)
+          .get();
+
+      if (!requestDoc.exists) {
+        throw Exception('Payout request not found');
+      }
+
+      final request = UnifiedPayoutRequestModel.fromSnapshot(requestDoc);
+
+      if (request.status != 'P') {
+        throw Exception('Can only cancel pending requests');
+      }
+
+      // Delete the request
+      await AppFirestore.unifiedPayoutRequestsCollectionRef
+          .doc(requestId)
+          .delete();
+
+      // Update wallet status
+      if (request.workerId != null) {
+        await AppFirestore.unifiedWalletCollectionRef
+            .doc(request.workerId)
+            .update({
+              'payoutRequested': false,
+              'requestedAmount': 0.0,
+              'lastUpdated': Timestamp.now(),
+            });
+      }
+
+      if (kDebugMode) {
+        print('✅ Payout request cancelled: $requestId');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error cancelling payout request: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// Upload payment proof
+  static Future<String?> _uploadPaymentProof(
+    String workerId,
+    XFile image,
+  ) async {
+    try {
+      final bytes = await image.readAsBytes();
+      final fileName =
+          'payout_proof_${workerId}_${DateTime.now().millisecondsSinceEpoch}.${image.name.split('.').last}';
+
+      final storageRef = AppFireStorage.payoutProofsStorageRef
+          .child('unified_payouts')
+          .child(workerId)
+          .child(fileName);
+
+      final metadata = SettableMetadata(
+        contentType: _getContentType(image.name),
+        customMetadata: {
+          'uploadedBy': 'admin',
+          'workerId': workerId,
+          'uploadedAt': DateTime.now().toIso8601String(),
+        },
+      );
+
+      final uploadTask = storageRef.putData(bytes, metadata);
+      final snapshot = await uploadTask;
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+
+      if (kDebugMode) {
+        print('✅ Payment proof uploaded: $downloadUrl');
+      }
+
+      return downloadUrl;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error uploading payment proof: $e');
+      }
+      return null;
+    }
+  }
+
+  /// Get content type from file extension
+  static String _getContentType(String fileName) {
+    final extension = fileName.split('.').last.toLowerCase();
+    switch (extension) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      case 'pdf':
+        return 'application/pdf';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
+  /// Sync existing data to unified wallet (migration helper)
+  static Future<void> syncExistingDataToUnifiedWallet(String workerId) async {
+    try {
+      // Get existing data
+      final transactions = await AppServices.getWorkerTransactions(workerId);
+      final tippingData = await AppServices.getWorkerTippingData(workerId);
+      final bonusAmount = await AppServices.getWorkerBonusAmounts(workerId);
+      final paidAmounts = await AppServices.getWorkerPaidAmounts(workerId);
+
+      // Calculate earnings from transactions
+      double totalEarnings = 0.0;
+      double cashEarnings = 0.0;
+      for (var transaction in transactions) {
+        if (transaction.paymentStatus.toLowerCase() == 'completed' ||
+            transaction.paymentStatus.toLowerCase() == 'paid') {
+          if (transaction.paymentMethod.toLowerCase() == 'cards') {
+            totalEarnings += transaction.amount;
+          } else if (transaction.paymentMethod.toLowerCase().contains('cash')) {
+            cashEarnings += transaction.amount;
+          }
+        }
+      }
+
+      // Create/update unified wallet
+      final wallet = UnifiedWalletModel(
+        workerId: workerId,
+        totalEarnings: totalEarnings,
+        cashEarnings: cashEarnings,
+        paidEarnings: paidAmounts,
+        availableEarnings: totalEarnings - paidAmounts,
+        totalTips: (tippingData.cardtip ?? 0.0) + (tippingData.cashtip ?? 0.0),
+        cardTips: tippingData.cardtip ?? 0.0,
+        cashTips: tippingData.cashtip ?? 0.0,
+        paidTips: tippingData.payoutAmount ?? 0.0,
+        totalBonus: bonusAmount,
+        paidBonus: 0.0, // Assuming no bonus has been paid yet
+        availableBonus: bonusAmount,
+        payoutRequested: tippingData.payoutRequested ?? false,
+        lastUpdated: Timestamp.now(),
+      );
+
+      // Calculate totals
+      final totalAvailable =
+          (wallet.availableEarnings ?? 0.0) +
+          (wallet.cardTips ?? 0.0) +
+          (wallet.availableBonus ?? 0.0);
+
+      final lifetimeTotal =
+          (wallet.totalEarnings ?? 0.0) +
+          (wallet.cashEarnings ?? 0.0) +
+          (wallet.totalTips ?? 0.0) +
+          (wallet.totalBonus ?? 0.0);
+
+      final updatedWallet = wallet.copyWith(
+        totalAvailableBalance: totalAvailable,
+        lifetimeTotal: lifetimeTotal,
+      );
+
+      await AppFirestore.unifiedWalletCollectionRef
+          .doc(workerId)
+          .set(updatedWallet.toJson(), SetOptions(merge: true));
+
+      if (kDebugMode) {
+        print('✅ Synced existing data to unified wallet for worker $workerId');
+        print('   Total Available: $totalAvailable');
+        print('   Lifetime Total: $lifetimeTotal');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error syncing data to unified wallet: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// Get statistics for admin dashboard
+  static Future<Map<String, dynamic>> getPayoutStatistics() async {
+    try {
+      final pendingRequests = await AppFirestore
+          .unifiedPayoutRequestsCollectionRef
+          .where('status', isEqualTo: 'P')
+          .get();
+
+      final approvedRequests = await AppFirestore
+          .unifiedPayoutRequestsCollectionRef
+          .where('status', isEqualTo: 'A')
+          .get();
+
+      double totalPendingAmount = 0.0;
+      double totalApprovedAmount = 0.0;
+
+      for (var doc in pendingRequests.docs) {
+        final request = UnifiedPayoutRequestModel.fromSnapshot(doc);
+        totalPendingAmount += request.totalAmount ?? 0.0;
+      }
+
+      for (var doc in approvedRequests.docs) {
+        final request = UnifiedPayoutRequestModel.fromSnapshot(doc);
+        totalApprovedAmount += request.totalAmount ?? 0.0;
+      }
+
+      return {
+        'pendingCount': pendingRequests.docs.length,
+        'approvedCount': approvedRequests.docs.length,
+        'totalPendingAmount': totalPendingAmount,
+        'totalApprovedAmount': totalApprovedAmount,
+      };
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error getting payout statistics: $e');
+      }
+      return {
+        'pendingCount': 0,
+        'approvedCount': 0,
+        'totalPendingAmount': 0.0,
+        'totalApprovedAmount': 0.0,
+      };
+    }
+  }
+}

@@ -7,7 +7,7 @@ import 'package:aboglumbo_bbk_panel/models/user.dart';
 
 import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/worker/contact_bottom_sheet.dart';
-import 'package:aboglumbo_bbk_panel/pages/home/worker/earnings.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/worker/unified_wallet_page.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/worker/reviews.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/worker/rewards_page.dart';
 import 'package:aboglumbo_bbk_panel/pages/notifications/notifications_page.dart';
@@ -582,7 +582,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   /// Build earnings card
   Widget _buildEarningsCard() {
     return _buildActionButton(
-      AppLocalizations.of(context)!.earnings,
+      AppLocalizations.of(context)!.wallet,
       AppLocalizations.of(context)!.viewAndManageEarnings,
       Icons.wallet,
       Colors.deepPurple,
@@ -590,7 +590,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         context,
         MaterialPageRoute(
           builder: (_) =>
-              WorkerEarningsPage(workerId: widget.workerData.uid ?? ""),
+              UnifiedWalletPage(workerId: widget.workerData.uid ?? ""),
         ),
       ),
     );

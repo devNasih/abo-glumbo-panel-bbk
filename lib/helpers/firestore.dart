@@ -51,6 +51,20 @@ class AppFirestore {
       .collection('transactions');
   static CollectionReference payoutCollectionRef = FirebaseFirestore.instance
       .collection('payouts');
+
+  // Unified wallet collection (replaces separate tip/earnings tracking)
+  static CollectionReference unifiedWalletCollectionRef = FirebaseFirestore
+      .instance
+      .collection('unified_wallets');
+
+  // Unified payout requests collection
+  static CollectionReference unifiedPayoutRequestsCollectionRef =
+      FirebaseFirestore.instance.collection('unified_payout_requests');
+
+  // Payout history collection
+  static CollectionReference payoutHistoryCollectionRef = FirebaseFirestore
+      .instance
+      .collection('payout_history');
 }
 
 class AppFireStorage {

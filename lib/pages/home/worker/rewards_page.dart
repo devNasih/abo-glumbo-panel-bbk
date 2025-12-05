@@ -1,4 +1,3 @@
-import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
@@ -10,8 +9,6 @@ import 'package:aboglumbo_bbk_panel/services/stat_services.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 
 class RewardsPage extends StatefulWidget {
   final UserModel workerData;
@@ -938,115 +935,29 @@ class _RewardsPageState extends State<RewardsPage> {
                 ),
               ),
               const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: bonusAmount > 0
-                      ? () async {
-                          // First check if there's a pending bonus payout request
-                          final payoutRequests =
-                              await AppServices.getPayoutRequestsById(
-                                widget.workerData.uid!,
-                              ).first;
-
-                          // Check if there's a pending bonus payout request
-                          bool hasPendingBonusRequest = false;
-                          if (payoutRequests.isNotEmpty) {
-                            // Filter for bonus type requests only
-                            final bonusRequests = payoutRequests
-                                .where((req) => req.type == 'bonus')
-                                .toList();
-
-                            if (bonusRequests.isNotEmpty) {
-                              // Sort by createdAt to get the most recent
-                              bonusRequests.sort((a, b) {
-                                if (a.createdAt == null &&
-                                    b.createdAt == null) {
-                                  return 0;
-                                }
-                                if (a.createdAt == null) return 1;
-                                if (b.createdAt == null) return -1;
-                                return b.createdAt!.compareTo(a.createdAt!);
-                              });
-
-                              // Check if the most recent bonus request is pending
-                              final mostRecentBonusRequest =
-                                  bonusRequests.first;
-                              hasPendingBonusRequest =
-                                  mostRecentBonusRequest.status == 'P';
-                            }
-                          }
-
-                          if (hasPendingBonusRequest) {
-                            // Show snackbar if there's a pending bonus request
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    AppLocalizations.of(
-                                      context,
-                                    )!.cannotRequestPayoutPendingRequest,
-                                  ),
-                                  backgroundColor: Colors.orange,
-                                ),
-                              );
-                            }
-                            return;
-                          }
-
-                          // Proceed with normal flow if no pending bonus request
-                          final user = await AppServices.getWorkerById(
-                            widget.workerData.uid!,
-                          );
-                          bool hasAtleastOnePayoutAccount =
-                              user.payoutAccounts!.isNotEmpty;
-
-                          if (hasAtleastOnePayoutAccount) {
-                            _showBonusPayoutDialog(bonusAmount);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  )!.youHaveNoPayoutAccountsgotoprofilesectionandaddanaccount,
-                                ),
-                                duration: const Duration(seconds: 2),
-                              ),
-                            );
-                          }
-                        }
-                      : () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                AppLocalizations.of(
-                                  context,
-                                )!.noBonusAvailableToClaim,
-                              ),
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
-                        },
-                  icon: const Icon(Icons.send, size: 18, color: Colors.white),
-                  label: Text(
-                    AppLocalizations.of(context)!.requestPayout,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
+              // Info message about unified wallet
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.white.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.white, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        AppLocalizations.of(context)!.bonusIncludedInWallet,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    disabledBackgroundColor: Colors.white.withOpacity(0.5),
-                    disabledForegroundColor: Colors.grey,
-                  ),
+                  ],
                 ),
               ),
             ],
@@ -1054,174 +965,5 @@ class _RewardsPageState extends State<RewardsPage> {
         );
       },
     );
-  }
-
-  void _showBonusPayoutDialog(double bonusAmount) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.white,
-        actionsAlignment: MainAxisAlignment.start,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(Icons.card_giftcard, color: AppColors.primary, size: 24),
-            const SizedBox(width: 12),
-            Text(
-              AppLocalizations.of(context)!.requestBonusPayout,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.primary),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.account_balance_wallet,
-                        color: AppColors.primary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          AppLocalizations.of(context)!.bonusAmount,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        '${bonusAmount.toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar}',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              AppLocalizations.of(
-                context,
-              )!.areYouSureYouWantToRequestAPayoutForYourMonthlyBonus,
-              style: const TextStyle(fontSize: 14, color: Colors.black87),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade200),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: Colors.blue.shade700,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      AppLocalizations.of(
-                        context,
-                      )!.theAdminWillProcessYourRequestWithin2to3days,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.blue.shade900,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          eButton(
-            backgroundColor: AppColors.primary,
-            context: context,
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              _submitBonusPayoutRequest(bonusAmount);
-            },
-
-            widget: Text(
-              AppLocalizations.of(context)!.confirmRequest,
-              style: const TextStyle(
-                fontSize: 15,
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          eButton(
-            backgroundColor: Colors.white,
-            context: context,
-            onPressed: () => Navigator.pop(dialogContext),
-            widget: Text(
-              AppLocalizations.of(context)!.cancel,
-              style: const TextStyle(
-                fontSize: 15,
-                color: Colors.red,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _submitBonusPayoutRequest(double amount) async {
-    try {
-      final bloc = context.read<AccountBloc>();
-      bloc.add(
-        RequestPayoutEvent(
-          widget.workerData.uid!,
-          amount.toStringAsFixed(2),
-          'bonus',
-        ),
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)!.payoutRequestSubmittedSuccessfully,
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${AppLocalizations.of(context)!.errorRequestingPayout}: $e',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
 }

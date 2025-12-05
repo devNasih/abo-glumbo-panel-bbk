@@ -7227,11 +7227,215 @@ abstract class AppLocalizations {
   /// **'Loading...'**
   String get loading;
 
+  /// No description provided for @wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get wallet;
+
+  /// No description provided for @walletSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet synced successfully'**
+  String get walletSynced;
+
+  /// No description provided for @payoutRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout requested successfully'**
+  String get payoutRequested;
+
+  /// No description provided for @balanceBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance Breakdown'**
+  String get balanceBreakdown;
+
+  /// No description provided for @selectAmounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Amounts'**
+  String get selectAmounts;
+
+  /// No description provided for @available.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get available;
+
+  /// No description provided for @paid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get paid;
+
+  /// No description provided for @tips.
+  ///
+  /// In en, this message translates to:
+  /// **'Tips'**
+  String get tips;
+
+  /// No description provided for @payoutPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout Pending'**
+  String get payoutPending;
+
+  /// No description provided for @requestedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested Amount'**
+  String get requestedAmount;
+
+  /// No description provided for @payoutNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note: This request will be sent to admin for approval. The full available balance will be requested.'**
+  String get payoutNote;
+
+  /// No description provided for @noPayoutRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'No payout requests yet'**
+  String get noPayoutRequests;
+
+  /// No description provided for @max.
+  ///
+  /// In en, this message translates to:
+  /// **'Max'**
+  String get max;
+
+  /// No description provided for @min.
+  ///
+  /// In en, this message translates to:
+  /// **'Min'**
+  String get min;
+
+  /// No description provided for @useMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Max'**
+  String get useMax;
+
+  /// No description provided for @searchByWorkerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by worker name'**
+  String get searchByWorkerName;
+
+  /// No description provided for @noResultsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found'**
+  String get noResultsFound;
+
+  /// No description provided for @totalAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Amount'**
+  String get totalAmount;
+
+  /// No description provided for @payoutDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout Details'**
+  String get payoutDetails;
+
+  /// No description provided for @workerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Worker Name'**
+  String get workerName;
+
+  /// No description provided for @payoutAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout Account'**
+  String get payoutAccount;
+
+  /// No description provided for @requestDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Date'**
+  String get requestDate;
+
+  /// No description provided for @rejectionReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejection Reason'**
+  String get rejectionReason;
+
+  /// No description provided for @enterTransactionId.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Transaction ID'**
+  String get enterTransactionId;
+
+  /// No description provided for @uploadPaymentProof.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Payment Proof'**
+  String get uploadPaymentProof;
+
+  /// No description provided for @proofUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Proof uploaded successfully'**
+  String get proofUploaded;
+
+  /// No description provided for @enterReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter reason'**
+  String get enterReason;
+
+  /// No description provided for @cancelPayoutConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel this payout request?'**
+  String get cancelPayoutConfirmation;
+
+  /// No description provided for @payoutCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout request cancelled successfully'**
+  String get payoutCancelled;
+
+  /// No description provided for @confirmPayoutRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'You are requesting a payout for your total available balance'**
+  String get confirmPayoutRequest;
+
+  /// No description provided for @bonusIncludedInWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus is included in your unified wallet. Request payout from Earnings page.'**
+  String get bonusIncludedInWallet;
+
   /// No description provided for @claimText.
   ///
   /// In en, this message translates to:
   /// **'To claim warranty, submit a request through the app within 7 days from service completion. The warranty can be claimed only once.'**
   String get claimText;
+
+  /// No description provided for @syncWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Wallet'**
+  String get syncWallet;
+
+  /// No description provided for @alreadyInHand.
+  ///
+  /// In en, this message translates to:
+  /// **'already in hand'**
+  String get alreadyInHand;
+
+  /// No description provided for @minimumPayoutAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum payout amount is 10 SAR'**
+  String get minimumPayoutAmount;
 }
 
 class _AppLocalizationsDelegate

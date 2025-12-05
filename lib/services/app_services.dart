@@ -1378,6 +1378,11 @@ class AppServices {
     final snapshot = await AppFirestore.tippingCollectionRef
         .where('agentId', isEqualTo: workerId)
         .get();
+
+    if (snapshot.docs.isEmpty) {
+      return TippingModel(agentId: workerId);
+    }
+
     return TippingModel.fromJson(
       snapshot.docs.first.data() as Map<String, dynamic>,
     );

@@ -3776,6 +3776,111 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loading => 'جارٍ التحميل...';
 
   @override
+  String get wallet => 'المحفظة';
+
+  @override
+  String get walletSynced => 'تمت مزامنة المحفظة بنجاح';
+
+  @override
+  String get payoutRequested => 'تم تقديم طلب السحب بنجاح';
+
+  @override
+  String get balanceBreakdown => 'تفاصيل الرصيد';
+
+  @override
+  String get selectAmounts => 'اختر المبالغ';
+
+  @override
+  String get available => 'المتاح';
+
+  @override
+  String get paid => 'المدفوع';
+
+  @override
+  String get tips => 'الإكراميات';
+
+  @override
+  String get payoutPending => 'طلب السحب قيد الانتظار';
+
+  @override
+  String get requestedAmount => 'المبلغ المطلوب';
+
+  @override
+  String get payoutNote =>
+      'ملاحظة: سيتم إرسال هذا الطلب إلى الإدارة للموافقة. سيتم طلب كامل الرصيد المتاح.';
+
+  @override
+  String get noPayoutRequests => 'لا توجد طلبات سحب حتى الآن';
+
+  @override
+  String get max => 'الأعلى';
+
+  @override
+  String get min => 'الأدنى';
+
+  @override
+  String get useMax => 'استخدام الحد الأعلى';
+
+  @override
+  String get searchByWorkerName => 'ابحث باسم العامل';
+
+  @override
+  String get noResultsFound => 'لم يتم العثور على نتائج';
+
+  @override
+  String get totalAmount => 'إجمالي المبلغ';
+
+  @override
+  String get payoutDetails => 'تفاصيل السحب';
+
+  @override
+  String get workerName => 'اسم العامل';
+
+  @override
+  String get payoutAccount => 'حساب السحب';
+
+  @override
+  String get requestDate => 'تاريخ الطلب';
+
+  @override
+  String get rejectionReason => 'سبب الرفض';
+
+  @override
+  String get enterTransactionId => 'أدخل رقم العملية';
+
+  @override
+  String get uploadPaymentProof => 'ارفع إثبات الدفع';
+
+  @override
+  String get proofUploaded => 'تم رفع الإثبات بنجاح';
+
+  @override
+  String get enterReason => 'أدخل السبب';
+
+  @override
+  String get cancelPayoutConfirmation =>
+      'هل أنت متأكد أنك تريد إلغاء طلب السحب؟';
+
+  @override
+  String get payoutCancelled => 'تم إلغاء طلب السحب بنجاح';
+
+  @override
+  String get confirmPayoutRequest => 'أنت على وشك طلب سحب كامل رصيدك المتاح';
+
+  @override
+  String get bonusIncludedInWallet =>
+      'المكافأة مدمجة ضمن محفظتك الموحدة. اطلب السحب من صفحة الأرباح.';
+
+  @override
   String get claimText =>
       'للمطالبة بالضمان، قدّم طلبًا عبر التطبيق خلال ٧ أيام من إتمام الخدمة. ويمكن المطالبة بالضمان مرة واحدة فقط.';
+
+  @override
+  String get syncWallet => 'مزامنة المحفظة';
+
+  @override
+  String get alreadyInHand => 'بالفعل مستلم';
+
+  @override
+  String get minimumPayoutAmount => 'الحد الأدنى لمبلغ السحب هو 10 ريال';
 }

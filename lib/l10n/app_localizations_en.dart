@@ -3835,6 +3835,112 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loading => 'Loading...';
 
   @override
+  String get wallet => 'Wallet';
+
+  @override
+  String get walletSynced => 'Wallet synced successfully';
+
+  @override
+  String get payoutRequested => 'Payout requested successfully';
+
+  @override
+  String get balanceBreakdown => 'Balance Breakdown';
+
+  @override
+  String get selectAmounts => 'Select Amounts';
+
+  @override
+  String get available => 'Available';
+
+  @override
+  String get paid => 'Paid';
+
+  @override
+  String get tips => 'Tips';
+
+  @override
+  String get payoutPending => 'Payout Pending';
+
+  @override
+  String get requestedAmount => 'Requested Amount';
+
+  @override
+  String get payoutNote =>
+      'Note: This request will be sent to admin for approval. The full available balance will be requested.';
+
+  @override
+  String get noPayoutRequests => 'No payout requests yet';
+
+  @override
+  String get max => 'Max';
+
+  @override
+  String get min => 'Min';
+
+  @override
+  String get useMax => 'Use Max';
+
+  @override
+  String get searchByWorkerName => 'Search by worker name';
+
+  @override
+  String get noResultsFound => 'No results found';
+
+  @override
+  String get totalAmount => 'Total Amount';
+
+  @override
+  String get payoutDetails => 'Payout Details';
+
+  @override
+  String get workerName => 'Worker Name';
+
+  @override
+  String get payoutAccount => 'Payout Account';
+
+  @override
+  String get requestDate => 'Request Date';
+
+  @override
+  String get rejectionReason => 'Rejection Reason';
+
+  @override
+  String get enterTransactionId => 'Enter Transaction ID';
+
+  @override
+  String get uploadPaymentProof => 'Upload Payment Proof';
+
+  @override
+  String get proofUploaded => 'Proof uploaded successfully';
+
+  @override
+  String get enterReason => 'Enter reason';
+
+  @override
+  String get cancelPayoutConfirmation =>
+      'Are you sure you want to cancel this payout request?';
+
+  @override
+  String get payoutCancelled => 'Payout request cancelled successfully';
+
+  @override
+  String get confirmPayoutRequest =>
+      'You are requesting a payout for your total available balance';
+
+  @override
+  String get bonusIncludedInWallet =>
+      'Bonus is included in your unified wallet. Request payout from Earnings page.';
+
+  @override
   String get claimText =>
       'To claim warranty, submit a request through the app within 7 days from service completion. The warranty can be claimed only once.';
+
+  @override
+  String get syncWallet => 'Sync Wallet';
+
+  @override
+  String get alreadyInHand => 'already in hand';
+
+  @override
+  String get minimumPayoutAmount => 'Minimum payout amount is 10 SAR';
 }

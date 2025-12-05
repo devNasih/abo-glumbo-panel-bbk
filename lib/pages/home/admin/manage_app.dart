@@ -7,9 +7,8 @@ import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/customers/manage_cus
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/faq/manage_faq.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/highlighted_services/highlighted_services.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/notification_alerts/notification_alert_sending_page.dart';
-import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/payouts/manage_payouts.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/payouts/manage_unified_payouts.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/services/manage_services.dart';
-import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/tips/tips.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/transactions/manage_transactions.dart';
 import 'package:flutter/material.dart';
 
@@ -72,13 +71,7 @@ class _ManageAppState extends State<ManageApp> {
         icon: Icons.group,
         onTap: () => _navigateToPage('Manage Customers'),
       ),
-      _TileInfo(
-        key: 'manage_tips',
-        labelFallback:
-            AppLocalizations.of(context)?.manageTips ?? "Manage Tips",
-        icon: Icons.lightbulb,
-        onTap: () => _navigateToPage('Manage Tips'),
-      ),
+
       _TileInfo(
         key: 'manage_payouts',
         labelFallback:
@@ -134,12 +127,11 @@ class _ManageAppState extends State<ManageApp> {
               return const ManageAgents();
             case 'Manage Customers':
               return const ManageCustomersPage();
-            case 'Manage Tips':
-              return const ManageTips();
+
             case 'Manage FAQ':
               return const ManageFaq();
             case 'Manage Payouts':
-              return const ManagePayouts();
+              return const ManageUnifiedPayoutsPage();
             case 'Manage Customer Support':
               return const ManageCustomerSupport();
             case 'Manage Notification Alerts':
