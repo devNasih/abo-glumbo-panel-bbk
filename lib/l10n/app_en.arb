@@ -1295,5 +1295,6 @@
   "claimText": "To claim warranty, submit a request through the app within 7 days from service completion. The warranty can be claimed only once.",
   "syncWallet": "Sync Wallet",
   "alreadyInHand": "already in hand",
-  "minimumPayoutAmount": "Minimum payout amount is 10 SAR"
+  "minimumPayoutAmount": "Minimum payout amount is 10 SAR",
+  "loginDescription": "Ready to work? Nearby jobs and better income await you."
 }

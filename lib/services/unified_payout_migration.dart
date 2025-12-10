@@ -54,7 +54,7 @@ class UnifiedPayoutMigration {
       }
 
       if (kDebugMode) {
-        print('\n' + '=' * 50);
+        print('\n${'=' * 50}');
         print('📈 Migration Summary:');
         print('   Total Workers: ${workers.length}');
         print('   ✅ Successful: $successCount');
@@ -276,7 +276,7 @@ class UnifiedPayoutMigration {
       }
 
       if (kDebugMode) {
-        print('\n' + '=' * 50);
+        print('\n${'=' * 50}');
         print('📈 Verification Summary:');
         print('   Total Workers: ${workers.length}');
         print('   ✅ Passed: $passedCount');

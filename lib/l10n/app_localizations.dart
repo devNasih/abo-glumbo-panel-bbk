@@ -7436,6 +7436,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Minimum payout amount is 10 SAR'**
   String get minimumPayoutAmount;
+
+  /// No description provided for @loginDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to work? Nearby jobs and better income await you.'**
+  String get loginDescription;
 }
 
 class _AppLocalizationsDelegate

@@ -967,6 +967,9 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   void _updatePhoneNumber() async {
+    // Prevent multiple clicks
+    if (_isUpdatingPhone) return;
+
     if (!_isValidPhoneNumber(phoneController.text)) {
       _showSnackBar(
         AppLocalizations.of(context)?.pleaseEnterAValidPhoneNumber ??
@@ -976,11 +979,6 @@ class _EditProfileState extends State<EditProfile> {
       return;
     }
 
-    bool isNumberAlreadyExists =
-        await AppServices.checkCustomerPhoneNumberAlredyExist(
-          phoneController.text,
-        );
-
     if (phoneController.text != widget.workerData?.phone) {
       if (mounted) {
         setState(() {
@@ -989,8 +987,19 @@ class _EditProfileState extends State<EditProfile> {
         });
       }
 
+      bool isNumberAlreadyExists =
+          await AppServices.checkCustomerPhoneNumberAlredyExist(
+            phoneController.text,
+            excludeUid: widget.workerData?.uid,
+          );
+
       if (isNumberAlreadyExists) {
-        if (mounted) setState(() => isLoading = false);
+        if (mounted) {
+          setState(() {
+            isLoading = false;
+            _isUpdatingPhone = false;
+          });
+        }
         _showSnackBar(
           AppLocalizations.of(context)?.phoneNumberAlreadyExists ?? '',
           backgroundColor: AppColors.yellow,
@@ -1062,7 +1071,12 @@ class _EditProfileState extends State<EditProfile> {
         );
       }
     } else {
-      if (mounted) setState(() => isLoading = false);
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+          _isUpdatingPhone = false;
+        });
+      }
       _showSnackBar(
         AppLocalizations.of(context)?.phoneNumberAlreadyUpdated ?? '',
         backgroundColor: AppColors.yellow,

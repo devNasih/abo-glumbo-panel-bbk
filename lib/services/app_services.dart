@@ -2284,26 +2284,50 @@ class AppServices {
   }
 
   static Future<bool> checkCustomerPhoneNumberAlredyExist(
-    String phoneNumber,
-  ) async {
+    String phoneNumber, {
+    String? excludeUid,
+  }) async {
     try {
       String normalizedPhoneNumber = phoneNumber.replaceAll(
         RegExp(r'[^\d+]'),
         '',
       );
       String convertedNumber = "+966${normalizedPhoneNumber.substring(1)}";
-      final technicianQuery = await AppFirestore.usersCollectionRef
-          .where('phone', isEqualTo: convertedNumber)
-          .limit(1)
-          .get();
-      if (technicianQuery.docs.isEmpty) {
-        final technicianQueryOriginal = await AppFirestore.usersCollectionRef
-            .where('phone', isEqualTo: phoneNumber)
-            .limit(1)
-            .get();
-        return technicianQueryOriginal.docs.isNotEmpty;
+
+      // Query technicians with the phone number (converted format)
+      var technicianQuery = AppFirestore.usersCollectionRef.where(
+        'phone',
+        isEqualTo: convertedNumber,
+      );
+
+      // If excludeUid is provided, exclude the current user
+      if (excludeUid != null) {
+        technicianQuery = technicianQuery.where(
+          'uid',
+          isNotEqualTo: excludeUid,
+        );
       }
-      return technicianQuery.docs.isNotEmpty;
+
+      final result = await technicianQuery.limit(1).get();
+      if (result.docs.isNotEmpty) {
+        return true;
+      }
+
+      // Try with original phoneNumber format
+      var technicianQueryOriginal = AppFirestore.usersCollectionRef.where(
+        'phone',
+        isEqualTo: phoneNumber,
+      );
+
+      if (excludeUid != null) {
+        technicianQueryOriginal = technicianQueryOriginal.where(
+          'uid',
+          isNotEqualTo: excludeUid,
+        );
+      }
+
+      final resultOriginal = await technicianQueryOriginal.limit(1).get();
+      return resultOriginal.docs.isNotEmpty;
     } catch (e) {
       return false;
     }

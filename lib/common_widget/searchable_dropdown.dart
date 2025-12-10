@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:aboglumbo_bbk_panel/utils/search_utils.dart';
 
 class SearchableDropdown<T extends Object> extends StatefulWidget {
   final String label;
@@ -88,21 +89,10 @@ class _SearchableDropdownState<T extends Object>
                   return const Iterable.empty();
                 }
                 return widget.items.where((T option) {
-                  final searchText = textEditingValue.text.toLowerCase();
-                  final optionText = widget.itemLabel(option).toLowerCase();
-
-                  // Fuzzy search: all characters must appear in order
-                  int searchIndex = 0;
-                  for (
-                    int i = 0;
-                    i < optionText.length && searchIndex < searchText.length;
-                    i++
-                  ) {
-                    if (optionText[i] == searchText[searchIndex]) {
-                      searchIndex++;
-                    }
-                  }
-                  return searchIndex == searchText.length;
+                  return SearchUtils.fuzzyMatch(
+                    widget.itemLabel(option),
+                    textEditingValue.text,
+                  );
                 });
               },
               displayStringForOption: widget.itemLabel,

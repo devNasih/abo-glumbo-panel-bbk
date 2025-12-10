@@ -3883,4 +3883,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get minimumPayoutAmount => 'الحد الأدنى لمبلغ السحب هو 10 ريال';
+
+  @override
+  String get loginDescription =>
+      'جاهز للشغل؟ فرص عمل قريبة ودخل أفضل بانتظارك.';
 }

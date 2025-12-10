@@ -369,7 +369,7 @@ class _LoginPageState extends State<LoginPage> {
           children: <TextSpan>[
             TextSpan(
               text:
-                  AppLocalizations.of(context)?.byContinuingYouAgreeToOur ?? '',
+                  "${AppLocalizations.of(context)?.byContinuingYouAgreeToOur ?? ''} ",
               style: GoogleFonts.dmSans(fontSize: 11, color: Colors.white60),
             ),
             TextSpan(
@@ -493,7 +493,8 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 10),
                         Center(
                           child: Text(
-                            AppLocalizations.of(context)?.appLoginCaption ?? '',
+                            AppLocalizations.of(context)?.loginDescription ??
+                                '',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.dmSans(
                               fontWeight: FontWeight.w700,

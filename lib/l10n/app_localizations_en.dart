@@ -3943,4 +3943,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get minimumPayoutAmount => 'Minimum payout amount is 10 SAR';
+
+  @override
+  String get loginDescription =>
+      'Ready to work? Nearby jobs and better income await you.';
 }
