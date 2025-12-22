@@ -462,14 +462,14 @@ class _ManageUnifiedPayoutsPageState extends State<ManageUnifiedPayoutsPage> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(
-                    child: _buildAmountChip(
-                      label: AppLocalizations.of(context)!.earnings,
-                      amount: request.earningsAmount ?? 0.0,
-                      color: Colors.purple,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
+                  // Expanded(
+                  //   child: _buildAmountChip(
+                  //     label: AppLocalizations.of(context)!.earnings,
+                  //     amount: request.earningsAmount ?? 0.0,
+                  //     color: Colors.purple,
+                  //   ),
+                  // ),
+                  // const SizedBox(width: 8),
                   Expanded(
                     child: _buildAmountChip(
                       label: AppLocalizations.of(context)!.tips,

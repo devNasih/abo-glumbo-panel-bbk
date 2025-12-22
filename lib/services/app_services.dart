@@ -643,7 +643,7 @@ class AppServices {
 
                   // Check if technician is assigned to this warranty
                   bool isAssigned =
-                      booking.warranty!.assignedTechnicianId == workerId;
+                      booking.warranty!.assignedTechnician?.uid == workerId;
 
                   // Check if technician has rejected this warranty
                   bool hasRejected =

@@ -6,13 +6,6 @@ class UnifiedWalletModel {
   String? workerName;
   String? workerPhone;
 
-  // Earnings breakdown
-  double? totalEarnings; // Total card payments received
-  double? cashEarnings; // Cash payments (info only, already in hand)
-  double? paidEarnings; // Already paid out earnings
-  double?
-  availableEarnings; // Available for payout (totalEarnings - paidEarnings)
-
   // Tips breakdown
   double? totalTips; // Lifetime tips (card + cash)
   double? cardTips; // Available card tips for payout
@@ -24,9 +17,12 @@ class UnifiedWalletModel {
   double? paidBonus; // Already paid out bonus
   double? availableBonus; // Available bonus for payout
 
+  // Completion amounts (for bonus calculation)
+  double? totalCompletionAmount; // Sum of all paidAmount from bookings
+
   // Aggregated amounts
-  double? totalAvailableBalance; // Sum of all available amounts
-  double? lifetimeTotal; // Total of all earnings, tips, and bonus
+  double? totalAvailableBalance; // cardTips + availableBonus only
+  double? lifetimeTotal; // Total of all tips and bonus
 
   // Payout request status
   bool? payoutRequested;
@@ -39,10 +35,6 @@ class UnifiedWalletModel {
     this.workerId,
     this.workerName,
     this.workerPhone,
-    this.totalEarnings,
-    this.cashEarnings,
-    this.paidEarnings,
-    this.availableEarnings,
     this.totalTips,
     this.cardTips,
     this.cashTips,
@@ -50,6 +42,7 @@ class UnifiedWalletModel {
     this.totalBonus,
     this.paidBonus,
     this.availableBonus,
+    this.totalCompletionAmount,
     this.totalAvailableBalance,
     this.lifetimeTotal,
     this.payoutRequested,
@@ -77,10 +70,6 @@ class UnifiedWalletModel {
       workerId: json['workerId'] as String?,
       workerName: json['workerName'] as String?,
       workerPhone: json['workerPhone'] as String?,
-      totalEarnings: (json['totalEarnings'] as num?)?.toDouble(),
-      cashEarnings: (json['cashEarnings'] as num?)?.toDouble(),
-      paidEarnings: (json['paidEarnings'] as num?)?.toDouble(),
-      availableEarnings: (json['availableEarnings'] as num?)?.toDouble(),
       totalTips: (json['totalTips'] as num?)?.toDouble(),
       cardTips: (json['cardTips'] as num?)?.toDouble(),
       cashTips: (json['cashTips'] as num?)?.toDouble(),
@@ -88,6 +77,8 @@ class UnifiedWalletModel {
       totalBonus: (json['totalBonus'] as num?)?.toDouble(),
       paidBonus: (json['paidBonus'] as num?)?.toDouble(),
       availableBonus: (json['availableBonus'] as num?)?.toDouble(),
+      totalCompletionAmount: (json['totalCompletionAmount'] as num?)
+          ?.toDouble(),
       totalAvailableBalance: (json['totalAvailableBalance'] as num?)
           ?.toDouble(),
       lifetimeTotal: (json['lifetimeTotal'] as num?)?.toDouble(),
@@ -104,10 +95,6 @@ class UnifiedWalletModel {
       'workerId': workerId,
       'workerName': workerName,
       'workerPhone': workerPhone,
-      'totalEarnings': totalEarnings ?? 0.0,
-      'cashEarnings': cashEarnings ?? 0.0,
-      'paidEarnings': paidEarnings ?? 0.0,
-      'availableEarnings': availableEarnings ?? 0.0,
       'totalTips': totalTips ?? 0.0,
       'cardTips': cardTips ?? 0.0,
       'cashTips': cashTips ?? 0.0,
@@ -115,6 +102,7 @@ class UnifiedWalletModel {
       'totalBonus': totalBonus ?? 0.0,
       'paidBonus': paidBonus ?? 0.0,
       'availableBonus': availableBonus ?? 0.0,
+      'totalCompletionAmount': totalCompletionAmount ?? 0.0,
       'totalAvailableBalance': totalAvailableBalance ?? 0.0,
       'lifetimeTotal': lifetimeTotal ?? 0.0,
       'payoutRequested': payoutRequested ?? false,
@@ -135,10 +123,6 @@ class UnifiedWalletModel {
     String? workerId,
     String? workerName,
     String? workerPhone,
-    double? totalEarnings,
-    double? cashEarnings,
-    double? paidEarnings,
-    double? availableEarnings,
     double? totalTips,
     double? cardTips,
     double? cashTips,
@@ -146,6 +130,7 @@ class UnifiedWalletModel {
     double? totalBonus,
     double? paidBonus,
     double? availableBonus,
+    double? totalCompletionAmount,
     double? totalAvailableBalance,
     double? lifetimeTotal,
     bool? payoutRequested,
@@ -158,10 +143,6 @@ class UnifiedWalletModel {
       workerId: workerId ?? this.workerId,
       workerName: workerName ?? this.workerName,
       workerPhone: workerPhone ?? this.workerPhone,
-      totalEarnings: totalEarnings ?? this.totalEarnings,
-      cashEarnings: cashEarnings ?? this.cashEarnings,
-      paidEarnings: paidEarnings ?? this.paidEarnings,
-      availableEarnings: availableEarnings ?? this.availableEarnings,
       totalTips: totalTips ?? this.totalTips,
       cardTips: cardTips ?? this.cardTips,
       cashTips: cashTips ?? this.cashTips,
@@ -169,6 +150,8 @@ class UnifiedWalletModel {
       totalBonus: totalBonus ?? this.totalBonus,
       paidBonus: paidBonus ?? this.paidBonus,
       availableBonus: availableBonus ?? this.availableBonus,
+      totalCompletionAmount:
+          totalCompletionAmount ?? this.totalCompletionAmount,
       totalAvailableBalance:
           totalAvailableBalance ?? this.totalAvailableBalance,
       lifetimeTotal: lifetimeTotal ?? this.lifetimeTotal,
@@ -189,11 +172,10 @@ class UnifiedPayoutRequestModel {
   String? workerId;
   String? workerName;
 
-  // Breakdown of requested amounts
-  double? earningsAmount;
-  double? tipsAmount;
+  // Breakdown of requested amounts (NO earnings - handled outside app)
+  double? tipsAmount; // Card tips only
   double? bonusAmount;
-  double? totalAmount;
+  double? totalAmount; // tipsAmount + bonusAmount
 
   // Payout account details
   Map<String, dynamic>? payoutAccount;
@@ -214,7 +196,6 @@ class UnifiedPayoutRequestModel {
     this.id,
     this.workerId,
     this.workerName,
-    this.earningsAmount,
     this.tipsAmount,
     this.bonusAmount,
     this.totalAmount,
@@ -247,7 +228,6 @@ class UnifiedPayoutRequestModel {
       id: json['id'] as String?,
       workerId: json['workerId'] as String?,
       workerName: json['workerName'] as String?,
-      earningsAmount: (json['earningsAmount'] as num?)?.toDouble(),
       tipsAmount: (json['tipsAmount'] as num?)?.toDouble(),
       bonusAmount: (json['bonusAmount'] as num?)?.toDouble(),
       totalAmount: (json['totalAmount'] as num?)?.toDouble(),
@@ -268,7 +248,6 @@ class UnifiedPayoutRequestModel {
       'id': id,
       'workerId': workerId,
       'workerName': workerName,
-      'earningsAmount': earningsAmount ?? 0.0,
       'tipsAmount': tipsAmount ?? 0.0,
       'bonusAmount': bonusAmount ?? 0.0,
       'totalAmount': totalAmount ?? 0.0,
@@ -296,7 +275,6 @@ class UnifiedPayoutRequestModel {
     String? id,
     String? workerId,
     String? workerName,
-    double? earningsAmount,
     double? tipsAmount,
     double? bonusAmount,
     double? totalAmount,
@@ -314,7 +292,6 @@ class UnifiedPayoutRequestModel {
       id: id ?? this.id,
       workerId: workerId ?? this.workerId,
       workerName: workerName ?? this.workerName,
-      earningsAmount: earningsAmount ?? this.earningsAmount,
       tipsAmount: tipsAmount ?? this.tipsAmount,
       bonusAmount: bonusAmount ?? this.bonusAmount,
       totalAmount: totalAmount ?? this.totalAmount,
@@ -337,10 +314,9 @@ class PayoutHistoryModel {
   String? workerId;
   String? workerName;
 
-  double? earningsAmount;
-  double? tipsAmount;
+  double? tipsAmount; // Card tips only
   double? bonusAmount;
-  double? totalAmount;
+  double? totalAmount; // tipsAmount + bonusAmount
 
   Timestamp? completedAt;
   String? transactionId;
@@ -351,7 +327,6 @@ class PayoutHistoryModel {
     this.id,
     this.workerId,
     this.workerName,
-    this.earningsAmount,
     this.tipsAmount,
     this.bonusAmount,
     this.totalAmount,
@@ -379,7 +354,6 @@ class PayoutHistoryModel {
       id: json['id'] as String?,
       workerId: json['workerId'] as String?,
       workerName: json['workerName'] as String?,
-      earningsAmount: (json['earningsAmount'] as num?)?.toDouble(),
       tipsAmount: (json['tipsAmount'] as num?)?.toDouble(),
       bonusAmount: (json['bonusAmount'] as num?)?.toDouble(),
       totalAmount: (json['totalAmount'] as num?)?.toDouble(),
@@ -395,7 +369,6 @@ class PayoutHistoryModel {
       'id': id,
       'workerId': workerId,
       'workerName': workerName,
-      'earningsAmount': earningsAmount ?? 0.0,
       'tipsAmount': tipsAmount ?? 0.0,
       'bonusAmount': bonusAmount ?? 0.0,
       'totalAmount': totalAmount ?? 0.0,

@@ -5,7 +5,6 @@ import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/address.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
-import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/bookings/bloc/booking_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/bookings/bloc/warranty_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/bookings/booking_info.dart';
@@ -154,7 +153,7 @@ class BookingCards extends StatelessWidget {
                                 (tech) => tech.uid == LocalStore.getUID(),
                               ) ??
                               false))) ...[
-                    IconButton(
+                    OutlinedButton(
                       onPressed: () {
                         _showAcceptConfirmationDialog(
                           context,
@@ -162,14 +161,26 @@ class BookingCards extends StatelessWidget {
                           isWarranty,
                         );
                       },
-                      icon: Icon(Icons.check_circle, color: Colors.green),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.green,
+                        side: const BorderSide(color: Colors.green),
+                        minimumSize: const Size(60, 28),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                      child: Text(AppLocalizations.of(context)!.approve),
                     ),
-
-                    IconButton(
+                    const SizedBox(width: 8),
+                    OutlinedButton(
                       onPressed: () {
                         showRejectBookingDialog(context, booking, isWarranty);
                       },
-                      icon: Icon(Icons.cancel, color: Colors.red),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red),
+                        minimumSize: const Size(60, 28),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                      child: Text(AppLocalizations.of(context)!.reject),
                     ),
                   ],
                   if ((isAdmin &&
@@ -275,56 +286,11 @@ class BookingCards extends StatelessWidget {
                   // Assigned Technician row for warranty bookings
                   if (isAdmin && isWarranty) ...[
                     const SizedBox(height: 12),
-                    FutureBuilder<UserModel?>(
-                      future:
-                          booking.warranty?.assignedTechnicianId != null &&
-                              booking.warranty!.assignedTechnicianId!.isNotEmpty
-                          ? AppFirestore.usersCollectionRef
-                                .doc(booking.warranty!.assignedTechnicianId)
-                                .get()
-                                .then(
-                                  (doc) => doc.exists
-                                      ? UserModel.fromDocumentSnapshot(doc)
-                                      : null,
-                                )
-                          : Future.value(null),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 16,
-                                backgroundColor: colorScheme.secondaryContainer,
-                                child: SizedBox(
-                                  width: 12,
-                                  height: 12,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: colorScheme.onSecondaryContainer,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  AppLocalizations.of(context)?.loading ??
-                                      'Loading...',
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onSurface.withOpacity(
-                                      0.6,
-                                    ),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          );
-                        }
+                    Builder(
+                      builder: (context) {
+                        final technician = booking.warranty?.assignedTechnician;
 
-                        if (snapshot.hasData && snapshot.data != null) {
-                          final technician = snapshot.data!;
+                        if (technician != null) {
                           return Row(
                             children: [
                               CircleAvatar(
@@ -708,23 +674,15 @@ class BookingCards extends StatelessWidget {
               onPressed: isWarranty
                   ? () async {
                       if (formKey.currentState!.validate()) {
-                        final technicianDoc = await AppFirestore
-                            .usersCollectionRef
-                            .doc(booking.warranty?.assignedTechnicianId ?? '')
-                            .get();
+                        final technician = booking.warranty?.assignedTechnician;
 
-                        final tech = UserModel.fromDocumentSnapshot(
-                          technicianDoc,
-                        );
-
-                        if (context.mounted) {
+                        if (context.mounted && technician != null) {
                           context.read<WarrantyBloc>().add(
                             CancelWarranty(
                               bookingId: booking.id,
-                              technicianName: tech.name ?? "",
-                              technicianPhone: tech.phone ?? "",
-                              technicianUid:
-                                  booking.warranty?.assignedTechnicianId ?? '',
+                              technicianName: technician.name ?? "",
+                              technicianPhone: technician.phone ?? "",
+                              technicianUid: technician.uid ?? '',
                               rejectionReason: reasonController.text.trim(),
                             ),
                           );

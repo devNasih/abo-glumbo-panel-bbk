@@ -1,6 +1,4 @@
 import 'dart:developer';
-import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
-import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/bookings/bloc/warranty_bloc.dart';
 import 'package:aboglumbo_bbk_panel/services/location_services.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
@@ -14,6 +12,7 @@ class WarrantyControlsWidget extends StatefulWidget {
   final BookingModel booking;
   final bool isTracking;
   final bool isAdmin;
+  final VoidCallback? onTrackingStarted;
 
   static final BookingTrackerService _trackerService = BookingTrackerService();
 
@@ -22,6 +21,7 @@ class WarrantyControlsWidget extends StatefulWidget {
     required this.booking,
     required this.isTracking,
     required this.isAdmin,
+    this.onTrackingStarted,
   });
 
   @override
@@ -98,6 +98,8 @@ class _WarrantyControlsWidgetState extends State<WarrantyControlsWidget> {
               backgroundColor: Colors.green,
             ),
           );
+          // Call the callback to open directions
+          widget.onTrackingStarted?.call();
         } else if (state is WarrantyStartWorkingFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -488,13 +490,12 @@ class _WarrantyControlsWidgetState extends State<WarrantyControlsWidget> {
                                 if (!formKey.currentState!.validate()) return;
 
                                 try {
-                                  final technicianId = widget
+                                  final technician = widget
                                       .booking
                                       .warranty
-                                      ?.assignedTechnicianId;
+                                      ?.assignedTechnician;
 
-                                  if (technicianId == null ||
-                                      technicianId.isEmpty) {
+                                  if (technician == null) {
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(
                                         context,
@@ -512,22 +513,13 @@ class _WarrantyControlsWidgetState extends State<WarrantyControlsWidget> {
                                     return;
                                   }
 
-                                  final technicianDoc = await AppFirestore
-                                      .usersCollectionRef
-                                      .doc(technicianId)
-                                      .get();
-
-                                  final tech = UserModel.fromDocumentSnapshot(
-                                    technicianDoc,
-                                  );
-
                                   if (context.mounted) {
                                     context.read<WarrantyBloc>().add(
                                       CancelWarranty(
                                         bookingId: widget.booking.id,
-                                        technicianUid: technicianId,
-                                        technicianName: tech.name ?? '',
-                                        technicianPhone: tech.phone ?? '',
+                                        technicianUid: technician.uid ?? '',
+                                        technicianName: technician.name ?? '',
+                                        technicianPhone: technician.phone ?? '',
                                         rejectionReason: reasonController.text
                                             .trim(),
                                       ),

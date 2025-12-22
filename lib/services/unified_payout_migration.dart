@@ -123,6 +123,7 @@ class UnifiedPayoutMigration {
   }
 
   /// Verify migration for a worker
+  /// NOTE: Only verifies tips and bonus - earnings no longer tracked
   static Future<Map<String, dynamic>> verifyWorkerMigration(
     String workerId,
   ) async {
@@ -132,23 +133,10 @@ class UnifiedPayoutMigration {
       }
 
       // Get old system data
-      final transactions = await AppServices.getWorkerTransactions(workerId);
       final tippingData = await AppServices.getWorkerTippingData(workerId);
       final bonusAmount = await AppServices.getWorkerBonusAmounts(workerId);
-      final paidAmounts = await AppServices.getWorkerPaidAmounts(workerId);
 
-      // Calculate expected values
-      double expectedTotalEarnings = 0.0;
-      for (var transaction in transactions) {
-        if (transaction.paymentStatus.toLowerCase() == 'completed' ||
-            transaction.paymentStatus.toLowerCase() == 'paid') {
-          if (transaction.paymentMethod.toLowerCase() == 'cards') {
-            expectedTotalEarnings += transaction.amount;
-          }
-        }
-      }
-
-      final expectedAvailableEarnings = expectedTotalEarnings - paidAmounts;
+      // Calculate expected values (only tips and bonus)
       final expectedCardTips = tippingData.cardtip ?? 0.0;
       final expectedCashTips = tippingData.cashtip ?? 0.0;
       final expectedTotalTips = expectedCardTips + expectedCashTips;
@@ -157,11 +145,7 @@ class UnifiedPayoutMigration {
       // Get unified wallet data
       final wallet = await UnifiedPayoutServices.getUnifiedWallet(workerId);
 
-      // Compare values
-      final earningsMatch =
-          (wallet.totalEarnings ?? 0.0) == expectedTotalEarnings;
-      final availableEarningsMatch =
-          (wallet.availableEarnings ?? 0.0) == expectedAvailableEarnings;
+      // Compare values (only tips and bonus)
       final cardTipsMatch = (wallet.cardTips ?? 0.0) == expectedCardTips;
       final cashTipsMatch = (wallet.cashTips ?? 0.0) == expectedCashTips;
       final totalTipsMatch = (wallet.totalTips ?? 0.0) == expectedTotalTips;
@@ -169,21 +153,10 @@ class UnifiedPayoutMigration {
           (wallet.availableBonus ?? 0.0) == expectedAvailableBonus;
 
       final allMatch =
-          earningsMatch &&
-          availableEarningsMatch &&
-          cardTipsMatch &&
-          cashTipsMatch &&
-          totalTipsMatch &&
-          bonusMatch;
+          cardTipsMatch && cashTipsMatch && totalTipsMatch && bonusMatch;
 
       if (kDebugMode) {
-        print('\n📊 Verification Results:');
-        print(
-          '   Earnings: ${earningsMatch ? '✅' : '❌'} (Expected: $expectedTotalEarnings, Got: ${wallet.totalEarnings})',
-        );
-        print(
-          '   Available Earnings: ${availableEarningsMatch ? '✅' : '❌'} (Expected: $expectedAvailableEarnings, Got: ${wallet.availableEarnings})',
-        );
+        print('\n📊 Verification Results (Tips & Bonus Only):');
         print(
           '   Card Tips: ${cardTipsMatch ? '✅' : '❌'} (Expected: $expectedCardTips, Got: ${wallet.cardTips})',
         );
@@ -197,30 +170,25 @@ class UnifiedPayoutMigration {
           '   Bonus: ${bonusMatch ? '✅' : '❌'} (Expected: $expectedAvailableBonus, Got: ${wallet.availableBonus})',
         );
         print('   Overall: ${allMatch ? '✅ PASSED' : '❌ FAILED'}');
+        print('   NOTE: Earnings no longer tracked - handled outside app');
       }
 
       return {
         'success': allMatch,
         'workerId': workerId,
         'checks': {
-          'earnings': earningsMatch,
-          'availableEarnings': availableEarningsMatch,
           'cardTips': cardTipsMatch,
           'cashTips': cashTipsMatch,
           'totalTips': totalTipsMatch,
           'bonus': bonusMatch,
         },
         'expected': {
-          'totalEarnings': expectedTotalEarnings,
-          'availableEarnings': expectedAvailableEarnings,
           'cardTips': expectedCardTips,
           'cashTips': expectedCashTips,
           'totalTips': expectedTotalTips,
           'bonus': expectedAvailableBonus,
         },
         'actual': {
-          'totalEarnings': wallet.totalEarnings,
-          'availableEarnings': wallet.availableEarnings,
           'cardTips': wallet.cardTips,
           'cashTips': wallet.cashTips,
           'totalTips': wallet.totalTips,

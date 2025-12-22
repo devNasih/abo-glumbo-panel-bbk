@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:aboglumbo_bbk_panel/models/user.dart';
 
 class WarrantyModel {
   String? id;
-  String? assignedTechnicianId;
+  UserModel? assignedTechnician;
   String warrantyStatusCode;
   bool? claimrequested;
   List<RejectedTechnicianModel>? rejectedTechnicians;
@@ -16,7 +17,7 @@ class WarrantyModel {
 
   WarrantyModel({
     this.id,
-    this.assignedTechnicianId,
+    this.assignedTechnician,
     this.warrantyStatusCode = 'A',
     this.claimrequested,
     this.rejectedTechnicians = const [],
@@ -46,7 +47,11 @@ class WarrantyModel {
 
     return WarrantyModel(
       id: json['id'],
-      assignedTechnicianId: json['assignedTechnicianId'],
+      assignedTechnician: json['assignedTechnician'] != null
+          ? UserModel.fromJson(
+              json['assignedTechnician'] as Map<String, dynamic>,
+            )
+          : null,
       warrantyStatusCode: json['warrantyStatusCode']?.toString() ?? 'A',
       claimrequested: json['claimrequested'] as bool?,
       createdAt: parseTimestamp(json['createdAt']),
@@ -73,7 +78,7 @@ class WarrantyModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'assignedTechnicianId': assignedTechnicianId,
+      'assignedTechnician': assignedTechnician?.toJson(),
       'warrantyStatusCode': warrantyStatusCode,
       'claimrequested': claimrequested,
       'createdAt': createdAt,
@@ -96,7 +101,7 @@ class WarrantyModel {
   @override
   String toString() {
     return 'WarrantyModel(id: $id, status: $warrantyStatusCode, '
-        'assignedTo: $assignedTechnicianId, '
+        'assignedTo: ${assignedTechnician?.name ?? "None"} (${assignedTechnician?.uid ?? "N/A"}), '
         'requestedOn: $requestedOn, acceptedAt: $acceptedAt, '
         'completedAt: $completedAt, rejectedAt: $rejectedAt)';
   }

@@ -244,18 +244,6 @@ class _UnifiedWalletPageState extends State<UnifiedWalletPage> {
         ),
         const SizedBox(height: 12),
         _buildBreakdownCard(
-          title: AppLocalizations.of(context)!.earnings,
-          available: wallet.availableEarnings ?? 0.0,
-          total: wallet.totalEarnings ?? 0.0,
-          paid: wallet.paidEarnings ?? 0.0,
-          icon: Icons.credit_card,
-          color: Colors.purple,
-          subtitle: (wallet.cashEarnings ?? 0.0) > 0
-              ? '${AppLocalizations.of(context)!.cashPayments}: ${(wallet.cashEarnings ?? 0.0).toStringAsFixed(2)} ${AppLocalizations.of(context)!.sar} (${AppLocalizations.of(context)!.alreadyInHand})'
-              : null,
-        ),
-        const SizedBox(height: 12),
-        _buildBreakdownCard(
           title: AppLocalizations.of(context)!.tips,
           available: wallet.cardTips ?? 0.0,
           total: wallet.totalTips ?? 0.0,
@@ -710,14 +698,6 @@ class _UnifiedWalletPageState extends State<UnifiedWalletPage> {
             children: [
               Expanded(
                 child: _buildRequestAmountChip(
-                  label: AppLocalizations.of(context)!.earnings,
-                  amount: request.earningsAmount ?? 0.0,
-                  color: Colors.purple,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildRequestAmountChip(
                   label: AppLocalizations.of(context)!.tips,
                   amount: request.tipsAmount ?? 0.0,
                   color: Colors.orange,
@@ -828,11 +808,10 @@ class _UnifiedWalletPageState extends State<UnifiedWalletPage> {
   Future<void> _showPayoutRequestDialog(UnifiedWalletModel wallet) async {
     bool isLoading = false;
 
-    // Calculate total available amount
-    final earningsAmount = wallet.availableEarnings ?? 0.0;
+    // Calculate total available amount (only tips and bonus)
     final tipsAmount = wallet.cardTips ?? 0.0;
     final bonusAmount = wallet.availableBonus ?? 0.0;
-    final totalAmount = earningsAmount + tipsAmount + bonusAmount;
+    final totalAmount = tipsAmount + bonusAmount;
 
     await showDialog(
       context: context,
@@ -910,14 +889,7 @@ class _UnifiedWalletPageState extends State<UnifiedWalletPage> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          // Amount breakdown cards
-                          _buildDialogAmountCard(
-                            label: AppLocalizations.of(context)!.earnings,
-                            amount: earningsAmount,
-                            icon: Icons.credit_card,
-                            color: Colors.purple,
-                          ),
-                          const SizedBox(height: 12),
+                          // Amount breakdown cards (only tips and bonus)
                           _buildDialogAmountCard(
                             label: AppLocalizations.of(context)!.tips,
                             amount: tipsAmount,
@@ -1039,7 +1011,6 @@ class _UnifiedWalletPageState extends State<UnifiedWalletPage> {
                                           try {
                                             await UnifiedPayoutServices.requestUnifiedPayout(
                                               workerId: widget.workerId,
-                                              earningsAmount: earningsAmount,
                                               tipsAmount: tipsAmount,
                                               bonusAmount: bonusAmount,
                                             );

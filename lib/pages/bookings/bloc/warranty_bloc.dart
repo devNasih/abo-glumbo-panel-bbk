@@ -53,10 +53,12 @@ class WarrantyBloc extends Bloc<WarrantyEvent, WarrantyState> {
       emit(WarrantyRejectLoading());
 
       await AppFirestore.bookingsCollectionRef.doc(event.bookingId).update({
-        'warranty.assignedTechnicianId': null,
+        'warranty.assignedTechnician': null,
         'warranty.warrantyStatusCode': 'X',
         'warranty.rejectedAt': Timestamp.now(),
         'updatedAt': Timestamp.now(),
+        // Clear chatroom when rejecting warranty
+        'chatroomId': FieldValue.delete(),
       });
 
       emit(WarrantyRejectSuccess());
@@ -90,12 +92,14 @@ class WarrantyBloc extends Bloc<WarrantyEvent, WarrantyState> {
       );
 
       await AppFirestore.bookingsCollectionRef.doc(event.bookingId).update({
-        'warranty.assignedTechnicianId': null,
+        'warranty.assignedTechnician': null,
         'warranty.warrantyStatusCode': 'R',
         'warranty.rejectedTechnicians': rejectedTechs
             .map((e) => e.toJson())
             .toList(),
         'updatedAt': Timestamp.now(),
+        // Clear chatroom when canceling warranty
+        'chatroomId': FieldValue.delete(),
       });
 
       emit(WarrantyCancelSuccess());
@@ -172,11 +176,14 @@ class WarrantyBloc extends Bloc<WarrantyEvent, WarrantyState> {
     try {
       emit(WarrantyAssignLoading());
 
+      // Store the entire technician UserModel instead of just the UID
       await AppFirestore.bookingsCollectionRef.doc(event.bookingId).update({
-        'warranty.assignedTechnicianId': event.technician.uid,
+        'warranty.assignedTechnician': event.technician.toJson(),
         'warranty.warrantyStatusCode': 'S',
         'warranty.acceptedAt': Timestamp.now(),
         'updatedAt': Timestamp.now(),
+        // Clear any old chatroom to ensure fresh start with new technician
+        'chatroomId': FieldValue.delete(),
       });
 
       emit(WarrantyAssignSuccess());

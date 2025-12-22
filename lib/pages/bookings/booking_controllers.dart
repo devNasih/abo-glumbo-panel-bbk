@@ -12,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 class BookingControlsWidget extends StatefulWidget {
   final BookingModel booking;
   final bool isTracking;
+  final VoidCallback? onTrackingStarted;
 
   static final BookingTrackerService _trackerService = BookingTrackerService();
 
@@ -19,6 +20,7 @@ class BookingControlsWidget extends StatefulWidget {
     super.key,
     required this.booking,
     required this.isTracking,
+    this.onTrackingStarted,
   });
 
   @override
@@ -87,6 +89,8 @@ class _BookingControlsWidgetState extends State<BookingControlsWidget> {
               backgroundColor: Colors.green,
             ),
           );
+          // Call the callback to open directions
+          widget.onTrackingStarted?.call();
         } else if (state is BookingStartWorkingFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

@@ -22,9 +22,6 @@ class UnifiedPayoutServices {
         // Create new wallet if doesn't exist
         final wallet = UnifiedWalletModel(
           workerId: workerId,
-          totalEarnings: 0.0,
-          paidEarnings: 0.0,
-          availableEarnings: 0.0,
           totalTips: 0.0,
           cardTips: 0.0,
           cashTips: 0.0,
@@ -32,6 +29,7 @@ class UnifiedPayoutServices {
           totalBonus: 0.0,
           paidBonus: 0.0,
           availableBonus: 0.0,
+          totalCompletionAmount: 0.0,
           totalAvailableBalance: 0.0,
           lifetimeTotal: 0.0,
           payoutRequested: false,
@@ -69,14 +67,14 @@ class UnifiedPayoutServices {
         });
   }
 
-  /// Update wallet amounts (called when transactions/tips/bonus are added)
+  /// Update wallet amounts (called when tips/bonus are added)
+  /// NOTE: Earnings are NO LONGER tracked here - service payments handled outside app
   static Future<void> updateWalletAmounts({
     required String workerId,
-    double? earningsIncrement,
     double? tipsIncrement,
     double? bonusIncrement,
+    double? completionAmountIncrement, // For bonus calculation
     bool? isCashTip,
-    bool? isCashEarning,
   }) async {
     try {
       final walletRef = AppFirestore.unifiedWalletCollectionRef.doc(workerId);
@@ -87,23 +85,6 @@ class UnifiedPayoutServices {
         wallet = UnifiedWalletModel.fromSnapshot(walletDoc);
       } else {
         wallet = UnifiedWalletModel(workerId: workerId);
-      }
-
-      // Update earnings
-      if (earningsIncrement != null && earningsIncrement > 0) {
-        if (isCashEarning == true) {
-          // Cash earnings - info only, already in hand
-          wallet = wallet.copyWith(
-            cashEarnings: (wallet.cashEarnings ?? 0.0) + earningsIncrement,
-          );
-        } else {
-          // Card earnings - available for payout
-          wallet = wallet.copyWith(
-            totalEarnings: (wallet.totalEarnings ?? 0.0) + earningsIncrement,
-            availableEarnings:
-                (wallet.availableEarnings ?? 0.0) + earningsIncrement,
-          );
-        }
       }
 
       // Update tips
@@ -131,17 +112,20 @@ class UnifiedPayoutServices {
         );
       }
 
-      // Calculate totals
+      // Update completion amount (for bonus calculation)
+      if (completionAmountIncrement != null && completionAmountIncrement > 0) {
+        wallet = wallet.copyWith(
+          totalCompletionAmount:
+              (wallet.totalCompletionAmount ?? 0.0) + completionAmountIncrement,
+        );
+      }
+
+      // Calculate totals (only card tips + bonus available for payout)
       final totalAvailable =
-          (wallet.availableEarnings ?? 0.0) +
-          (wallet.cardTips ?? 0.0) +
-          (wallet.availableBonus ?? 0.0);
+          (wallet.cardTips ?? 0.0) + (wallet.availableBonus ?? 0.0);
 
       final lifetimeTotal =
-          (wallet.totalEarnings ?? 0.0) +
-          (wallet.cashEarnings ?? 0.0) +
-          (wallet.totalTips ?? 0.0) +
-          (wallet.totalBonus ?? 0.0);
+          (wallet.totalTips ?? 0.0) + (wallet.totalBonus ?? 0.0);
 
       wallet = wallet.copyWith(
         totalAvailableBalance: totalAvailable,
@@ -163,10 +147,9 @@ class UnifiedPayoutServices {
     }
   }
 
-  /// Request a unified payout
+  /// Request a unified payout (card tips + bonus only)
   static Future<String> requestUnifiedPayout({
     required String workerId,
-    required double earningsAmount,
     required double tipsAmount,
     required double bonusAmount,
   }) async {
@@ -184,9 +167,6 @@ class UnifiedPayoutServices {
       final wallet = await getUnifiedWallet(workerId);
 
       // Validate amounts
-      if (earningsAmount > (wallet.availableEarnings ?? 0.0)) {
-        throw Exception('Insufficient earnings balance');
-      }
       if (tipsAmount > (wallet.cardTips ?? 0.0)) {
         throw Exception('Insufficient tips balance');
       }
@@ -194,7 +174,7 @@ class UnifiedPayoutServices {
         throw Exception('Insufficient bonus balance');
       }
 
-      final totalAmount = earningsAmount + tipsAmount + bonusAmount;
+      final totalAmount = tipsAmount + bonusAmount;
       if (totalAmount <= 0) {
         throw Exception('Total amount must be greater than 0');
       }
@@ -207,7 +187,6 @@ class UnifiedPayoutServices {
         id: requestId,
         workerId: workerId,
         workerName: worker.name,
-        earningsAmount: earningsAmount,
         tipsAmount: tipsAmount,
         bonusAmount: bonusAmount,
         totalAmount: totalAmount,
@@ -317,30 +296,23 @@ class UnifiedPayoutServices {
 
       final wallet = UnifiedWalletModel.fromSnapshot(walletDoc);
 
-      // Calculate new values
-      final newAvailableEarnings =
-          (wallet.availableEarnings ?? 0.0) - (request.earningsAmount ?? 0.0);
+      // Calculate new values (only tips and bonus)
       final newCardTips =
           (wallet.cardTips ?? 0.0) - (request.tipsAmount ?? 0.0);
       final newAvailableBonus =
           (wallet.availableBonus ?? 0.0) - (request.bonusAmount ?? 0.0);
 
-      final newPaidEarnings =
-          (wallet.paidEarnings ?? 0.0) + (request.earningsAmount ?? 0.0);
       final newPaidTips =
           (wallet.paidTips ?? 0.0) + (request.tipsAmount ?? 0.0);
       final newPaidBonus =
           (wallet.paidBonus ?? 0.0) + (request.bonusAmount ?? 0.0);
 
-      final newTotalAvailable =
-          newAvailableEarnings + newCardTips + newAvailableBonus;
+      final newTotalAvailable = newCardTips + newAvailableBonus;
 
       // Update wallet
       await walletRef.update({
-        'availableEarnings': newAvailableEarnings,
         'cardTips': newCardTips,
         'availableBonus': newAvailableBonus,
-        'paidEarnings': newPaidEarnings,
         'paidTips': newPaidTips,
         'paidBonus': newPaidBonus,
         'totalAvailableBalance': newTotalAvailable,
@@ -367,7 +339,6 @@ class UnifiedPayoutServices {
         id: historyId,
         workerId: request.workerId,
         workerName: request.workerName,
-        earningsAmount: request.earningsAmount,
         tipsAmount: request.tipsAmount,
         bonusAmount: request.bonusAmount,
         totalAmount: request.totalAmount,
@@ -576,35 +547,16 @@ class UnifiedPayoutServices {
   }
 
   /// Sync existing data to unified wallet (migration helper)
+  /// NOTE: Only migrates tips and bonus - earnings no longer tracked
   static Future<void> syncExistingDataToUnifiedWallet(String workerId) async {
     try {
       // Get existing data
-      final transactions = await AppServices.getWorkerTransactions(workerId);
       final tippingData = await AppServices.getWorkerTippingData(workerId);
       final bonusAmount = await AppServices.getWorkerBonusAmounts(workerId);
-      final paidAmounts = await AppServices.getWorkerPaidAmounts(workerId);
 
-      // Calculate earnings from transactions
-      double totalEarnings = 0.0;
-      double cashEarnings = 0.0;
-      for (var transaction in transactions) {
-        if (transaction.paymentStatus.toLowerCase() == 'completed' ||
-            transaction.paymentStatus.toLowerCase() == 'paid') {
-          if (transaction.paymentMethod.toLowerCase() == 'cards') {
-            totalEarnings += transaction.amount;
-          } else if (transaction.paymentMethod.toLowerCase().contains('cash')) {
-            cashEarnings += transaction.amount;
-          }
-        }
-      }
-
-      // Create/update unified wallet
+      // Create/update unified wallet (NO earnings - handled outside app now)
       final wallet = UnifiedWalletModel(
         workerId: workerId,
-        totalEarnings: totalEarnings,
-        cashEarnings: cashEarnings,
-        paidEarnings: paidAmounts,
-        availableEarnings: totalEarnings - paidAmounts,
         totalTips: (tippingData.cardtip ?? 0.0) + (tippingData.cashtip ?? 0.0),
         cardTips: tippingData.cardtip ?? 0.0,
         cashTips: tippingData.cashtip ?? 0.0,
@@ -612,21 +564,16 @@ class UnifiedPayoutServices {
         totalBonus: bonusAmount,
         paidBonus: 0.0, // Assuming no bonus has been paid yet
         availableBonus: bonusAmount,
+        totalCompletionAmount: 0.0, // Will be updated as bookings are completed
         payoutRequested: tippingData.payoutRequested ?? false,
         lastUpdated: Timestamp.now(),
       );
 
-      // Calculate totals
+      // Calculate totals (only tips + bonus)
       final totalAvailable =
-          (wallet.availableEarnings ?? 0.0) +
-          (wallet.cardTips ?? 0.0) +
-          (wallet.availableBonus ?? 0.0);
-
+          (wallet.cardTips ?? 0.0) + (wallet.availableBonus ?? 0.0);
       final lifetimeTotal =
-          (wallet.totalEarnings ?? 0.0) +
-          (wallet.cashEarnings ?? 0.0) +
-          (wallet.totalTips ?? 0.0) +
-          (wallet.totalBonus ?? 0.0);
+          (wallet.totalTips ?? 0.0) + (wallet.totalBonus ?? 0.0);
 
       final updatedWallet = wallet.copyWith(
         totalAvailableBalance: totalAvailable,
@@ -639,7 +586,7 @@ class UnifiedPayoutServices {
 
       if (kDebugMode) {
         print('✅ Synced existing data to unified wallet for worker $workerId');
-        print('   Total Available: $totalAvailable');
+        print('   Total Available: $totalAvailable (tips + bonus only)');
         print('   Lifetime Total: $lifetimeTotal');
       }
     } catch (e) {

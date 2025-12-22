@@ -7,7 +7,6 @@ import 'package:aboglumbo_bbk_panel/helpers/localization_helper.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/address.dart';
 import 'package:aboglumbo_bbk_panel/models/booking.dart';
-import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/bookings/booking_controllers.dart';
 import 'package:aboglumbo_bbk_panel/pages/bookings/warranty_controllers.dart';
 import 'package:aboglumbo_bbk_panel/pages/chat_screen.dart';
@@ -119,13 +118,11 @@ class _BookingInfoState extends State<BookingInfo> {
         String technicianName;
         String technicianPhoto;
         if (widget.isWarranty) {
-          final technicianDoc = await AppFirestore.usersCollectionRef
-              .doc(widget.booking.warranty?.assignedTechnicianId)
-              .get();
-          final tech = UserModel.fromDocumentSnapshot(technicianDoc);
-
-          technicianName = widget.isAdmin ? "Admin" : tech.name ?? "Technician";
-          technicianPhoto = widget.isAdmin ? "" : tech.profileUrl ?? "";
+          final tech = widget.booking.warranty?.assignedTechnician;
+          technicianName = widget.isAdmin
+              ? "Admin"
+              : tech?.name ?? "Technician";
+          technicianPhoto = widget.isAdmin ? "" : tech?.profileUrl ?? "";
         } else {
           technicianName = widget.isAdmin
               ? "Admin"
@@ -156,13 +153,11 @@ class _BookingInfoState extends State<BookingInfo> {
         String technicianName;
         String technicianPhoto;
         if (widget.isWarranty) {
-          final technicianDoc = await AppFirestore.usersCollectionRef
-              .doc(widget.booking.warranty?.assignedTechnicianId)
-              .get();
-          final tech = UserModel.fromDocumentSnapshot(technicianDoc);
-
-          technicianName = widget.isAdmin ? "Admin" : tech.name ?? "Technician";
-          technicianPhoto = widget.isAdmin ? "" : tech.profileUrl ?? "";
+          final tech = widget.booking.warranty?.assignedTechnician;
+          technicianName = widget.isAdmin
+              ? "Admin"
+              : tech?.name ?? "Technician";
+          technicianPhoto = widget.isAdmin ? "" : tech?.profileUrl ?? "";
         } else {
           technicianName = widget.isAdmin
               ? "Admin"
@@ -210,6 +205,21 @@ class _BookingInfoState extends State<BookingInfo> {
           isInitiatingChat = false;
         });
       }
+    }
+  }
+
+  void openDirections() {
+    final addresses = widget.booking.customer.addresses;
+    final selectedAddress =
+        addresses.where((a) => a.isSelected == true).isNotEmpty
+        ? addresses.firstWhere((a) => a.isSelected == true)
+        : null;
+
+    if (selectedAddress != null) {
+      final url =
+          'https://www.google.com/maps/search/?api=1&query='
+          '${selectedAddress.lat},${selectedAddress.lon}';
+      launchUrlString(url);
     }
   }
 
@@ -295,6 +305,7 @@ class _BookingInfoState extends State<BookingInfo> {
                   return BookingControlsWidget(
                     booking: widget.booking,
                     isTracking: isTracking,
+                    onTrackingStarted: openDirections,
                   );
                 },
               ),
@@ -308,7 +319,7 @@ class _BookingInfoState extends State<BookingInfo> {
 
                   // Warranty tracking controls (when warranty is started)
                   if (warrantyStatus == 'S' &&
-                      widget.booking.warranty?.assignedTechnicianId ==
+                      widget.booking.warranty?.assignedTechnician?.uid ==
                           LocalStore.getUID()) {
                     return StreamBuilder<DocumentSnapshot>(
                       stream: AppFirestore.bookingsCollectionRef
@@ -328,6 +339,7 @@ class _BookingInfoState extends State<BookingInfo> {
                           booking: widget.booking,
                           isTracking: isTracking,
                           isAdmin: widget.isAdmin,
+                          onTrackingStarted: openDirections,
                         );
                       },
                     );
