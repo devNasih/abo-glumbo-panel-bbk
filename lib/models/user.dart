@@ -31,6 +31,17 @@ class UserModel {
   String? highestTier;
   double? totalMonthlyBonus;
   Timestamp? lastBonusDate;
+  int? currentMonthJobs;
+  int? previousMonthJobs;
+  String? tier;
+  double? bonusAmount;
+  String? previousMonthTier;
+  double? previousMonthRating;
+  String? lastBonusMonth;
+  // Admin access tracking
+  bool? isGrantedAdminByMain; // Track if admin access was granted by main admin
+  int? adminAccessLevel; // 1 = Full Admin, 2 = Customer Service (view only)
+  Timestamp? grantedAdminAt; // When admin access was granted
   String role;
 
   UserModel({
@@ -61,6 +72,16 @@ class UserModel {
     this.highestTier,
     this.totalMonthlyBonus,
     this.lastBonusDate,
+    this.currentMonthJobs,
+    this.previousMonthJobs,
+    this.tier,
+    this.bonusAmount,
+    this.previousMonthTier,
+    this.previousMonthRating,
+    this.lastBonusMonth,
+    this.isGrantedAdminByMain,
+    this.adminAccessLevel,
+    this.grantedAdminAt,
     required this.role,
     this.paidoutTips,
   });
@@ -93,8 +114,18 @@ class UserModel {
     double? totalMonthlyBonus,
     List<String>? certifications,
     Timestamp? lastBonusDate,
+    int? currentMonthJobs,
+    int? previousMonthJobs,
+    String? tier,
+    double? bonusAmount,
+    String? previousMonthTier,
+    double? previousMonthRating,
+    String? lastBonusMonth,
     double? paidoutTips,
     bool? isOnline,
+    bool? isGrantedAdminByMain,
+    int? adminAccessLevel,
+    Timestamp? grantedAdminAt,
     String role = 'technician',
   }) {
     return UserModel(
@@ -123,7 +154,17 @@ class UserModel {
       highestTier: highestTier ?? this.highestTier,
       totalMonthlyBonus: totalMonthlyBonus ?? this.totalMonthlyBonus,
       lastBonusDate: lastBonusDate ?? this.lastBonusDate,
+      currentMonthJobs: currentMonthJobs ?? this.currentMonthJobs,
+      previousMonthJobs: previousMonthJobs ?? this.previousMonthJobs,
+      tier: tier ?? this.tier,
+      bonusAmount: bonusAmount ?? this.bonusAmount,
+      previousMonthTier: previousMonthTier ?? this.previousMonthTier,
+      previousMonthRating: previousMonthRating ?? this.previousMonthRating,
+      lastBonusMonth: lastBonusMonth ?? this.lastBonusMonth,
       paidoutTips: paidoutTips ?? this.paidoutTips,
+      isGrantedAdminByMain: isGrantedAdminByMain ?? this.isGrantedAdminByMain,
+      adminAccessLevel: adminAccessLevel ?? this.adminAccessLevel,
+      grantedAdminAt: grantedAdminAt ?? this.grantedAdminAt,
       role: role,
       certifications: certifications ?? this.certifications,
       isOnline: isOnline ?? this.isOnline,
@@ -190,6 +231,20 @@ class UserModel {
           ? List<String>.from(json['certifications'])
           : <String>[],
       isOnline: json['isOnline'],
+      currentMonthJobs: json['currentMonthJobs'] as int?,
+      previousMonthJobs: json['previousMonthJobs'] as int?,
+      tier: json['tier'],
+      bonusAmount: json['bonusAmount'] != null
+          ? (json['bonusAmount'] as num).toDouble()
+          : null,
+      previousMonthTier: json['previousMonthTier'],
+      previousMonthRating: json['previousMonthRating'] != null
+          ? (json['previousMonthRating'] as num).toDouble()
+          : null,
+      lastBonusMonth: json['lastBonusMonth'],
+      isGrantedAdminByMain: json['isGrantedAdminByMain'] ?? false,
+      adminAccessLevel: json['adminAccessLevel'] as int?,
+      grantedAdminAt: json['grantedAdminAt'],
     );
   }
 
@@ -225,6 +280,16 @@ class UserModel {
       'isOnline': isOnline,
       'certifications': certifications,
       'paidoutTips': paidoutTips,
+      'currentMonthJobs': currentMonthJobs,
+      'previousMonthJobs': previousMonthJobs,
+      'tier': tier,
+      'bonusAmount': bonusAmount,
+      'previousMonthTier': previousMonthTier,
+      'previousMonthRating': previousMonthRating,
+      'lastBonusMonth': lastBonusMonth,
+      'isGrantedAdminByMain': isGrantedAdminByMain ?? false,
+      'adminAccessLevel': adminAccessLevel,
+      'grantedAdminAt': grantedAdminAt,
     };
   }
 
@@ -260,6 +325,16 @@ class UserModel {
       'certifications': certifications,
       'isOnline': isOnline,
       'paidoutTips': paidoutTips,
+      'currentMonthJobs': currentMonthJobs,
+      'previousMonthJobs': previousMonthJobs,
+      'tier': tier,
+      'bonusAmount': bonusAmount,
+      'previousMonthTier': previousMonthTier,
+      'previousMonthRating': previousMonthRating,
+      'lastBonusMonth': lastBonusMonth,
+      'isGrantedAdminByMain': isGrantedAdminByMain ?? false,
+      'adminAccessLevel': adminAccessLevel,
+      'grantedAdminAt': grantedAdminAt,
     };
   }
 
@@ -344,6 +419,16 @@ class UserModel {
 
     if (isOnline != previous.isOnline && isOnline != null) {
       json['isOnline'] = isOnline;
+    }
+
+    if (currentMonthJobs != previous.currentMonthJobs &&
+        currentMonthJobs != null) {
+      json['currentMonthJobs'] = currentMonthJobs;
+    }
+
+    if (previousMonthJobs != previous.previousMonthJobs &&
+        previousMonthJobs != null) {
+      json['previousMonthJobs'] = previousMonthJobs;
     }
 
     return json;

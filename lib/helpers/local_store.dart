@@ -125,6 +125,27 @@ class LocalStore {
   }
 
   // ============================================
+  // Role Preference (Admin/Technician Mode)
+  // ============================================
+
+  /// Save user's role preference (admin or technician)
+  static Future<void> setRolePreference(String role) async {
+    await MyApp.box.put('role_preference', role);
+    await MyApp.box.flush();
+  }
+
+  /// Get user's role preference
+  static Future<String?> getRolePreference() async {
+    return MyApp.box.get('role_preference');
+  }
+
+  /// Clear role preference
+  static Future<void> clearRolePreference() async {
+    await MyApp.box.delete('role_preference');
+    await MyApp.box.flush();
+  }
+
+  // ============================================
   // User Data Cache (for offline/quick access)
   // ============================================
 

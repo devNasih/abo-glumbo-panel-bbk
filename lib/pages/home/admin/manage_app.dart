@@ -1,4 +1,6 @@
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
+import 'package:aboglumbo_bbk_panel/models/user.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/admins/manage_admins.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/agents/manage_agents.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/banners/banners.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/categories/manage_categories.dart';
@@ -13,7 +15,8 @@ import 'package:aboglumbo_bbk_panel/pages/home/admin/manage/transactions/manage_
 import 'package:flutter/material.dart';
 
 class ManageApp extends StatefulWidget {
-  const ManageApp({super.key});
+  final UserModel userData;
+  const ManageApp({super.key, required this.userData});
 
   @override
   State<ManageApp> createState() => _ManageAppState();
@@ -26,7 +29,19 @@ class _ManageAppState extends State<ManageApp> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    tiles = [
+    // Check if user is main admin
+    final isMainAdmin = widget.userData.phone == '111111111';
+    final isCustomerService = widget.userData.adminAccessLevel == 2;
+
+    List<_TileInfo> allTiles = [
+      // Only show Manage Admins to main admin
+      if (isMainAdmin)
+        _TileInfo(
+          key: 'manage_admins',
+          labelFallback: 'Manage Admins',
+          icon: Icons.admin_panel_settings_rounded,
+          onTap: () => _navigateToPage('Manage Admins'),
+        ),
       _TileInfo(
         key: 'manage_users',
         labelFallback:
@@ -107,6 +122,20 @@ class _ManageAppState extends State<ManageApp> {
         onTap: () => _navigateToPage('Manage Transactions'),
       ),
     ];
+
+    // Filter tiles based on access level
+    if (isCustomerService) {
+      // Customer service only sees: customers, technicians, customer support, payouts
+      tiles = allTiles.where((tile) {
+        return tile.key == 'manage_customers' ||
+            tile.key == 'manage_agents' ||
+            tile.key == 'manage_customer_support' ||
+            tile.key == 'manage_payouts';
+      }).toList();
+    } else {
+      // Main admin and full admins see all tiles
+      tiles = allTiles;
+    }
   }
 
   void _navigateToPage(String pageName) {
@@ -115,6 +144,8 @@ class _ManageAppState extends State<ManageApp> {
       MaterialPageRoute(
         builder: (context) {
           switch (pageName) {
+            case 'Manage Admins':
+              return const ManageAdmins();
             case 'Manage Categories':
               return const ManageCategories();
             case 'Manage Services':

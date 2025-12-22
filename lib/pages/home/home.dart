@@ -37,6 +37,10 @@ class _HomeState extends State<Home> {
   String selectedBookingStatus = 'P';
   bool _hasShownWelcomeModal = false;
 
+  // Role switcher state: 'admin' or 'technician'
+  String _currentRole = 'admin'; // Default to admin for users with admin access
+  bool _isLoadingRole = true;
+
   @override
   void initState() {
     log('initState');
@@ -49,6 +53,7 @@ class _HomeState extends State<Home> {
       selectedBookingStatus = 'P';
     }
     NotificationServices.initializeFCM();
+    _loadRolePreference(); // Load saved role preference
     if (widget.byPassUid != null && widget.byPassUid!.isNotEmpty) {
       _handleBypassLogin();
     } else {
@@ -63,6 +68,56 @@ class _HomeState extends State<Home> {
 
   void _handleBypassLogin() {
     context.read<LoginBloc>().add(LoadWorkerData(uid: widget.byPassUid!));
+  }
+
+  // Load role preference from local storage
+  Future<void> _loadRolePreference() async {
+    final savedRole = await LocalStore.getRolePreference();
+    setState(() {
+      _currentRole = savedRole ?? 'admin';
+      _isLoadingRole = false;
+    });
+  }
+
+  // Save role preference to local storage
+  Future<void> _saveRolePreference(String role) async {
+    await LocalStore.setRolePreference(role);
+  }
+
+  // Toggle between admin and technician roles
+  void _toggleRole() {
+    setState(() {
+      _currentRole = _currentRole == 'admin' ? 'technician' : 'admin';
+      currentIndex = 0; // Reset to home page when switching roles
+    });
+    _saveRolePreference(_currentRole);
+
+    // Show feedback to user
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              _currentRole == 'admin'
+                  ? Icons.admin_panel_settings_rounded
+                  : Icons.engineering_rounded,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Switched to ${_currentRole == 'admin' ? 'Admin' : 'Technician'} Mode',
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+            ),
+          ],
+        ),
+        duration: const Duration(seconds: 2),
+        backgroundColor: _currentRole == 'admin'
+            ? Colors.blue.shade600
+            : Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        elevation: 6,
+      ),
+    );
   }
 
   @override
@@ -308,7 +363,7 @@ class _HomeState extends State<Home> {
         }
         List<Widget> adminPages = [
           AdminHome(),
-          const ManageApp(),
+          ManageApp(userData: userData),
           WarrantyPage(workerData: userData),
           AccountPage(workerData: userData),
         ];
@@ -319,9 +374,16 @@ class _HomeState extends State<Home> {
           WarrantyPage(workerData: userData),
           AccountPage(workerData: userData),
         ];
-        final currentPages = userData.isAdmin == true
-            ? adminPages
-            : workerPages;
+
+        // Determine which pages to show based on role switcher
+        // Only users who were GRANTED admin access by main admin can switch roles
+        // This excludes the main admin themselves and any default admin accounts
+        final bool canSwitchRoles = userData.isGrantedAdminByMain == true;
+
+        // Determine current pages based on role switcher or default admin status
+        final currentPages = canSwitchRoles
+            ? (_currentRole == 'admin' ? adminPages : workerPages)
+            : (userData.isAdmin == true ? adminPages : workerPages);
         return PopScope(
           canPop: false,
           onPopInvokedWithResult: (didPop, result) {
@@ -390,7 +452,8 @@ class _HomeState extends State<Home> {
                   ),
                   label: locale?.home ?? '',
                 ),
-                if (userData.isAdmin == true) ...{
+                // Show appropriate navigation based on current role
+                if (canSwitchRoles && _currentRole == 'admin') ...{
                   NavigationDestination(
                     icon: Icon(Icons.settings_rounded, color: AppColors.grey),
                     selectedIcon: Icon(
@@ -399,7 +462,20 @@ class _HomeState extends State<Home> {
                     ),
                     label: AppLocalizations.of(context)?.manage ?? 'Manage',
                   ),
-                } else ...{
+                } else if (canSwitchRoles && _currentRole == 'technician') ...{
+                  NavigationDestination(
+                    selectedIcon: Icon(
+                      Icons.format_list_bulleted,
+                      color: AppColors.secondary,
+                    ),
+                    icon: Icon(
+                      Icons.format_list_bulleted,
+                      color: AppColors.grey,
+                    ),
+                    label: AppLocalizations.of(context)?.orders ?? 'Orders',
+                  ),
+                } else if (!canSwitchRoles) ...{
+                  // For users without admin access, always show Orders
                   NavigationDestination(
                     selectedIcon: Icon(
                       Icons.format_list_bulleted,
@@ -444,6 +520,34 @@ class _HomeState extends State<Home> {
                 ),
               ],
             ),
+            // Role Switcher FAB - only show for users with admin access
+            floatingActionButton: canSwitchRoles && !_isLoadingRole
+                ? FloatingActionButton.extended(
+                    onPressed: _toggleRole,
+                    backgroundColor: _currentRole == 'admin'
+                        ? Colors.green.shade600
+                        : Colors.blue.shade600,
+                    foregroundColor: Colors.white,
+                    elevation: 6,
+                    icon: Icon(
+                      _currentRole == 'admin'
+                          ? Icons.engineering_rounded
+                          : Icons.admin_panel_settings_rounded,
+                    ),
+                    label: Text(
+                      _currentRole == 'admin'
+                          ? 'Switch to Technician'
+                          : 'Switch to Admin',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    tooltip: _currentRole == 'admin'
+                        ? 'Switch to Technician Mode'
+                        : 'Switch to Admin Mode',
+                  )
+                : null,
           ),
         );
       },
