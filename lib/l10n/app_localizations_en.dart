@@ -3945,6 +3945,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get minimumPayoutAmount => 'Minimum payout amount is 10 SAR';
 
   @override
+  String get enableAvailability => 'Enable Availability';
+
+  @override
+  String get welcomeDescription =>
+      'To start receiving booking requests, please enable your Availability Status on the Dashboard.';
+
+  @override
+  String get welcomeToAboGlumboTechnician =>
+      'Welcome to Abo Glumbo Technician!';
+
+  @override
   String get loginDescription =>
-      'Ready to work? Nearby jobs and better income await you.';
+      'Ready to work? Nearby jobs and better income await you.';
 }

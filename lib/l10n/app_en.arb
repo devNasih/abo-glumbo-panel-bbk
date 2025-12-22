@@ -1296,5 +1296,8 @@
   "syncWallet": "Sync Wallet",
   "alreadyInHand": "already in hand",
   "minimumPayoutAmount": "Minimum payout amount is 10 SAR",
-  "loginDescription": "Ready to work? Nearby jobs and better income await you."
+  "enableAvailability": "Enable Availability",
+  "welcomeDescription": "To start receiving booking requests, please enable your Availability Status on the Dashboard.",
+  "welcomeToAboGlumboTechnician": "Welcome to Abo Glumbo Technician!",
+  "loginDescription": "Ready to work? Nearby jobs and better income await you."
 }

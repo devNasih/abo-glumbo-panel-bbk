@@ -1286,6 +1286,9 @@
   "bonusIncludedInWallet": "المكافأة مدمجة ضمن محفظتك الموحدة. اطلب السحب من صفحة الأرباح.",
   "syncWallet": "مزامنة المحفظة",
   "alreadyInHand": "بالفعل مستلم",
+  "enableAvailability": "تفعيل الجاهزية",
+  "welcomeToAboGlumboTechnician": "مرحباً بك في أبو جلمبو فني!",
+  "welcomeDescription": "لتبدأ في استقبال طلبات الحجز، يرجى تفعيل حالة الجاهزية في لوحة القيادة.",
   "minimumPayoutAmount": "الحد الأدنى لمبلغ السحب هو 10 ريال",
   "loginDescription": "جاهز للشغل؟ فرص عمل قريبة ودخل أفضل بانتظارك."
 }

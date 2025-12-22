@@ -7437,10 +7437,28 @@ abstract class AppLocalizations {
   /// **'Minimum payout amount is 10 SAR'**
   String get minimumPayoutAmount;
 
+  /// No description provided for @enableAvailability.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Availability'**
+  String get enableAvailability;
+
+  /// No description provided for @welcomeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'To start receiving booking requests, please enable your Availability Status on the Dashboard.'**
+  String get welcomeDescription;
+
+  /// No description provided for @welcomeToAboGlumboTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Abo Glumbo Technician!'**
+  String get welcomeToAboGlumboTechnician;
+
   /// No description provided for @loginDescription.
   ///
   /// In en, this message translates to:
-  /// **'Ready to work? Nearby jobs and better income await you.'**
+  /// **'Ready to work? Nearby jobs and better income await you.'**
   String get loginDescription;
 }
 

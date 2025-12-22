@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
+import 'package:aboglumbo_bbk_panel/common_widget/technician_welcome_modal.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
@@ -34,6 +35,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   int currentIndex = 0;
   String selectedBookingStatus = 'P';
+  bool _hasShownWelcomeModal = false;
 
   @override
   void initState() {
@@ -141,6 +143,25 @@ class _HomeState extends State<Home> {
             body: Center(child: Loader(color: AppColors.primary)),
           );
         }
+
+        // Show welcome modal for technicians with availability disabled
+        if (!_hasShownWelcomeModal &&
+            userData.isAdmin != true &&
+            userData.isOnline != true) {
+          _hasShownWelcomeModal = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            TechnicianWelcomeModal.show(
+              context,
+              onEnableAvailability: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  currentIndex = 0; // Navigate to dashboard
+                });
+              },
+            );
+          });
+        }
+
         if (userData.isVerified != true) {
           return PopScope(
             canPop: false,

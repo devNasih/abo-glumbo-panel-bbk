@@ -3885,6 +3885,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get minimumPayoutAmount => 'الحد الأدنى لمبلغ السحب هو 10 ريال';
 
   @override
+  String get enableAvailability => 'تفعيل الجاهزية';
+
+  @override
+  String get welcomeDescription =>
+      'لتبدأ في استقبال طلبات الحجز، يرجى تفعيل حالة الجاهزية في لوحة القيادة.';
+
+  @override
+  String get welcomeToAboGlumboTechnician => 'مرحباً بك في أبو جلمبو فني!';
+
+  @override
   String get loginDescription =>
       'جاهز للشغل؟ فرص عمل قريبة ودخل أفضل بانتظارك.';
 }

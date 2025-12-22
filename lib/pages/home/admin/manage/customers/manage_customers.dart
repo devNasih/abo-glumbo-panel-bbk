@@ -128,7 +128,7 @@ class _ManageCustomersPageState extends State<ManageCustomersPage>
                     backgroundColor: Colors.white,
                   ),
                   eButton(
-                    text: AppLocalizations.of(context)!.cancel,
+                    text: AppLocalizations.of(context)!.confirm,
                     onPressed: () => Navigator.of(context).pop(true),
                     context: context,
                     textColor: Colors.white,
