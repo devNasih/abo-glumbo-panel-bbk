@@ -3999,6 +3999,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get revoke => 'Revoke';
 
   @override
+  String get switchToAdmin => 'Switch to Admin';
+
+  @override
   String get manageAdmins => 'Manage Admins';
 
   @override

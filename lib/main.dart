@@ -208,7 +208,7 @@ class MyApp extends StatelessWidget {
             providers: providers,
             child: MaterialApp(
               navigatorKey: navigatorKey,
-              title: 'Worker Console',
+              title: 'Abo Glumbo - Technician',
               debugShowCheckedModeBanner: false,
               builder: (context, child) {
                 final mq = MediaQuery.of(context);

@@ -3939,6 +3939,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get revoke => 'إلغاء';
 
   @override
+  String get switchToAdmin => 'Switch to Admin';
+
+  @override
   String get manageAdmins => 'إدارة المشرفين';
 
   @override

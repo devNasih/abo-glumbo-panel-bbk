@@ -16,7 +16,8 @@ import 'package:flutter/material.dart';
 
 class ManageApp extends StatefulWidget {
   final UserModel userData;
-  const ManageApp({super.key, required this.userData});
+  final VoidCallback? onToggleRole;
+  const ManageApp({super.key, required this.userData, this.onToggleRole});
 
   @override
   State<ManageApp> createState() => _ManageAppState();
@@ -189,6 +190,14 @@ class _ManageAppState extends State<ManageApp> {
         ),
         backgroundColor: const Color(0xFF0A2463),
         foregroundColor: Colors.white,
+        actions: [
+          if (widget.onToggleRole != null)
+            IconButton(
+              onPressed: widget.onToggleRole,
+              icon: const Icon(Icons.engineering_rounded),
+              tooltip: 'Switch to Technician',
+            ),
+        ],
       ),
       body: ListView.separated(
         padding: const EdgeInsets.all(16.0),

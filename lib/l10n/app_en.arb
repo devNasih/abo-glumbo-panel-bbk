@@ -1313,6 +1313,7 @@
   "revokeAdminAccess": "Revoke Admin Access",
   "revokingAdminAccess": "Revoking admin access",
   "revoke": "Revoke",
+  "switchToAdmin": "Switch to Admin",
   "manageAdmins": "Manage Admins",
   "searchAdmins": "Search Admins...",
   "aboutUs": "About Us",

@@ -10,9 +10,16 @@ import 'package:aboglumbo_bbk_panel/sheets/assign_worker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class WarrantyPage extends StatefulWidget {
-  const WarrantyPage({super.key, required this.workerData});
+  const WarrantyPage({
+    super.key,
+    required this.workerData,
+    this.onToggleRole,
+    this.isTechnicianView = false,
+  });
 
   final UserModel workerData;
+  final VoidCallback? onToggleRole;
+  final bool isTechnicianView;
 
   @override
   State<WarrantyPage> createState() => _WarrantyPageState();
@@ -154,6 +161,20 @@ class _WarrantyPageState extends State<WarrantyPage>
     return AppBar(
       titleSpacing: 16,
       title: Text(AppLocalizations.of(context)!.warrantyClaims),
+      actions: [
+        if (widget.onToggleRole != null)
+          IconButton(
+            onPressed: widget.onToggleRole,
+            icon: Icon(
+              widget.isTechnicianView
+                  ? Icons.admin_panel_settings_rounded
+                  : Icons.engineering_rounded,
+            ),
+            tooltip: widget.isTechnicianView
+                ? 'Switch to Admin'
+                : 'Switch to Technician',
+          ),
+      ],
     );
   }
 

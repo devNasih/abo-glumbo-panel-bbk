@@ -362,24 +362,27 @@ class _HomeState extends State<Home> {
             ),
           );
         }
-        List<Widget> adminPages = [
-          AdminHome(),
-          ManageApp(userData: userData),
-          WarrantyPage(workerData: userData),
-          AccountPage(workerData: userData),
-        ];
-        log("adminPages: $selectedBookingStatus");
-        List<Widget> workerPages = [
-          DashboardScreen(workerData: userData),
-          WorkerHome(selectedIndex: selectedBookingStatus),
-          WarrantyPage(workerData: userData),
-          AccountPage(workerData: userData),
-        ];
-
         // Determine which pages to show based on role switcher
         // Only users who were GRANTED admin access by main admin can switch roles
         // This excludes the main admin themselves and any default admin accounts
         final bool canSwitchRoles = userData.isGrantedAdminByMain == true;
+        final roleSwitchCallback = canSwitchRoles ? _toggleRole : null;
+
+        List<Widget> adminPages = [
+          AdminHome(onToggleRole: roleSwitchCallback),
+          ManageApp(userData: userData),
+          WarrantyPage(workerData: userData, isTechnicianView: false),
+          AccountPage(workerData: userData),
+        ];
+        List<Widget> workerPages = [
+          DashboardScreen(
+            workerData: userData,
+            onToggleRole: roleSwitchCallback,
+          ),
+          WorkerHome(selectedIndex: selectedBookingStatus),
+          WarrantyPage(workerData: userData, isTechnicianView: true),
+          AccountPage(workerData: userData),
+        ];
 
         // Determine current pages based on role switcher or default admin status
         final currentPages = canSwitchRoles
@@ -521,34 +524,6 @@ class _HomeState extends State<Home> {
                 ),
               ],
             ),
-            // Role Switcher FAB - only show for users with admin access
-            floatingActionButton: canSwitchRoles && !_isLoadingRole
-                ? FloatingActionButton.extended(
-                    onPressed: _toggleRole,
-                    backgroundColor: _currentRole == 'admin'
-                        ? Colors.green.shade600
-                        : Colors.blue.shade600,
-                    foregroundColor: Colors.white,
-                    elevation: 6,
-                    icon: Icon(
-                      _currentRole == 'admin'
-                          ? Icons.engineering_rounded
-                          : Icons.admin_panel_settings_rounded,
-                    ),
-                    label: Text(
-                      _currentRole == 'admin'
-                          ? 'Switch to Technician'
-                          : 'Switch to Admin',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    tooltip: _currentRole == 'admin'
-                        ? 'Switch to Technician Mode'
-                        : 'Switch to Admin Mode',
-                  )
-                : null,
           ),
         );
       },

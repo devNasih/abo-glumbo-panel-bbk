@@ -9,7 +9,8 @@ import 'package:shimmer/shimmer.dart';
 
 class WorkerHome extends StatefulWidget {
   final String? selectedIndex;
-  const WorkerHome({super.key, this.selectedIndex});
+  final VoidCallback? onToggleRole;
+  const WorkerHome({super.key, this.selectedIndex, this.onToggleRole});
 
   @override
   State<WorkerHome> createState() => _WorkerHomeState();
@@ -159,6 +160,14 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
       title: Text(
         AppLocalizations.of(context)?.manageOrders ?? "Manage Orders",
       ),
+      actions: [
+        if (widget.onToggleRole != null)
+          IconButton(
+            onPressed: widget.onToggleRole,
+            icon: const Icon(Icons.admin_panel_settings_rounded),
+            tooltip: 'Switch to Admin',
+          ),
+      ],
     );
   }
 
