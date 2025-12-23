@@ -95,6 +95,47 @@ async function sendAndStoreNotification({
   return null;
 }
 
+// Helper function to get all admin users (main admins + granted admins)
+// Excludes customer service admins (adminAccessLevel == 2)
+async function getAllAdminUsers() {
+  try {
+    // Fetch main admins (isAdmin == true)
+    const adminUsersDocs = await getAllAdminUsers();
+
+    // Fetch technicians granted admin access (isGrantedAdminByMain == true)
+    const grantedAdminsSnapshot = await admin
+      .firestore()
+      .collection("users")
+      .where("isGrantedAdminByMain", "==", true)
+      .get();
+
+    // Combine both groups and filter out customer service admins
+    const adminUsersMap = new Map();
+
+    mainAdminsSnapshot.forEach((doc) => {
+      const data = doc.data();
+      // Include if adminAccessLevel is 1 or undefined (main admin)
+      // Exclude if adminAccessLevel is 2 (customer service)
+      if (!data.adminAccessLevel || data.adminAccessLevel === 1) {
+        adminUsersMap.set(doc.id, doc);
+      }
+    });
+
+    grantedAdminsSnapshot.forEach((doc) => {
+      const data = doc.data();
+      // Only include full admins (level 1), exclude customer service (level 2)
+      if (data.adminAccessLevel === 1 && !adminUsersMap.has(doc.id)) {
+        adminUsersMap.set(doc.id, doc);
+      }
+    });
+
+    return Array.from(adminUsersMap.values());
+  } catch (error) {
+    console.error("Error fetching admin users:", error);
+    return [];
+  }
+}
+
 exports.notifyAdminsOnNewBooking = onDocumentCreated(
   "bookings/{bookingId}",
   async (event) => {
@@ -114,14 +155,10 @@ exports.notifyAdminsOnNewBooking = onDocumentCreated(
     const serviceNameAr = booking.service?.name_ar || serviceName;
 
     try {
-      const adminUsersSnapshot = await admin
-        .firestore()
-        .collection("users")
-        .where("isAdmin", "==", true)
-        .get();
+      const adminUsersDocs = await getAllAdminUsers();
 
       const tokensWithLanguage = [];
-      adminUsersSnapshot.forEach((doc) => {
+      adminUsersDocs.forEach((doc) => {
         const user = doc.data();
         if (user.fcmToken && user.fcmToken.trim() !== "") {
           tokensWithLanguage.push({
@@ -184,13 +221,9 @@ exports.notifyAgentOnAssignment = onDocumentWritten(
     // --- Fetch admin users once ---
     let adminTokens = [];
     try {
-      const adminSnapshot = await admin
-        .firestore()
-        .collection("users")
-        .where("isAdmin", "==", true)
-        .get();
+      const adminUsersDocs = await getAllAdminUsers();
 
-      adminTokens = adminSnapshot.docs
+      adminTokens = adminUsersDocs
         .map((doc) => {
           const data = doc.data();
           return data.fcmToken && data.fcmToken.trim() !== ""
@@ -1022,11 +1055,7 @@ exports.notifyAdminsOnTipPayoutRequest = onDocumentWritten(
 
     // Fetch all admin users
     try {
-      const adminUsersSnapshot = await admin
-        .firestore()
-        .collection("users")
-        .where("isAdmin", "==", true)
-        .get();
+      const adminUsersDocs = await getAllAdminUsers();
 
       const tokensWithLanguage = [];
       adminUsersSnapshot.forEach((doc) => {
@@ -1512,19 +1541,18 @@ exports.notifyAdminsOnWorkerCancellation = onDocumentUpdated(
       const customerName = afterData.customer.name;
 
       // Fetch all admin users with FCM tokens
-      const adminsSnapshot = await db
-        .collection("users")
-        .where("isAdmin", "==", true)
-        .where("fcmToken", "!=", null)
-        .get();
+      const adminUsersDocs = await getAllAdminUsers();
+      const adminsWithTokens = adminUsersDocs.filter(
+        (doc) => doc.data().fcmToken && doc.data().fcmToken.trim() !== ""
+      );
 
-      if (adminsSnapshot.empty) {
+      if (adminsWithTokens.length === 0) {
         console.log("No admin users found with FCM tokens");
         return;
       }
 
       // Send notification to each admin
-      for (const adminDoc of adminsSnapshot.docs) {
+      for (const adminDoc of adminsWithTokens) {
         const adminData = adminDoc.data();
         const adminFcmToken = adminData.fcmToken;
         const adminLanCode = adminData.lanCode || "en";
@@ -1692,19 +1720,18 @@ exports.notifyAdminsOnCustomerCancellation = onDocumentUpdated(
       const cancellationReason = afterData.cancellationReason || "Not provided";
 
       // Fetch all admin users with FCM tokens
-      const adminsSnapshot = await db
-        .collection("users")
-        .where("isAdmin", "==", true)
-        .where("fcmToken", "!=", null)
-        .get();
+      const adminUsersDocs = await getAllAdminUsers();
+      const adminsWithTokens = adminUsersDocs.filter(
+        (doc) => doc.data().fcmToken && doc.data().fcmToken.trim() !== ""
+      );
 
-      if (adminsSnapshot.empty) {
+      if (adminsWithTokens.length === 0) {
         console.log("No admin users found with FCM tokens");
         return;
       }
 
       // Send notification to each admin
-      for (const adminDoc of adminsSnapshot.docs) {
+      for (const adminDoc of adminsWithTokens) {
         const adminData = adminDoc.data();
         const adminFcmToken = adminData.fcmToken;
         const adminLanCode = adminData.lanCode || "en";
@@ -1775,11 +1802,7 @@ exports.notifyAdminsOnNewWorkerSignup = onDocumentCreated(
 
     try {
       // Fetch all admin users
-      const adminUsersSnapshot = await admin
-        .firestore()
-        .collection("users")
-        .where("isAdmin", "==", true)
-        .get();
+      const adminUsersDocs = await getAllAdminUsers();
 
       const tokensWithLanguage = [];
       adminUsersSnapshot.forEach((doc) => {
@@ -2123,11 +2146,7 @@ exports.notifyOnWarrantyRequestStatusChange = onDocumentWritten(
     // Fetch admin users
     let adminTokens = [];
     try {
-      const adminSnapshot = await admin
-        .firestore()
-        .collection("users")
-        .where("isAdmin", "==", true)
-        .get();
+      const adminUsersDocs = await getAllAdminUsers();
 
       adminTokens = adminSnapshot.docs
         .map((doc) => {
@@ -2366,11 +2385,7 @@ exports.notifyAdminsOnWarrantyEscalation = onDocumentWritten(
     // Fetch all admin users
     let adminTokens = [];
     try {
-      const adminSnapshot = await admin
-        .firestore()
-        .collection("users")
-        .where("isAdmin", "==", true)
-        .get();
+      const adminUsersDocs = await getAllAdminUsers();
 
       adminTokens = adminSnapshot.docs
         .map((doc) => {
@@ -3415,11 +3430,7 @@ exports.notifyAdminsOnPayoutRequest = onDocumentCreated(
 
     // Fetch all admin users
     try {
-      const adminSnapshot = await admin
-        .firestore()
-        .collection("users")
-        .where("isAdmin", "==", true)
-        .get();
+      const adminUsersDocs = await getAllAdminUsers();
 
       if (adminSnapshot.empty) {
         console.log(`[${payoutId}] No admin users found`);
@@ -3508,11 +3519,7 @@ exports.notifyAdminsOnTipPayoutRequest = onDocumentWritten(
 
     // Fetch all admin users
     try {
-      const adminSnapshot = await admin
-        .firestore()
-        .collection("users")
-        .where("isAdmin", "==", true)
-        .get();
+      const adminUsersDocs = await getAllAdminUsers();
 
       if (adminSnapshot.empty) {
         console.log(`[${agentId}] No admin users found`);
@@ -3801,5 +3808,98 @@ exports.notifyTechnicianOnPayoutStatusChange = onDocumentWritten(
     }
 
     return null;
+  }
+);
+
+// Scheduled function to expire warranties after 7 days
+exports.expireWarrantiesDaily = onSchedule(
+  {
+    schedule: "every day 00:00",
+    timeZone: "Asia/Riyadh",
+  },
+  async (event) => {
+    console.log("🕐 Starting daily warranty expiry check...");
+
+    try {
+      // Get all completed bookings with available warranties
+      const bookingsSnapshot = await db
+        .collection("bookings")
+        .where("bookingStatusCode", "==", "C")
+        .where("warranty.warrantyStatusCode", "==", "A")
+        .get();
+
+      console.log(
+        `📊 Found ${bookingsSnapshot.size} bookings with available warranties`
+      );
+
+      const now = admin.firestore.Timestamp.now();
+      const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000; // Exactly 7 days in milliseconds
+      let expiredCount = 0;
+
+      const batch = db.batch();
+
+      for (const doc of bookingsSnapshot.docs) {
+        const booking = doc.data();
+        const warranty = booking.warranty;
+
+        // Skip if warranty doesn't exist or is missing required fields
+        if (!warranty || !booking.completedAt || !warranty.createdAt) {
+          continue;
+        }
+
+        // Check if warranty has been modified (updatedAt !== createdAt)
+        // If updatedAt doesn't exist, treat it as not modified
+        const hasBeenModified =
+          warranty.updatedAt &&
+          warranty.updatedAt.toMillis() !== warranty.createdAt.toMillis();
+
+        if (hasBeenModified) {
+          console.log(
+            `⏭️  Skipping booking ${doc.id} - warranty has been modified`
+          );
+          continue;
+        }
+
+        // Calculate days since service completion
+        const completedAtMs = booking.completedAt.toMillis();
+        const daysSinceCompletion =
+          (now.toMillis() - completedAtMs) / (24 * 60 * 60 * 1000);
+
+        console.log(
+          `📅 Booking ${doc.id}: ${daysSinceCompletion.toFixed(
+            2
+          )} days since completion`
+        );
+
+        // Expire if exactly 7 or more days have passed
+        if (daysSinceCompletion >= 7) {
+          console.log(
+            `⏰ Expiring warranty for booking ${
+              doc.id
+            } (${daysSinceCompletion.toFixed(2)} days old)`
+          );
+
+          batch.update(doc.ref, {
+            "warranty.warrantyStatusCode": "E",
+            "warranty.expiredOn": now,
+            "warranty.updatedAt": FieldValue.serverTimestamp(),
+          });
+
+          expiredCount++;
+        }
+      }
+
+      if (expiredCount > 0) {
+        await batch.commit();
+        console.log(`✅ Expired ${expiredCount} warranties`);
+      } else {
+        console.log("ℹ️  No warranties to expire");
+      }
+
+      return null;
+    } catch (error) {
+      console.error("❌ Error expiring warranties:", error);
+      throw error;
+    }
   }
 );
