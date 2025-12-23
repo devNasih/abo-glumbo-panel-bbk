@@ -59,6 +59,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tip => 'Tip';
 
   @override
+  String get searchByBookingId => 'Search by Booking ID';
+
+  @override
   String get rejectingOrder => 'Rejecting Order';
 
   @override
@@ -3953,9 +3956,144 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcomeToAboGlumboTechnician =>
-      'Welcome to Abo Glumbo Technician!';
+      'Welcome To Abo Glumbo Technician!';
+
+  @override
+  String get onlyMainAdminCanManageAdminAccess =>
+      'Only the main admin can manage admin access';
+
+  @override
+  String get cannotModifyMainAdminAccount => 'Cannot modify main admin account';
+
+  @override
+  String get adminAccessRevokedFor => 'Admin access revoked for';
+
+  @override
+  String get adminAccess => 'Admin Access';
+
+  @override
+  String get selectAdminAccessLevelFor => 'Select admin access level for';
+
+  @override
+  String get fullAdmin => 'Full Admin';
+
+  @override
+  String get customerService => 'Customer Service';
+
+  @override
+  String get grantAccess => 'Grant Access';
+
+  @override
+  String get grantingAdminAccess => 'Granting admin access';
+
+  @override
+  String get adminAccessGrantedTo => 'Admin access granted to';
+
+  @override
+  String get revokeAdminAccess => 'Revoke Admin Access';
+
+  @override
+  String get revokingAdminAccess => 'Revoking admin access';
+
+  @override
+  String get revoke => 'Revoke';
+
+  @override
+  String get manageAdmins => 'Manage Admins';
+
+  @override
+  String get searchAdmins => 'Search Admins...';
+
+  @override
+  String get aboutUs => 'About Us';
+
+  @override
+  String get noAdminsFound => 'No Admins Found';
+
+  @override
+  String get loadingAdmins => 'Loading Admins...';
+
+  @override
+  String get noAdminsMatchYourFilters => 'No Admins Match Your Filters';
+
+  @override
+  String get grantedOn => 'Granted On';
+
+  @override
+  String get selectRecipientType => 'Select Recipient Type';
+
+  @override
+  String get recipientsSelected => 'Recipients Selected';
+
+  @override
+  String get areYouSureYouWantToRevokeAdminAccessFor =>
+      'Are you sure you want to revoke admin access for';
+
+  @override
+  String get onlyTheMainAdminCanRevokeAdminAccess =>
+      'Only the main admin can revoke admin access';
+
+  @override
+  String get accessToAllAdminFeaturesExceptManagingOtherAdmins =>
+      'Access to all admin features except managing other admins';
+
+  @override
+  String get viewOnlyAccessToCustomersTechniciansAndSupport =>
+      'View only access to customers, technicians and support';
 
   @override
   String get loginDescription =>
       'Ready to work? Nearby jobs and better income await you.';
+
+  @override
+  String get aboutUsTitle => 'About Us';
+
+  @override
+  String get aboutUsHeadline =>
+      'Your Journey to Professional Growth Starts Here';
+
+  @override
+  String get aboutUsIntro =>
+      'Join our network of certified technicians and take your next step towards financial independence and professional excellence. We don\'t just offer you a job; we offer you a partner dedicated to ensuring your success.';
+
+  @override
+  String get aboutRewardsTitle => 'Your Rewards & Incentives';
+
+  @override
+  String get aboutIncentiveTitle => 'Financial Incentive System';
+
+  @override
+  String get aboutIncentiveDesc =>
+      'Climb through our tiered system (Bronze, Silver, Gold, Platinum). The more jobs you complete and the higher your rating you maintain (4.8+ for Platinum), the higher the bonus percentage you earn (up to 15% bonus).';
+
+  @override
+  String get aboutEarningsTitle => 'Transparent Monthly Earnings';
+
+  @override
+  String get aboutEarningsDesc =>
+      'Track your earned monthly income and easily request your payout using the \"Request Payout\" button.';
+
+  @override
+  String get aboutSupportTitle => 'Efficiency & Support';
+
+  @override
+  String get aboutFlexibilityTitle => 'Complete Flexibility';
+
+  @override
+  String get aboutFlexibilityDesc =>
+      'You set your own working hours and the areas you cover. We work to provide you with service requests based on your preferences.';
+
+  @override
+  String get aboutNoHuntingTitle => 'Zero Customer Hunting';
+
+  @override
+  String get aboutNoHuntingDesc =>
+      'Say goodbye to chasing clients. We provide you with ready job requests from reliable customers, ensuring a continuous flow of work.';
+
+  @override
+  String get aboutTransparencyTitle => 'Guaranteed Transparency';
+
+  @override
+  String get aboutTransparencyDesc =>
+      'All service details and pricing are documented in advance, ensuring clarity in all financial dealings between you and the customer.';
 }

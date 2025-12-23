@@ -13,19 +13,10 @@ class TechnicianWelcomeModal extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.white,
       child: Container(
         constraints: const BoxConstraints(maxWidth: 400),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.primary.withOpacity(0.05),
-              Colors.white,
-              AppColors.secondary.withOpacity(0.05),
-            ],
-          ),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
@@ -56,25 +47,6 @@ class TechnicianWelcomeModal extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  // Welcome icon with animation effect
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.3),
-                        width: 2,
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.engineering_rounded,
-                      size: 48,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Arabic Title
                   Text(
                     AppLocalizations.of(context)!.welcomeToAboGlumboTechnician,
                     style: DMSansFont.textStyle(

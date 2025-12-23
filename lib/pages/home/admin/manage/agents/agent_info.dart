@@ -94,11 +94,14 @@ class _AgentInfoState extends State<AgentInfo> {
     final currentUserPhone = currentUserData?['phone'] as String?;
 
     // Only main admin can grant/revoke admin access
-    if (currentUserPhone != '111111111') {
+    if (currentUserPhone != '111111111' &&
+        currentUserPhone != '+966111111111') {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Only the main admin can manage admin access'),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.onlyMainAdminCanManageAdminAccess,
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -107,11 +110,13 @@ class _AgentInfoState extends State<AgentInfo> {
     }
 
     // Don't allow granting admin to main admin account
-    if (agent.phone == '111111111') {
+    if (agent.phone == '111111111' || agent.phone == '+966111111111') {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cannot modify main admin account'),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.cannotModifyMainAdminAccount,
+            ),
             backgroundColor: Colors.orange,
           ),
         );
@@ -148,9 +153,9 @@ class _AgentInfoState extends State<AgentInfo> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Admin Access',
+                      AppLocalizations.of(context)!.adminAccess,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
@@ -164,7 +169,7 @@ class _AgentInfoState extends State<AgentInfo> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Select admin access level for ${agent.name}:',
+                    '${AppLocalizations.of(context)!.selectAdminAccessLevelFor} ${agent.name}:',
                     style: const TextStyle(fontSize: 15),
                   ),
                   const SizedBox(height: 20),
@@ -202,8 +207,8 @@ class _AgentInfoState extends State<AgentInfo> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Full Admin',
+                                Text(
+                                  AppLocalizations.of(context)!.fullAdmin,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
@@ -211,7 +216,9 @@ class _AgentInfoState extends State<AgentInfo> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Access to all admin features except managing other admins',
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.accessToAllAdminFeaturesExceptManagingOtherAdmins,
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey.shade600,
@@ -260,8 +267,8 @@ class _AgentInfoState extends State<AgentInfo> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Customer Service',
+                                Text(
+                                  AppLocalizations.of(context)!.customerService,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
@@ -269,7 +276,9 @@ class _AgentInfoState extends State<AgentInfo> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'View-only access to customers, technicians, and support',
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.viewOnlyAccessToCustomersTechniciansAndSupport,
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey.shade600,
@@ -287,7 +296,7 @@ class _AgentInfoState extends State<AgentInfo> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(AppLocalizations.of(context)!.cancel),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -298,7 +307,7 @@ class _AgentInfoState extends State<AgentInfo> {
                     backgroundColor: Colors.blue.shade600,
                     foregroundColor: Colors.white,
                   ),
-                  child: const Text('Grant Access'),
+                  child: Text(AppLocalizations.of(context)!.grantAccess),
                 ),
               ],
             );
@@ -328,7 +337,7 @@ class _AgentInfoState extends State<AgentInfo> {
                   SizedBox(height: 20, child: Loader(color: AppColors.primary)),
                   const SizedBox(height: 16),
                   Text(
-                    'Granting admin access...',
+                    AppLocalizations.of(context)!.grantingAdminAccess,
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ],
@@ -365,7 +374,7 @@ class _AgentInfoState extends State<AgentInfo> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Admin access granted to ${agent.name}',
+                    '${AppLocalizations.of(context)!.adminAccessGrantedTo} ${agent.name}',
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
@@ -399,7 +408,7 @@ class _AgentInfoState extends State<AgentInfo> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Error: ${e.toString()}',
+                    '${AppLocalizations.of(context)!.error}: ${e.toString()}',
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
@@ -430,11 +439,16 @@ class _AgentInfoState extends State<AgentInfo> {
     final currentUserPhone = currentUserData?['phone'] as String?;
 
     // Only main admin can revoke admin access
-    if (currentUserPhone != '111111111') {
+    if (currentUserPhone != '111111111' &&
+        currentUserPhone != '+966111111111') {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Only the main admin can revoke admin access'),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(
+                context,
+              )!.onlyTheMainAdminCanRevokeAdminAccess,
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -468,22 +482,22 @@ class _AgentInfoState extends State<AgentInfo> {
                 ),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Revoke Admin Access',
+                  AppLocalizations.of(context)!.revokeAdminAccess,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
               ),
             ],
           ),
           content: Text(
-            'Are you sure you want to revoke admin access for ${agent.name}?',
+            '${AppLocalizations.of(context)!.areYouSureYouWantToRevokeAdminAccessFor} ${agent.name}?',
             style: const TextStyle(fontSize: 15),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
@@ -491,7 +505,7 @@ class _AgentInfoState extends State<AgentInfo> {
                 backgroundColor: Colors.red.shade600,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Revoke'),
+              child: Text(AppLocalizations.of(context)!.revoke),
             ),
           ],
         );
@@ -519,7 +533,7 @@ class _AgentInfoState extends State<AgentInfo> {
                   SizedBox(height: 20, child: Loader(color: AppColors.primary)),
                   const SizedBox(height: 16),
                   Text(
-                    'Revoking admin access...',
+                    '${AppLocalizations.of(context)!.revokingAdminAccess}...',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ],
@@ -556,7 +570,7 @@ class _AgentInfoState extends State<AgentInfo> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Admin access revoked for ${agent.name}',
+                    '${AppLocalizations.of(context)!.adminAccessRevokedFor} ${agent.name}',
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
@@ -590,7 +604,7 @@ class _AgentInfoState extends State<AgentInfo> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Error: ${e.toString()}',
+                    '${AppLocalizations.of(context)!.error}: ${e.toString()}',
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,

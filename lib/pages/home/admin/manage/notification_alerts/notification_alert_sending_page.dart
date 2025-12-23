@@ -21,19 +21,20 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
   final TextEditingController _bodyArController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
 
-  List<UserModel> _allTechnicians = [];
-  List<UserModel> _filteredTechnicians = [];
-  Set<String> selectedTechnicianIds = {};
+  List<UserModel> _allUsers = [];
+  List<UserModel> _filteredUsers = [];
+  Set<String> selectedRecipientIds = {};
   bool _isLoading = false;
   bool _isSending = false;
   String _searchQuery = '';
   String _previewLanguage = 'en'; // 'en' or 'ar' - only for preview
+  String _recipientType = 'technician'; // 'technician' or 'customer'
 
   @override
   void initState() {
     super.initState();
-    _loadTechnicians();
-    _searchController.addListener(_filterTechnicians);
+    _loadUsers();
+    _searchController.addListener(_filterUsers);
   }
 
   @override
@@ -46,39 +47,50 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
     super.dispose();
   }
 
-  Future<void> _loadTechnicians() async {
+  Future<void> _loadUsers() async {
     setState(() => _isLoading = true);
     try {
-      final snapshot = await _firestore
-          .collection('users')
-          .where('isAdmin', isEqualTo: false)
-          .get();
+      QuerySnapshot snapshot;
+      if (_recipientType == 'technician') {
+        snapshot = await _firestore
+            .collection('users')
+            .where('isAdmin', isEqualTo: false)
+            .get();
+      } else {
+        snapshot = await _firestore.collection('customers').get();
+      }
 
       setState(() {
-        _allTechnicians = snapshot.docs
-            .map((doc) => UserModel.fromDocumentSnapshot(doc))
-            .toList();
-        _filteredTechnicians = _allTechnicians;
+        _allUsers = snapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          // Ensure role is set correctly for local filtering/logic if needed
+          if (_recipientType == 'customer') {
+            data['role'] = 'customer';
+          }
+          return UserModel.fromJson({...data, 'uid': doc.id});
+        }).toList();
+
+        _filterUsers();
       });
     } catch (e) {
-      if (kDebugMode) print('Error loading technicians: $e');
-      _showSnackBar('Error loading technicians');
+      if (kDebugMode) print('Error loading $_recipientType: $e');
+      _showSnackBar('Error loading $_recipientType');
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  void _filterTechnicians() {
+  void _filterUsers() {
     setState(() {
       _searchQuery = _searchController.text.toLowerCase();
-      _filteredTechnicians = _allTechnicians
-          .where(
-            (tech) =>
-                (tech.name?.toLowerCase().contains(_searchQuery) ?? false) ||
-                (tech.email?.toLowerCase().contains(_searchQuery) ?? false) ||
-                (tech.phone?.contains(_searchQuery) ?? false),
-          )
-          .toList();
+      _filteredUsers = _allUsers.where((user) {
+        // No longer need to filter by role here as _allUsers is already scoped
+        final matchesSearch =
+            (user.name?.toLowerCase().contains(_searchQuery) ?? false) ||
+            (user.email?.toLowerCase().contains(_searchQuery) ?? false) ||
+            (user.phone?.contains(_searchQuery) ?? false);
+        return matchesSearch;
+      }).toList();
     });
   }
 
@@ -109,7 +121,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
   }
 
   Future<void> _sendNotifications() async {
-    if (selectedTechnicianIds.isEmpty) {
+    if (selectedRecipientIds.isEmpty) {
       _showSnackBar(
         AppLocalizations.of(context)!.pleaseSelectAtLeastOneRecipient,
       );
@@ -126,12 +138,12 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
       final batch = _firestore.batch();
       final timestamp = Timestamp.now();
 
-      for (String technicianId in selectedTechnicianIds) {
+      for (String recipientId in selectedRecipientIds) {
         try {
           // Store notification in Firestore with both languages
           final notificationRef = _firestore
               .collection('users')
-              .doc(technicianId)
+              .doc(recipientId)
               .collection('notifications')
               .doc();
 
@@ -149,7 +161,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
           final queueRef = _firestore.collection('notification_queue').doc();
 
           batch.set(queueRef, {
-            'recipientId': technicianId,
+            'recipientId': recipientId,
             'titleEn': _titleEnController.text,
             'bodyEn': _bodyEnController.text,
             'titleAr': _titleArController.text,
@@ -159,7 +171,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
           });
         } catch (e) {
           if (kDebugMode) {
-            print('Error processing technician $technicianId: $e');
+            print('Error processing recipient $recipientId: $e');
           }
         }
       }
@@ -170,7 +182,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
         _showSnackBar(
           AppLocalizations.of(
             context,
-          )!.notificationSenttoTechnicians(selectedTechnicianIds.length),
+          )!.notificationSenttoTechnicians(selectedRecipientIds.length),
           true,
         );
 
@@ -179,7 +191,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
         _bodyEnController.clear();
         _titleArController.clear();
         _bodyArController.clear();
-        selectedTechnicianIds.clear();
+        selectedRecipientIds.clear();
         _searchController.clear();
       }
     } catch (e) {
@@ -192,7 +204,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
 
   void _showRecipientBottomSheet() {
     _searchController.clear();
-    _filterTechnicians();
+    _filterUsers();
 
     showModalBottomSheet(
       context: context,
@@ -248,9 +260,9 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                         color: AppColors.primary,
                                       ),
                                     ),
-                                    if (selectedTechnicianIds.isNotEmpty)
+                                    if (selectedRecipientIds.isNotEmpty)
                                       Text(
-                                        '${selectedTechnicianIds.length} ${AppLocalizations.of(context)!.selected}',
+                                        '${selectedRecipientIds.length} ${AppLocalizations.of(context)!.selected}',
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey[600],
@@ -270,7 +282,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                           TextField(
                             controller: _searchController,
                             onChanged: (_) =>
-                                setModalState(() => _filterTechnicians()),
+                                setModalState(() => _filterUsers()),
                             decoration: InputDecoration(
                               hintText: AppLocalizations.of(
                                 context,
@@ -284,9 +296,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                       icon: const Icon(Icons.clear),
                                       onPressed: () {
                                         _searchController.clear();
-                                        setModalState(
-                                          () => _filterTechnicians(),
-                                        );
+                                        setModalState(() => _filterUsers());
                                       },
                                     )
                                   : null,
@@ -299,7 +309,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                     ),
                     // Technicians List
                     Expanded(
-                      child: _filteredTechnicians.isEmpty
+                      child: _filteredUsers.isEmpty
                           ? Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -314,10 +324,10 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                     _searchQuery.isEmpty
                                         ? AppLocalizations.of(
                                             context,
-                                          )!.noTechniciansAvailable
+                                          )!.noAgentsAvailable
                                         : AppLocalizations.of(
                                             context,
-                                          )!.noTechniciansFound,
+                                          )!.noAgentsAvailable,
                                     style: TextStyle(
                                       color: Colors.grey[600],
                                       fontSize: 16,
@@ -332,53 +342,51 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                 horizontal: 16,
                                 vertical: 8,
                               ),
-                              itemCount: _filteredTechnicians.length,
+                              itemCount: _filteredUsers.length,
                               separatorBuilder: (_, __) =>
                                   Divider(height: 1, color: Colors.grey[200]),
                               itemBuilder: (context, index) {
-                                final technician = _filteredTechnicians[index];
-                                final isSelected = selectedTechnicianIds
-                                    .contains(technician.uid);
+                                final user = _filteredUsers[index];
+                                final isSelected = selectedRecipientIds
+                                    .contains(user.uid);
 
                                 return CheckboxListTile(
                                   value: isSelected,
                                   onChanged: (value) {
                                     setModalState(() {
                                       if (value == true) {
-                                        selectedTechnicianIds.add(
-                                          technician.uid ?? '',
+                                        selectedRecipientIds.add(
+                                          user.uid ?? '',
                                         );
                                       } else {
-                                        selectedTechnicianIds.remove(
-                                          technician.uid,
-                                        );
+                                        selectedRecipientIds.remove(user.uid);
                                       }
                                     });
                                     setState(() {});
                                   },
-                                  title: Text(technician.name ?? 'Unknown'),
+                                  title: Text(user.name ?? 'Unknown'),
                                   subtitle: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      if (technician.email?.isNotEmpty == true)
+                                      if (user.email?.isNotEmpty == true)
                                         Text(
-                                          technician.email!,
+                                          user.email!,
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: Colors.grey[600],
                                           ),
                                         ),
-                                      if (technician.phone?.isNotEmpty == true)
+                                      if (user.phone?.isNotEmpty == true)
                                         Text(
-                                          technician.phone!,
+                                          user.phone!,
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: Colors.grey[600],
                                           ),
                                         ),
-                                      if (technician.fcmToken == null ||
-                                          technician.fcmToken!.isEmpty)
+                                      if (user.fcmToken == null ||
+                                          user.fcmToken!.isEmpty)
                                         Padding(
                                           padding: const EdgeInsets.only(
                                             top: 4.0,
@@ -410,8 +418,8 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                         ? AppColors.primary
                                         : Colors.grey[300],
                                     child: Text(
-                                      technician.name?.isNotEmpty == true
-                                          ? technician.name![0].toUpperCase()
+                                      user.name?.isNotEmpty == true
+                                          ? user.name![0].toUpperCase()
                                           : 'T',
                                       style: const TextStyle(
                                         color: Colors.white,
@@ -424,7 +432,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                             ),
                     ),
                     // Footer with Select All / Deselect All
-                    if (_filteredTechnicians.isNotEmpty)
+                    if (_filteredUsers.isNotEmpty)
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -434,7 +442,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                         ),
                         child: Row(
                           children: [
-                            if (selectedTechnicianIds.isNotEmpty)
+                            if (selectedRecipientIds.isNotEmpty)
                               Expanded(
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
@@ -442,7 +450,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                   ),
                                   onPressed: () {
                                     setModalState(() {
-                                      selectedTechnicianIds.clear();
+                                      selectedRecipientIds.clear();
                                     });
                                     setState(() {});
                                   },
@@ -457,9 +465,9 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                 child: ElevatedButton(
                                   onPressed: () {
                                     setModalState(() {
-                                      for (var tech in _filteredTechnicians) {
-                                        selectedTechnicianIds.add(
-                                          tech.uid ?? '',
+                                      for (var user in _filteredUsers) {
+                                        selectedRecipientIds.add(
+                                          user.uid ?? '',
                                         );
                                       }
                                     });
@@ -509,32 +517,145 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
         backgroundColor: AppColors.primary,
         elevation: 0,
       ),
-      body: _isLoading
-          ? Center(child: SizedBox(height: 24, child: Loader()))
-          : SingleChildScrollView(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildLanguageTabs(),
-                        const SizedBox(height: 16),
-                        _buildPreviewCard(),
-                        const SizedBox(height: 16),
-                        _buildMessageCompositionCard(),
-                        const SizedBox(height: 16),
-                        _buildSelectedRecipientsCard(),
-                        const SizedBox(height: 24),
-                        _buildSendButton(),
-                        const SizedBox(height: 16),
-                      ],
-                    ),
-                  ),
+                  _buildLanguageTabs(),
+                  const SizedBox(height: 16),
+                  _buildPreviewCard(),
+                  const SizedBox(height: 16),
+                  _buildMessageCompositionCard(),
+                  const SizedBox(height: 16),
+                  _buildRecipientTypeSelector(),
+                  const SizedBox(height: 16),
+                  _buildSelectedRecipientsCard(),
+                  const SizedBox(height: 24),
+                  _buildSendButton(),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecipientTypeSelector() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.translate,
+                    color: AppColors.green,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  AppLocalizations.of(context)!.selectRecipientType,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.green,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      if (_recipientType != 'technician') {
+                        setState(() {
+                          _recipientType = 'technician';
+                          selectedRecipientIds.clear();
+                        });
+                        _loadUsers();
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: _recipientType == 'technician'
+                            ? AppColors.green
+                            : Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          AppLocalizations.of(context)!.technician,
+                          style: TextStyle(
+                            color: _recipientType == 'technician'
+                                ? Colors.white
+                                : Colors.black,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      if (_recipientType != 'customer') {
+                        setState(() {
+                          _recipientType = 'customer';
+                          selectedRecipientIds.clear();
+                        });
+                        _loadUsers();
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: _recipientType == 'customer'
+                            ? AppColors.green
+                            : Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          AppLocalizations.of(context)!.customer,
+                          style: TextStyle(
+                            color: _recipientType == 'customer'
+                                ? Colors.white
+                                : Colors.black,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -547,18 +668,32 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(
-                AppLocalizations.of(context)!.previewLanguage,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.translate,
+                    color: AppColors.secondary,
+                    size: 24,
+                  ),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Text(
+                  AppLocalizations.of(context)!.previewLanguage,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.secondary,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
@@ -568,21 +703,13 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         color: _previewLanguage == 'en'
-                            ? AppColors.primary
+                            ? AppColors.secondary
                             : Colors.grey[200],
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.language,
-                            size: 18,
-                            color: _previewLanguage == 'en'
-                                ? Colors.white
-                                : Colors.grey[800],
-                          ),
-                          const SizedBox(width: 6),
                           Text(
                             AppLocalizations.of(context)!.english,
                             style: TextStyle(
@@ -605,21 +732,13 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         color: _previewLanguage == 'ar'
-                            ? AppColors.primary
+                            ? AppColors.secondary
                             : Colors.grey[200],
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.language,
-                            size: 18,
-                            color: _previewLanguage == 'ar'
-                                ? Colors.white
-                                : Colors.grey[800],
-                          ),
-                          const SizedBox(width: 6),
                           Text(
                             AppLocalizations.of(context)!.arabic,
                             style: TextStyle(
@@ -1017,8 +1136,8 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
   }
 
   Widget _buildSelectedRecipientsCard() {
-    final selectedTechnicians = _allTechnicians
-        .where((tech) => selectedTechnicianIds.contains(tech.uid))
+    final selectedUsers = _allUsers
+        .where((user) => selectedRecipientIds.contains(user.uid))
         .toList();
 
     return Card(
@@ -1057,15 +1176,17 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                         ),
                       ),
                       Text(
-                        AppLocalizations.of(
-                          context,
-                        )!.technicianSelected(selectedTechnicianIds.length),
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        '${selectedRecipientIds.length} ${AppLocalizations.of(context)!.recipientsSelected}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                if (selectedTechnicianIds.isNotEmpty) ...{
+                if (selectedRecipientIds.isNotEmpty) ...{
                   IconButton(
                     onPressed: _showRecipientBottomSheet,
                     icon: const Icon(Icons.edit),
@@ -1074,23 +1195,17 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
               ],
             ),
             const SizedBox(height: 16),
-            if (selectedTechnicians.isEmpty)
+            if (_isLoading)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Center(child: SizedBox(height: 48, child: Loader())),
+              )
+            else if (selectedUsers.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 child: Center(
                   child: Column(
                     children: [
-                      Icon(
-                        Icons.people_outline,
-                        size: 40,
-                        color: Colors.grey[300],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        AppLocalizations.of(context)!.noRecipientsSelected,
-                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                      ),
-                      const SizedBox(height: 12),
                       ElevatedButton.icon(
                         onPressed: _showRecipientBottomSheet,
                         icon: const Icon(Icons.add, color: Colors.white),
@@ -1105,36 +1220,6 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                     ],
                   ),
                 ),
-              )
-            else
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: selectedTechnicians.map((tech) {
-                      return Chip(
-                        avatar: CircleAvatar(
-                          backgroundColor: AppColors.primary,
-                          child: Text(
-                            tech.name?.isNotEmpty == true
-                                ? tech.name![0].toUpperCase()
-                                : 'T',
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        label: Text(tech.name ?? 'Unknown'),
-                        onDeleted: () {
-                          setState(() {
-                            selectedTechnicianIds.remove(tech.uid);
-                          });
-                        },
-                        deleteIconColor: Colors.grey[600],
-                      );
-                    }).toList(),
-                  ),
-                ],
               ),
           ],
         ),

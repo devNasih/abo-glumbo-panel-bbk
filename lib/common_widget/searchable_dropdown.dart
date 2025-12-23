@@ -176,27 +176,10 @@ class _SearchableDropdownState<T extends Object>
                     child: SizedBox(
                       width: constraints.maxWidth,
                       height: 200,
-                      child: Scrollbar(
-                        thumbVisibility: true,
-                        child: ListView.builder(
-                          padding: EdgeInsets.zero,
-                          itemCount: options.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final T option = options.elementAt(index);
-                            return InkWell(
-                              onTap: () {
-                                onSelected(option);
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Text(
-                                  widget.itemLabel(option),
-                                  style: GoogleFonts.dmSans(fontSize: 14),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                      child: _PaginatedListView<T>(
+                        options: options,
+                        onSelected: onSelected,
+                        itemLabel: widget.itemLabel,
                       ),
                     ),
                   ),
@@ -206,6 +189,107 @@ class _SearchableDropdownState<T extends Object>
           },
         ),
       ],
+    );
+  }
+}
+
+class _PaginatedListView<T extends Object> extends StatefulWidget {
+  final Iterable<T> options;
+  final void Function(T) onSelected;
+  final String Function(T) itemLabel;
+
+  const _PaginatedListView({
+    super.key,
+    required this.options,
+    required this.onSelected,
+    required this.itemLabel,
+  });
+
+  @override
+  State<_PaginatedListView<T>> createState() => _PaginatedListViewState<T>();
+}
+
+class _PaginatedListViewState<T extends Object>
+    extends State<_PaginatedListView<T>> {
+  late ScrollController _scrollController;
+  final int _pageSize = 20;
+  late int _currentMaxItems;
+  late List<T> _flattenedOptions;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+    _updateOptions();
+  }
+
+  @override
+  void didUpdateWidget(_PaginatedListView<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.options != oldWidget.options) {
+      _updateOptions();
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(0);
+      }
+    }
+  }
+
+  void _updateOptions() {
+    if (widget.options is List<T>) {
+      _flattenedOptions = widget.options as List<T>;
+    } else {
+      _flattenedOptions = widget.options.toList();
+    }
+    _currentMaxItems = _pageSize;
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 50) {
+      if (_currentMaxItems < _flattenedOptions.length) {
+        setState(() {
+          _currentMaxItems += _pageSize;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final count = (_currentMaxItems < _flattenedOptions.length)
+        ? _currentMaxItems
+        : _flattenedOptions.length;
+
+    return Scrollbar(
+      controller: _scrollController,
+      thumbVisibility: true,
+      child: ListView.builder(
+        controller: _scrollController,
+        padding: EdgeInsets.zero,
+        itemCount: count,
+        itemBuilder: (BuildContext context, int index) {
+          final T option = _flattenedOptions[index];
+          return InkWell(
+            onTap: () {
+              widget.onSelected(option);
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                widget.itemLabel(option),
+                style: GoogleFonts.dmSans(fontSize: 14),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

@@ -69,7 +69,6 @@ class _WarrantyPageState extends State<WarrantyPage>
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -83,9 +82,7 @@ class _WarrantyPageState extends State<WarrantyPage>
               padding: const EdgeInsets.all(12.0),
               child: SearchBar(
                 controller: _searchController,
-                hintText: AppLocalizations.of(
-                  context,
-                )!.searchbyBookingIdnameTechnician,
+                hintText: AppLocalizations.of(context)!.searchByBookingId,
                 leading: const Icon(Icons.search),
                 trailing: _searchQuery.isNotEmpty
                     ? [
@@ -269,12 +266,8 @@ class _WarrantyListTabState extends State<_WarrantyListTab> {
 
     return warranties.where((warranty) {
       final bookingId = warranty.id.toLowerCase();
-      final technicianName = warranty.agent?.name?.toLowerCase() ?? '';
-      final customerName = warranty.customer.name?.toLowerCase() ?? '';
 
-      return bookingId.contains(widget.searchQuery) ||
-          customerName.contains(widget.searchQuery) ||
-          technicianName.contains(widget.searchQuery);
+      return bookingId.contains(widget.searchQuery);
     }).toList();
   }
 

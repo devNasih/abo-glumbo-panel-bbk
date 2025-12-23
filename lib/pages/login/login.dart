@@ -225,12 +225,18 @@ class _LoginPageState extends State<LoginPage> {
                 borderRadius: BorderRadius.circular(32),
               ),
             ),
-            Image.asset(
-              AppImages.workerArtLogin,
-              height: 286,
-              width: 290,
-              fit: BoxFit.cover,
-              alignment: Alignment.center,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(32),
+              child: SizedBox(
+                height: 285,
+                width: 290,
+                child: Image.asset(
+                  AppImages.newLogin,
+
+                  fit: BoxFit.cover,
+                  alignment: Alignment.center,
+                ),
+              ),
             ),
           ],
         ),

@@ -239,9 +239,8 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
                             },
                             decoration: InputDecoration(
                               hintStyle: TextStyle(fontSize: 12),
-                              hintText: AppLocalizations.of(
-                                context,
-                              )!.searchbyBookingIdnameTechnician,
+                              hintText: AppLocalizations.of(context)
+                                  ?.searchByBookingId,
                               prefixIcon: const Icon(Icons.search),
                               suffixIcon: _searchQuery.isNotEmpty
                                   ? IconButton(
@@ -442,16 +441,8 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
 
     return filtered.where((booking) {
       final bookingId = booking.id.toLowerCase();
-      final technicianName = booking.agent?.name?.toLowerCase() ?? '';
-      final customerName = booking.customer.name?.toLowerCase() ?? '';
-      final bookingNameEn = booking.service.name?.toLowerCase() ?? '';
-      final bookingNameAr = booking.service.name_ar?.toLowerCase() ?? '';
 
-      return bookingId.contains(_searchQuery) ||
-          customerName.contains(_searchQuery) ||
-          technicianName.contains(_searchQuery) ||
-          bookingNameEn.contains(_searchQuery) ||
-          bookingNameAr.contains(_searchQuery);
+      return bookingId.contains(_searchQuery);
     }).toList();
   }
 

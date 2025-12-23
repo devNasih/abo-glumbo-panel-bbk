@@ -202,6 +202,7 @@ class _HomeState extends State<Home> {
         // Show welcome modal for technicians with availability disabled
         if (!_hasShownWelcomeModal &&
             userData.isAdmin != true &&
+            userData.isVerified == true &&
             userData.isOnline != true) {
           _hasShownWelcomeModal = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {

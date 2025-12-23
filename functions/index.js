@@ -1192,6 +1192,7 @@ exports.sendCustomNotificationToTechnicians = onDocumentCreated(
     const data = snap.data();
     const docId = event.params.docId;
     const recipientId = data.recipientId;
+    const targetRole = data.targetRole || "technician"; // Default to technician for backward compatibility
 
     // Support both old format (single language) and new format (bilingual)
     const titleEn = data.titleEn || data.title || null;
@@ -1223,29 +1224,32 @@ exports.sendCustomNotificationToTechnicians = onDocumentCreated(
     }
 
     try {
-      // Get technician's FCM token and language preference
-      const techDoc = await admin
+      // Determine collection based on role
+      const collectionName = targetRole === "customer" ? "customers" : "users";
+
+      // Get recipient's FCM token and language preference
+      const recipientDoc = await admin
         .firestore()
-        .collection("users")
+        .collection(collectionName)
         .doc(recipientId)
         .get();
 
-      if (!techDoc.exists) {
-        console.log(`Technician document not found for ID: ${recipientId}`);
+      if (!recipientDoc.exists) {
+        console.log(`${targetRole} document not found for ID: ${recipientId}`);
         await snap.ref.update({
           processed: true,
-          error: "Technician not found",
+          error: `${targetRole} not found`,
           processedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
         return;
       }
 
-      const techData = techDoc.data();
-      const fcmToken = techData?.fcmToken;
-      const lanCode = techData?.lanCode || "en";
+      const recipientData = recipientDoc.data();
+      const fcmToken = recipientData?.fcmToken;
+      const lanCode = recipientData?.lanCode || "en";
 
       if (!fcmToken || fcmToken.trim() === "") {
-        console.log(`No valid FCM token for technician: ${recipientId}`);
+        console.log(`No valid FCM token for ${targetRole}: ${recipientId}`);
         await snap.ref.update({
           processed: true,
           error: "No valid FCM token",
@@ -1254,26 +1258,27 @@ exports.sendCustomNotificationToTechnicians = onDocumentCreated(
         return;
       }
 
-      // Select notification text based on technician's language preference
+      // Select notification text based on recipient's language preference
       let notificationTitle, notificationBody;
 
       if (lanCode === "ar" && titleAr && bodyAr) {
-        // If technician prefers Arabic and Arabic content is available, send Arabic
         notificationTitle = titleAr;
         notificationBody = bodyAr;
-        console.log(`Sending Arabic notification to technician ${recipientId}`);
+        console.log(
+          `Sending Arabic notification to ${targetRole} ${recipientId}`
+        );
       } else if (titleEn && bodyEn) {
-        // Otherwise send English (default fallback)
         notificationTitle = titleEn;
         notificationBody = bodyEn;
         console.log(
-          `Sending English notification to technician ${recipientId}`
+          `Sending English notification to ${targetRole} ${recipientId}`
         );
       } else if (titleAr && bodyAr) {
-        // If only Arabic is available, send Arabic
         notificationTitle = titleAr;
         notificationBody = bodyAr;
-        console.log(`Sending Arabic notification to technician ${recipientId}`);
+        console.log(
+          `Sending Arabic notification to ${targetRole} ${recipientId}`
+        );
       } else {
         throw new Error("No valid notification content available");
       }
@@ -1290,6 +1295,7 @@ exports.sendCustomNotificationToTechnicians = onDocumentCreated(
           recipientId: recipientId,
           language: lanCode,
           isAdmin: "false",
+          targetRole: targetRole,
         },
         token: fcmToken,
         android: {
@@ -1322,7 +1328,7 @@ exports.sendCustomNotificationToTechnicians = onDocumentCreated(
       // Update notification in Firestore with both language versions
       const notificationRef = admin
         .firestore()
-        .collection("users")
+        .collection(collectionName)
         .doc(recipientId)
         .collection("notifications")
         .doc();
@@ -1351,7 +1357,7 @@ exports.sendCustomNotificationToTechnicians = onDocumentCreated(
       });
 
       console.log(
-        `✅ Custom notification sent to technician ${recipientId} in ${lanCode}. MessageId: ${response}`
+        `✅ Custom notification sent to ${targetRole} ${recipientId} in ${lanCode}. MessageId: ${response}`
       );
     } catch (error) {
       console.error(

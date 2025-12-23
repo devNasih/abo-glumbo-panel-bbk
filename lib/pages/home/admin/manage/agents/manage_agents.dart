@@ -375,7 +375,11 @@ class _ManageAgentsState extends State<ManageAgents>
                     );
                   }
 
-                  final agents = snapshot.data!;
+                  final allUsers = snapshot.data!;
+                  // Filter out admins locally
+                  final agents = allUsers
+                      .where((user) => user.isAdmin != true)
+                      .toList();
 
                   // Apply filters
                   final filteredAgents = agents.where((agent) {

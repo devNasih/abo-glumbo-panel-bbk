@@ -92,7 +92,7 @@ class _ManageAdminsState extends State<ManageAdmins>
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        'Revoke Admin Access',
+                        AppLocalizations.of(context)!.revokeAdminAccess,
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -103,7 +103,7 @@ class _ManageAdminsState extends State<ManageAdmins>
                 content: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text(
-                    'Are you sure you want to revoke admin access for $adminName?',
+                    '${AppLocalizations.of(context)!.areYouSureYouWantToRevokeAdminAccessFor} $adminName?',
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       height: 1.5,
@@ -119,7 +119,7 @@ class _ManageAdminsState extends State<ManageAdmins>
                     backgroundColor: Colors.white,
                   ),
                   eButton(
-                    text: 'Revoke',
+                    text: AppLocalizations.of(context)!.revoke,
                     onPressed: () => Navigator.of(context).pop(true),
                     context: context,
                     textColor: Colors.white,
@@ -154,7 +154,7 @@ class _ManageAdminsState extends State<ManageAdmins>
                   SizedBox(height: 20, child: Loader()),
                   const SizedBox(height: 16),
                   Text(
-                    'Revoking admin access...',
+                    '${AppLocalizations.of(context)!.revokingAdminAccess}...',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ],
@@ -191,7 +191,7 @@ class _ManageAdminsState extends State<ManageAdmins>
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Admin access revoked for ${admin.name}',
+                    '${AppLocalizations.of(context)!.adminAccessRevokedFor} ${admin.name}',
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
@@ -222,7 +222,7 @@ class _ManageAdminsState extends State<ManageAdmins>
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Error: ${e.toString()}',
+                    '${AppLocalizations.of(context)!.error}: ${e.toString()}',
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
@@ -247,8 +247,8 @@ class _ManageAdminsState extends State<ManageAdmins>
     return Scaffold(
       backgroundColor: AppColors.bgWhite,
       appBar: AppBar(
-        title: const Text(
-          'Manage Admins',
+        title: Text(
+          AppLocalizations.of(context)!.manageAdmins,
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         elevation: 0,
@@ -306,7 +306,9 @@ class _ManageAdminsState extends State<ManageAdmins>
                             });
                           },
                           decoration: InputDecoration(
-                            hintText: 'Search admins...',
+                            hintText: AppLocalizations.of(
+                              context,
+                            )!.searchAdmins,
                             hintStyle: TextStyle(
                               color: Colors.grey.shade400,
                               fontSize: 15,
@@ -352,11 +354,11 @@ class _ManageAdminsState extends State<ManageAdmins>
                 // Enhanced Filter Chips
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
+                        SizedBox(width: 16),
                         _buildFilterChip(
                           context: context,
                           label: AppLocalizations.of(context)!.all,
@@ -368,7 +370,7 @@ class _ManageAdminsState extends State<ManageAdmins>
                         const SizedBox(width: 10),
                         _buildFilterChip(
                           context: context,
-                          label: 'Full Admin',
+                          label: AppLocalizations.of(context)!.fullAdmin,
                           icon: Icons.admin_panel_settings_rounded,
                           isSelected: _selectedFilter == 1,
                           onTap: () => setState(() => _selectedFilter = 1),
@@ -377,12 +379,13 @@ class _ManageAdminsState extends State<ManageAdmins>
                         const SizedBox(width: 10),
                         _buildFilterChip(
                           context: context,
-                          label: 'Customer Service',
+                          label: AppLocalizations.of(context)!.customerService,
                           icon: Icons.support_agent_rounded,
                           isSelected: _selectedFilter == 2,
                           onTap: () => setState(() => _selectedFilter = 2),
                           color: Colors.orange,
                         ),
+                        SizedBox(width: 16),
                       ],
                     ),
                   ),
@@ -404,7 +407,7 @@ class _ManageAdminsState extends State<ManageAdmins>
                         SizedBox(height: 25, child: Loader()),
                         const SizedBox(height: 10),
                         Text(
-                          'Loading admins...',
+                          AppLocalizations.of(context)!.loadingAdmins,
                           style: TextStyle(
                             color: theme.colorScheme.onSurfaceVariant,
                             fontSize: 16,
@@ -421,7 +424,6 @@ class _ManageAdminsState extends State<ManageAdmins>
                     context: context,
                     icon: Icons.error_outline_rounded,
                     title: AppLocalizations.of(context)!.error,
-                    subtitle: '${snapshot.error}',
                     color: theme.colorScheme.error,
                   );
                 }
@@ -430,8 +432,7 @@ class _ManageAdminsState extends State<ManageAdmins>
                   return _buildEmptyState(
                     context: context,
                     icon: Icons.admin_panel_settings_rounded,
-                    title: 'No Admins Found',
-                    subtitle: 'No admin users available',
+                    title: AppLocalizations.of(context)!.noAdminsFound,
                     color: theme.colorScheme.primary,
                   );
                 }
@@ -441,7 +442,8 @@ class _ManageAdminsState extends State<ManageAdmins>
                 // Filter only users with granted admin access (excluding main admin)
                 final admins = allUsers.where((user) {
                   // Exclude main admin account
-                  if (user.phone == '111111111') {
+                  if (user.phone == '111111111' ||
+                      user.phone == '+966111111111') {
                     return false;
                   }
                   // Only show users with granted admin access
@@ -452,9 +454,8 @@ class _ManageAdminsState extends State<ManageAdmins>
                   return _buildEmptyState(
                     context: context,
                     icon: Icons.admin_panel_settings_rounded,
-                    title: 'No Granted Admins',
-                    subtitle:
-                        'No technicians have been granted admin access yet',
+                    title: AppLocalizations.of(context)!.noAdminsFound,
+
                     color: theme.colorScheme.primary,
                   );
                 }
@@ -486,8 +487,10 @@ class _ManageAdminsState extends State<ManageAdmins>
                   return _buildEmptyState(
                     context: context,
                     icon: Icons.search_off_rounded,
-                    title: 'No Admins Match Your Filters',
-                    subtitle: 'Try adjusting your search criteria',
+                    title: AppLocalizations.of(
+                      context,
+                    )!.noAdminsMatchYourFilters,
+
                     color: theme.colorScheme.primary,
                   );
                 }
@@ -604,7 +607,9 @@ class _ManageAdminsState extends State<ManageAdmins>
     final theme = Theme.of(context);
     final isFullAdmin = admin.adminAccessLevel == 1;
     final accessLevelColor = isFullAdmin ? Colors.green : Colors.orange;
-    final accessLevelLabel = isFullAdmin ? 'Full Admin' : 'Customer Service';
+    final accessLevelLabel = isFullAdmin
+        ? AppLocalizations.of(context)!.fullAdmin
+        : AppLocalizations.of(context)!.customerService;
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
@@ -806,7 +811,7 @@ class _ManageAdminsState extends State<ManageAdmins>
                       padding: const EdgeInsets.only(top: 6),
                       child: _buildInfoRow(
                         icon: Icons.phone_outlined,
-                        text: '+966${admin.phone!}',
+                        text: sanitizedPhone(admin.phone!),
                       ),
                     ),
                   if (admin.grantedAdminAt != null)
@@ -815,7 +820,7 @@ class _ManageAdminsState extends State<ManageAdmins>
                       child: _buildInfoRow(
                         icon: Icons.calendar_today_rounded,
                         text:
-                            'Granted: ${DateFormat('MMM dd, yyyy').format(admin.grantedAdminAt!.toDate())}',
+                            '${AppLocalizations.of(context)!.grantedOn}: ${DateFormat('MMM dd, yyyy').format(admin.grantedAdminAt!.toDate())}',
                       ),
                     ),
                 ],
@@ -825,6 +830,16 @@ class _ManageAdminsState extends State<ManageAdmins>
         ),
       ),
     );
+  }
+
+  String sanitizedPhone(String phone) {
+    if (phone.startsWith('0')) {
+      return '+966${phone.substring(1)}';
+    }
+    if (phone.startsWith('+966')) {
+      return phone;
+    }
+    return '+966$phone';
   }
 
   Widget _buildInfoRow({required IconData icon, required String text}) {
@@ -852,7 +867,6 @@ class _ManageAdminsState extends State<ManageAdmins>
     required BuildContext context,
     required IconData icon,
     required String title,
-    required String subtitle,
     required Color color,
   }) {
     return Center(
@@ -883,13 +897,6 @@ class _ManageAdminsState extends State<ManageAdmins>
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
-            Text(
-              subtitle,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
-              textAlign: TextAlign.center,
-            ),
           ],
         ),
       ),

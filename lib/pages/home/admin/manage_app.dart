@@ -30,7 +30,9 @@ class _ManageAppState extends State<ManageApp> {
     super.didChangeDependencies();
 
     // Check if user is main admin
-    final isMainAdmin = widget.userData.phone == '111111111';
+    final isMainAdmin =
+        widget.userData.phone == '111111111' ||
+        widget.userData.phone == '+966111111111';
     final isCustomerService = widget.userData.adminAccessLevel == 2;
 
     List<_TileInfo> allTiles = [

@@ -834,7 +834,6 @@ class AppServices {
 
   static Stream<List<UserModel>> getAllAgentsStream() {
     return AppFirestore.usersCollectionRef
-        .where('isAdmin', isEqualTo: false)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
@@ -1453,7 +1452,6 @@ class AppServices {
     required String accountNumber,
     required String bankName,
     required String ifscCode,
-    required String accountType,
     required bool isPrimary,
   }) async {
     // Get current user document
@@ -1481,7 +1479,6 @@ class AppServices {
       accountNumber: accountNumber,
       bankName: bankName,
       ifscCode: ifscCode.toUpperCase(),
-      accountType: accountType,
       isPrimary: isPrimary,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
@@ -1505,7 +1502,6 @@ class AppServices {
     required String accountNumber,
     required String bankName,
     required String ifscCode,
-    required String accountType,
     required bool isPrimary,
   }) async {
     // Get current user document
@@ -1539,7 +1535,6 @@ class AppServices {
       accountNumber: accountNumber,
       bankName: bankName,
       ifscCode: ifscCode.toUpperCase(),
-      accountType: accountType,
       isPrimary: isPrimary,
       updatedAt: Timestamp.now(),
     );

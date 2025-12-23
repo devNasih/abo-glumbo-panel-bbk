@@ -194,6 +194,12 @@ abstract class AppLocalizations {
   /// **'Tip'**
   String get tip;
 
+  /// No description provided for @searchByBookingId.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by Booking ID'**
+  String get searchByBookingId;
+
   /// No description provided for @rejectingOrder.
   ///
   /// In en, this message translates to:
@@ -7452,14 +7458,260 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeToAboGlumboTechnician.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to Abo Glumbo Technician!'**
+  /// **'Welcome To Abo Glumbo Technician!'**
   String get welcomeToAboGlumboTechnician;
+
+  /// No description provided for @onlyMainAdminCanManageAdminAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the main admin can manage admin access'**
+  String get onlyMainAdminCanManageAdminAccess;
+
+  /// No description provided for @cannotModifyMainAdminAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot modify main admin account'**
+  String get cannotModifyMainAdminAccount;
+
+  /// No description provided for @adminAccessRevokedFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin access revoked for'**
+  String get adminAccessRevokedFor;
+
+  /// No description provided for @adminAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Access'**
+  String get adminAccess;
+
+  /// No description provided for @selectAdminAccessLevelFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Select admin access level for'**
+  String get selectAdminAccessLevelFor;
+
+  /// No description provided for @fullAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Admin'**
+  String get fullAdmin;
+
+  /// No description provided for @customerService.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Service'**
+  String get customerService;
+
+  /// No description provided for @grantAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant Access'**
+  String get grantAccess;
+
+  /// No description provided for @grantingAdminAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Granting admin access'**
+  String get grantingAdminAccess;
+
+  /// No description provided for @adminAccessGrantedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin access granted to'**
+  String get adminAccessGrantedTo;
+
+  /// No description provided for @revokeAdminAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke Admin Access'**
+  String get revokeAdminAccess;
+
+  /// No description provided for @revokingAdminAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoking admin access'**
+  String get revokingAdminAccess;
+
+  /// No description provided for @revoke.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke'**
+  String get revoke;
+
+  /// No description provided for @manageAdmins.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Admins'**
+  String get manageAdmins;
+
+  /// No description provided for @searchAdmins.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Admins...'**
+  String get searchAdmins;
+
+  /// No description provided for @aboutUs.
+  ///
+  /// In en, this message translates to:
+  /// **'About Us'**
+  String get aboutUs;
+
+  /// No description provided for @noAdminsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No Admins Found'**
+  String get noAdminsFound;
+
+  /// No description provided for @loadingAdmins.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading Admins...'**
+  String get loadingAdmins;
+
+  /// No description provided for @noAdminsMatchYourFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'No Admins Match Your Filters'**
+  String get noAdminsMatchYourFilters;
+
+  /// No description provided for @grantedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Granted On'**
+  String get grantedOn;
+
+  /// No description provided for @selectRecipientType.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Recipient Type'**
+  String get selectRecipientType;
+
+  /// No description provided for @recipientsSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipients Selected'**
+  String get recipientsSelected;
+
+  /// No description provided for @areYouSureYouWantToRevokeAdminAccessFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to revoke admin access for'**
+  String get areYouSureYouWantToRevokeAdminAccessFor;
+
+  /// No description provided for @onlyTheMainAdminCanRevokeAdminAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the main admin can revoke admin access'**
+  String get onlyTheMainAdminCanRevokeAdminAccess;
+
+  /// No description provided for @accessToAllAdminFeaturesExceptManagingOtherAdmins.
+  ///
+  /// In en, this message translates to:
+  /// **'Access to all admin features except managing other admins'**
+  String get accessToAllAdminFeaturesExceptManagingOtherAdmins;
+
+  /// No description provided for @viewOnlyAccessToCustomersTechniciansAndSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'View only access to customers, technicians and support'**
+  String get viewOnlyAccessToCustomersTechniciansAndSupport;
 
   /// No description provided for @loginDescription.
   ///
   /// In en, this message translates to:
   /// **'Ready to work? Nearby jobs and better income await you.'**
   String get loginDescription;
+
+  /// No description provided for @aboutUsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About Us'**
+  String get aboutUsTitle;
+
+  /// No description provided for @aboutUsHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Journey to Professional Growth Starts Here'**
+  String get aboutUsHeadline;
+
+  /// No description provided for @aboutUsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Join our network of certified technicians and take your next step towards financial independence and professional excellence. We don\'t just offer you a job; we offer you a partner dedicated to ensuring your success.'**
+  String get aboutUsIntro;
+
+  /// No description provided for @aboutRewardsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Rewards & Incentives'**
+  String get aboutRewardsTitle;
+
+  /// No description provided for @aboutIncentiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial Incentive System'**
+  String get aboutIncentiveTitle;
+
+  /// No description provided for @aboutIncentiveDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Climb through our tiered system (Bronze, Silver, Gold, Platinum). The more jobs you complete and the higher your rating you maintain (4.8+ for Platinum), the higher the bonus percentage you earn (up to 15% bonus).'**
+  String get aboutIncentiveDesc;
+
+  /// No description provided for @aboutEarningsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transparent Monthly Earnings'**
+  String get aboutEarningsTitle;
+
+  /// No description provided for @aboutEarningsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your earned monthly income and easily request your payout using the \"Request Payout\" button.'**
+  String get aboutEarningsDesc;
+
+  /// No description provided for @aboutSupportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Efficiency & Support'**
+  String get aboutSupportTitle;
+
+  /// No description provided for @aboutFlexibilityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Flexibility'**
+  String get aboutFlexibilityTitle;
+
+  /// No description provided for @aboutFlexibilityDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'You set your own working hours and the areas you cover. We work to provide you with service requests based on your preferences.'**
+  String get aboutFlexibilityDesc;
+
+  /// No description provided for @aboutNoHuntingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Zero Customer Hunting'**
+  String get aboutNoHuntingTitle;
+
+  /// No description provided for @aboutNoHuntingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Say goodbye to chasing clients. We provide you with ready job requests from reliable customers, ensuring a continuous flow of work.'**
+  String get aboutNoHuntingDesc;
+
+  /// No description provided for @aboutTransparencyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Guaranteed Transparency'**
+  String get aboutTransparencyTitle;
+
+  /// No description provided for @aboutTransparencyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'All service details and pricing are documented in advance, ensuring clarity in all financial dealings between you and the customer.'**
+  String get aboutTransparencyDesc;
 }
 
 class _AppLocalizationsDelegate

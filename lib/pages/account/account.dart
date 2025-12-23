@@ -8,6 +8,7 @@ import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/models/language.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
+import 'package:aboglumbo_bbk_panel/pages/account/about_us_page.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/bloc/account_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/edit_profile.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/payout_accounts.dart';
@@ -42,9 +43,16 @@ class _AccountPageState extends State<AccountPage> {
     LanguageModel(code: 'ar', name: 'عربي'),
   ];
 
+  bool isMainAdmin = false;
+
   @override
   void initState() {
     super.initState();
+    if (widget.workerData?.isAdmin == true) {
+      isMainAdmin = true;
+    } else {
+      isMainAdmin = false;
+    }
 
     final cachedUser = LocalStore.getCachedUserData();
     currentWorkerData = cachedUser ?? widget.workerData;
@@ -388,6 +396,7 @@ class _AccountPageState extends State<AccountPage> {
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios_sharp, size: 15),
                 ),
+
                 ListTile(
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
@@ -403,6 +412,23 @@ class _AccountPageState extends State<AccountPage> {
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios_sharp, size: 15),
                 ),
+
+                ListTile(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const AboutUsPage(),
+                    ),
+                  ),
+                  title: Text(
+                    AppLocalizations.of(context)?.aboutUs ?? '',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 16,
+                      color: AppColors.black1,
+                    ),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios_sharp, size: 15),
+                ),
+
                 ListTile(
                   onTap: () => AccountActionDialogs.showLogoutConfirmation(
                     context,
@@ -462,19 +488,24 @@ class _AccountPageState extends State<AccountPage> {
                     ),
                   ),
                 ),
-                ListTile(
-                  onTap: _showDeleteAccountConfirmation,
-                  title: Text(
-                    AppLocalizations.of(context)?.deleteAccount ??
-                        'Delete Account',
-                    style: GoogleFonts.dmSans(fontSize: 16, color: Colors.red),
+                if (!isMainAdmin) ...[
+                  ListTile(
+                    onTap: _showDeleteAccountConfirmation,
+                    title: Text(
+                      AppLocalizations.of(context)?.deleteAccount ??
+                          'Delete Account',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 16,
+                        color: Colors.red,
+                      ),
+                    ),
+                    trailing: const Icon(
+                      Icons.delete,
+                      color: Colors.red,
+                      size: 20,
+                    ),
                   ),
-                  trailing: const Icon(
-                    Icons.delete,
-                    color: Colors.red,
-                    size: 20,
-                  ),
-                ),
+                ],
               ],
             ),
           ],

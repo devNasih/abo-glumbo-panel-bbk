@@ -58,6 +58,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tip => 'إكرامية';
 
   @override
+  String get searchByBookingId => 'البحث باستخدام رقم الحجز';
+
+  @override
   String get rejectingOrder => 'جارٍ رفض الطلب';
 
   @override
@@ -3895,6 +3898,141 @@ class AppLocalizationsAr extends AppLocalizations {
   String get welcomeToAboGlumboTechnician => 'مرحباً بك في أبو جلمبو فني!';
 
   @override
+  String get onlyMainAdminCanManageAdminAccess =>
+      'يمكن للمشرف الرئيسي فقط إدارة صلاحيات المشرفين';
+
+  @override
+  String get cannotModifyMainAdminAccount =>
+      'لا يمكن تعديل حساب المشرف الرئيسي';
+
+  @override
+  String get adminAccessRevokedFor => 'تم إلغاء صلاحيات المشرف لـ';
+
+  @override
+  String get adminAccess => 'صلاحيات المشرف';
+
+  @override
+  String get selectAdminAccessLevelFor => 'اختر مستوى صلاحيات المشرف لـ';
+
+  @override
+  String get fullAdmin => 'مشرف كامل';
+
+  @override
+  String get customerService => 'خدمة العملاء';
+
+  @override
+  String get grantAccess => 'منح الصلاحيات';
+
+  @override
+  String get grantingAdminAccess => 'جارٍ منح صلاحيات المشرف';
+
+  @override
+  String get adminAccessGrantedTo => 'تم منح صلاحيات المشرف لـ';
+
+  @override
+  String get revokeAdminAccess => 'إلغاء صلاحيات المشرف';
+
+  @override
+  String get revokingAdminAccess => 'جارٍ إلغاء صلاحيات المشرف';
+
+  @override
+  String get revoke => 'إلغاء';
+
+  @override
+  String get manageAdmins => 'إدارة المشرفين';
+
+  @override
+  String get searchAdmins => 'البحث عن المشرفين...';
+
+  @override
+  String get aboutUs => 'عننا';
+
+  @override
+  String get noAdminsFound => 'لم يتم العثور على مشرفين';
+
+  @override
+  String get loadingAdmins => 'جارٍ تحميل المشرفين...';
+
+  @override
+  String get noAdminsMatchYourFilters => 'لا يوجد مشرفون يطابقون عوامل التصفية';
+
+  @override
+  String get grantedOn => 'تم المنح في';
+
+  @override
+  String get selectRecipientType => 'اختر نوع المستلم';
+
+  @override
+  String get recipientsSelected => 'المستلمين محدد';
+
+  @override
+  String get areYouSureYouWantToRevokeAdminAccessFor =>
+      'هل أنت متأكد أنك تريد إلغاء صلاحيات المشرف لـ';
+
+  @override
+  String get onlyTheMainAdminCanRevokeAdminAccess =>
+      'يمكن للمشرف الرئيسي فقط إلغاء صلاحيات المشرفين';
+
+  @override
+  String get accessToAllAdminFeaturesExceptManagingOtherAdmins =>
+      'الوصول إلى جميع ميزات الإدارة باستثناء إدارة المشرفين الآخرين';
+
+  @override
+  String get viewOnlyAccessToCustomersTechniciansAndSupport =>
+      'صلاحية عرض فقط للعملاء والفنيين والدعم';
+
+  @override
   String get loginDescription =>
       'جاهز للشغل؟ فرص عمل قريبة ودخل أفضل بانتظارك.';
+
+  @override
+  String get aboutUsTitle => 'من نحن';
+
+  @override
+  String get aboutUsHeadline => 'فرصتك للنمو الاحترافي تبدأ هنا';
+
+  @override
+  String get aboutUsIntro =>
+      'انضم إلى شبكة الفنيين المعتمدة في تطبيقنا وخذ خطوتك التالية نحو الاستقلالية المالية والتميز المهني. نحن لا نقدم لك وظيفة، بل نقدم لك شريكاً يضمن لك الأفضل.';
+
+  @override
+  String get aboutRewardsTitle => 'المكاسب والتحفيز';
+
+  @override
+  String get aboutIncentiveTitle => 'نظام الحوافز المالي';
+
+  @override
+  String get aboutIncentiveDesc =>
+      'ارتقِ في نظام المستويات الخاص بنا (Bronze, Silver, Gold, Platinum). كلما أكملت المزيد من الطلبات وحافظت على تقييم عالٍ (4.8+ في Platinum)، زادت نسبة البونص التي تحصل عليها (تصل إلى 15% بونص).';
+
+  @override
+  String get aboutEarningsTitle => 'أرباح شهرية شفافة';
+
+  @override
+  String get aboutEarningsDesc =>
+      'تابع أرباحك الشهرية المكتسبة واطلب صرف مستحقاتك بسهولة عبر زر \"Request Payout\".';
+
+  @override
+  String get aboutSupportTitle => 'الكفاءة والدعم';
+
+  @override
+  String get aboutFlexibilityTitle => 'مرونة العمل الكاملة';
+
+  @override
+  String get aboutFlexibilityDesc =>
+      'أنت من يحدد أوقات العمل والمناطق التي تغطيها. نعمل على توفير الطلبات لك بناءً على تفضيلاتك.';
+
+  @override
+  String get aboutNoHuntingTitle => 'تجنب البحث';
+
+  @override
+  String get aboutNoHuntingDesc =>
+      'قل وداعاً للبحث عن العملاء. نحن نوفر لك طلبات عمل جاهزة من عملاء موثوقين، مما يضمن تدفقاً مستمراً للعمل.';
+
+  @override
+  String get aboutTransparencyTitle => 'ضمان الشفافية';
+
+  @override
+  String get aboutTransparencyDesc =>
+      'يتم توثيق جميع تفاصيل الخدمة والأسعار مسبقاً، مما يضمن وضوح التعاملات المالية بينك وبين العميل.';
 }

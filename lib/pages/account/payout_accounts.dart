@@ -501,12 +501,6 @@ class _AccountCard extends StatelessWidget {
             label: localizations.ifscCode,
             value: account.ifscCode ?? '',
           ),
-          const SizedBox(height: 12),
-          _AccountDetailRow(
-            icon: Icons.account_balance_wallet_rounded,
-            label: localizations.accountType,
-            value: _capitalizeFirst(account.accountType ?? ''),
-          ),
         ],
       ),
     );
@@ -563,10 +557,10 @@ class _AccountCard extends StatelessWidget {
     return '•••• $lastFour';
   }
 
-  String _capitalizeFirst(String text) {
-    if (text.isEmpty) return text;
-    return text[0].toUpperCase() + text.substring(1);
-  }
+  // String _capitalizeFirst(String text) {
+  //   if (text.isEmpty) return text;
+  //   return text[0].toUpperCase() + text.substring(1);
+  // }
 }
 
 class _PrimaryBadge extends StatelessWidget {
@@ -663,7 +657,6 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
   late final TextEditingController _accountNumberController;
   late final TextEditingController _bankNameController;
   late final TextEditingController _ifscCodeController;
-  String _accountType = 'savings';
   bool _isPrimary = false;
   bool _isLoading = false;
 
@@ -682,7 +675,6 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
     _ifscCodeController = TextEditingController(
       text: widget.account?.ifscCode ?? '',
     );
-    _accountType = widget.account?.accountType ?? 'savings';
     _isPrimary = widget.account?.isPrimary ?? false;
   }
 
@@ -861,9 +853,7 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
                 return null;
               },
             ),
-            const SizedBox(height: 16),
-            _buildAccountTypeDropdown(colorScheme, localizations),
-            const SizedBox(height: 20),
+                      const SizedBox(height: 20),
             _buildPrimaryCheckbox(colorScheme, localizations),
             const SizedBox(height: 32),
             _buildActionButtons(colorScheme, localizations),
@@ -901,38 +891,19 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
     );
   }
 
-  Widget _buildAccountTypeDropdown(
-    ColorScheme colorScheme,
-    AppLocalizations localizations,
-  ) {
-    return DropdownButtonFormField<String>(
-      value: _accountType,
-      decoration: InputDecoration(
-        labelText: localizations.accountType,
-        prefixIcon: const Icon(Icons.category_rounded),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        filled: true,
-        fillColor: colorScheme.surfaceContainerHighest,
-      ),
-      items: [
-        _buildDropdownItem('savings', localizations.savings, colorScheme),
-        _buildDropdownItem('current', localizations.current, colorScheme),
-      ],
-      onChanged: (value) => setState(() => _accountType = value!),
-    );
-  }
+ 
 
-  DropdownMenuItem<String> _buildDropdownItem(
-    String value,
+  // DropdownMenuItem<String> _buildDropdownItem(
+  //   String value,
 
-    String label,
-    ColorScheme colorScheme,
-  ) {
-    return DropdownMenuItem(
-      value: value,
-      child: Row(children: [Text(label)]),
-    );
-  }
+  //   String label,
+  //   ColorScheme colorScheme,
+  // ) {
+  //   return DropdownMenuItem(
+  //     value: value,
+  //     child: Row(children: [Text(label)]),
+  //   );
+  // }
 
   Widget _buildPrimaryCheckbox(
     ColorScheme colorScheme,
@@ -1038,7 +1009,6 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
           accountNumber: _accountNumberController.text.trim(),
           bankName: _bankNameController.text.trim(),
           ifscCode: _ifscCodeController.text.trim(),
-          accountType: _accountType,
           isPrimary: _isPrimary,
         );
       } else {
@@ -1048,7 +1018,7 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
           accountNumber: _accountNumberController.text.trim(),
           bankName: _bankNameController.text.trim(),
           ifscCode: _ifscCodeController.text.trim(),
-          accountType: _accountType,
+       
           isPrimary: _isPrimary,
         );
       }

@@ -467,7 +467,25 @@ class AuthServices {
       // ✅ FIXED: Check workers collection
       final userDoc = await AppFirestore.usersCollectionRef.doc(uid).get();
 
+      bool isValidUser = false;
+
       if (userDoc.exists) {
+        try {
+          final userData = userDoc.data() as Map<String, dynamic>?;
+          // Check if critical data exists
+          if (userData != null &&
+              userData['uid'] != null &&
+              userData['uid'].toString().isNotEmpty) {
+            isValidUser = true;
+          } else {
+            debugPrint("⚠️ User document exists but data is invalid or empty");
+          }
+        } catch (e) {
+          debugPrint("⚠️ Error validating user data: $e");
+        }
+      }
+
+      if (isValidUser) {
         LocalStore.putUID(uid);
         LocalStore.putlogoutStatus(false);
 
@@ -477,6 +495,8 @@ class AuthServices {
           (route) => false,
         );
       } else {
+        // If user document doesn't exist OR is invalid, go to Signup
+        debugPrint("Redirecting to Signup (User not found or invalid): $uid");
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => Signup(uid: uid)),
