@@ -244,6 +244,11 @@
   "acceptedAt": "Accepted At",
   "rejectedAt": "Rejected At",
   "completedAt": "Completed At",
+  "acceptedOn": "Accepted On",
+  "completedOn": "Completed On",
+  "rejectedOn": "Rejected On",
+  "requestedOn": "Requested On",
+  "expiredOn": "Expired On",
   "phone": "Phone",
   "card": "Card",
   "applePay": "Apple Pay",
@@ -674,6 +679,8 @@
   "warrantyRequestWasRejectedByAdmin": "Warranty request was rejected by admin",
   "warrantyRequestWasRejectedByTechnician": "Warranty request was rejected by technician",
   "technicianCompletedTheRequest": "Technician completed the request",
+  "warrantyExpired": "Warranty Expired",
+  "warrantyPeriodHasExpired": "Warranty period has expired",
   "trackingStoppedAt": "Tracking Stopped",
   "serviceTrackingStopped": "Service tracking has been stopped",
   "youCancelledThisRequest": "You cancelled this request",
@@ -1331,22 +1338,16 @@
   "aboutUsTitle": "About Us",
   "aboutUsHeadline": "Your Journey to Professional Growth Starts Here",
   "aboutUsIntro": "Join our network of certified technicians and take your next step towards financial independence and professional excellence. We don't just offer you a job; we offer you a partner dedicated to ensuring your success.",
-
   "aboutRewardsTitle": "Your Rewards & Incentives",
   "aboutIncentiveTitle": "Financial Incentive System",
   "aboutIncentiveDesc": "Climb through our tiered system (Bronze, Silver, Gold, Platinum). The more jobs you complete and the higher your rating you maintain (4.8+ for Platinum), the higher the bonus percentage you earn (up to 15% bonus).",
-
   "aboutEarningsTitle": "Transparent Monthly Earnings",
   "aboutEarningsDesc": "Track your earned monthly income and easily request your payout using the \"Request Payout\" button.",
-
   "aboutSupportTitle": "Efficiency & Support",
   "aboutFlexibilityTitle": "Complete Flexibility",
   "aboutFlexibilityDesc": "You set your own working hours and the areas you cover. We work to provide you with service requests based on your preferences.",
-
   "aboutNoHuntingTitle": "Zero Customer Hunting",
   "aboutNoHuntingDesc": "Say goodbye to chasing clients. We provide you with ready job requests from reliable customers, ensuring a continuous flow of work.",
-
   "aboutTransparencyTitle": "Guaranteed Transparency",
   "aboutTransparencyDesc": "All service details and pricing are documented in advance, ensuring clarity in all financial dealings between you and the customer."
-
 }

@@ -45,8 +45,9 @@ class BookingCards extends StatelessWidget {
     if (isWarranty) {
       switch (booking.warranty!.warrantyStatusCode) {
         case "X":
-        case "E":
           return Colors.red;
+        case "E":
+          return Colors.grey;
         case "R":
           return Colors.blue;
         case "S":
@@ -293,6 +294,21 @@ class BookingCards extends StatelessWidget {
                     Builder(
                       builder: (context) {
                         final technician = booking.warranty?.assignedTechnician;
+                        final warrantyStatusCode = booking
+                            .warranty!
+                            .warrantyStatusCode
+                            .toLowerCase();
+
+                        // Only show technician info for active warranties (not completed, rejected, or expired)
+                        final isActiveWarranty =
+                            warrantyStatusCode != 'c' && // Not completed
+                            warrantyStatusCode != 'x' && // Not rejected
+                            warrantyStatusCode != 'e'; // Not expired
+
+                        // Don't show technician section for inactive warranties
+                        if (!isActiveWarranty) {
+                          return const SizedBox.shrink();
+                        }
 
                         if (technician != null) {
                           return Row(
@@ -319,7 +335,7 @@ class BookingCards extends StatelessWidget {
                           );
                         }
 
-                        // No technician assigned yet
+                        // No technician assigned yet - show waiting message
                         return Row(
                           children: [
                             CircleAvatar(
@@ -390,97 +406,172 @@ class BookingCards extends StatelessWidget {
                           ),
                         ],
                       ),
-                      if (booking.bookingStatusCode == 'P' &&
-                          booking.cancelledWorkers.any(
-                            (worker) => worker.uid != LocalStore.getUID(),
-                          )) ...{
-                        if (booking.createdAt != null)
+                      // Warranty-specific date display
+                      if (isWarranty) ...[
+                        if (booking.warranty?.warrantyStatusCode == 'R' &&
+                            booking.warranty?.requestedOn != null)
                           Text(
-                            "${AppLocalizations.of(context)!.bookedOn}: ${LocalizationHelper().formatDateLocalized(booking.createdAt!.toDate(), context)}",
+                            "${AppLocalizations.of(context)!.requestedOn}: ${LocalizationHelper().formatDateLocalized(booking.warranty!.requestedOn!.toDate(), context)}",
+                            style: textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurface.withOpacity(0.5),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          )
+                        else if (booking.warranty?.warrantyStatusCode == 'S' &&
+                            booking.warranty?.acceptedAt != null)
+                          Text(
+                            "${AppLocalizations.of(context)!.acceptedOn}: ${LocalizationHelper().formatDateLocalized(booking.warranty!.acceptedAt!.toDate(), context)}",
+                            style: textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurface.withOpacity(0.5),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          )
+                        else if (booking.warranty?.warrantyStatusCode == 'C' &&
+                            booking.warranty?.completedAt != null)
+                          Text(
+                            "${AppLocalizations.of(context)!.completedOn}: ${LocalizationHelper().formatDateLocalized(booking.warranty!.completedAt!.toDate(), context)}",
+                            style: textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurface.withOpacity(0.5),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          )
+                        else if (booking.warranty?.warrantyStatusCode == 'X' &&
+                            booking.warranty?.rejectedAt != null)
+                          Text(
+                            "${AppLocalizations.of(context)!.rejectedOn}: ${LocalizationHelper().formatDateLocalized(booking.warranty!.rejectedAt!.toDate(), context)}",
+                            style: textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurface.withOpacity(0.5),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          )
+                        else if (booking.warranty?.warrantyStatusCode == 'E' &&
+                            booking.warranty?.expiredOn != null)
+                          Text(
+                            "${AppLocalizations.of(context)!.expiredOn}: ${LocalizationHelper().formatDateLocalized(booking.warranty!.expiredOn!.toDate(), context)}",
                             style: textTheme.labelSmall?.copyWith(
                               color: colorScheme.onSurface.withOpacity(0.5),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                      } else if (booking.bookingStatusCode == 'A') ...{
-                        if (booking.acceptedAt != null)
-                          Text(
-                            "${AppLocalizations.of(context)!.acceptedOn}: ${LocalizationHelper().formatDateLocalized(booking.acceptedAt!.toDate(), context)}",
-                            style: textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurface.withOpacity(0.5),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        if (isAdmin)
-                          Text(
-                            "${AppLocalizations.of(context)!.acceptedBy}: ${booking.agent?.name ?? ''}",
-                            style: textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurface.withOpacity(0.5),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                      } else if (booking.bookingStatusCode == 'C') ...{
-                        if (booking.completedAt != null)
-                          if (booking.paymentCompleted == false) ...{
+                      ]
+                      // Normal booking date display
+                      else ...[
+                        if (booking.bookingStatusCode == 'P' &&
+                            booking.cancelledWorkers.any(
+                              (worker) => worker.uid != LocalStore.getUID(),
+                            )) ...{
+                          if (booking.createdAt != null)
                             Text(
-                              "${AppLocalizations.of(context)!.completedOn}: ${LocalizationHelper().formatDateLocalized(booking.completedAt!.toDate(), context)}",
+                              "${AppLocalizations.of(context)!.bookedOn}: ${LocalizationHelper().formatDateLocalized(booking.createdAt!.toDate(), context)}",
                               style: textTheme.labelSmall?.copyWith(
                                 color: colorScheme.onSurface.withOpacity(0.5),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            if (isAdmin)
+                        } else if (booking.bookingStatusCode == 'A') ...{
+                          if (booking.acceptedAt != null)
+                            Text(
+                              "${AppLocalizations.of(context)!.acceptedOn}: ${LocalizationHelper().formatDateLocalized(booking.acceptedAt!.toDate(), context)}",
+                              style: textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurface.withOpacity(0.5),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          if (isAdmin)
+                            Text(
+                              "${AppLocalizations.of(context)!.acceptedBy}: ${booking.agent?.name ?? ''}",
+                              style: textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurface.withOpacity(0.5),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        } else if (booking.bookingStatusCode == 'C') ...{
+                          if (booking.completedAt != null)
+                            if (booking.paymentCompleted == false) ...{
                               Text(
-                                "${AppLocalizations.of(context)!.completedBy}: ${booking.agent?.name ?? ''}",
+                                "${AppLocalizations.of(context)!.completedOn}: ${LocalizationHelper().formatDateLocalized(booking.completedAt!.toDate(), context)}",
                                 style: textTheme.labelSmall?.copyWith(
                                   color: colorScheme.onSurface.withOpacity(0.5),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                          } else if (booking.paymentCompleted == true &&
-                              booking.paymentCompletedAt != null) ...{
+                              if (isAdmin)
+                                Text(
+                                  "${AppLocalizations.of(context)!.completedBy}: ${booking.agent?.name ?? ''}",
+                                  style: textTheme.labelSmall?.copyWith(
+                                    color: colorScheme.onSurface.withOpacity(
+                                      0.5,
+                                    ),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                            } else if (booking.paymentCompleted == true &&
+                                booking.paymentCompletedAt != null) ...{
+                              Text(
+                                "${AppLocalizations.of(context)!.paymentCompletedAt}: ${LocalizationHelper().formatDateLocalized(booking.paymentCompletedAt!.toDate(), context)}",
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.onSurface.withOpacity(0.5),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            },
+                        } else if (booking.bookingStatusCode == 'XC') ...{
+                          if (booking.cancelledAt != null)
                             Text(
-                              "${AppLocalizations.of(context)!.paymentCompletedAt}: ${LocalizationHelper().formatDateLocalized(booking.paymentCompletedAt!.toDate(), context)}",
+                              "${AppLocalizations.of(context)!.cancelledOn}: ${LocalizationHelper().formatDateLocalized(booking.cancelledAt!.toDate(), context)}",
                               style: textTheme.labelSmall?.copyWith(
                                 color: colorScheme.onSurface.withOpacity(0.5),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                          },
-                      } else if (booking.bookingStatusCode == 'XC') ...{
-                        if (booking.cancelledAt != null)
                           Text(
-                            "${AppLocalizations.of(context)!.cancelledOn}: ${LocalizationHelper().formatDateLocalized(booking.cancelledAt!.toDate(), context)}",
+                            "${AppLocalizations.of(context)!.cancelledBy}: ${AppLocalizations.of(context)!.customer}",
                             style: textTheme.labelSmall?.copyWith(
                               color: colorScheme.onSurface.withOpacity(0.5),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                        Text(
-                          "${AppLocalizations.of(context)!.cancelledBy}: ${AppLocalizations.of(context)!.customer}",
-                          style: textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.5),
+                        } else if (booking.bookingStatusCode == 'XC') ...{
+                          Text(
+                            "${AppLocalizations.of(context)!.rejectedOn}: ${LocalizationHelper().formatDateLocalized(booking.cancelledWorkers.firstWhere((worker) => worker.uid == LocalStore.getUID()).cancelledAt.toDate(), context)}",
+                            style: textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurface.withOpacity(0.5),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      } else if (booking.bookingStatusCode == 'XC') ...{
-                        Text(
-                          "${AppLocalizations.of(context)!.rejectedOn}: ${LocalizationHelper().formatDateLocalized(booking.cancelledWorkers.firstWhere((worker) => worker.uid == LocalStore.getUID()).cancelledAt.toDate(), context)}",
-                          style: textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.5),
+                          if (!isAdmin)
+                            Text(
+                              "${AppLocalizations.of(context)!.rejectedBy}: ${AppLocalizations.of(context)!.admin}",
+                              style: textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurface.withOpacity(0.5),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        } else if (booking.bookingStatusCode == 'R') ...{
+                          Text(
+                            "${AppLocalizations.of(context)!.rejectedAt}: ${LocalizationHelper().formatDateLocalized(booking.rejectedAt!.toDate(), context)}",
+                            style: textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurface.withOpacity(0.5),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (!isAdmin)
+
                           Text(
                             "${AppLocalizations.of(context)!.rejectedBy}: ${AppLocalizations.of(context)!.admin}",
                             style: textTheme.labelSmall?.copyWith(
@@ -489,37 +580,20 @@ class BookingCards extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                      } else if (booking.bookingStatusCode == 'R') ...{
-                        Text(
-                          "${AppLocalizations.of(context)!.rejectedAt}: ${LocalizationHelper().formatDateLocalized(booking.rejectedAt!.toDate(), context)}",
-                          style: textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.5),
+                        } else if (!isAdmin &&
+                            booking.cancelledWorkers.any(
+                              (worker) => worker.uid == LocalStore.getUID(),
+                            )) ...{
+                          Text(
+                            "${AppLocalizations.of(context)!.rejectedOn}: ${LocalizationHelper().formatDateLocalized(booking.cancelledWorkers.firstWhere((worker) => worker.uid == LocalStore.getUID()).cancelledAt.toDate(), context)}",
+                            style: textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurface.withOpacity(0.5),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-
-                        Text(
-                          "${AppLocalizations.of(context)!.rejectedBy}: ${AppLocalizations.of(context)!.admin}",
-                          style: textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.5),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      } else if (!isAdmin &&
-                          booking.cancelledWorkers.any(
-                            (worker) => worker.uid == LocalStore.getUID(),
-                          )) ...{
-                        Text(
-                          "${AppLocalizations.of(context)!.rejectedOn}: ${LocalizationHelper().formatDateLocalized(booking.cancelledWorkers.firstWhere((worker) => worker.uid == LocalStore.getUID()).cancelledAt.toDate(), context)}",
-                          style: textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.5),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      },
+                        },
+                      ],
                     ],
                   ),
                 ],

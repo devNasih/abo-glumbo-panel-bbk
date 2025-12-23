@@ -28,6 +28,12 @@ class Home extends StatefulWidget {
   final String? selectedFilter;
   const Home({super.key, this.byPassUid, this.newIndex, this.selectedFilter});
 
+  static bool hasShownWelcomeModal = false;
+
+  static void resetWelcomeModal() {
+    hasShownWelcomeModal = false;
+  }
+
   @override
   State<Home> createState() => _HomeState();
 }
@@ -35,7 +41,6 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   int currentIndex = 0;
   String selectedBookingStatus = 'P';
-  bool _hasShownWelcomeModal = false;
 
   // Role switcher state: 'admin' or 'technician'
   String _currentRole = 'admin'; // Default to admin for users with admin access
@@ -88,6 +93,9 @@ class _HomeState extends State<Home> {
   void _toggleRole() {
     setState(() {
       _currentRole = _currentRole == 'admin' ? 'technician' : 'admin';
+      if (_currentRole == 'technician') {
+        Home.hasShownWelcomeModal = false;
+      }
       currentIndex = 0; // Reset to home page when switching roles
     });
     _saveRolePreference(_currentRole);
@@ -200,11 +208,15 @@ class _HomeState extends State<Home> {
         }
 
         // Show welcome modal for technicians with availability disabled
-        if (!_hasShownWelcomeModal &&
-            userData.isAdmin != true &&
+        // Allow technicians who have been granted admin access (level 1) to also see this modal ONLY if in technician mode
+        if (!Home.hasShownWelcomeModal &&
+            (userData.isAdmin != true ||
+                (userData.isGrantedAdminByMain == true &&
+                    userData.adminAccessLevel == 1 &&
+                    _currentRole == 'technician')) &&
             userData.isVerified == true &&
             userData.isOnline != true) {
-          _hasShownWelcomeModal = true;
+          Home.hasShownWelcomeModal = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             TechnicianWelcomeModal.show(
               context,

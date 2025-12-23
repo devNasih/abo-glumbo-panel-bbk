@@ -105,19 +105,6 @@ class _RewardsPageState extends State<RewardsPage> {
                       child: _buildBonusPayoutCard(),
                     ),
                   ),
-
-                  // Current Tier Card
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                      child: _buildCurrentTierCard(),
-                    ),
-                  ),
-
-                  // Tier Information Section
                   SliverToBoxAdapter(
                     child: Container(
                       margin: const EdgeInsets.all(20),
@@ -138,7 +125,7 @@ class _RewardsPageState extends State<RewardsPage> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
                         child: ExpansionTile(
-                          initiallyExpanded: true,
+                          initiallyExpanded: false,
                           tilePadding: const EdgeInsets.symmetric(
                             horizontal: 20,
                             vertical: 12,
@@ -249,6 +236,19 @@ class _RewardsPageState extends State<RewardsPage> {
                       ),
                     ),
                   ),
+
+                  // Current Tier Card
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      child: _buildCurrentTierCard(),
+                    ),
+                  ),
+
+                  // Tier Information Section
                 ],
               ),
             ),

@@ -762,6 +762,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get completedAt => 'مكتمل في';
 
   @override
+  String get acceptedOn => 'تم القبول في';
+
+  @override
+  String get completedOn => 'تم الاكتمال في';
+
+  @override
+  String get rejectedOn => 'تم الرفض في';
+
+  @override
+  String get requestedOn => 'تم الطلب في';
+
+  @override
+  String get expiredOn => 'انتهى في';
+
+  @override
   String get phone => 'رقم الهاتف';
 
   @override
@@ -2106,6 +2121,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get technicianCompletedTheRequest => 'قام الفنّي بإكمال الطلب';
 
   @override
+  String get warrantyExpired => 'انتهت صلاحية الضمان';
+
+  @override
+  String get warrantyPeriodHasExpired => 'انتهت فترة الضمان';
+
+  @override
   String get trackingStoppedAt => 'تم إيقاف التتبع عند';
 
   @override
@@ -2641,9 +2662,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get managePayouts => 'إدارة التحويلات المالية';
 
   @override
-  String get requestedOn => 'تم الطلب في';
-
-  @override
   String get selectedFileCouldNotBeFound => 'لم يتم العثور على الملف المحدد';
 
   @override
@@ -2963,16 +2981,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rejectedBy => 'تم الرفض بواسطة';
 
   @override
-  String get rejectedOn => 'تم الرفض في';
-
-  @override
-  String get acceptedOn => 'تم القبول في';
-
-  @override
   String get acceptedBy => 'تم القبول بواسطة';
-
-  @override
-  String get completedOn => 'تم الاكتمال في';
 
   @override
   String get completedBy => 'تم الاكتمال بواسطة';

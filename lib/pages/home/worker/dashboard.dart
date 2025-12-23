@@ -336,22 +336,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildOnlineStatusCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+    return ValueListenableBuilder<bool>(
+      valueListenable: _isOnlineNotifier,
+      builder: (context, isOnline, child) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: isOnline ? Colors.green : Colors.grey),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: ValueListenableBuilder<bool>(
-        valueListenable: _isOnlineNotifier,
-        builder: (context, isOnline, child) {
-          return SwitchListTile.adaptive(
+          child: SwitchListTile.adaptive(
             title: Text(
               AppLocalizations.of(context)!.availabilityStatus,
               style: TextStyle(
@@ -366,24 +367,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   : AppLocalizations.of(context)!.youAreCurrentlyUnavailable,
               style: TextStyle(color: const Color(0xFF64748B), fontSize: 14),
             ),
-            secondary: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: (isOnline ? Colors.green : Colors.grey).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                isOnline ? Icons.check_circle : Icons.cancel,
-                color: isOnline ? Colors.green : Colors.grey,
-                size: 28,
-              ),
-            ),
+            // secondary: Container(
+            //   padding: const EdgeInsets.all(12),
+            //   decoration: BoxDecoration(
+            //     color: (isOnline ? Colors.green : Colors.grey).withOpacity(0.1),
+            //     borderRadius: BorderRadius.circular(12),
+            //   ),
+            //   child: Icon(
+            //     isOnline ? Icons.check_circle : Icons.cancel,
+            //     color: isOnline ? Colors.green : Colors.grey,
+            //     size: 28,
+            //   ),
+            // ),
             value: isOnline,
             onChanged: _updateOnlineStatus,
             activeColor: Colors.green,
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -397,7 +398,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         subtitle: l10n.requests,
         value: data['latest']?.toString() ?? '0',
         icon: Icons.assignment_outlined,
-        color: AppColors.primary,
+        color: Colors.red,
         onTap: () => Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => Home(newIndex: 1)),
           (_) => false,
@@ -434,7 +435,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         subtitle: l10n.requests,
         value: data['completed']?.toString() ?? '0',
         icon: Icons.check_circle_outline,
-        color: const Color(0xFF10B981),
+        color: Colors.green,
         onTap: () => Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (_) => Home(newIndex: 1, selectedFilter: "C"),
@@ -447,7 +448,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         subtitle: l10n.requests,
         value: data['warrantyClaims']?.toString() ?? '0',
         icon: Icons.verified_user_rounded,
-        color: Colors.deepPurple,
+        color: Colors.indigo,
         onTap: () => Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => Home(newIndex: 2)),
           (_) => false,
@@ -459,8 +460,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           double.tryParse(data['rating']?.toString() ?? '0') ?? 0.0,
         ),
         value: data['rating']?.toString() ?? '0.0',
-        icon: Icons.star_outline,
-        color: const Color(0xFFFED937),
+        icon: Icons.star,
+        color: Color(0xFFFFD700),
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
@@ -530,6 +531,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   /// Build individual stat card
   Widget _buildStatCard(_StatData data) {
     return Material(
+      borderRadius: BorderRadius.all(Radius.circular(16)),
+      elevation: 1,
       color: Colors.transparent,
       child: InkWell(
         onTap: data.onTap,
@@ -537,6 +540,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Ink(
           decoration: BoxDecoration(
             color: Colors.white,
+            border: Border.all(color: data.color.withOpacity(1)),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -548,57 +552,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: data.color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
+            child: SizedBox(
+              height: 110,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: data.color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(data.icon, color: data.color, size: 28),
                       ),
-                      child: Icon(data.icon, color: data.color, size: 28),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            data.title,
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              data.title,
+                              style: TextStyle(
+                                color: data.color,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                          ),
-                          Text(
-                            data.subtitle,
-                            style: const TextStyle(
-                              color: Color(0xFF64748B),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
+                            Text(
+                              data.subtitle,
+                              style: const TextStyle(
+                                color: Color(0xFF64748B),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                _AnimatedCounter(
-                  value: data.value,
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 36,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -1.5,
-                    height: 1,
+                    ],
                   ),
-                ),
-              ],
+
+                  _AnimatedCounter(
+                    value: data.value,
+                    style: TextStyle(
+                      color: data.color,
+                      fontSize: 36,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -1.5,
+                      height: 1,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -643,7 +651,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               l10n.support,
               l10n.getHelpAnytime,
               Icons.support_agent_outlined,
-              AppColors.red,
+              Colors.brown,
               () => showModalBottomSheet(
                 context: context,
                 builder: (_) => const ContactBottomSheet(),
@@ -653,7 +661,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               l10n.rewards,
               l10n.viewYourRewards,
               Icons.card_giftcard_outlined,
-              const Color(0xFFFFA826),
+              Colors.orangeAccent,
               () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -679,16 +687,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: accentColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Material(
+        elevation: 0,
+        borderRadius: BorderRadius.circular(16),
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
@@ -711,7 +721,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   label,
                   style: TextStyle(
-                    color: AppColors.primary,
+                    color: accentColor,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),

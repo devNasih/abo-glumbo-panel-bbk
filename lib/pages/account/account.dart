@@ -14,6 +14,7 @@ import 'package:aboglumbo_bbk_panel/pages/account/edit_profile.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/payout_accounts.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/privacy_policy_page.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/terms_and_conditions_page.dart';
+import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/services/biometric_service.dart';
@@ -444,6 +445,8 @@ class _AccountPageState extends State<AccountPage> {
                           );
                         }
                       }
+
+                      Home.resetWelcomeModal();
 
                       // ✅ FIXED: Set logout status FIRST before clearing data
                       await LocalStore.putlogoutStatus(true);

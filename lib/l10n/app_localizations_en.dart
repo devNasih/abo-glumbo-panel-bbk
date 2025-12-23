@@ -767,6 +767,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get completedAt => 'Completed At';
 
   @override
+  String get acceptedOn => 'Accepted on';
+
+  @override
+  String get completedOn => 'Completed on';
+
+  @override
+  String get rejectedOn => 'Rejected on';
+
+  @override
+  String get requestedOn => 'Requested on';
+
+  @override
+  String get expiredOn => 'Expired On';
+
+  @override
   String get phone => 'Phone';
 
   @override
@@ -2137,6 +2152,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Technician completed the request';
 
   @override
+  String get warrantyExpired => 'Warranty Expired';
+
+  @override
+  String get warrantyPeriodHasExpired => 'Warranty period has expired';
+
+  @override
   String get trackingStoppedAt => 'Tracking Stopped';
 
   @override
@@ -2683,9 +2704,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get managePayouts => 'Manage Payouts';
 
   @override
-  String get requestedOn => 'Requested on';
-
-  @override
   String get selectedFileCouldNotBeFound =>
       'Selected file could not be found. Please try again.';
 
@@ -3013,16 +3031,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rejectedBy => 'Rejected by';
 
   @override
-  String get rejectedOn => 'Rejected on';
-
-  @override
-  String get acceptedOn => 'Accepted on';
-
-  @override
   String get acceptedBy => 'Accepted by';
-
-  @override
-  String get completedOn => 'Completed on';
 
   @override
   String get completedBy => 'Completed by';

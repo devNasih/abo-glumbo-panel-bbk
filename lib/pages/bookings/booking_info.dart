@@ -1387,23 +1387,18 @@ class _BookingInfoState extends State<BookingInfo> {
         }
       }
 
-      // Warranty requested
+      // Warranty requested - always show this regardless of technician cancellation
       if (widget.booking.warranty?.requestedOn != null) {
         final eventDate = widget.booking.warranty!.requestedOn!.toDate();
-
-        if (currentTechCancelledAt == null ||
-            eventDate.isBefore(currentTechCancelledAt) ||
-            eventDate.isAtSameMomentAs(currentTechCancelledAt)) {
-          timelineItems.add({
-            'title': AppLocalizations.of(context)!.warrantyRepairRequested,
-            'time': _formatDateLocalized(eventDate, context),
-            'description': AppLocalizations.of(
-              context,
-            )!.customerRequestedRepairUnderWarranty,
-            'status': 'completed',
-            'date': eventDate,
-          });
-        }
+        timelineItems.add({
+          'title': AppLocalizations.of(context)!.warrantyRepairRequested,
+          'time': _formatDateLocalized(eventDate, context),
+          'description': AppLocalizations.of(
+            context,
+          )!.customerRequestedRepairUnderWarranty,
+          'status': 'completed',
+          'date': eventDate,
+        });
       }
 
       // Warranty accepted
@@ -1562,6 +1557,25 @@ class _BookingInfoState extends State<BookingInfo> {
                 : AppLocalizations.of(
                     context,
                   )!.warrantyRequestWasRejectedByTechnician,
+            'status': 'rejected',
+            'date': eventDate,
+          });
+        }
+      }
+
+      // Warranty expired
+      if (widget.booking.warranty?.expiredOn != null) {
+        final eventDate = widget.booking.warranty!.expiredOn!.toDate();
+
+        if (currentTechCancelledAt == null ||
+            eventDate.isBefore(currentTechCancelledAt) ||
+            eventDate.isAtSameMomentAs(currentTechCancelledAt)) {
+          timelineItems.add({
+            'title': AppLocalizations.of(context)!.warrantyExpired,
+            'time': _formatDateLocalized(eventDate, context),
+            'description': AppLocalizations.of(
+              context,
+            )!.warrantyPeriodHasExpired,
             'status': 'rejected',
             'date': eventDate,
           });
@@ -1730,8 +1744,17 @@ class _BookingInfoState extends State<BookingInfo> {
 
       if (isWarranty) {
         // Warranty current status
-        if (widget.booking.warranty?.completedAt == null &&
-            widget.booking.warranty?.rejectedAt == null) {
+        // Only show pending status if warranty is not completed, rejected, or expired
+        final warrantyStatusCode = widget.booking.warranty!.warrantyStatusCode
+            .toLowerCase();
+        final isWarrantyActive =
+            widget.booking.warranty?.completedAt == null &&
+            widget.booking.warranty?.rejectedAt == null &&
+            warrantyStatusCode != 'e' && // Not expired
+            warrantyStatusCode != 'x' && // Not rejected
+            warrantyStatusCode != 'c'; // Not completed
+
+        if (isWarrantyActive) {
           if (isInProgress) {
             timelineItems.add({
               'title': AppLocalizations.of(context)!.serviceInProgress,
