@@ -36,6 +36,7 @@ class WarrantyBloc extends Bloc<WarrantyEvent, WarrantyState> {
       await AppFirestore.bookingsCollectionRef.doc(event.bookingId).update({
         'warranty.warrantyStatusCode': 'S',
         'warranty.acceptedAt': Timestamp.now(),
+        'warranty.updatedAt': Timestamp.now(),
         'updatedAt': Timestamp.now(),
       });
 
@@ -56,6 +57,7 @@ class WarrantyBloc extends Bloc<WarrantyEvent, WarrantyState> {
         'warranty.assignedTechnician': null,
         'warranty.warrantyStatusCode': 'X',
         'warranty.rejectedAt': Timestamp.now(),
+        'warranty.updatedAt': Timestamp.now(),
         'updatedAt': Timestamp.now(),
         // Clear chatroom when rejecting warranty
         'chatroomId': FieldValue.delete(),
@@ -97,6 +99,7 @@ class WarrantyBloc extends Bloc<WarrantyEvent, WarrantyState> {
         'warranty.rejectedTechnicians': rejectedTechs
             .map((e) => e.toJson())
             .toList(),
+        'warranty.updatedAt': Timestamp.now(),
         'updatedAt': Timestamp.now(),
         // Clear chatroom when canceling warranty
         'chatroomId': FieldValue.delete(),
@@ -119,6 +122,7 @@ class WarrantyBloc extends Bloc<WarrantyEvent, WarrantyState> {
         'warranty.warrantyStatusCode': 'C',
         'warranty.availability': Timestamp.now(),
         'warranty.completedAt': Timestamp.now(),
+        'warranty.updatedAt': Timestamp.now(),
         'updatedAt': Timestamp.now(),
       });
 
@@ -181,6 +185,7 @@ class WarrantyBloc extends Bloc<WarrantyEvent, WarrantyState> {
         'warranty.assignedTechnician': event.technician.toJson(),
         'warranty.warrantyStatusCode': 'S',
         'warranty.acceptedAt': Timestamp.now(),
+        'warranty.updatedAt': Timestamp.now(),
         'updatedAt': Timestamp.now(),
         // Clear any old chatroom to ensure fresh start with new technician
         'chatroomId': FieldValue.delete(),

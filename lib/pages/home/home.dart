@@ -379,8 +379,15 @@ class _HomeState extends State<Home> {
             workerData: userData,
             onToggleRole: roleSwitchCallback,
           ),
-          WorkerHome(selectedIndex: selectedBookingStatus),
-          WarrantyPage(workerData: userData, isTechnicianView: true),
+          WorkerHome(
+            selectedIndex: selectedBookingStatus,
+            isInAdminMode: canSwitchRoles && _currentRole == 'admin',
+          ),
+          WarrantyPage(
+            workerData: userData,
+            isTechnicianView: true,
+            isInAdminMode: canSwitchRoles && _currentRole == 'admin',
+          ),
           AccountPage(workerData: userData),
         ];
 

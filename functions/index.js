@@ -2440,52 +2440,40 @@ exports.notifyAdminsOnWarrantyEscalation = onDocumentWritten(
 );
 
 // ============================================
-// Update Warranty Availability After 7 Days
+// Expire Warranties After 7 Days (Only if Unchanged)
 // ============================================
-exports.updateWarrantyAvailability = onSchedule(
+exports.expireUnchangedWarranties = onSchedule(
   {
     schedule: "0 2 * * *", // Runs daily at 2:00 AM Saudi Arabia Time
     timeZone: "Asia/Riyadh",
   },
   async (event) => {
-    logger.info("Starting warranty availability update check...");
+    logger.info("Starting warranty expiry check for unchanged warranties...");
 
     try {
       // Calculate the date exactly 7 days ago from now
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      sevenDaysAgo.setHours(0, 0, 0, 0); // Start of the day
-
-      const eightDaysAgo = new Date();
-      eightDaysAgo.setDate(eightDaysAgo.getDate() - 8);
-      eightDaysAgo.setHours(0, 0, 0, 0);
+      sevenDaysAgo.setHours(23, 59, 59, 999); // End of that day
 
       logger.info(
-        `Checking warranties created between ${eightDaysAgo.toISOString()} and ${sevenDaysAgo.toISOString()}`
+        `Checking warranties for bookings completed on or before ${sevenDaysAgo.toISOString()}`
       );
 
-      // Query bookings with warranties that were created exactly 7 days ago
-      // and have status "A" (available) or "R" (requested)
+      // Query bookings that were completed (status "C") at least 7 days ago
+      // and have a warranty with status "A" (available)
       const bookingsSnapshot = await db
         .collection("bookings")
-        .where(
-          "warranty.createdAt",
-          ">=",
-          admin.firestore.Timestamp.fromDate(eightDaysAgo)
-        )
-        .where(
-          "warranty.createdAt",
-          "<=",
-          admin.firestore.Timestamp.fromDate(sevenDaysAgo)
-        )
+        .where("bookingStatusCode", "==", "C")
+        .where("warranty.warrantyStatusCode", "==", "A")
         .get();
 
       if (bookingsSnapshot.empty) {
-        logger.info("No bookings found with warranty expiring today.");
+        logger.info("No bookings found with available warranties.");
         return null;
       }
 
-      let updatedCount = 0;
+      let expiredCount = 0;
       let skippedCount = 0;
       const batch = db.batch();
       const batchSize = 500; // Firestore batch limit
@@ -2501,12 +2489,51 @@ exports.updateWarrantyAvailability = onSchedule(
           continue;
         }
 
-        // Only update if warranty status is "A" (available) or "R" (requested)
-        const warrantyStatusCode = warranty.warrantyStatusCode;
-        if (warrantyStatusCode !== "A" && warrantyStatusCode !== "R") {
-          logger.info(
-            `Skipping booking ${bookingDoc.id} - warranty status is ${warrantyStatusCode} (not A or R)`
+        // Verify warranty status is "A"
+        if (warranty.warrantyStatusCode !== "A") {
+          skippedCount++;
+          continue;
+        }
+
+        // Check if warranty has been modified since creation
+        // If updatedAt exists and is different from createdAt, skip
+        const createdAt = warranty.createdAt;
+        const updatedAt = warranty.updatedAt;
+
+        if (updatedAt && createdAt) {
+          // Convert to timestamps for comparison
+          const createdTimestamp = createdAt.toMillis
+            ? createdAt.toMillis()
+            : createdAt;
+          const updatedTimestamp = updatedAt.toMillis
+            ? updatedAt.toMillis()
+            : updatedAt;
+
+          // If warranty has been updated (timestamps differ), skip expiration
+          if (updatedTimestamp !== createdTimestamp) {
+            logger.info(
+              `Skipping booking ${bookingDoc.id} - warranty has been modified since creation`
+            );
+            skippedCount++;
+            continue;
+          }
+        }
+
+        // Check if warranty was created at least 7 days ago
+        if (!createdAt) {
+          logger.warn(
+            `Skipping booking ${bookingDoc.id} - warranty has no createdAt timestamp`
           );
+          skippedCount++;
+          continue;
+        }
+
+        const createdDate = createdAt.toDate
+          ? createdAt.toDate()
+          : new Date(createdAt);
+
+        // If warranty was created less than 7 days ago, skip
+        if (createdDate > sevenDaysAgo) {
           skippedCount++;
           continue;
         }
@@ -2520,11 +2547,13 @@ exports.updateWarrantyAvailability = onSchedule(
           "warranty.updatedAt": admin.firestore.FieldValue.serverTimestamp(),
         });
 
-        updatedCount++;
+        expiredCount++;
         batchCount++;
 
         logger.info(
-          `Scheduled warranty expiration for booking ${bookingDoc.id} (previous status: ${warrantyStatusCode})`
+          `Scheduled warranty expiration for booking ${
+            bookingDoc.id
+          } (created: ${createdDate.toISOString()})`
         );
 
         // Commit batch every 500 operations
@@ -2542,11 +2571,11 @@ exports.updateWarrantyAvailability = onSchedule(
       }
 
       logger.info(
-        `Warranty availability update completed. Total bookings updated: ${updatedCount}, skipped: ${skippedCount}`
+        `Warranty expiry check completed. Warranties expired: ${expiredCount}, skipped: ${skippedCount}`
       );
       return null;
     } catch (error) {
-      logger.error("Error updating warranty availability:", error);
+      logger.error("Error expiring unchanged warranties:", error);
       throw error;
     }
   }

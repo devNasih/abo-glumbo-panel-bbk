@@ -1144,6 +1144,7 @@ class AppServices {
             'warrantyStatusCode': 'A',
             'assignedTechnicianId': technicianId,
             'createdAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
             'rejectedTechnicians': [],
           },
         },
@@ -1945,7 +1946,7 @@ class AppServices {
 
   /// Stream for stats only (backward compatible)
 
-  /// Build stats stream combining completed, latest, accepted, and rating
+  /// Build stats stream combining completed, latest, accepted, rating, and warranty claims
   static Stream<Map<String, dynamic>> _getStatsStream(String uid) {
     final completed = AppFirestore.bookingsCollectionRef
         .where('agent.uid', isEqualTo: uid)
@@ -1998,23 +1999,29 @@ class AppServices {
           return sum / ratings.length;
         });
 
-    return Rx.combineLatest5<
+    final warrantyClaims = getWarrantyClaimRequestsStream(
+      uid,
+    ).map((claims) => claims.length);
+
+    return Rx.combineLatest6<
       int,
       int,
       int,
       int,
       double,
+      int,
       Map<String, dynamic>
-    >(completed, latest, accepted, paymentPending, rating, (
+    >(completed, latest, accepted, paymentPending, rating, warrantyClaims, (
       int completedCount,
       int latestCount,
       int acceptedCount,
       int paymentPendingCount,
       double avgRating,
+      int warrantyClaimsCount,
     ) {
       debugPrint(
         '✅ Stats Combined - Completed: $completedCount, Latest: $latestCount, '
-        'Accepted: $acceptedCount, Rating: ${avgRating.toStringAsFixed(1)}',
+        'Accepted: $acceptedCount, Warranty Claims: $warrantyClaimsCount, Rating: ${avgRating.toStringAsFixed(1)}',
       );
       return {
         'completed': completedCount,
@@ -2022,6 +2029,7 @@ class AppServices {
         'accepted': acceptedCount,
         'paymentPending': paymentPendingCount,
         'rating': avgRating.toStringAsFixed(1),
+        'warrantyClaims': warrantyClaimsCount,
       };
     });
   }

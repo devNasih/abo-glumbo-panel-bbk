@@ -10,7 +10,13 @@ import 'package:shimmer/shimmer.dart';
 class WorkerHome extends StatefulWidget {
   final String? selectedIndex;
   final VoidCallback? onToggleRole;
-  const WorkerHome({super.key, this.selectedIndex, this.onToggleRole});
+  final bool isInAdminMode;
+  const WorkerHome({
+    super.key,
+    this.selectedIndex,
+    this.onToggleRole,
+    this.isInAdminMode = false,
+  });
 
   @override
   State<WorkerHome> createState() => _WorkerHomeState();
@@ -144,6 +150,7 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
                   return _BookingListTab(
                     bookingStatusCode: _bookingStatuses[index]['code']!,
                     searchQuery: _searchQuery,
+                    isInAdminMode: widget.isInAdminMode,
                   );
                 }),
               ),
@@ -205,10 +212,12 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
 class _BookingListTab extends StatefulWidget {
   final String bookingStatusCode;
   final String searchQuery;
+  final bool isInAdminMode;
 
   const _BookingListTab({
     required this.bookingStatusCode,
     required this.searchQuery,
+    this.isInAdminMode = false,
   });
 
   @override
@@ -269,7 +278,11 @@ class _BookingListTabState extends State<_BookingListTab> {
           separatorBuilder: (_, __) => const SizedBox(height: 8),
           itemBuilder: (context, index) {
             final booking = filteredBookings[index];
-            return BookingCards(key: ValueKey(booking.id), booking: booking);
+            return BookingCards(
+              key: ValueKey(booking.id),
+              booking: booking,
+              isInAdminMode: widget.isInAdminMode,
+            );
           },
         );
       },

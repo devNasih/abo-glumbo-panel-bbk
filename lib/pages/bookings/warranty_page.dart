@@ -15,11 +15,13 @@ class WarrantyPage extends StatefulWidget {
     required this.workerData,
     this.onToggleRole,
     this.isTechnicianView = false,
+    this.isInAdminMode = false,
   });
 
   final UserModel workerData;
   final VoidCallback? onToggleRole;
   final bool isTechnicianView;
+  final bool isInAdminMode;
 
   @override
   State<WarrantyPage> createState() => _WarrantyPageState();
@@ -147,6 +149,7 @@ class _WarrantyPageState extends State<WarrantyPage>
                     warrantyStatusCode: _warrantyStatuses[index]['code']!,
                     searchQuery: _searchQuery,
                     isAdmin: widget.workerData.isAdmin ?? false,
+                    isInAdminMode: widget.isInAdminMode,
                   );
                 }),
               ),
@@ -230,11 +233,13 @@ class _WarrantyListTab extends StatefulWidget {
   final String warrantyStatusCode;
   final String searchQuery;
   final bool isAdmin;
+  final bool isInAdminMode;
 
   const _WarrantyListTab({
     required this.warrantyStatusCode,
     required this.searchQuery,
     required this.isAdmin,
+    this.isInAdminMode = false,
   });
 
   @override
@@ -331,6 +336,7 @@ class _WarrantyListTabState extends State<_WarrantyListTab> {
               booking: warranty,
               isWarranty: true,
               isAdmin: widget.isAdmin,
+              isInAdminMode: widget.isInAdminMode,
             );
           },
         );

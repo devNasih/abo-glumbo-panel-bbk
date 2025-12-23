@@ -443,6 +443,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
       _StatData(
+        title: l10n.warrantyClaims,
+        subtitle: l10n.requests,
+        value: data['warrantyClaims']?.toString() ?? '0',
+        icon: Icons.verified_user_rounded,
+        color: Colors.deepPurple,
+        onTap: () => Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => Home(newIndex: 2)),
+          (_) => false,
+        ),
+      ),
+      _StatData(
         title: l10n.rating,
         subtitle: _getRatingSubtitle(
           double.tryParse(data['rating']?.toString() ?? '0') ?? 0.0,
@@ -467,15 +478,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildStatsGrid(List<_StatData> stats) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Reorganize: First 2 cards (New & Completed) in a row,
-        // Last 2 cards (Payment Pending & Rating) below
+        // Reorganize: First 2 cards (Pending & Accepted) in a row,
+        // Second row (Payment Pending & Completed),
+        // Third row (Warranty Claims & Rating)
         return Column(
           children: [
-            // First row: New and Completed
+            // First row: Pending and Accepted
             Row(
               children: [
                 Expanded(
-                  child: _buildStatCard(stats[0]), // New
+                  child: _buildStatCard(stats[0]), // Pending
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -484,7 +496,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            // Second row: Payment Pending and Rating
+            // Second row: Payment Pending and Completed
             Row(
               children: [
                 Expanded(
@@ -497,11 +509,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            // Third row: Accepted
+            // Third row: Warranty Claims and Rating
             Row(
               children: [
                 Expanded(
-                  child: _buildStatCard(stats[4]), // Rating
+                  child: _buildStatCard(stats[4]), // Warranty Claims
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatCard(stats[5]), // Rating
                 ),
               ],
             ),
@@ -572,8 +588,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                Text(
-                  data.value,
+                _AnimatedCounter(
+                  value: data.value,
                   style: TextStyle(
                     color: AppColors.primary,
                     fontSize: 36,
@@ -952,4 +968,79 @@ class _StatData {
     required this.color,
     required this.onTap,
   });
+}
+
+/// Animated counter widget for smooth number transitions
+class _AnimatedCounter extends StatefulWidget {
+  final String value;
+  final TextStyle style;
+
+  const _AnimatedCounter({required this.value, required this.style});
+
+  @override
+  State<_AnimatedCounter> createState() => _AnimatedCounterState();
+}
+
+class _AnimatedCounterState extends State<_AnimatedCounter>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  double _previousValue = 0;
+  double _currentValue = 0;
+  bool _isDecimal = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    );
+
+    _parseValue(widget.value);
+    _controller.forward();
+  }
+
+  @override
+  void didUpdateWidget(_AnimatedCounter oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      _previousValue = _currentValue;
+      _parseValue(widget.value);
+      _controller.forward(from: 0);
+    }
+  }
+
+  void _parseValue(String value) {
+    final parsed = double.tryParse(value) ?? 0;
+    _currentValue = parsed;
+    _isDecimal = value.contains('.');
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        final animatedValue =
+            _previousValue +
+            (_currentValue - _previousValue) * _animation.value;
+        final displayValue = _isDecimal
+            ? animatedValue.toStringAsFixed(1)
+            : animatedValue.round().toString();
+        return Text(displayValue, style: widget.style);
+      },
+    );
+  }
 }

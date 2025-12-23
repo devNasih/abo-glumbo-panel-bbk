@@ -25,12 +25,14 @@ class BookingInfo extends StatefulWidget {
   final BookingModel booking;
   final bool isAdmin;
   final bool isWarranty;
+  final bool isInAdminMode;
 
   const BookingInfo({
     super.key,
     required this.booking,
     required this.isAdmin,
     this.isWarranty = false,
+    this.isInAdminMode = false,
   });
 
   @override
@@ -250,12 +252,14 @@ class _BookingInfoState extends State<BookingInfo> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Review and Tip Card
-            if ((widget.booking.bookingStatusCode.toLowerCase() == 'a' &&
-                    !widget.isAdmin) ||
-                (!widget.isAdmin &&
-                    widget.isWarranty &&
-                    widget.booking.warranty!.warrantyStatusCode.toLowerCase() ==
-                        's')) ...{
+            if (!widget.isInAdminMode &&
+                ((widget.booking.bookingStatusCode.toLowerCase() == 'a' &&
+                        !widget.isAdmin) ||
+                    (!widget.isAdmin &&
+                        widget.isWarranty &&
+                        widget.booking.warranty!.warrantyStatusCode
+                                .toLowerCase() ==
+                            's'))) ...{
               StreamBuilder<DocumentSnapshot>(
                 stream: AppFirestore.bookingsCollectionRef
                     .doc(widget.booking.id)
@@ -287,7 +291,8 @@ class _BookingInfoState extends State<BookingInfo> {
             },
 
             // Booking controls (Normal)
-            if (!widget.isWarranty &&
+            if (!widget.isInAdminMode &&
+                !widget.isWarranty &&
                 (widget.booking.bookingStatusCode.toLowerCase() == 'a') &&
                 (widget.booking.agent?.uid == LocalStore.getUID()))
               StreamBuilder<DocumentSnapshot>(
@@ -318,7 +323,8 @@ class _BookingInfoState extends State<BookingInfo> {
                       widget.booking.warranty?.warrantyStatusCode;
 
                   // Warranty tracking controls (when warranty is started)
-                  if (warrantyStatus == 'S' &&
+                  if (!widget.isInAdminMode &&
+                      warrantyStatus == 'S' &&
                       widget.booking.warranty?.assignedTechnician?.uid ==
                           LocalStore.getUID()) {
                     return StreamBuilder<DocumentSnapshot>(

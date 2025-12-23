@@ -18,6 +18,7 @@ class BookingCards extends StatelessWidget {
   final bool isAdmin;
   final VoidCallback? onAssign;
   final bool isWarranty;
+  final bool isInAdminMode;
 
   BookingCards({
     super.key,
@@ -25,6 +26,7 @@ class BookingCards extends StatelessWidget {
     this.isAdmin = false,
     this.onAssign,
     this.isWarranty = false,
+    this.isInAdminMode = false,
   });
 
   Color _getStatusColor() {
@@ -95,6 +97,7 @@ class BookingCards extends StatelessWidget {
                   booking: booking,
                   isAdmin: isAdmin,
                   isWarranty: isWarranty,
+                  isInAdminMode: isInAdminMode,
                 ),
               ),
             ),
@@ -141,18 +144,19 @@ class BookingCards extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  if ((!isAdmin &&
-                          booking.bookingStatusCode == 'P' &&
-                          !booking.cancelledWorkers.any(
-                            (worker) => worker.uid == LocalStore.getUID(),
-                          )) ||
-                      (!isAdmin &&
-                          isWarranty &&
-                          booking.warranty!.warrantyStatusCode == 'R' &&
-                          !(booking.warranty!.rejectedTechnicians?.any(
-                                (tech) => tech.uid == LocalStore.getUID(),
-                              ) ??
-                              false))) ...[
+                  if (!isInAdminMode &&
+                      ((!isAdmin &&
+                              booking.bookingStatusCode == 'P' &&
+                              !booking.cancelledWorkers.any(
+                                (worker) => worker.uid == LocalStore.getUID(),
+                              )) ||
+                          (!isAdmin &&
+                              isWarranty &&
+                              booking.warranty!.warrantyStatusCode == 'R' &&
+                              !(booking.warranty!.rejectedTechnicians?.any(
+                                    (tech) => tech.uid == LocalStore.getUID(),
+                                  ) ??
+                                  false)))) ...[
                     OutlinedButton(
                       onPressed: () {
                         _showAcceptConfirmationDialog(
@@ -564,6 +568,7 @@ class BookingCards extends StatelessWidget {
                           .update({
                             'warranty.warrantyStatusCode': 'S',
                             'warranty.acceptedAt': FieldValue.serverTimestamp(),
+                            'warranty.updatedAt': FieldValue.serverTimestamp(),
                             'updatedAt': FieldValue.serverTimestamp(),
                           });
                       Navigator.of(context).pushAndRemoveUntil(
