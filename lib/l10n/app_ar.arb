@@ -1329,6 +1329,7 @@
   "revokeAdminAccess": "إلغاء صلاحيات المشرف",
   "revokingAdminAccess": "جارٍ إلغاء صلاحيات المشرف",
   "revoke": "إلغاء",
+  "searchByCustomerName": "بحث باسم العميل",
   "manageAdmins": "إدارة المشرفين",
   "phoneNumberUpdateInfo": "أدخل رقم الهاتف الذي يبدأ بـ \"05\" لتحديث رقم الهاتف",
   "searchAdmins": "البحث عن المشرفين...",

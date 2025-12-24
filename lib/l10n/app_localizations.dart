@@ -7107,6 +7107,12 @@ abstract class AppLocalizations {
   /// **'Rating'**
   String get terms5title;
 
+  /// No description provided for @searchByCustomerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by customer name'**
+  String get searchByCustomerName;
+
   /// No description provided for @phoneNumberUpdateInfo.
   ///
   /// In en, this message translates to:

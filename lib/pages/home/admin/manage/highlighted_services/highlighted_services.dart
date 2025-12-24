@@ -47,14 +47,14 @@ class HighlightedServices extends StatelessWidget {
               final service = highlightedServices[index];
               return Stack(
                 children: [
-                  HighlightedServiceWidget(data: service),
-                  Align(
-                    alignment: Directionality.of(context) == TextDirection.ltr
-                        ? Alignment.topRight
-                        : Alignment.topLeft,
-                    child: IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () => Navigator.push(
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8.0,
+                      horizontal: 16,
+                    ),
+                    child: HighlightedServiceWidget(
+                      data: service,
+                      editCallback: () => Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) =>

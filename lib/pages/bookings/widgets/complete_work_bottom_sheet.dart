@@ -32,19 +32,19 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
 
   double get _totalCost {
     if (!_serviceCompleted) {
-      return widget.booking.service.price?.toDouble() ?? 0;
+      return 0;
     }
-    double inspectionCost = widget.booking.service.price?.toDouble() ?? 0;
+    // Inspection fee is paid at booking, so we exclude it from the final payment calculation
 
     if (_serviceItems.isNotEmpty) {
       double itemsTotal = _serviceItems.fold(
         0,
         (sum, item) => sum + (item.quantity * item.price),
       );
-      return inspectionCost + itemsTotal;
+      return itemsTotal;
     } else {
       double serviceCost = double.tryParse(_serviceCostController.text) ?? 0;
-      return inspectionCost + serviceCost;
+      return serviceCost;
     }
   }
 
@@ -357,7 +357,7 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
             : '${AppLocalizations.of(context)!.item} ${index + 1}';
 
         return AlertDialog(
-                    backgroundColor: Colors.white,
+          backgroundColor: Colors.white,
 
           actionsAlignment: MainAxisAlignment.start,
           title: Row(
@@ -616,7 +616,7 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-                    backgroundColor: Colors.white,
+          backgroundColor: Colors.white,
 
           actionsAlignment: MainAxisAlignment.start,
           title: Text(
@@ -686,10 +686,11 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
                 ),
                 const SizedBox(height: 12),
 
-                // Inspection Fee (always shown)
+                // Inspection Fee (Shown as 0 or Paid)
                 _buildCostRow(
-                  label: AppLocalizations.of(context)!.inspectionFee,
-                  amount: widget.booking.service.price?.toDouble() ?? 0,
+                  label:
+                      "${AppLocalizations.of(context)!.inspectionFee} (${AppLocalizations.of(context)!.paid})",
+                  amount: 0,
                 ),
 
                 // Service completed mode - show additional costs
@@ -1553,7 +1554,7 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
 
                 if (_serviceCompleted == false) ...[
                   Text(
-                    '${AppLocalizations.of(context)!.inspectionFee} ',
+                    '${AppLocalizations.of(context)!.inspectionFee} (${AppLocalizations.of(context)!.paid})',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -1564,11 +1565,7 @@ class _CompleteWorkBottomSheetState extends State<CompleteWorkBottomSheet> {
                   IgnorePointer(
                     ignoring: true,
                     child: TextFormField(
-                      controller: TextEditingController(
-                        text:
-                            widget.booking.service.price?.toStringAsFixed(2) ??
-                            '0',
-                      ),
+                      controller: TextEditingController(text: "0.00"),
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
                         hintText: AppLocalizations.of(

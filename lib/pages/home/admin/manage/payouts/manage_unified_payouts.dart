@@ -67,8 +67,22 @@ class _ManageUnifiedPayoutsPageState extends State<ManageUnifiedPayoutsPage> {
       child: FutureBuilder<Map<String, dynamic>>(
         future: UnifiedPayoutServices.getPayoutStatistics(),
         builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return SizedBox(
+              height: 90,
+              child: Center(child: Loader(color: Colors.white)),
+            );
+          }
           if (!snapshot.hasData) {
-            return const SizedBox(height: 80);
+            return SizedBox(
+              height: 90,
+              child: Center(
+                child: Text(
+                  snapshot.error.toString(),
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            );
           }
 
           final stats = snapshot.data!;
@@ -78,7 +92,6 @@ class _ManageUnifiedPayoutsPageState extends State<ManageUnifiedPayoutsPage> {
                 child: _buildStatCard(
                   label: AppLocalizations.of(context)!.pending,
                   count: stats['pendingCount'].toString(),
-
                   icon: Icons.schedule,
                   color: Colors.orange,
                 ),
@@ -153,6 +166,13 @@ class _ManageUnifiedPayoutsPageState extends State<ManageUnifiedPayoutsPage> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             _buildFilterChip(
+              label: AppLocalizations.of(context)!.all,
+              value: 'All',
+              icon: Icons.list,
+              color: Colors.blue,
+            ),
+            const SizedBox(width: 8),
+            _buildFilterChip(
               label: AppLocalizations.of(context)!.pending,
               value: 'P',
               icon: Icons.schedule,
@@ -171,13 +191,6 @@ class _ManageUnifiedPayoutsPageState extends State<ManageUnifiedPayoutsPage> {
               value: 'R',
               icon: Icons.cancel,
               color: Colors.red,
-            ),
-            const SizedBox(width: 8),
-            _buildFilterChip(
-              label: AppLocalizations.of(context)!.all,
-              value: 'All',
-              icon: Icons.list,
-              color: Colors.blue,
             ),
           ],
         ),
@@ -212,41 +225,102 @@ class _ManageUnifiedPayoutsPageState extends State<ManageUnifiedPayoutsPage> {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: AppLocalizations.of(context)!.searchByWorkerName,
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: _searchQuery.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    setState(() {
-                      _searchController.clear();
-                      _searchQuery = '';
-                    });
-                  },
-                )
-              : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey[300]!),
-          ),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      child: Hero(
+        tag: 'search_bar',
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context)!.searchByTechnicianName,
+                hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 15),
+                prefixIcon: Icon(
+                  Icons.search_rounded,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(
+                          Icons.clear_rounded,
+                          color: Colors.grey.shade600,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _searchController.clear();
+                            _searchQuery = '';
+                          });
+                        },
+                        tooltip: AppLocalizations.of(context)!.clear,
+                      )
+                    : null,
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+              ),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+            ),
           ),
         ),
-        onChanged: (value) {
-          setState(() {
-            _searchQuery = value.toLowerCase();
-          });
-        },
       ),
     );
+
+    // return Padding(
+    //   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    //   child: TextField(
+    //     controller: _searchController,
+    //     decoration: InputDecoration(
+    //       hintText: AppLocalizations.of(context)!.searchByWorkerName,
+    //       prefixIcon: const Icon(Icons.search),
+    //       suffixIcon: _searchQuery.isNotEmpty
+    //           ? IconButton(
+    //               icon: const Icon(Icons.clear),
+    //               onPressed: () {
+    //                 setState(() {
+    //                   _searchController.clear();
+    //                   _searchQuery = '';
+    //                 });
+    //               },
+    //             )
+    //           : null,
+    //       border: OutlineInputBorder(
+    //         borderRadius: BorderRadius.circular(12),
+    //         borderSide: BorderSide(color: Colors.grey[300]!),
+    //       ),
+    //       filled: true,
+    //       fillColor: Colors.white,
+    //       contentPadding: const EdgeInsets.symmetric(
+    //         horizontal: 16,
+    //         vertical: 12,
+    //       ),
+    //     ),
+    //     onChanged: (value) {
+    //       setState(() {
+    //         _searchQuery = value.toLowerCase();
+    //       });
+    //     },
+    //   ),
+    // );
   }
 
   Widget _buildPayoutsList() {

@@ -288,7 +288,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                 context,
                               )!.searchByNameEmailOrPhone,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               prefixIcon: const Icon(Icons.search),
                               suffixIcon: _searchQuery.isNotEmpty
@@ -446,6 +446,10 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                               Expanded(
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadiusGeometry.circular(8),
+                                    ),
                                     backgroundColor: Colors.white,
                                   ),
                                   onPressed: () {
@@ -474,6 +478,10 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                     setState(() {});
                                   },
                                   style: ElevatedButton.styleFrom(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadiusGeometry.circular(8),
+                                    ),
                                     backgroundColor: AppColors.primary,
                                   ),
                                   child: Text(
@@ -486,6 +494,11 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                             Expanded(
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadiusGeometry.circular(
+                                      8,
+                                    ),
+                                  ),
                                   backgroundColor: AppColors.primary,
                                 ),
                                 onPressed: () => Navigator.pop(context),
@@ -560,12 +573,12 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.green.withOpacity(0.1),
+                    color: AppColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     Icons.translate,
-                    color: AppColors.green,
+                    color: AppColors.primary,
                     size: 24,
                   ),
                 ),
@@ -575,7 +588,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.green,
+                    color: AppColors.primary,
                   ),
                 ),
               ],
@@ -599,9 +612,9 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         color: _recipientType == 'technician'
-                            ? AppColors.green
-                            : Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
+                            ? AppColors.primary
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Center(
                         child: Text(
@@ -609,7 +622,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                           style: TextStyle(
                             color: _recipientType == 'technician'
                                 ? Colors.white
-                                : Colors.black,
+                                : AppColors.primary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -633,9 +646,9 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         color: _recipientType == 'customer'
-                            ? AppColors.green
-                            : Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
+                            ? AppColors.primary
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Center(
                         child: Text(
@@ -643,7 +656,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                           style: TextStyle(
                             color: _recipientType == 'customer'
                                 ? Colors.white
-                                : Colors.black,
+                                : AppColors.primary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -673,12 +686,12 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.secondary.withOpacity(0.1),
+                    color: AppColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     Icons.translate,
-                    color: AppColors.secondary,
+                    color: AppColors.primary,
                     size: 24,
                   ),
                 ),
@@ -688,7 +701,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.secondary,
+                    color: AppColors.primary,
                   ),
                 ),
               ],
@@ -703,9 +716,9 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         color: _previewLanguage == 'en'
-                            ? AppColors.secondary
-                            : Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
+                            ? AppColors.primary
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -715,7 +728,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                             style: TextStyle(
                               color: _previewLanguage == 'en'
                                   ? Colors.white
-                                  : Colors.grey[800],
+                                  : AppColors.primary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -732,9 +745,9 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         color: _previewLanguage == 'ar'
-                            ? AppColors.secondary
-                            : Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
+                            ? AppColors.primary
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -744,7 +757,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                             style: TextStyle(
                               color: _previewLanguage == 'ar'
                                   ? Colors.white
-                                  : Colors.grey[800],
+                                  : AppColors.primary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -908,22 +921,22 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.purple.withOpacity(0.1),
+                    color: AppColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.visibility,
-                    color: Colors.purple,
+                    color: AppColors.primary,
                     size: 24,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Text(
                   AppLocalizations.of(context)!.preview,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.purple,
+                    color: AppColors.primary,
                   ),
                 ),
               ],
@@ -1153,14 +1166,10 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
+                    color: AppColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
-                    Icons.people,
-                    color: Colors.green,
-                    size: 24,
-                  ),
+                  child: Icon(Icons.people, color: AppColors.primary, size: 24),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -1172,7 +1181,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green,
+                          color: AppColors.primary,
                         ),
                       ),
                       Text(
@@ -1214,6 +1223,9 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                           style: TextStyle(color: Colors.white),
                         ),
                         style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           backgroundColor: AppColors.primary,
                         ),
                       ),

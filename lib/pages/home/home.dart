@@ -457,7 +457,13 @@ class _HomeState extends State<Home> {
           },
           child: Scaffold(
             extendBodyBehindAppBar: true,
-            body: currentPages[currentIndex],
+            body: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+              child: currentPages[currentIndex],
+            ),
             bottomNavigationBar: NavigationBar(
               selectedIndex: currentIndex,
               onDestinationSelected: (index) {

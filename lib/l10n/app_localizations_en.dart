@@ -3763,6 +3763,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get terms5title => 'Rating';
 
   @override
+  String get searchByCustomerName => 'Search by customer name';
+
+  @override
   String get phoneNumberUpdateInfo =>
       'Enter phone number starting with \'05\' for updating phone number';
 

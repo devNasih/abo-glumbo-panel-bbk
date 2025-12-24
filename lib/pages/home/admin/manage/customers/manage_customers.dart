@@ -240,126 +240,119 @@ class _ManageCustomersPageState extends State<ManageCustomersPage>
         body: Column(
           children: [
             // Header gradient section
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.primary, AppColors.bgWhite],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-              child: Column(
-                children: [
-                  // Modern Search Bar
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                    child: Hero(
-                      tag: 'search_bar',
-                      child: Material(
-                        color: Colors.transparent,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 20,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: TextField(
-                            controller: _searchController,
-                            onChanged: (value) {
-                              setState(() {
-                                _searchQuery = value.toLowerCase();
-                              });
-                            },
-                            decoration: InputDecoration(
-                              hintText: AppLocalizations.of(context)!.search,
-                              hintStyle: TextStyle(
-                                color: Colors.grey.shade400,
-                                fontSize: 15,
-                              ),
-                              prefixIcon: Icon(
-                                Icons.search_rounded,
-                                color: theme.colorScheme.primary,
-                                size: 24,
-                              ),
-                              suffixIcon: _searchQuery.isNotEmpty
-                                  ? IconButton(
-                                      icon: Icon(
-                                        Icons.clear_rounded,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          _searchController.clear();
-                                          _searchQuery = '';
-                                        });
-                                      },
-                                      tooltip: AppLocalizations.of(
-                                        context,
-                                      )!.clear,
-                                    )
-                                  : null,
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 16,
-                              ),
+            Column(
+              children: [
+                // Modern Search Bar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                  child: Hero(
+                    tag: 'search_bar',
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 20,
+                              offset: const Offset(0, 4),
                             ),
-                            style: const TextStyle(
+                          ],
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (value) {
+                            setState(() {
+                              _searchQuery = value.toLowerCase();
+                            });
+                          },
+                          decoration: InputDecoration(
+                            hintText: AppLocalizations.of(
+                              context,
+                            )!.searchByCustomerName,
+                            hintStyle: TextStyle(
+                              color: Colors.grey.shade600,
                               fontSize: 15,
-                              fontWeight: FontWeight.w500,
                             ),
+                            prefixIcon: Icon(
+                              Icons.search_rounded,
+                              color: theme.colorScheme.primary,
+                              size: 24,
+                            ),
+                            suffixIcon: _searchQuery.isNotEmpty
+                                ? IconButton(
+                                    icon: Icon(
+                                      Icons.clear_rounded,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _searchController.clear();
+                                        _searchQuery = '';
+                                      });
+                                    },
+                                    tooltip: AppLocalizations.of(
+                                      context,
+                                    )!.clear,
+                                  )
+                                : null,
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 16,
+                            ),
+                          ),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
                     ),
                   ),
+                ),
 
-                  // Enhanced Filter Chips
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _buildFilterChip(
-                            context: context,
-                            label: AppLocalizations.of(context)!.all,
-                            icon: Icons.apps_rounded,
-                            isSelected: _selectedFilter == 0,
-                            onTap: () => setState(() => _selectedFilter = 0),
-                            color: theme.colorScheme.primary,
-                          ),
-                          const SizedBox(width: 10),
-                          _buildFilterChip(
-                            context: context,
-                            label: AppLocalizations.of(context)!.active,
-                            icon: Icons.check_circle_rounded,
-                            isSelected: _selectedFilter == 1,
-                            onTap: () => setState(() => _selectedFilter = 1),
-                            color: Colors.green,
-                          ),
-                          const SizedBox(width: 10),
-                          _buildFilterChip(
-                            context: context,
-                            label: AppLocalizations.of(context)!.blocked,
-                            icon: Icons.block_rounded,
-                            isSelected: _selectedFilter == 2,
-                            onTap: () => setState(() => _selectedFilter = 2),
-                            color: Colors.red,
-                          ),
-                        ],
-                      ),
+                // Enhanced Filter Chips
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildFilterChip(
+                          context: context,
+                          label: AppLocalizations.of(context)!.all,
+                          icon: Icons.apps_rounded,
+                          isSelected: _selectedFilter == 0,
+                          onTap: () => setState(() => _selectedFilter = 0),
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 10),
+                        _buildFilterChip(
+                          context: context,
+                          label: AppLocalizations.of(context)!.active,
+                          icon: Icons.check_circle_rounded,
+                          isSelected: _selectedFilter == 1,
+                          onTap: () => setState(() => _selectedFilter = 1),
+                          color: Colors.green,
+                        ),
+                        const SizedBox(width: 10),
+                        _buildFilterChip(
+                          context: context,
+                          label: AppLocalizations.of(context)!.blocked,
+                          icon: Icons.block_rounded,
+                          isSelected: _selectedFilter == 2,
+                          onTap: () => setState(() => _selectedFilter = 2),
+                          color: Colors.red,
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
 
             // Customers List
@@ -506,7 +499,7 @@ class _ManageCustomersPageState extends State<ManageCustomersPage>
       curve: Curves.easeInOut,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           decoration: BoxDecoration(
@@ -518,7 +511,7 @@ class _ManageCustomersPageState extends State<ManageCustomersPage>
                   )
                 : null,
             color: isSelected ? null : Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isSelected ? color : Colors.grey.shade300,
               width: isSelected ? 2 : 1,
@@ -578,81 +571,24 @@ class _ManageCustomersPageState extends State<ManageCustomersPage>
           shadowColor: isBlocked
               ? Colors.red.withOpacity(0.2)
               : Colors.black.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(8),
           child: InkWell(
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => CustomerInfo(customer: customer),
               ),
             ),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(8),
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.white,
-                    isBlocked
-                        ? Colors.red.shade50.withOpacity(0.3)
-                        : Colors.green.shade50.withOpacity(0.3),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                border: Border.all(
-                  color: isBlocked
-                      ? Colors.red.shade200
-                      : Colors.green.shade200,
-                  width: 1.5,
-                ),
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.white,
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
                     // Enhanced Avatar
-                    Hero(
-                      tag: 'customer_${customer.uid}',
-                      child: Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: isBlocked
-                                ? [Colors.red.shade400, Colors.red.shade600]
-                                : [
-                                    Colors.green.shade400,
-                                    Colors.green.shade600,
-                                  ],
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: (isBlocked ? Colors.red : Colors.green)
-                                  .withOpacity(0.4),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Text(
-                            (customer.name ?? 'C')
-                                .substring(0, 1)
-                                .toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 16),
 
                     // Customer Info
                     Expanded(

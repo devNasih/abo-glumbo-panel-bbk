@@ -101,72 +101,136 @@ class _ManageTransactionsPageState extends State<ManageTransactionsPage> {
             ),
           ),
 
-          // Search Bar Section
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText:
-                    '${AppLocalizations.of(context)!.search} ${AppLocalizations.of(context)!.bookingId} / ${AppLocalizations.of(context)!.orderId}',
-                hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-                prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.clear, color: Colors.grey[600]),
-                        onPressed: () {
-                          _searchController.clear();
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.primary, width: 2),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            child: Hero(
+              tag: 'search_bar',
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value.toLowerCase();
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: AppLocalizations.of(context)!.searchByBookingId,
+                      hintStyle: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 15,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        color: AppColors.primary,
+                        size: 24,
+                      ),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(
+                                Icons.clear_rounded,
+                                color: Colors.grey.shade600,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _searchController.clear();
+                                  _searchQuery = '';
+                                });
+                              },
+                              tooltip: AppLocalizations.of(context)!.clear,
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
+                      ),
+                    ),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
 
+          // Search Bar Section
+          // Padding(
+          //   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          //   child: TextField(
+          //     controller: _searchController,
+          //     decoration: InputDecoration(
+          //       hintText: AppLocalizations.of(context)!.searchByBookingId,
+          //       hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+          //       prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+          //       suffixIcon: _searchQuery.isNotEmpty
+          //           ? IconButton(
+          //               icon: Icon(Icons.clear, color: Colors.grey[600]),
+          //               onPressed: () {
+          //                 _searchController.clear();
+          //               },
+          //             )
+          //           : null,
+          //       filled: true,
+          //       fillColor: Colors.white,
+          //       border: OutlineInputBorder(
+          //         borderRadius: BorderRadius.circular(12),
+          //         borderSide: BorderSide(color: Colors.grey[300]!),
+          //       ),
+          //       enabledBorder: OutlineInputBorder(
+          //         borderRadius: BorderRadius.circular(12),
+          //         borderSide: BorderSide(color: Colors.grey[300]!),
+          //       ),
+          //       focusedBorder: OutlineInputBorder(
+          //         borderRadius: BorderRadius.circular(12),
+          //         borderSide: BorderSide(color: AppColors.primary, width: 2),
+          //       ),
+          //       contentPadding: const EdgeInsets.symmetric(
+          //         horizontal: 16,
+          //         vertical: 14,
+          //       ),
+          //     ),
+          //   ),
+          // ),
+
           // Filter Chips Section
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildFilterChip(
-                    context,
-                    AppLocalizations.of(context)!.all,
-                    'all',
-                  ),
-                  const SizedBox(width: 8),
-                  _buildFilterChip(
-                    context,
-                    AppLocalizations.of(context)!.cashInHand,
-                    'cash',
-                  ),
-                  const SizedBox(width: 8),
-                  _buildFilterChip(
-                    context,
-                    AppLocalizations.of(context)!.card,
-                    'card',
-                  ),
-                ],
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                _buildFilterChip(
+                  context,
+                  AppLocalizations.of(context)!.all,
+                  'all',
+                ),
+                const SizedBox(width: 8),
+                _buildFilterChip(
+                  context,
+                  AppLocalizations.of(context)!.cashInHand,
+                  'cash',
+                ),
+                const SizedBox(width: 8),
+                _buildFilterChip(
+                  context,
+                  AppLocalizations.of(context)!.card,
+                  'card',
+                ),
+              ],
             ),
           ),
 
@@ -495,14 +559,14 @@ class _ManageTransactionsPageState extends State<ManageTransactionsPage> {
         });
       },
       backgroundColor: Colors.white,
-      selectedColor: AppColors.primary.withOpacity(0.15),
-      checkmarkColor: AppColors.primary,
+      selectedColor: AppColors.primary,
+      checkmarkColor: AppColors.bgWhite,
       labelStyle: TextStyle(
-        color: isSelected ? AppColors.primary : Colors.grey[700],
+        color: isSelected ? Colors.white : AppColors.primary,
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(8),
         side: BorderSide(
           color: isSelected ? AppColors.primary : Colors.grey[300]!,
           width: isSelected ? 1.5 : 1,

@@ -2167,7 +2167,10 @@ class _BookingInfoState extends State<BookingInfo> {
               _buildInfoRow(
                 context,
                 label: AppLocalizations.of(context)!.transactionId,
-                value: widget.booking.orderId ?? "",
+                value:
+                    widget.booking.transactionId ??
+                    widget.booking.orderId ??
+                    "",
                 textTheme: textTheme,
                 colorScheme: colorScheme,
                 needCopyButton: true,
@@ -2304,30 +2307,22 @@ class _BookingInfoState extends State<BookingInfo> {
               ),
             ],
 
-            const SizedBox(height: 12),
-            _buildCostRow(
-              context,
-              label: AppLocalizations.of(context)!.inspectionFee,
-              amount: widget.booking.service.price ?? 0.0,
-              colorScheme: colorScheme,
-            ),
-
             // Payment Mode (before total)
-            if (widget.booking.bookingStatusCode.toLowerCase() == 'c' &&
-                widget.booking.paymentCompleted) ...[
-              const SizedBox(height: 16),
-              _buildInfoRow(
-                context,
-                label: AppLocalizations.of(context)!.paymentMode,
-                value: widget.booking.paymentModeCode.toLowerCase() == 'c'
-                    ? AppLocalizations.of(context)!.card
-                    : widget.booking.paymentModeCode.toLowerCase() == 'a'
-                    ? AppLocalizations.of(context)!.applePay
-                    : AppLocalizations.of(context)!.cashInHand,
-                textTheme: textTheme,
-                colorScheme: colorScheme,
-              ),
-            ],
+            // if (widget.booking.bookingStatusCode.toLowerCase() == 'c' &&
+            //     widget.booking.paymentCompleted) ...[
+            //   const SizedBox(height: 16),
+            //   _buildInfoRow(
+            //     context,
+            //     label: AppLocalizations.of(context)!.paymentMode,
+            //     value: widget.booking.paymentModeCode.toLowerCase() == 'c'
+            //         ? AppLocalizations.of(context)!.card
+            //         : widget.booking.paymentModeCode.toLowerCase() == 'a'
+            //         ? AppLocalizations.of(context)!.applePay
+            //         : AppLocalizations.of(context)!.cashInHand,
+            //     textTheme: textTheme,
+            //     colorScheme: colorScheme,
+            //   ),
+            // ],
 
             // Total Cost
             const SizedBox(height: 12),

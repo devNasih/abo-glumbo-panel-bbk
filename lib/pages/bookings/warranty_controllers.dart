@@ -101,20 +101,45 @@ class _WarrantyControlsWidgetState extends State<WarrantyControlsWidget> {
           // Call the callback to open directions
           widget.onTrackingStarted?.call();
         } else if (state is WarrantyStartWorkingFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
+          final isPermissionError =
+              state.error.contains(
                 AppLocalizations.of(
                   context,
                 )!.backgroundLocationPermissionRequired,
+              ) ||
+              state.error.contains('Background location permission') ||
+              state.error.contains('Allow all the time') ||
+              state.error.contains('Background location') ||
+              state.error.contains('Always Allow permission');
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(
+                    isPermissionError
+                        ? Icons.location_off
+                        : Icons.error_outline,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      isPermissionError
+                          ? AppLocalizations.of(
+                              context,
+                            )!.backgroundLocationPermissionRequired
+                          : state.error.replaceAll('Exception: ', ''),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
               ),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 6),
-              action:
-                  state.error.contains('Background location') ||
-                      state.error.contains('Always Allow permission')
+              action: isPermissionError
                   ? SnackBarAction(
-                      label: AppLocalizations.of(context)!.settings,
+                      label: AppLocalizations.of(context)!.openSettings,
                       textColor: Colors.white,
                       onPressed: () => Permission.locationAlways.request(),
                     )

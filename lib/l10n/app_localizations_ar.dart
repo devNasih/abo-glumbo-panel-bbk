@@ -3705,6 +3705,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get terms5title => 'التقييم';
 
   @override
+  String get searchByCustomerName => 'بحث باسم العميل';
+
+  @override
   String get phoneNumberUpdateInfo =>
       'أدخل رقم الهاتف الذي يبدأ بـ \"05\" لتحديث رقم الهاتف';
 

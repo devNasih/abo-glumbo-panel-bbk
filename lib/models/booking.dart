@@ -35,6 +35,7 @@ class BookingModel {
   String? cancellationReason;
   String? rejectedBy;
   String? orderId;
+  String? transactionId; // Added transactionId
   Timestamp? paymentCompletedAt;
 
   bool paymentCompleted = false;
@@ -70,6 +71,7 @@ class BookingModel {
     this.cancellationReason,
     this.rejectedBy,
     this.orderId,
+    this.transactionId, // Added transactionId
     this.cancelledWorkerUids,
     this.paymentCompleted = false,
     this.warranty,
@@ -113,6 +115,7 @@ class BookingModel {
       trackingStartedAt = data['trackingStartedAt'] as Timestamp?,
       trackingStoppedAt = data['trackingStoppedAt'] as Timestamp?,
       orderId = data['orderId'],
+      transactionId = data['transactionId'], // Added transactionId
       cancelledWorkerUids = data['cancelledWorkerUids'] != null
           ? List<String>.from(data['cancelledWorkerUids'])
           : null,
@@ -141,6 +144,7 @@ class BookingModel {
       'issueImage': issueImage,
       'customer': customer.toJson(),
       'orderId': orderId,
+      'transactionId': transactionId, // Added transactionId
       'chatroomId': chatroomId,
       'issueVideo': issueVideo,
       'cancelledWorkers': cancelledWorkers.map((e) => e.toJson()).toList(),

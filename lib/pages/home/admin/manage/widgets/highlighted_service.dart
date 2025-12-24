@@ -10,112 +10,135 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class HighlightedServiceWidget extends StatelessWidget {
-  const HighlightedServiceWidget({super.key, required this.data});
+  const HighlightedServiceWidget({
+    super.key,
+    required this.data,
+    required this.editCallback,
+  });
   final HighlightedServicesModel data;
+  final VoidCallback editCallback;
 
   @override
   Widget build(BuildContext context) {
     final currentLanguage = AppLocalizations.of(context)?.localeName ?? 'en';
     final isRtlLanguage = currentLanguage == 'ar';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 16, top: 10, right: 16),
-          child: Text(
-            data.titleLocalized(languageCode: currentLanguage) ?? '',
-            style: GoogleFonts.dmSans(
-              fontWeight: FontWeight.w500,
-              fontSize: 16,
-              color: Colors.black,
-            ),
-          ),
-        ),
-        const SizedBox(height: 13),
-        SizedBox(
-          height: 127,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: data.services?.length ?? 0,
-            itemBuilder: (context, index) {
-              return FutureBuilder(
-                future: AppFirestore.servicesCollectionRef
-                    .doc(data.services![index])
-                    .get(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingContainer(isRtlLanguage);
-                  }
-                  if (snapshot.hasError) {
-                    return _buildErrorContainer(context, isRtlLanguage);
-                  }
-
-                  final service = ServiceModel.fromDocumentSnapshot(
-                    snapshot.data as DocumentSnapshot,
-                  );
-
-                  return GestureDetector(
-                    onTap: () {},
-                    child: Container(
-                      height: 127,
-                      width: 127,
-                      margin: isRtlLanguage
-                          ? const EdgeInsets.only(left: 13)
-                          : const EdgeInsets.only(right: 13),
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Stack(
-                        alignment: Alignment.bottomCenter,
-                        children: [
-                          SizedBox(
-                            height: 127,
-                            width: 127,
-                            child: _buildServiceImage(service),
-                          ),
-                          Container(
-                            height: 88,
-                            width: 127,
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                stops: [0, 1],
-                                begin: Alignment.center,
-                                end: Alignment.bottomCenter,
-                                colors: [Colors.transparent, Colors.black],
-                              ),
-                            ),
-                            alignment:
-                                Directionality.of(context) == TextDirection.ltr
-                                ? Alignment.bottomLeft
-                                : Alignment.bottomRight,
-                            padding: const EdgeInsets.all(8),
-                            child: Text(
-                              Directionality.of(context) == TextDirection.ltr
-                                  ? service.name ?? ""
-                                  : service.name_ar ?? "",
-                              style: GoogleFonts.dmSans(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
+    return Card(
+      color: Colors.white,
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    data.titleLocalized(languageCode: currentLanguage) ?? '',
+                    style: GoogleFonts.dmSans(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 16,
+                      color: Colors.black,
                     ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: editCallback,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 127,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: data.services?.length ?? 0,
+                itemBuilder: (context, index) {
+                  return FutureBuilder(
+                    future: AppFirestore.servicesCollectionRef
+                        .doc(data.services![index])
+                        .get(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return _buildLoadingContainer(isRtlLanguage);
+                      }
+                      if (snapshot.hasError) {
+                        return _buildErrorContainer(context, isRtlLanguage);
+                      }
+
+                      final service = ServiceModel.fromDocumentSnapshot(
+                        snapshot.data as DocumentSnapshot,
+                      );
+
+                      return GestureDetector(
+                        onTap: () {},
+                        child: Container(
+                          height: 127,
+                          width: 127,
+                          margin: isRtlLanguage
+                              ? const EdgeInsets.only(left: 13)
+                              : const EdgeInsets.only(right: 13),
+                          clipBehavior: Clip.antiAlias,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Stack(
+                            alignment: Alignment.bottomCenter,
+                            children: [
+                              SizedBox(
+                                height: 127,
+                                width: 127,
+                                child: _buildServiceImage(service),
+                              ),
+                              Container(
+                                height: 88,
+                                width: 127,
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(
+                                    stops: [0, 1],
+                                    begin: Alignment.center,
+                                    end: Alignment.bottomCenter,
+                                    colors: [Colors.transparent, Colors.black],
+                                  ),
+                                ),
+                                alignment:
+                                    Directionality.of(context) ==
+                                        TextDirection.ltr
+                                    ? Alignment.bottomLeft
+                                    : Alignment.bottomRight,
+                                padding: const EdgeInsets.all(8),
+                                child: Text(
+                                  Directionality.of(context) ==
+                                          TextDirection.ltr
+                                      ? service.name ?? ""
+                                      : service.name_ar ?? "",
+                                  style: GoogleFonts.dmSans(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
-              );
-            },
-          ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 30),
-      ],
+      ),
     );
   }
 

@@ -145,6 +145,7 @@ class BookingCards extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  SizedBox(width: 8),
                   if (!isInAdminMode &&
                       ((!isAdmin &&
                               booking.bookingStatusCode == 'P' &&
@@ -158,7 +159,7 @@ class BookingCards extends StatelessWidget {
                                     (tech) => tech.uid == LocalStore.getUID(),
                                   ) ??
                                   false)))) ...[
-                    OutlinedButton(
+                    ElevatedButton(
                       onPressed: () {
                         _showAcceptConfirmationDialog(
                           context,
@@ -166,26 +167,38 @@ class BookingCards extends StatelessWidget {
                           isWarranty,
                         );
                       },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.green,
-                        side: const BorderSide(color: Colors.green),
-                        minimumSize: const Size(60, 28),
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                      style: ButtonStyle(
+                        padding: WidgetStatePropertyAll(EdgeInsets.zero),
+                        shape: WidgetStatePropertyAll(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        backgroundColor: WidgetStatePropertyAll(Colors.green),
                       ),
-                      child: Text(AppLocalizations.of(context)!.approve),
+                      child: Text(
+                        AppLocalizations.of(context)!.accept,
+                        style: TextStyle(color: Colors.white, fontSize: 12),
+                      ),
                     ),
                     const SizedBox(width: 8),
-                    OutlinedButton(
+                    ElevatedButton(
                       onPressed: () {
                         showRejectBookingDialog(context, booking, isWarranty);
                       },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
-                        minimumSize: const Size(60, 28),
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                      style: ButtonStyle(
+                        padding: WidgetStatePropertyAll(EdgeInsets.zero),
+                        shape: WidgetStatePropertyAll(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        backgroundColor: WidgetStatePropertyAll(Colors.red),
                       ),
-                      child: Text(AppLocalizations.of(context)!.reject),
+                      child: Text(
+                        AppLocalizations.of(context)!.reject,
+                        style: TextStyle(color: Colors.white, fontSize: 12),
+                      ),
                     ),
                   ],
                   if ((isAdmin &&
