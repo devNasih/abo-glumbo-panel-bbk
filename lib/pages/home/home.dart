@@ -57,7 +57,12 @@ class _HomeState extends State<Home> {
     } else {
       selectedBookingStatus = 'P';
     }
-    NotificationServices.initializeFCM();
+    // Initialize notifications explicitly
+    Future.delayed(Duration.zero, () async {
+      await NotificationServices.initializeNotifications();
+      await NotificationServices.setupFCMListeners();
+      await NotificationServices.checkForInitialMessage();
+    });
     _loadRolePreference(); // Load saved role preference
     if (widget.byPassUid != null && widget.byPassUid!.isNotEmpty) {
       _handleBypassLogin();

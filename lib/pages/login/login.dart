@@ -433,6 +433,13 @@ class _LoginPageState extends State<LoginPage> {
     } else {
       _phoneController.clear();
     }
+
+    // Initialize notifications explicitly
+    Future.delayed(Duration.zero, () async {
+      await NotificationServices.initializeNotifications();
+      await NotificationServices.setupFCMListeners();
+      await NotificationServices.checkForInitialMessage();
+    });
   }
 
   @override

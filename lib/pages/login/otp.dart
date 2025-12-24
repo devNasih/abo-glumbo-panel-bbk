@@ -545,6 +545,11 @@ class _OtpPageState extends State<OtpPage> {
                         ),
                       ),
                     ),
+                    onChanged: (value) {
+                      if (value.length == 6) {
+                        FocusScope.of(context).unfocus();
+                      }
+                    },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return locn.enterOtp;

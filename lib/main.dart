@@ -131,14 +131,6 @@ void main() async {
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     debugPrint('✅ FCM background handler registered');
 
-    // STEP 5: Initialize Notifications with delay to avoid permission conflicts
-    debugPrint('🔄 Initializing notifications...');
-    await Future.delayed(const Duration(milliseconds: 500));
-    await NotificationServices.initializeNotifications();
-    await NotificationServices.setupFCMListeners();
-    await NotificationServices.checkForInitialMessage();
-    debugPrint('✅ Notification services initialized');
-
     // STEP 6: Setup System UI (with One UI 8 fix)
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(
