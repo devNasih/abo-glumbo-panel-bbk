@@ -164,15 +164,14 @@ class _WorkerHomeState extends State<WorkerHome> with TickerProviderStateMixin {
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
       titleSpacing: 16,
-      title: Text(
-        AppLocalizations.of(context)?.manageOrders ?? "Manage Orders",
-      ),
+      title: Text(AppLocalizations.of(context)?.orders ?? "Manage Orders"),
       actions: [
         if (widget.onToggleRole != null)
           IconButton(
             onPressed: widget.onToggleRole,
             icon: const Icon(Icons.admin_panel_settings_rounded),
-            tooltip: 'Switch to Admin',
+            tooltip:
+                AppLocalizations.of(context)?.switchToAdmin ?? "Switch to Admin",
           ),
       ],
     );

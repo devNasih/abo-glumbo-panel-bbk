@@ -49,7 +49,8 @@ class _AccountPageState extends State<AccountPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.workerData?.isAdmin == true) {
+    if (widget.workerData?.isAdmin == true &&
+        widget.workerData?.isGrantedAdminByMain == false) {
       isMainAdmin = true;
     } else {
       isMainAdmin = false;
@@ -431,6 +432,7 @@ class _AccountPageState extends State<AccountPage> {
                 ),
 
                 ListTile(
+                  trailing: const Icon(Icons.logout, size: 18),
                   onTap: () => AccountActionDialogs.showLogoutConfirmation(
                     context,
                     onConfirm: () async {

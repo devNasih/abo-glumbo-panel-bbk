@@ -58,6 +58,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tip => 'إكرامية';
 
   @override
+  String get grantAdminAccess => 'منح صلاحيات المشرف';
+
+  @override
+  String get adminAccessManagement => 'إدارة صلاحيات المشرف';
+
+  @override
   String get searchByBookingId => 'البحث باستخدام رقم الحجز';
 
   @override
@@ -3948,7 +3954,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get revoke => 'إلغاء';
 
   @override
-  String get switchToAdmin => 'Switch to Admin';
+  String get switchToAdmin => 'التبديل إلى وضع المشرف';
 
   @override
   String get manageAdmins => 'إدارة المشرفين';

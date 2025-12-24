@@ -19,7 +19,8 @@ import 'package:path_provider/path_provider.dart';
 
 class AgentInfo extends StatefulWidget {
   final UserModel agent;
-  const AgentInfo({super.key, required this.agent});
+  final bool isMainAdmin;
+  const AgentInfo({super.key, required this.agent, required this.isMainAdmin});
 
   @override
   State<AgentInfo> createState() => _AgentInfoState();
@@ -1326,12 +1327,12 @@ class _AgentInfoState extends State<AgentInfo> {
             ),
 
             // Admin Access Management Section (only for main admin and not for main admin account)
-            if (agent.phone != '111111111') ...[
+            if (widget.isMainAdmin) ...[
               const SizedBox(height: 16),
               const Divider(),
               const SizedBox(height: 16),
               Text(
-                'Admin Access Management',
+                AppLocalizations.of(context)!.adminAccessManagement,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -1346,7 +1347,9 @@ class _AgentInfoState extends State<AgentInfo> {
                   child: ElevatedButton.icon(
                     onPressed: () => _revokeAdminAccess(),
                     icon: const Icon(Icons.remove_moderator_rounded),
-                    label: const Text('Revoke Admin Access'),
+                    label: Text(
+                      AppLocalizations.of(context)!.revokeAdminAccess,
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red.shade600,
                       foregroundColor: Colors.white,
@@ -1364,7 +1367,7 @@ class _AgentInfoState extends State<AgentInfo> {
                   child: ElevatedButton.icon(
                     onPressed: () => _showAdminAccessDialog(context),
                     icon: const Icon(Icons.admin_panel_settings_rounded),
-                    label: const Text('Grant Admin Access'),
+                    label: Text(AppLocalizations.of(context)!.grantAdminAccess),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue.shade600,
                       foregroundColor: Colors.white,

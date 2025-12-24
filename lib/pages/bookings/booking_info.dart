@@ -293,13 +293,22 @@ class _BookingInfoState extends State<BookingInfo> {
             // Booking controls (Normal)
             if (!widget.isInAdminMode &&
                 !widget.isWarranty &&
-                (widget.booking.bookingStatusCode.toLowerCase() == 'a') &&
-                (widget.booking.agent?.uid == LocalStore.getUID()))
+                (widget.booking.bookingStatusCode.toLowerCase() == 'a')
+            //  &&
+            // (widget.booking.agent?.uid == LocalStore.getUID() ||
+            //     (LocalStore.getCachedUserData()?.adminAccessLevel == 1))
+            )
               StreamBuilder<DocumentSnapshot>(
                 stream: AppFirestore.bookingsCollectionRef
                     .doc(widget.booking.id)
                     .snapshots(),
                 builder: (context, snapshot) {
+                  log("normal booking controls");
+                  log("isInadminmode : ${widget.isInAdminMode.toString()}");
+                  log("isWarranty : ${widget.isWarranty.toString()}");
+                  log(
+                    "bookingStatusCode : ${widget.booking.bookingStatusCode.toString()}",
+                  );
                   bool isTracking = widget.booking.isStartTracking ?? false;
 
                   if (snapshot.hasData && snapshot.data!.exists) {
@@ -321,12 +330,18 @@ class _BookingInfoState extends State<BookingInfo> {
                 builder: (context) {
                   final warrantyStatus =
                       widget.booking.warranty?.warrantyStatusCode;
+                  log("warranty controls");
+                  log("isInadminmode : ${widget.isInAdminMode.toString()}");
+                  log("isWarranty : ${widget.isWarranty.toString()}");
+                  log("warrantyStatusCode : $warrantyStatus");
 
                   // Warranty tracking controls (when warranty is started)
                   if (!widget.isInAdminMode &&
                       warrantyStatus == 'S' &&
-                      widget.booking.warranty?.assignedTechnician?.uid ==
-                          LocalStore.getUID()) {
+                      (widget.booking.warranty?.assignedTechnician?.uid ==
+                              LocalStore.getUID() ||
+                          (LocalStore.getCachedUserData()?.adminAccessLevel ==
+                              1))) {
                     return StreamBuilder<DocumentSnapshot>(
                       stream: AppFirestore.bookingsCollectionRef
                           .doc(widget.booking.id)
@@ -995,9 +1010,9 @@ class _BookingInfoState extends State<BookingInfo> {
             const SizedBox(height: 12),
             _buildCustomerInfoRowWithButton(
               icon: Icons.location_on,
-              label: AppLocalizations.of(context)!.address,
+              label: AppLocalizations.of(context)!.location,
               value: selectedAddress != null
-                  ? '${selectedAddress.buildingNumber}\n${selectedAddress.streetName}'
+                  ? '${selectedAddress.streetName}'
                   : 'N/A',
               buttonIcon: Icons.directions,
               buttonLabel: AppLocalizations.of(context)!.directions,

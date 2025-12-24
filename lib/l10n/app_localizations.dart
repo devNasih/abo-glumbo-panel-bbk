@@ -194,6 +194,18 @@ abstract class AppLocalizations {
   /// **'Tip'**
   String get tip;
 
+  /// No description provided for @grantAdminAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant Admin Access'**
+  String get grantAdminAccess;
+
+  /// No description provided for @adminAccessManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Access Management'**
+  String get adminAccessManagement;
+
   /// No description provided for @searchByBookingId.
   ///
   /// In en, this message translates to:

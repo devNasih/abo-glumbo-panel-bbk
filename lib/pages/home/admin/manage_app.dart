@@ -25,15 +25,14 @@ class ManageApp extends StatefulWidget {
 
 class _ManageAppState extends State<ManageApp> {
   late List<_TileInfo> tiles;
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
     // Check if user is main admin
     final isMainAdmin =
-        widget.userData.phone == '111111111' ||
-        widget.userData.phone == '+966111111111';
+        widget.userData.isAdmin == true &&
+        widget.userData.isGrantedAdminByMain == false;
     final isCustomerService = widget.userData.adminAccessLevel == 2;
 
     List<_TileInfo> allTiles = [
@@ -158,7 +157,11 @@ class _ManageAppState extends State<ManageApp> {
             case 'Manage Banners':
               return const ManageBanners();
             case 'Manage Workers':
-              return const ManageAgents();
+              return ManageAgents(
+                isMainAdmin:
+                    (widget.userData.isAdmin == true &&
+                    widget.userData.isGrantedAdminByMain == false),
+              );
             case 'Manage Customers':
               return const ManageCustomersPage();
 

@@ -59,6 +59,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tip => 'Tip';
 
   @override
+  String get grantAdminAccess => 'Grant Admin Access';
+
+  @override
+  String get adminAccessManagement => 'Admin Access Management';
+
+  @override
   String get searchByBookingId => 'Search by Booking ID';
 
   @override

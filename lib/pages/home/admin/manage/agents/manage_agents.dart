@@ -9,7 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ManageAgents extends StatefulWidget {
-  const ManageAgents({super.key});
+  final bool isMainAdmin;
+  const ManageAgents({super.key, required this.isMainAdmin});
 
   @override
   State<ManageAgents> createState() => _ManageAgentsState();
@@ -554,7 +555,7 @@ class _ManageAgentsState extends State<ManageAgents>
           child: InkWell(
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => AgentInfo(agent: agent)),
+              MaterialPageRoute(builder: (context) => AgentInfo(agent: agent,isMainAdmin: widget.isMainAdmin,)),
             ),
             borderRadius: BorderRadius.circular(20),
             child: Container(

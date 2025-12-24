@@ -388,7 +388,11 @@ class _HomeState extends State<Home> {
         List<Widget> adminPages = [
           AdminHome(onToggleRole: roleSwitchCallback),
           ManageApp(userData: userData),
-          WarrantyPage(workerData: userData, isTechnicianView: false),
+          WarrantyPage(
+            workerData: userData,
+            isTechnicianView: false,
+            isInAdminMode: true,
+          ),
           AccountPage(workerData: userData),
         ];
         List<Widget> workerPages = [
@@ -514,6 +518,18 @@ class _HomeState extends State<Home> {
                       color: AppColors.grey,
                     ),
                     label: AppLocalizations.of(context)?.orders ?? 'Orders',
+                  ),
+                } else if (!canSwitchRoles && _currentRole != 'techncian') ...{
+                  NavigationDestination(
+                    selectedIcon: Icon(
+                      Icons.format_list_bulleted,
+                      color: AppColors.secondary,
+                    ),
+                    icon: Icon(
+                      Icons.format_list_bulleted,
+                      color: AppColors.grey,
+                    ),
+                    label: AppLocalizations.of(context)?.manage ?? '',
                   ),
                 },
 
