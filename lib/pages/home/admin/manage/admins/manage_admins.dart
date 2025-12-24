@@ -352,7 +352,7 @@ class _ManageAdminsState extends State<ManageAdmins>
                 ),
 
                 // Enhanced Filter Chips
-                Container(
+                SizedBox(
                   width: double.infinity,
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,

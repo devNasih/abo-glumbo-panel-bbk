@@ -768,18 +768,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get completedAt => 'مكتمل في';
 
   @override
-  String get acceptedOn => 'تم القبول في';
-
-  @override
-  String get completedOn => 'تم الاكتمال في';
-
-  @override
-  String get rejectedOn => 'تم الرفض في';
-
-  @override
-  String get requestedOn => 'تم الطلب في';
-
-  @override
   String get expiredOn => 'انتهى في';
 
   @override
@@ -2668,6 +2656,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get managePayouts => 'إدارة التحويلات المالية';
 
   @override
+  String get requestedOn => 'تم الطلب في';
+
+  @override
   String get selectedFileCouldNotBeFound => 'لم يتم العثور على الملف المحدد';
 
   @override
@@ -2987,7 +2978,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rejectedBy => 'تم الرفض بواسطة';
 
   @override
+  String get rejectedOn => 'تم الرفض في';
+
+  @override
+  String get acceptedOn => 'تم القبول في';
+
+  @override
   String get acceptedBy => 'تم القبول بواسطة';
+
+  @override
+  String get completedOn => 'تم الاكتمال في';
 
   @override
   String get completedBy => 'تم الاكتمال بواسطة';
@@ -3706,7 +3706,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get phoneNumberUpdateInfo =>
-      'Enter phone number starting with \'05\' for updating phone number';
+      'أدخل رقم الهاتف الذي يبدأ بـ \"05\" لتحديث رقم الهاتف';
 
   @override
   String get termsIntroduction =>
@@ -3914,7 +3914,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get onlyMainAdminCanManageAdminAccess =>
-      'يمكن للمشرف الرئيسي فقط إدارة صلاحيات المشرفين';
+      'فقط المشرف الرئيسي يمكنه إدارة الوصول';
 
   @override
   String get cannotModifyMainAdminAccount =>

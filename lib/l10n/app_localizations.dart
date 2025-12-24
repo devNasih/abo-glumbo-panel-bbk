@@ -1580,30 +1580,6 @@ abstract class AppLocalizations {
   /// **'Completed At'**
   String get completedAt;
 
-  /// No description provided for @acceptedOn.
-  ///
-  /// In en, this message translates to:
-  /// **'Accepted on'**
-  String get acceptedOn;
-
-  /// No description provided for @completedOn.
-  ///
-  /// In en, this message translates to:
-  /// **'Completed on'**
-  String get completedOn;
-
-  /// No description provided for @rejectedOn.
-  ///
-  /// In en, this message translates to:
-  /// **'Rejected on'**
-  String get rejectedOn;
-
-  /// No description provided for @requestedOn.
-  ///
-  /// In en, this message translates to:
-  /// **'Requested on'**
-  String get requestedOn;
-
   /// No description provided for @expiredOn.
   ///
   /// In en, this message translates to:
@@ -5222,6 +5198,12 @@ abstract class AppLocalizations {
   /// **'Manage Payouts'**
   String get managePayouts;
 
+  /// No description provided for @requestedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested on'**
+  String get requestedOn;
+
   /// No description provided for @selectedFileCouldNotBeFound.
   ///
   /// In en, this message translates to:
@@ -5840,11 +5822,29 @@ abstract class AppLocalizations {
   /// **'Rejected by'**
   String get rejectedBy;
 
+  /// No description provided for @rejectedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected on'**
+  String get rejectedOn;
+
+  /// No description provided for @acceptedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted on'**
+  String get acceptedOn;
+
   /// No description provided for @acceptedBy.
   ///
   /// In en, this message translates to:
   /// **'Accepted by'**
   String get acceptedBy;
+
+  /// No description provided for @completedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed on'**
+  String get completedOn;
 
   /// No description provided for @completedBy.
   ///
