@@ -1,32 +1,28 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:aboglumbo_bbk_panel/common_widget/elevated_button.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
-import 'package:aboglumbo_bbk_panel/common_widget/searchable_dropdown.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/text_form.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
-import 'package:aboglumbo_bbk_panel/models/location.dart';
-import 'package:aboglumbo_bbk_panel/models/location_selection.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
 import 'package:aboglumbo_bbk_panel/pages/home/home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
 import 'package:aboglumbo_bbk_panel/services/app_services.dart';
 import 'package:aboglumbo_bbk_panel/services/firestorage.dart';
 import 'package:aboglumbo_bbk_panel/services/notification_services.dart';
-
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 
 class Signup extends StatefulWidget {
   final String uid;
@@ -52,26 +48,21 @@ class _SignupState extends State<Signup> {
   XFile? idImage;
   List<PlatformFile> certifications = [];
 
-  List<Region> regions = [];
-  Region? selectedRegion;
-  City? selectedCity;
-  District? selectedDistrict;
-
-  String? selectedDistrictName;
-  LocationModel? selectedLocation;
-  List<LocationModel> locations = [];
+  Position? _currentPosition;
+  Placemark? _placeMark;
+  bool _isFetchingLocation = false;
+  String? _locationError;
 
   List<Map<String, dynamic>> jobCategories = [];
   List<String> selectedJobRoles = [];
   bool isLoadingCategories = true;
-  bool isLoadingLocations = true;
 
   @override
   void initState() {
     super.initState();
     phoneController.text = FirebaseAuth.instance.currentUser?.phoneNumber ?? '';
     _loadJobCategories();
-    _loadLocations();
+    // _loadLocations removed
   }
 
   // ✅ FIXED: Proper conversion from AppServices return type
@@ -109,25 +100,55 @@ class _SignupState extends State<Signup> {
     }
   }
 
-  Future<void> _loadLocations() async {
-    setState(() => isLoadingLocations = true);
-    try {
-      // Load JSON from assets
-      final jsonString = await rootBundle.loadString(
-        'assets/data/saudi_hierarchical.json',
-      );
-      final List<dynamic> jsonData = json.decode(jsonString);
+  Future<void> _getCurrentLocation() async {
+    setState(() {
+      _isFetchingLocation = true;
+      _locationError = null;
+    });
 
-      setState(() {
-        regions = jsonData.map((r) => Region.fromJson(r)).toList();
-      });
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error loading locations: $e');
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw 'Location services are disabled.';
       }
-    } finally {
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw 'Location permissions are denied';
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw 'Location permissions are permanently denied.';
+      }
+
+      final position = await Geolocator.getCurrentPosition();
+
+      List<Placemark> placemarks = [];
+      try {
+        placemarks = await placemarkFromCoordinates(
+          position.latitude,
+          position.longitude,
+        );
+      } catch (e) {
+        debugPrint('Geocoding error: $e');
+      }
+
       if (mounted) {
-        setState(() => isLoadingLocations = false);
+        setState(() {
+          _currentPosition = position;
+          _placeMark = placemarks.isNotEmpty ? placemarks.first : null;
+          _isFetchingLocation = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isFetchingLocation = false;
+          _locationError = e.toString();
+        });
       }
     }
   }
@@ -611,37 +632,12 @@ class _SignupState extends State<Signup> {
     if (!_formKey.currentState!.validate()) return;
 
     // ✅ Validate all location fields are selected
-    if (selectedRegion == null) {
+    // ✅ Validate location
+    if (_currentPosition == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            AppLocalizations.of(context)?.pleaseSelectProvince ??
-                'Please select a region',
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (selectedCity == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)?.pleaseSelectCity ??
-                'Please select a city',
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (selectedDistrict == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)?.pleaseSelectNeighborhood ??
-                'Please select a neighborhood',
-          ),
+          content: Text('Please fetch your current location'),
+          backgroundColor: Colors.red,
         ),
       );
       return;
@@ -767,19 +763,19 @@ class _SignupState extends State<Signup> {
         }
       }
 
-      // ✅ Create DetailedLocationModel
+      // ✅ Create DetailedLocationModel from Current Location
       final detailedLocation = DetailedLocationModel(
-        regionId: selectedRegion!.regionId,
-        regionEn: selectedRegion!.regionEn,
-        regionAr: selectedRegion!.regionAr,
-        cityId: selectedCity!.cityId,
-        cityEn: selectedCity!.cityEn,
-        cityAr: selectedCity!.cityAr,
-        neighborhoodId: selectedDistrict!.districtId,
-        neighborhoodEn: selectedDistrict!.districtEn,
-        neighborhoodAr: selectedDistrict!.districtAr,
-        lat: selectedDistrict!.latitude,
-        lon: selectedDistrict!.longitude,
+        regionId: null,
+        regionEn: _placeMark?.administrativeArea,
+        regionAr: _placeMark?.administrativeArea,
+        cityId: null,
+        cityEn: _placeMark?.locality,
+        cityAr: _placeMark?.locality,
+        neighborhoodId: null,
+        neighborhoodEn: _placeMark?.subLocality ?? _placeMark?.thoroughfare,
+        neighborhoodAr: _placeMark?.subLocality ?? _placeMark?.thoroughfare,
+        lat: _currentPosition!.latitude,
+        lon: _currentPosition!.longitude,
       );
 
       // Create user document
@@ -869,7 +865,6 @@ class _SignupState extends State<Signup> {
   @override
   Widget build(BuildContext context) {
     final safePadding = MediaQuery.of(context).padding;
-    final isArabic = LocalStore.getUserlanguage() == 'ar';
 
     return PopScope(
       canPop: false,
@@ -904,8 +899,7 @@ class _SignupState extends State<Signup> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Loading indicator
-                if (isLoadingLocations || isLoadingCategories)
-                  const LinearProgressIndicator(),
+                if (isLoadingCategories) const LinearProgressIndicator(),
 
                 const SizedBox(height: 16),
 
@@ -1005,86 +999,122 @@ class _SignupState extends State<Signup> {
                   },
                 ),
 
-                // Region Dropdown
-                _buildDropdownField<Region>(
-                  hintText: AppLocalizations.of(
-                    context,
-                  )!.typeProvinceNameToSearch,
-                  label: AppLocalizations.of(context)!.province,
-                  value: selectedRegion,
-                  items: regions,
-                  itemLabel: (region) => region.getName(isArabic),
-                  onChanged: (region) {
-                    setState(() {
-                      selectedRegion = region;
-                      selectedCity = null;
-                      selectedDistrict = null;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return AppLocalizations.of(
-                            context,
-                          )?.pleaseSelectProvince ??
-                          'Please select a region';
-                    }
-                    return null;
-                  },
+                const SizedBox(height: 16),
+                // Location Fetch Section
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.grey.shade50,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)?.location ?? 'Location',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: _isFetchingLocation
+                              ? null
+                              : _getCurrentLocation,
+                          icon: _isFetchingLocation
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.my_location),
+                          label: Text(
+                            _isFetchingLocation
+                                ? 'Fetching...'
+                                : (AppLocalizations.of(
+                                        context,
+                                      )?.useCurrentLocation ??
+                                      'Use Current Location'),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (_currentPosition != null) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.green.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (_placeMark != null)
+                                      Text(
+                                        "${_placeMark!.locality ?? ''}, ${_placeMark!.administrativeArea ?? ''}",
+                                        style: GoogleFonts.dmSans(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.green.shade900,
+                                        ),
+                                      ),
+                                    Text(
+                                      "Lat: ${_currentPosition!.latitude.toStringAsFixed(4)}, Lon: ${_currentPosition!.longitude.toStringAsFixed(4)}",
+                                      style: GoogleFonts.dmSans(
+                                        fontSize: 11,
+                                        color: Colors.green.shade700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      if (_locationError != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          _locationError!,
+                          style: GoogleFonts.dmSans(
+                            color: Colors.red,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-
-                if (selectedRegion != null) ...[
-                  const SizedBox(height: 16),
-
-                  // City Dropdown
-                  _buildDropdownField<City>(
-                    hintText: AppLocalizations.of(
-                      context,
-                    )!.typeCityNameToSearch,
-                    label: AppLocalizations.of(context)!.city,
-                    value: selectedCity,
-                    items: selectedRegion!.cities,
-                    itemLabel: (city) => city.getName(isArabic),
-                    onChanged: (city) {
-                      setState(() {
-                        selectedCity = city;
-                        selectedDistrict = null;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null) {
-                        return AppLocalizations.of(context)!.pleaseSelectCity;
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-
-                if (selectedCity != null) ...[
-                  const SizedBox(height: 16),
-                  // District Dropdown
-                  _buildDropdownField<District>(
-                    hintText: AppLocalizations.of(
-                      context,
-                    )!.typeNeighborhoodNameToSearch,
-                    label: AppLocalizations.of(context)!.neighborhood,
-                    value: selectedDistrict,
-                    items: selectedCity!.districts,
-                    itemLabel: (district) => district.getName(isArabic),
-                    onChanged: (district) {
-                      setState(() {
-                        selectedDistrict = district;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null) {
-                        return AppLocalizations.of(
-                          context,
-                        )!.pleaseSelectNeighborhood;
-                      }
-                      return null;
-                    },
-                  ),
-                ],
+                const SizedBox(height: 16),
 
                 const SizedBox(height: 16),
 
@@ -1315,25 +1345,6 @@ class _SignupState extends State<Signup> {
     );
   }
 
-  Widget _buildDropdownField<T extends Object>({
-    required String label,
-    required T? value,
-    required List<T> items,
-    required String hintText,
-    required String Function(T) itemLabel,
-    required void Function(T?) onChanged,
-    String? Function(T?)? validator,
-  }) {
-    return SearchableDropdown<T>(
-      label: label,
-      value: value,
-      items: items,
-      itemLabel: itemLabel,
-      onChanged: onChanged,
-      validator: validator,
-      hintText: hintText,
-    );
-  }
 
   @override
   void dispose() {

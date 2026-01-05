@@ -15,6 +15,7 @@ import 'package:aboglumbo_bbk_panel/pages/home/worker/worker_home.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/bloc/login_bloc.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
 import 'package:aboglumbo_bbk_panel/services/notification_services.dart';
+import 'package:aboglumbo_bbk_panel/services/technician_location_update_service.dart';
 
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:aboglumbo_bbk_panel/styles/icons.dart';
@@ -45,7 +46,7 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
+class _HomeState extends State<Home> with WidgetsBindingObserver {
   int currentIndex = 0;
   String selectedBookingStatus = 'P';
 
@@ -55,6 +56,7 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
+    super.initState();
     log('initState');
     log('newIndex: ${widget.newIndex}');
     currentIndex = widget.newIndex ?? 0;
@@ -64,12 +66,23 @@ class _HomeState extends State<Home> {
     } else {
       selectedBookingStatus = 'P';
     }
+    
+    // Add observer for app lifecycle
+    WidgetsBinding.instance.addObserver(this);
+    
     // Initialize notifications explicitly
     Future.delayed(Duration.zero, () async {
       await NotificationServices.initializeNotifications();
       await NotificationServices.setupFCMListeners();
       await NotificationServices.checkForInitialMessage();
+      
+      // Initialize background location updates for technicians
+      await TechnicianLocationUpdateService.initializeBackgroundLocationUpdates();
+
+      // Update location immediately on app startup
+      await TechnicianLocationUpdateService.updateLocationNow();
     });
+    
     _loadRolePreference(); // Load saved role preference
     if (widget.byPassUid != null && widget.byPassUid!.isNotEmpty) {
       _handleBypassLogin();
@@ -80,7 +93,27 @@ class _HomeState extends State<Home> {
         context.read<LoginBloc>().add(LoadWorkerData(uid: uid));
       }
     }
-    super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.resumed) {
+      // App came to foreground - update location
+      debugPrint('🔄 App resumed - updating location');
+      TechnicianLocationUpdateService.updateLocationNow();
+      TechnicianLocationUpdateService.startBackgroundLocationUpdates();
+    } else if (state == AppLifecycleState.paused) {
+      // App went to background
+      debugPrint('⏸️ App paused');
+    }
   }
 
   void _handleBypassLogin() {

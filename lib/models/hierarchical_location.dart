@@ -54,11 +54,15 @@ class District {
   final String district_id;
   final String district_ar;
   final String district_en;
+  final double latitude;
+  final double longitude;
 
   District({
     required this.district_id,
     required this.district_ar,
     required this.district_en,
+    required this.latitude,
+    required this.longitude,
   });
 
   factory District.fromJson(Map<String, dynamic> json) {
@@ -66,6 +70,8 @@ class District {
       district_id: json['district_id'],
       district_ar: json['district_ar'],
       district_en: json['district_en'],
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }
