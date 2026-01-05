@@ -70,26 +70,26 @@ class _LoginPageState extends State<LoginPage> {
 
   void _onPhoneNumberChanged() {
     final phoneNumber = _phoneController.text;
-    if (phoneNumber.isNotEmpty) {
-      // Detect country by matching phone number pattern
-      // Works with both local format (0512345678) and international (+966512345678)
-      final detectedCountry = CountryCodeDetector.detectCountryByPattern(
-        phoneNumber,
-      );
-      if (detectedCountry != null && mounted) {
-        setState(() {
-          _detectedCountryCode = detectedCountry['country'];
-          _displayCountryCode = detectedCountry['dialCode'];
-          _detectedFlag = detectedCountry['flag'];
-        });
-      } else if (mounted) {
-        setState(() {
-          _detectedCountryCode = null;
-          _displayCountryCode = null;
-          _detectedFlag = null;
-        });
-      }
-    }
+    // if (phoneNumber.isNotEmpty) {
+    //   // Detect country by matching phone number pattern
+    //   // Works with both local format (0512345678) and international (+966512345678)
+    //   final detectedCountry = CountryCodeDetector.detectCountryByPattern(
+    //     phoneNumber,
+    //   );
+    //   if (detectedCountry != null && mounted) {
+    //     setState(() {
+    //       _detectedCountryCode = detectedCountry['country'];
+    //       _displayCountryCode = detectedCountry['dialCode'];
+    //       _detectedFlag = detectedCountry['flag'];
+    //     });
+    //   } else if (mounted) {
+    //     setState(() {
+    //       _detectedCountryCode = null;
+    //       _displayCountryCode = null;
+    //       _detectedFlag = null;
+    //     });
+    //   }
+    // }
   }
 
   @override
@@ -332,16 +332,15 @@ class _LoginPageState extends State<LoginPage> {
         decoration: InputDecoration(
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(12),
-          prefixIcon: _detectedFlag != null && _displayCountryCode != null
-              ? Row(
+          prefixIcon: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(_detectedFlag!, style: const TextStyle(fontSize: 18)),
+                    Text('🇸🇦', style: const TextStyle(fontSize: 18)),
                     const SizedBox(width: 8),
                     Directionality(
                       textDirection: TextDirection.ltr,
                       child: Text(
-                        _displayCountryCode!,
+                        '+966',
                         style: GoogleFonts.dmSans(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -350,8 +349,8 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   ],
-                )
-              : null,
+                ),
+           
         ),
         onFieldSubmitted: (_) => _onLoginPressed(),
       ),
@@ -499,7 +498,7 @@ class _LoginPageState extends State<LoginPage> {
               builder: (context) => OtpPage(
                 phoneNumber: CountryCodeDetector.formatPhoneNumber(
                   _phoneController.text.trim(),
-                  countryCode: _detectedCountryCode,
+                  countryCode: "SA",
                 ),
                 verificationId: state.verificationId,
               ),
