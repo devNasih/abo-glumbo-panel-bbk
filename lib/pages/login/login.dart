@@ -1,5 +1,6 @@
 import 'package:aboglumbo_bbk_panel/common_widget/loader.dart';
 import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
+import 'package:aboglumbo_bbk_panel/helpers/country_code_detector.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/privacy_policy_page.dart';
 import 'package:aboglumbo_bbk_panel/pages/account/terms_and_conditions_page.dart';
@@ -34,10 +35,66 @@ class _LoginPageState extends State<LoginPage> {
   bool isCheckUserEnableTwoStepVerification = false;
   String? customerLastUid;
   bool isUserLogout = false;
-  bool _isBiometricLoading = false; // ✅ ADD THIS
+  bool _isBiometricLoading = false;
+  String? _detectedCountryCode;
+  String? _displayCountryCode;
+  String? _detectedFlag;
+
+  @override
+  void initState() {
+    super.initState();
+    _phoneController.addListener(_onPhoneNumberChanged);
+    customerLastUid = LocalStore.getLastValidUID();
+
+    // ✅ Check biometric with last valid UID
+    isCheckUserEnableTwoStepVerification = LocalStore.getBiometricAuthEnabled(
+      customerLastUid ?? '',
+    );
+
+    isUserLogout = LocalStore.getLogoutStatus();
+    _isRememberMeChecked = LocalStore.getRememberMe();
+
+    if (_isRememberMeChecked) {
+      _phoneController.text = LocalStore.getRememberedPhone() ?? '';
+    } else {
+      _phoneController.clear();
+    }
+
+    // Initialize notifications explicitly
+    Future.delayed(Duration.zero, () async {
+      await NotificationServices.initializeNotifications();
+      await NotificationServices.setupFCMListeners();
+      await NotificationServices.checkForInitialMessage();
+    });
+  }
+
+  void _onPhoneNumberChanged() {
+    final phoneNumber = _phoneController.text;
+    if (phoneNumber.isNotEmpty) {
+      // Detect country by matching phone number pattern
+      // Works with both local format (0512345678) and international (+966512345678)
+      final detectedCountry = CountryCodeDetector.detectCountryByPattern(
+        phoneNumber,
+      );
+      if (detectedCountry != null && mounted) {
+        setState(() {
+          _detectedCountryCode = detectedCountry['country'];
+          _displayCountryCode = detectedCountry['dialCode'];
+          _detectedFlag = detectedCountry['flag'];
+        });
+      } else if (mounted) {
+        setState(() {
+          _detectedCountryCode = null;
+          _displayCountryCode = null;
+          _detectedFlag = null;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
+    _phoneController.removeListener(_onPhoneNumberChanged);
     _phoneController.dispose();
     super.dispose();
   }
@@ -66,6 +123,14 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
+      // Format phone number with country code
+      final formattedPhoneNumber = CountryCodeDetector.formatPhoneNumber(
+        phoneNumber,
+        countryCode: _detectedCountryCode,
+      );
+      debugPrint('📱 [PANEL LOGIN] Original: $phoneNumber');
+      debugPrint('📱 [PANEL LOGIN] Formatted: $formattedPhoneNumber');
+
       // Save phone if remember me is checked
       if (_isRememberMeChecked) {
         await LocalStore.rememberPhone(phoneNumber);
@@ -75,7 +140,7 @@ class _LoginPageState extends State<LoginPage> {
 
       if (mounted) {
         context.read<LoginBloc>().add(
-          SendOTPPressed(context: context, phoneNumber: phoneNumber),
+          SendOTPPressed(context: context, phoneNumber: formattedPhoneNumber),
         );
       }
     }
@@ -258,7 +323,7 @@ class _LoginPageState extends State<LoginPage> {
         controller: _phoneController,
         textInputAction: TextInputAction.done,
         keyboardType: TextInputType.number,
-        inputFormatters: [LengthLimitingTextInputFormatter(9)],
+
         style: GoogleFonts.dmSans(
           color: Colors.black,
           fontSize: 16,
@@ -267,22 +332,26 @@ class _LoginPageState extends State<LoginPage> {
         decoration: InputDecoration(
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(12),
-          prefixIcon: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Directionality(
-                textDirection: TextDirection.ltr,
-                child: Text(
-                  "+966",
-                  style: GoogleFonts.dmSans(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-            ],
-          ),
+          prefixIcon: _detectedFlag != null && _displayCountryCode != null
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_detectedFlag!, style: const TextStyle(fontSize: 18)),
+                    const SizedBox(width: 8),
+                    Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Text(
+                        _displayCountryCode!,
+                        style: GoogleFonts.dmSans(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : null,
         ),
         onFieldSubmitted: (_) => _onLoginPressed(),
       ),
@@ -414,35 +483,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-
-    // ✅ Get last valid UID
-    customerLastUid = LocalStore.getLastValidUID();
-
-    // ✅ Check biometric with last valid UID
-    isCheckUserEnableTwoStepVerification = LocalStore.getBiometricAuthEnabled(
-      customerLastUid ?? '',
-    );
-
-    isUserLogout = LocalStore.getLogoutStatus();
-    _isRememberMeChecked = LocalStore.getRememberMe();
-
-    if (_isRememberMeChecked) {
-      _phoneController.text = LocalStore.getRememberedPhone() ?? '';
-    } else {
-      _phoneController.clear();
-    }
-
-    // Initialize notifications explicitly
-    Future.delayed(Duration.zero, () async {
-      await NotificationServices.initializeNotifications();
-      await NotificationServices.setupFCMListeners();
-      await NotificationServices.checkForInitialMessage();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return BlocConsumer<LoginBloc, LoginState>(
       listener: (context, state) {
@@ -457,7 +497,10 @@ class _LoginPageState extends State<LoginPage> {
             context,
             MaterialPageRoute(
               builder: (context) => OtpPage(
-                phoneNumber: _phoneController.text.trim(),
+                phoneNumber: CountryCodeDetector.formatPhoneNumber(
+                  _phoneController.text.trim(),
+                  countryCode: _detectedCountryCode,
+                ),
                 verificationId: state.verificationId,
               ),
             ),

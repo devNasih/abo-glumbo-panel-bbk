@@ -6,6 +6,7 @@ import 'package:aboglumbo_bbk_panel/helpers/local_store.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
 import 'package:aboglumbo_bbk_panel/pages/login/login.dart';
 import 'package:aboglumbo_bbk_panel/services/auth_services.dart';
+import 'package:aboglumbo_bbk_panel/services/sms_autofill_service.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -33,13 +34,16 @@ class _OtpPageState extends State<OtpPage> {
   bool isLoading = false;
   bool isResendingOtp = false;
   bool _isMigratingCustomerData = false;
+  bool _isSmsAutofillListening = false;
   int resendSeconds = 60;
   Timer? _timer;
+  Timer? _smsListeningTimer;
   final _formKey = GlobalKey<FormState>();
   final otpController = TextEditingController();
   String? _verificationId;
   int? _resendToken;
   bool _isDialogShowing = false;
+  final SmsAutofillService _smsAutofillService = SmsAutofillService();
 
   @override
   void initState() {
@@ -47,6 +51,7 @@ class _OtpPageState extends State<OtpPage> {
     _verificationId = widget.verificationId;
     _resendToken = widget.resendToken;
     startTimer();
+    _startSmsAutofillListener();
   }
 
   int get _remainingTime => resendSeconds;
@@ -438,9 +443,77 @@ class _OtpPageState extends State<OtpPage> {
     }
   }
 
+  /// Start listening for incoming SMS
+  void _startSmsAutofillListener() {
+    debugPrint('🎯 [PANEL OTP] Starting SMS autofill listener...');
+
+    if (!mounted) return;
+
+    setState(() {
+      _isSmsAutofillListening = true;
+    });
+
+    // Set a timeout for SMS listening (30 seconds)
+    _smsListeningTimer = Timer(const Duration(seconds: 30), () {
+      if (mounted) {
+        setState(() {
+          _isSmsAutofillListening = false;
+        });
+        _smsAutofillService.cancelListening();
+        debugPrint('⏰ [PANEL OTP] SMS listening timeout reached');
+      }
+    });
+
+    _listenForSmsCode();
+  }
+
+  /// Listen for SMS code and auto-fill the OTP field
+  void _listenForSmsCode() async {
+    try {
+      debugPrint('👂 [PANEL OTP] Listening for SMS code...');
+
+      final smsCode = await _smsAutofillService.listenForSms(
+        timeout: const Duration(seconds: 30),
+      );
+
+      if (smsCode != null && smsCode.isNotEmpty && mounted) {
+        debugPrint('✅ [PANEL OTP] SMS code received: $smsCode');
+
+        // Fill the OTP field with the received code
+        otpController.text = smsCode;
+
+        // Clear the form to reset validation
+        _formKey.currentState?.reset();
+
+        setState(() {
+          _isSmsAutofillListening = false;
+        });
+
+        // Cancel the listening timer
+        _smsListeningTimer?.cancel();
+
+        // Automatically verify the OTP after a short delay
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          debugPrint('🔐 [PANEL OTP] Auto-verifying OTP from SMS...');
+          verifyOtp();
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ [PANEL OTP] Error listening for SMS: $e');
+      if (mounted) {
+        setState(() {
+          _isSmsAutofillListening = false;
+        });
+      }
+    }
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
+    _smsListeningTimer?.cancel();
+    _smsAutofillService.cancelListening();
     otpController.dispose();
     super.dispose();
   }
@@ -486,7 +559,7 @@ class _OtpPageState extends State<OtpPage> {
                               child: Directionality(
                                 textDirection: TextDirection.ltr,
                                 child: Text(
-                                  " +966${widget.phoneNumber} ",
+                                  " ${widget.phoneNumber} ",
                                   style: GoogleFonts.dmSans(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
@@ -520,6 +593,7 @@ class _OtpPageState extends State<OtpPage> {
                     maxLength: 6,
                     obscureText: true,
                     obscuringCharacter: "*",
+                    autofillHints: const [AutofillHints.oneTimeCode],
                     style: GoogleFonts.dmSans(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -527,6 +601,13 @@ class _OtpPageState extends State<OtpPage> {
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
+                      ),
+                      helperText: _isSmsAutofillListening
+                          ? '🎯 Listening for SMS...'
+                          : null,
+                      helperStyle: GoogleFonts.dmSans(
+                        fontSize: 12,
+                        color: AppColors.green,
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -536,7 +617,11 @@ class _OtpPageState extends State<OtpPage> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: AppColors.green),
+                        borderSide: BorderSide(
+                          color: _isSmsAutofillListening
+                              ? AppColors.green
+                              : AppColors.green,
+                        ),
                       ),
                       disabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),

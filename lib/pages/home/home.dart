@@ -26,7 +26,14 @@ class Home extends StatefulWidget {
   final String? byPassUid;
   final int? newIndex;
   final String? selectedFilter;
-  const Home({super.key, this.byPassUid, this.newIndex, this.selectedFilter});
+  final bool isNewRegistration;
+  const Home({
+    super.key,
+    this.byPassUid,
+    this.newIndex,
+    this.selectedFilter,
+    this.isNewRegistration = false,
+  });
 
   static bool hasShownWelcomeModal = false;
 
@@ -212,15 +219,15 @@ class _HomeState extends State<Home> {
           );
         }
 
-        // Show welcome modal for technicians with availability disabled
-        // Allow technicians who have been granted admin access (level 1) to also see this modal ONLY if in technician mode
-        if (!Home.hasShownWelcomeModal &&
-            (userData.isAdmin != true ||
+        // Show welcome modal when:
+        // 1. Availability is disabled (isOnline != true) - for both new registrations and subsequent logins
+        // 2. Only applies to non-admin or level-1 granted admins in technician mode
+        if ((userData.isAdmin != true ||
                 (userData.isGrantedAdminByMain == true &&
                     userData.adminAccessLevel == 1 &&
                     _currentRole == 'technician')) &&
-            userData.isVerified == true &&
-            userData.isOnline != true) {
+            userData.isOnline != true &&
+            !Home.hasShownWelcomeModal) {
           Home.hasShownWelcomeModal = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             TechnicianWelcomeModal.show(

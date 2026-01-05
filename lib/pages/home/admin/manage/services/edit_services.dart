@@ -1,11 +1,13 @@
 // ...existing imports...
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:aboglumbo_bbk_panel/common_widget/crop_confirm_dialog.dart';
-import 'package:aboglumbo_bbk_panel/common_widget/multiple_location_selector.dart';
+import 'package:aboglumbo_bbk_panel/common_widget/hierarchical_location_selector.dart';
 import 'package:aboglumbo_bbk_panel/common_widget/saving_stack.dart';
 import 'package:aboglumbo_bbk_panel/helpers/firestore.dart';
 import 'package:aboglumbo_bbk_panel/l10n/app_localizations.dart';
+import 'package:aboglumbo_bbk_panel/models/hierarchical_location.dart';
 import 'package:aboglumbo_bbk_panel/styles/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -14,7 +16,6 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import '/models/categories.dart';
 import '/models/service.dart';
-import '/models/location.dart';
 
 class AddServicesDevPage extends StatefulWidget {
   const AddServicesDevPage({super.key, this.service});
@@ -26,13 +27,11 @@ class AddServicesDevPage extends StatefulWidget {
 
 class _AddServicesDevPageState extends State<AddServicesDevPage> {
   /// Call this after deleting a service to remove it from all highlighted services
- 
 
   final _formKey = GlobalKey<FormState>();
 
   bool contentLoading = true;
   List<CategoryModel> categories = [];
-  List<LocationModel> locations = []; // Add locations list
   bool isSaving = false;
   double? imageUploadProgress;
 
@@ -45,7 +44,7 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
 
   XFile? selectedImage;
   CategoryModel? selectedCategory;
-  List<LocationModel> selectedLocations = []; // Add selected locations
+  List<SelectedCity> selectedCities = [];
 
   final arabicFullRegex = RegExp(r'''^[\u0600-\u06FF
        \u0750-\u077F
@@ -56,7 +55,7 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
        \u06F0-\u06F9
        \u200C-\u200F
        \s\n\r\d
-       \.\,\!\?\،\؛\؟\:\-\(\)\[\]\"\'\u061F]+$''', multiLine: true);
+       \.\,\!\?\،\؛\؟\:\-\(\)\[\]\"\'\\u061F]+$''', multiLine: true);
 
   @override
   void initState() {
@@ -68,10 +67,10 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
 
   Future<void> _initializeData() async {
     try {
-      // Wait for both operations to complete concurrently
-      await Future.wait([loadCategories(), loadLocations()]);
+      // Load categories
+      await loadCategories();
 
-      // Fill contents after both are loaded
+      // Fill contents after loading
       fillContents();
     } catch (e) {
       log('Error initializing data: $e');
@@ -115,37 +114,7 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
           ),
         );
       }
-      rethrow; // Re-throw so Future.wait catches it
-    }
-  }
-
-  Future<void> loadLocations() async {
-    try {
-      var response = await AppFirestore.locationsCollectionRef.get();
-      setState(() {
-        locations = response.docs.map((e) {
-          return LocationModel.fromQuerySnapshot(e);
-        }).toList();
-      });
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)?.failedToLoadLocations ??
-                  'Failed to load locations',
-            ),
-            action: SnackBarAction(
-              label: AppLocalizations.of(context)?.retry ?? 'Retry',
-              onPressed: loadLocations,
-            ),
-          ),
-        );
-      }
-      setState(() {
-        locations = [];
-      });
-      rethrow; // Re-throw so Future.wait catches it
+      rethrow;
     }
   }
 
@@ -158,12 +127,34 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
       priceController.text = widget.service!.price.toString();
       isActive = widget.service!.isActive;
 
+      // Restore hierarchical location data
+      // Support both old district-based and new city-based formats
       if (widget.service!.locations.isNotEmpty) {
-        selectedLocations = locations.where((location) {
-          return widget.service!.locations.contains(location.id);
-        }).toList();
+        selectedCities = [];
+        for (final locationJsonStr in widget.service!.locations) {
+          if (locationJsonStr == null || locationJsonStr.isEmpty) continue;
+          try {
+            final locationMap =
+                jsonDecode(locationJsonStr) as Map<String, dynamic>;
+
+            // Check if it's old format (has districtId) or new format (city only)
+            if (locationMap.containsKey('districtId')) {
+              // Old format - convert to city-based (avoid duplicates)
+              final oldDistrict = SelectedDistrict.fromJson(locationMap);
+              final newCity = oldDistrict.toSelectedCity();
+              if (!selectedCities.any((c) => c.cityId == newCity.cityId)) {
+                selectedCities.add(newCity);
+              }
+            } else {
+              // New format - use directly
+              selectedCities.add(SelectedCity.fromJson(locationMap));
+            }
+          } catch (e) {
+            log('Error parsing location: $e');
+          }
+        }
       } else {
-        selectedLocations = [];
+        selectedCities = [];
       }
 
       try {
@@ -217,40 +208,7 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
     }
   }
 
-  // Method to show location selector
-  Future<void> _showLocationSelector() async {
-    final result = await LocationSelectorHelper.showMultipleLocationSelector(
-      context: context,
-      locations: locations,
-      selectedLocations: selectedLocations,
-      title:
-          AppLocalizations.of(context)?.selectLocations ?? 'Select Locations',
-      searchHint:
-          AppLocalizations.of(context)?.searchLocation ?? 'Search location',
-      noLocationsMessage:
-          AppLocalizations.of(context)?.noLocationsFound ??
-          'No locations found',
-    );
-
-    if (result != null) {
-      setState(() {
-        selectedLocations = result;
-      });
-    }
-  }
-
   Future saveContent() async {
-    if (selectedLocations.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)?.pleaseSelectALocation ??
-                'Please select at least one location',
-          ),
-        ),
-      );
-      return;
-    }
     if (_formKey.currentState!.validate()) {
       setState(() => isSaving = true);
       try {
@@ -261,9 +219,9 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
           description_ar: descriptionArController.text.trim(),
           price: double.tryParse(priceController.text.trim()),
           category: selectedCategory?.id,
-          locations: selectedLocations.isNotEmpty
-              ? selectedLocations
-                    .map((location) => location.id)
+          locations: selectedCities.isNotEmpty
+              ? selectedCities
+                    .map((city) => jsonEncode(city.toJson()))
                     .toList()
                     .cast<String?>()
               : <String?>[],
@@ -273,9 +231,9 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
         if (widget.service != null) {
           service = service.copyWith(
             id: widget.service!.id,
-            locations: selectedLocations.isNotEmpty
-                ? selectedLocations
-                      .map((location) => location.id)
+            locations: selectedCities.isNotEmpty
+                ? selectedCities
+                      .map((city) => jsonEncode(city.toJson()))
                       .toList()
                       .cast<String?>()
                 : <String?>[],
@@ -488,74 +446,18 @@ class _AddServicesDevPageState extends State<AddServicesDevPage> {
                 ),
               ),
 
-              // Location Selector Field
+              // Hierarchical Location Selector Field
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    InkWell(
-                      onTap: _showLocationSelector,
-                      child: InputDecorator(
-                        decoration: InputDecoration(
-                          labelText:
-                              AppLocalizations.of(context)?.selectLocations ??
-                              'Select Locations',
-                          border: const OutlineInputBorder(),
-                          suffixIcon: const Icon(Icons.location_on),
-                        ),
-                        child: Text(
-                          selectedLocations.isEmpty
-                              ? AppLocalizations.of(
-                                      context,
-                                    )?.tapToSelectLocations ??
-                                    'Tap to select locations'
-                              : '${selectedLocations.length} ${selectedLocations.length == 1 ? (AppLocalizations.of(context)?.locationSelected ?? 'location selected') : (AppLocalizations.of(context)?.locationsSelected ?? 'locations selected')}',
-                          style: TextStyle(
-                            color: selectedLocations.isEmpty
-                                ? Colors.grey
-                                : null,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Display selected locations as chips
-                    // if (selectedLocations.isNotEmpty) ...[
-                    //   const SizedBox(height: 8),
-                    //   Wrap(
-                    //     spacing: 8,
-                    //     runSpacing: 4,
-                    //     children: selectedLocations.map((location) {
-                    //       final locationName = isArabic == true
-                    //           ? (location.name_ar ?? location.name ?? '')
-                    //           : (location.name ?? '');
-                    //       return Chip(
-                    //         label: Text(
-                    //           locationName,
-                    //           style: const TextStyle(
-                    //             fontSize: 12,
-                    //             color: Colors.white,
-                    //           ),
-                    //         ),
-                    //         backgroundColor: AppColors.secondary,
-                    //         deleteIcon: const Icon(
-                    //           Icons.close,
-                    //           size: 16,
-                    //           color: Colors.white,
-                    //         ),
-                    //         onDeleted: () {
-                    //           setState(() {
-                    //             selectedLocations.removeWhere(
-                    //               (selected) => selected.id == location.id,
-                    //             );
-                    //           });
-                    //         },
-                    //       );
-                    //     }).toList(),
-                    //   ),
-                    // ],
-                  ],
+                child: HierarchicalLocationSelector(
+                  selectedCities: selectedCities,
+                  onChanged: (cities) {
+                    setState(() {
+                      selectedCities = cities;
+                    });
+                  },
+                  // Location selection is now optional
+                  validator: null,
                 ),
               ),
 

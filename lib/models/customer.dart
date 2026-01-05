@@ -1,6 +1,7 @@
 import 'package:aboglumbo_bbk_panel/models/address.dart';
 import 'package:aboglumbo_bbk_panel/models/location.dart';
 import 'package:aboglumbo_bbk_panel/models/user.dart';
+import 'package:aboglumbo_bbk_panel/helpers/country_code_detector.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CustomerModel {
@@ -94,12 +95,20 @@ class CustomerModel {
   }
 
   Map<String, dynamic> toJson() {
+    // Format phone number with country code when storing to Firebase
+    final formattedPhone = phone != null
+        ? CountryCodeDetector.convertToFirebaseFormat(
+            phone!,
+            countryCode: country,
+          )
+        : null;
+
     return {
       'uid': uid,
       'name': name,
       'email': email,
       'role': role,
-      'phone': phone,
+      'phone': formattedPhone,
       'fcmToken': fcmToken,
       'lanCode': lanCode,
       'country': country,
@@ -184,7 +193,22 @@ class CustomerModel {
     checkAndSet('name', name, previous.name);
     checkAndSet('role', role, previous.role);
     checkAndSet('email', email, previous.email);
-    checkAndSet('phone', phone, previous.phone);
+    
+    // Format phone number with country code for Firebase
+    final formattedPhone = phone != null
+        ? CountryCodeDetector.convertToFirebaseFormat(
+            phone!,
+            countryCode: country,
+          )
+        : null;
+    final formattedPreviousPhone = previous.phone != null
+        ? CountryCodeDetector.convertToFirebaseFormat(
+            previous.phone!,
+            countryCode: previous.country,
+          )
+        : null;
+    checkAndSet('phone', formattedPhone, formattedPreviousPhone);
+    
     checkAndSet('fcmToken', fcmToken, previous.fcmToken);
     checkAndSet('lanCode', lanCode, previous.lanCode);
     checkAndSet('country', country, previous.country);

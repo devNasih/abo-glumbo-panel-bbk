@@ -140,9 +140,14 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
 
       for (String recipientId in selectedRecipientIds) {
         try {
+          // Determine collection based on recipient type
+          final String collectionName = _recipientType == 'customer'
+              ? 'customers'
+              : 'users';
+
           // Store notification in Firestore with both languages
           final notificationRef = _firestore
-              .collection('users')
+              .collection(collectionName)
               .doc(recipientId)
               .collection('notifications')
               .doc();
@@ -162,6 +167,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
 
           batch.set(queueRef, {
             'recipientId': recipientId,
+            'recipientCollection': collectionName, // Added to help backend
             'titleEn': _titleEnController.text,
             'bodyEn': _bodyEnController.text,
             'titleAr': _titleArController.text,
@@ -1065,9 +1071,9 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  isEnglish
-                                      ? "Abo Glumbo Worker"
-                                      : "عامل ابو جلمبو",
+                                  _recipientType == "technician"
+                                      ? "Abo Glumbo - Technician"
+                                      : "Abo Glumbo - Customer",
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
